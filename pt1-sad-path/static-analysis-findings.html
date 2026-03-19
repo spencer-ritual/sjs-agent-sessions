@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ritual Chain Static Analysis — Findings Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg-0:#0a0a12;--bg-1:#12121f;--bg-2:#1a1a2e;--bg-3:#24243a;
+  --text-0:#e8e6f0;--text-1:#b0adc0;--text-2:#7a7890;
+  --accent:#7c5cfc;--accent2:#a78bfa;
+  --crit:#ff3366;--high:#ff6b35;--med-high:#ff9f1c;--med:#f5c542;
+  --low-med:#8ac926;--low:#36d399;--info:#38bdf8;--good:#22d3ee;
+  --bydesign:#a78bfa;--na:#64748b;
+  --border:#2a2a44;--radius:8px;
+}
+body{background:var(--bg-0);color:var(--text-0);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;line-height:1.5;min-height:100vh}
+code,pre,.mono{font-family:'JetBrains Mono','Fira Code','Cascadia Code',monospace}
+a{color:var(--accent2);text-decoration:none}a:hover{text-decoration:underline}
+
+/* Header */
+.header{background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);border-bottom:1px solid var(--border);padding:24px 32px}
+.header h1{font-size:1.6rem;font-weight:700;letter-spacing:-0.5px}
+.header .subtitle{color:var(--text-2);font-size:0.85rem;margin-top:4px}
+.badge-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center}
+.sev-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:600}
+.sev-CRITICAL{background:rgba(255,51,102,0.2);color:var(--crit);border:1px solid rgba(255,51,102,0.3)}
+.sev-HIGH{background:rgba(255,107,53,0.2);color:var(--high);border:1px solid rgba(255,107,53,0.3)}
+.sev-MEDIUM-HIGH{background:rgba(255,159,28,0.2);color:var(--med-high);border:1px solid rgba(255,159,28,0.3)}
+.sev-MEDIUM{background:rgba(245,197,66,0.2);color:var(--med);border:1px solid rgba(245,197,66,0.3)}
+.sev-LOW-MEDIUM{background:rgba(138,201,38,0.2);color:var(--low-med);border:1px solid rgba(138,201,38,0.3)}
+.sev-LOW{background:rgba(54,211,153,0.2);color:var(--low);border:1px solid rgba(54,211,153,0.3)}
+.sev-INFO{background:rgba(56,189,248,0.2);color:var(--info);border:1px solid rgba(56,189,248,0.3)}
+.sev-GOOD{background:rgba(34,211,238,0.2);color:var(--good);border:1px solid rgba(34,211,238,0.3)}
+.sev-BY-DESIGN{background:rgba(167,139,250,0.2);color:var(--bydesign);border:1px solid rgba(167,139,250,0.3)}
+.sev-NA{background:rgba(100,116,139,0.2);color:var(--na);border:1px solid rgba(100,116,139,0.3)}
+
+/* Tabs */
+.tabs{display:flex;gap:0;background:var(--bg-1);border-bottom:1px solid var(--border);padding:0 32px}
+.tab{padding:12px 20px;cursor:pointer;color:var(--text-2);font-size:0.85rem;font-weight:500;border-bottom:2px solid transparent;transition:all .2s}
+.tab:hover{color:var(--text-0)}
+.tab.active{color:var(--accent2);border-bottom-color:var(--accent)}
+.tab-content{display:none}.tab-content.active{display:block}
+
+/* Controls */
+.controls{background:var(--bg-1);padding:16px 32px;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.search-box{background:var(--bg-2);border:1px solid var(--border);color:var(--text-0);padding:8px 14px;border-radius:var(--radius);font-size:0.85rem;width:260px;outline:none}
+.search-box:focus{border-color:var(--accent)}
+.filter-group{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.filter-group label{color:var(--text-2);font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-right:4px}
+.filter-btn{background:var(--bg-2);border:1px solid var(--border);color:var(--text-1);padding:4px 10px;border-radius:6px;font-size:0.75rem;cursor:pointer;transition:all .15s}
+.filter-btn:hover{border-color:var(--accent)}
+.filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn{background:var(--accent);color:#fff;border:none;padding:8px 16px;border-radius:var(--radius);font-size:0.8rem;cursor:pointer;font-weight:500;transition:background .2s}
+.btn:hover{background:#6a4ae0}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text-1)}
+.btn-outline:hover{border-color:var(--accent);color:var(--text-0)}
+
+/* Cards */
+.main{padding:24px 32px}
+.card-list{display:flex;flex-direction:column;gap:8px}
+.finding-card{background:var(--bg-1);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .2s}
+.finding-card:hover{border-color:var(--accent)}
+.finding-card.dismissed{opacity:0.5}
+.card-header{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;user-select:none}
+.card-header .fid{font-family:monospace;font-weight:700;font-size:0.85rem;min-width:90px}
+.card-header .fsummary{flex:1;font-size:0.85rem;color:var(--text-0)}
+.card-header .fmeta{display:flex;gap:8px;align-items:center;font-size:0.75rem;color:var(--text-2)}
+.card-header .agent-tag{background:var(--bg-3);padding:2px 8px;border-radius:4px;font-size:0.7rem;font-weight:600}
+.card-header .conf{font-size:0.7rem}
+.card-header .repo-tag{font-family:monospace;font-size:0.7rem;color:var(--text-2)}
+.card-header .expand-icon{color:var(--text-2);transition:transform .2s;font-size:1rem}
+.finding-card.open .expand-icon{transform:rotate(90deg)}
+
+.card-detail{display:none;padding:0 16px 16px;border-top:1px solid var(--border)}
+.finding-card.open .card-detail{display:block}
+.card-detail .detail-grid{display:grid;grid-template-columns:120px 1fr;gap:4px 12px;font-size:0.8rem;margin-top:12px}
+.card-detail .detail-grid dt{color:var(--text-2);font-weight:600}
+.card-detail .detail-grid dd{color:var(--text-0)}
+.card-detail .detail-text{margin-top:12px;font-size:0.82rem;color:var(--text-1);white-space:pre-wrap;line-height:1.6;max-height:400px;overflow-y:auto;padding:12px;background:var(--bg-2);border-radius:6px}
+.dismiss-row{margin-top:12px;display:flex;align-items:center;gap:12px}
+.dismiss-row label{font-size:0.8rem;color:var(--text-2);cursor:pointer;display:flex;align-items:center;gap:6px}
+.dismiss-row input[type=checkbox]{accent-color:var(--accent)}
+.dismiss-note{background:var(--bg-2);border:1px solid var(--border);color:var(--text-0);padding:6px 10px;border-radius:6px;font-size:0.8rem;flex:1;outline:none}
+.dismiss-note:focus{border-color:var(--accent)}
+
+/* Themes */
+.themes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
+.theme-card{background:var(--bg-1);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.theme-card h3{font-size:0.95rem;margin-bottom:6px}
+.theme-card p{font-size:0.8rem;color:var(--text-1);margin-bottom:10px}
+.theme-card .theme-findings{display:flex;flex-wrap:wrap;gap:4px}
+.theme-card .theme-fid{font-family:monospace;font-size:0.7rem;background:var(--bg-3);padding:2px 6px;border-radius:4px;cursor:pointer;color:var(--accent2)}
+.theme-card .theme-fid:hover{background:var(--accent);color:#fff}
+
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:16px}
+.stat-box{background:var(--bg-1);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.stat-box h3{font-size:0.9rem;margin-bottom:16px;color:var(--text-1)}
+.bar-chart{display:flex;flex-direction:column;gap:6px}
+.bar-row{display:flex;align-items:center;gap:8px}
+.bar-label{font-size:0.75rem;color:var(--text-2);min-width:140px;text-align:right;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-track{flex:1;height:20px;background:var(--bg-2);border-radius:4px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:4px;transition:width .5s ease}
+.bar-count{font-size:0.7rem;color:var(--text-2);min-width:28px;text-align:right}
+
+/* Sort */
+.sort-row{display:flex;gap:6px;align-items:center;margin-bottom:12px}
+.sort-row label{font-size:0.75rem;color:var(--text-2);font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
+
+/* Count */
+.results-count{font-size:0.8rem;color:var(--text-2);margin-bottom:12px}
+
+/* Responsive */
+@media(max-width:768px){
+  .header,.controls,.main,.tabs{padding-left:16px;padding-right:16px}
+  .search-box{width:100%}
+  .card-header{flex-wrap:wrap}
+  .card-header .fmeta{width:100%;margin-top:4px}
+  .stats-grid,.themes-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Ritual Chain — Static Analysis Findings</h1>
+  <div class="subtitle">Comprehensive audit across 277 findings &middot; 19 analysis agents &middot; 12 repositories</div>
+  <div class="badge-row" id="headerBadges"></div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="findings">Findings</div>
+  <div class="tab" data-tab="themes">Cross-Cutting Themes</div>
+  <div class="tab" data-tab="stats">Statistics</div>
+</div>
+
+<div id="tab-findings" class="tab-content active">
+  <div class="controls">
+    <input type="text" class="search-box" id="searchBox" placeholder="Search findings...">
+    <div class="filter-group" id="sevFilters"><label>Severity</label></div>
+    <div class="filter-group" id="agentFilters"><label>Agent</label></div>
+    <div class="filter-group" id="repoFilters"><label>Repo</label></div>
+    <div class="filter-group" id="themeFilters"><label>Theme</label></div>
+    <label style="font-size:0.8rem;color:var(--text-2);cursor:pointer;display:flex;align-items:center;gap:4px">
+      <input type="checkbox" id="showDismissed" checked> Show dismissed
+    </label>
+    <button class="btn btn-outline" onclick="exportJSON()">Export JSON</button>
+    <button class="btn btn-outline" onclick="resetAll()">Reset</button>
+  </div>
+  <div class="main">
+    <div class="sort-row">
+      <label>Sort:</label>
+      <button class="filter-btn active" data-sort="severity" onclick="setSort('severity')">Severity</button>
+      <button class="filter-btn" data-sort="agent" onclick="setSort('agent')">Agent</button>
+      <button class="filter-btn" data-sort="confidence" onclick="setSort('confidence')">Confidence</button>
+      <button class="filter-btn" data-sort="file" onclick="setSort('file')">File</button>
+      <button class="filter-btn" data-sort="id" onclick="setSort('id')">ID</button>
+    </div>
+    <div class="results-count" id="resultsCount"></div>
+    <div class="card-list" id="cardList"></div>
+  </div>
+</div>
+
+<div id="tab-themes" class="tab-content">
+  <div class="main">
+    <div class="themes-grid" id="themesGrid"></div>
+  </div>
+</div>
+
+<div id="tab-stats" class="tab-content">
+  <div class="main">
+    <div class="stats-grid" id="statsGrid"></div>
+  </div>
+</div>
+
+<script>
+// ===== DATA =====
+const FINDINGS = [{"id": "A1-001", "sev": "HIGH", "agent": "A1", "repo": "ritual-reth-internal", "file": "verifier.rs:2507", "summary": "SPC verification skips 3 precompile types (Sovereign Agent, Persistent Agent, FHE)", "conf": 0.95, "details": ""}, {"id": "A1-002", "sev": "MEDIUM", "agent": "A1", "repo": "ritual-reth-internal", "file": "verifier.rs:3578", "summary": "u256_from_be_slice truncates 256-bit ABI offsets to 64-bit", "conf": 0.7, "details": ""}, {"id": "A1-003", "sev": "MEDIUM", "agent": "A1", "repo": "ritual-reth-internal", "file": "verifier.rs:1742", "summary": "Phase 2 deadline extraction None silently skips validation", "conf": 0.85, "details": ""}, {"id": "A1-004", "sev": "MEDIUM", "agent": "A1", "repo": "ritual-reth-internal", "file": "lib.rs:2956", "summary": "expect() panics in consensus-critical settlement creation", "conf": 0.6, "details": ""}, {"id": "A1-005", "sev": "LOW", "agent": "A1", "repo": "ritual-reth-internal", "file": "codecs/async_commitment.rs", "summary": "commit_block missing from compact storage codec", "conf": 0.75, "details": ""}, {"id": "A1-006", "sev": "LOW", "agent": "A1", "repo": "ritual-reth-internal", "file": "lib.rs/verifier.rs", "summary": "No validation commit_block matches actual block number", "conf": 0.8, "details": ""}, {"id": "A1-007", "sev": "INFO", "agent": "A1", "repo": "ritual-reth-internal", "file": "verifier.rs:74", "summary": "SKIP_VALIDITY_CONSTRAINTS env var (testnet-intentional)", "conf": 1.0, "details": ""}, {"id": "A1-008", "sev": "LOW", "agent": "A1", "repo": "ritual-reth-internal", "file": "verifier.rs:1399", "summary": "Redundant DB instances in settlement verification", "conf": 0.65, "details": ""}, {"id": "A2-001", "sev": "HIGH", "agent": "A2", "repo": "ritual-reth-internal", "file": "lib.rs:2884", "summary": "Phase 1/Phase 2 job ID mismatch (origin_tx vs keccak256(origin_tx_rlp))", "conf": 0.8, "details": ""}, {"id": "A2-002", "sev": "MEDIUM", "agent": "A2", "repo": "ritual-reth-internal", "file": "lib.rs:3274", "summary": "Phase 2 base_fee fallback inconsistency (dead code but maintenance hazard)", "conf": 0.7, "details": ""}, {"id": "A2-003", "sev": "MEDIUM", "agent": "A2", "repo": "ritual-reth-internal", "file": "lib.rs:3608", "summary": "Settlement fee uses effective_gas_price(None) vs Some(base_fee)", "conf": 0.45, "details": ""}, {"id": "A2-004", "sev": "MEDIUM", "agent": "A2", "repo": "ritual-reth-internal", "file": "llm.rs:178", "summary": "LLM fee calc uses f64 sqrt/powi -- non-determinism risk", "conf": 0.55, "details": ""}, {"id": "A2-005", "sev": "MEDIUM", "agent": "A2", "repo": "ritual-reth-internal", "file": "wallet.rs:325", "summary": "Delivery config decode failure silently zeros callback escrow", "conf": 0.65, "details": ""}, {"id": "A2-006", "sev": "LOW", "agent": "A2", "repo": "ritual-reth-internal", "file": "gas.rs:53", "summary": "saturating_add in calldata gas masks true overflow source", "conf": 0.9, "details": ""}, {"id": "A2-007", "sev": "LOW", "agent": "A2", "repo": "ritual-reth-internal", "file": "lib.rs:1158", "summary": "saturating_sub in blocks_waited silently returns 0", "conf": 0.75, "details": ""}, {"id": "A2-008", "sev": "INFO", "agent": "A2", "repo": "ritual-reth-internal", "file": "validators.rs:35", "summary": "Zero-input commitment fee is zero (intentional)", "conf": 0.9, "details": ""}, {"id": "A2-009", "sev": "INFO", "agent": "A2", "repo": "ritual-reth-internal", "file": "llm.rs:181", "summary": "u128::MAX as f64 precision loss in clamp (unreachable)", "conf": 0.95, "details": ""}, {"id": "A2-010", "sev": "INFO", "agent": "A2", "repo": "ritual-reth-internal", "file": "llm.rs:780", "summary": "LLM escrow uses 80/20 split instead of true worst-case", "conf": 0.75, "details": ""}, {"id": "A3-001", "sev": "HIGH", "agent": "A3", "repo": "ritual-reth-internal", "file": "pool/mod.rs:838", "summary": "AsyncCommitmentPool retains zombie entries after reorg", "conf": 0.85, "details": ""}, {"id": "A3-002", "sev": "MEDIUM", "agent": "A3", "repo": "ritual-reth-internal", "file": "in_memory.rs:532", "summary": "Blocking handlers receive no reorg information", "conf": 0.9, "details": ""}, {"id": "A3-003", "sev": "MEDIUM", "agent": "A3", "repo": "ritual-reth-internal", "file": "lib.rs:95", "summary": "HeartbeatTracker has no rollback mechanism", "conf": 0.92, "details": ""}, {"id": "A3-004", "sev": "MEDIUM", "agent": "A3", "repo": "ritual-reth-internal", "file": "singleton.rs:96", "summary": "Scheduler state not reverted on reorg", "conf": 0.8, "details": ""}, {"id": "A3-005", "sev": "MEDIUM-HIGH", "agent": "A3", "repo": "ritual-reth-internal", "file": "async_pool.rs:467", "summary": "Sender lock persists after commitment reorged out", "conf": 0.85, "details": ""}, {"id": "A3-006", "sev": "LOW-MEDIUM", "agent": "A3", "repo": "ritual-reth-internal", "file": "maintain.rs:532", "summary": "Re-injected transactions blocked by stale sender lock", "conf": 0.7, "details": ""}, {"id": "A3-007", "sev": "LOW", "agent": "A3", "repo": "ritual-reth-internal", "file": "pool/mod.rs:867", "summary": "Only tip block processed for new-chain commitments", "conf": 0.75, "details": ""}, {"id": "A3-008", "sev": "MEDIUM", "agent": "A3", "repo": "ritual-reth-internal", "file": "blocking_handlers.rs:83", "summary": "Stale heartbeat state causes spurious revival txs", "conf": 0.88, "details": ""}, {"id": "A4-F1", "sev": "CRITICAL", "agent": "A4", "repo": "ritual-reth-internal", "file": "signed.rs:187", "summary": "recover_signer hardcodes system sender, no crypto verification", "conf": null, "details": ""}, {"id": "A4-F2", "sev": "CRITICAL", "agent": "A4", "repo": "ritual-reth-internal", "file": "eth.rs:220", "summary": "TxAsyncSettlement rejected by catch-all (correct but fragile)", "conf": null, "details": ""}, {"id": "A4-F3", "sev": "HIGH", "agent": "A4", "repo": "ritual-reth-internal", "file": "eth.rs:263", "summary": "TxScheduled/TxAsyncCommitment pass pool validation from external users", "conf": null, "details": ""}, {"id": "A4-F4", "sev": "HIGH", "agent": "A4", "repo": "ritual-reth-internal", "file": "verifier.rs:71", "summary": "SKIP_VALIDITY_CONSTRAINTS bypasses all verification (testnet-intentional)", "conf": null, "details": ""}, {"id": "A4-F5", "sev": "HIGH", "agent": "A4", "repo": "ritual-reth-internal", "file": "verifier.rs", "summary": "No explicit system sender validation in block verification", "conf": null, "details": ""}, {"id": "A4-F6", "sev": "MEDIUM", "agent": "A4", "repo": "ritual-reth-internal", "file": "eth.rs:488", "summary": "Asymmetric nonce/balance exemptions", "conf": null, "details": ""}, {"id": "A4-F7", "sev": "MEDIUM", "agent": "A4", "repo": "ritual-reth-internal", "file": "transaction.rs:1970", "summary": "System txs convertible to PooledTransaction", "conf": null, "details": ""}, {"id": "A4-F8", "sev": "MEDIUM", "agent": "A4", "repo": "ritual-reth-internal", "file": "verifier.rs:1560", "summary": "Verifier silently skips when state_provider is None", "conf": null, "details": ""}, {"id": "A4-F9", "sev": "MEDIUM", "agent": "A4", "repo": "ritual-reth-internal", "file": "--", "summary": "TOCTOU between pool validation and block execution", "conf": null, "details": ""}, {"id": "A4-F10", "sev": "LOW", "agent": "A4", "repo": "ritual-reth-internal", "file": "--", "summary": "Inconsistent naming (async-exec vs async-commitment)", "conf": null, "details": ""}, {"id": "A4-F11", "sev": "LOW", "agent": "A4", "repo": "ritual-reth-internal", "file": "eth.rs:703", "summary": "Flags default true (system txs accepted by default)", "conf": null, "details": ""}, {"id": "A5-01", "sev": "MEDIUM", "agent": "A5", "repo": "ritual-reth-nodebuilder-internal", "file": "executor.rs:382", "summary": "without_state_clear() may break EIP-161", "conf": null, "details": ""}, {"id": "A5-02", "sev": "LOW", "agent": "A5", "repo": "ritual-reth-nodebuilder-internal", "file": "executor.rs:504", "summary": "Verification after execution (correct design)", "conf": null, "details": ""}, {"id": "A5-03", "sev": "MEDIUM", "agent": "A5", "repo": "ritual-reth-nodebuilder-internal", "file": "executor.rs:776", "summary": "build_evm() creates executor without verifier", "conf": null, "details": ""}, {"id": "A5-04", "sev": "HIGH", "agent": "A5", "repo": "ritual-reth-nodebuilder-internal", "file": "async_evm.rs:125", "summary": "async_context() panics if not set", "conf": null, "details": ""}, {"id": "A5-05", "sev": "MEDIUM", "agent": "A5", "repo": "ritual-reth-nodebuilder-internal", "file": "verifier.rs", "summary": "Missing precompiles in SPC filter (cross-ref A1-001)", "conf": null, "details": ""}, {"id": "A5-06", "sev": "LOW", "agent": "A5", "repo": "ritual-reth-nodebuilder-internal", "file": "executor.rs:209", "summary": "State retention only keeps contract changes", "conf": null, "details": ""}, {"id": "A5-07", "sev": "INFO", "agent": "A5", "repo": "ritual-reth-nodebuilder-internal", "file": "executor.rs", "summary": "No global phase ordering enforcement", "conf": null, "details": ""}, {"id": "A5-08", "sev": "INFO", "agent": "A5", "repo": "ritual-reth-nodebuilder-internal", "file": "verifier.rs", "summary": "Strict index-1 adjacency for Phase 1 settlements", "conf": null, "details": ""}, {"id": "A5-09", "sev": "HIGH", "agent": "A5", "repo": "ritual-reth-nodebuilder-internal", "file": "verifier.rs", "summary": "SKIP_VALIDITY_CONSTRAINTS (testnet-intentional, cross-ref)", "conf": null, "details": ""}, {"id": "A5-10", "sev": "LOW", "agent": "A5", "repo": "ritual-reth-nodebuilder-internal", "file": "executor.rs:630", "summary": "Code duplication execute_one vs execute_one_with_state_hook", "conf": null, "details": ""}, {"id": "A6-C1", "sev": "CRITICAL", "agent": "A6", "repo": "ritual-reth-nodebuilder-internal", "file": "onnx_inference.rs", "summary": "FP non-determinism across CPU architectures", "conf": null, "details": ""}, {"id": "A6-C2", "sev": "HIGH", "agent": "A6", "repo": "ritual-reth-nodebuilder-internal", "file": "onnx.rs:148", "summary": "Empty input returns success with gas charge instead of error", "conf": null, "details": ""}, {"id": "A6-C3", "sev": "HIGH", "agent": "A6", "repo": "ritual-reth-nodebuilder-internal", "file": "onnx.rs:174", "summary": "Error path returns Ok instead of Err", "conf": null, "details": ""}, {"id": "A6-C4", "sev": "CRITICAL", "agent": "A6", "repo": "ritual-reth-nodebuilder-internal", "file": "verifier.rs:557", "summary": "SKIP_VERIFICATION bypasses all Nitro verification (testnet-intentional)", "conf": null, "details": ""}, {"id": "A6-C5", "sev": "HIGH", "agent": "A6", "repo": "ritual-reth-nodebuilder-internal", "file": "verifier.rs:81", "summary": "X.509 only checks DER parsing, not trust chain", "conf": null, "details": ""}, {"id": "A6-C6", "sev": "HIGH", "agent": "A6", "repo": "ritual-reth-nodebuilder-internal", "file": "sigver.rs:86", "summary": "Hardcoded zero nonce defeats replay protection", "conf": null, "details": ""}, {"id": "A6-H1", "sev": "HIGH", "agent": "A6", "repo": "ritual-reth-nodebuilder-internal", "file": "onnx.rs:160", "summary": "Gas clamping lets users underpay", "conf": null, "details": ""}, {"id": "A6-H2", "sev": "HIGH", "agent": "A6", "repo": "ritual-reth-nodebuilder-internal", "file": "verifier.rs:154", "summary": "Signature verification payload length overflow/panic", "conf": null, "details": ""}, {"id": "A6-H3", "sev": "MEDIUM-HIGH", "agent": "A6", "repo": "ritual-reth-nodebuilder-internal", "file": "sigver.rs:316", "summary": "Empty input returns success with gas charge (ed25519/secp256r1)", "conf": null, "details": ""}, {"id": "A6-H4", "sev": "HIGH", "agent": "A6", "repo": "ritual-reth-nodebuilder-internal", "file": "verifier.rs:570", "summary": "Non-enclave mode accepts JSON mock attestations", "conf": null, "details": ""}, {"id": "A6-H5", "sev": "HIGH", "agent": "A6", "repo": "ritual-reth-nodebuilder-internal", "file": "jq.rs:461", "summary": "Wall-clock timeout non-deterministic", "conf": null, "details": ""}, {"id": "A6-H6", "sev": "MEDIUM-HIGH", "agent": "A6", "repo": "ritual-reth-nodebuilder-internal", "file": "onnx_complexity.rs:428", "summary": "ONNX gas estimation uses floating-point arithmetic", "conf": null, "details": ""}, {"id": "A6-M1", "sev": "MEDIUM", "agent": "A6", "repo": "ritual-reth-nodebuilder-internal", "file": "onnx.rs:205", "summary": "Blocking channel recv can hang forever", "conf": null, "details": ""}, {"id": "A6-M2", "sev": "MEDIUM", "agent": "A6", "repo": "ritual-reth-nodebuilder-internal", "file": "onnx_inference.rs:948", "summary": "Background thread panics silently lose model downloads", "conf": null, "details": ""}, {"id": "A6-M3", "sev": "LOW", "agent": "A6", "repo": "ritual-reth-nodebuilder-internal", "file": "jq.rs:591", "summary": "JSON parsing happens twice (performance)", "conf": null, "details": ""}, {"id": "A6-M4", "sev": "MEDIUM", "agent": "A6", "repo": "ritual-reth-nodebuilder-internal", "file": "verifier.rs:737", "summary": "canonicalize_json is not actually canonical", "conf": null, "details": ""}, {"id": "A6-M5", "sev": "MEDIUM", "agent": "A6", "repo": "ritual-reth-nodebuilder-internal", "file": "types.rs:208", "summary": "RitualTensor shape uses u16 limiting dimensions to 65535", "conf": null, "details": ""}, {"id": "A6-M6", "sev": "MEDIUM", "agent": "A6", "repo": "ritual-reth-nodebuilder-internal", "file": "lib.rs", "summary": "Address mismatch between documentation and code", "conf": null, "details": ""}, {"id": "A6-M7", "sev": "MEDIUM", "agent": "A6", "repo": "ritual-reth-nodebuilder-internal", "file": "types.rs:143", "summary": "DataType::from() silently defaults to Float32 for unknown values", "conf": null, "details": ""}, {"id": "A6-M8", "sev": "MEDIUM", "agent": "A6", "repo": "ritual-reth-nodebuilder-internal", "file": "sigver.rs:476", "summary": "Nitro empty input not checked (differs from other precompiles)", "conf": null, "details": ""}, {"id": "A6-L1", "sev": "LOW", "agent": "A6", "repo": "ritual-reth-nodebuilder-internal", "file": "jq.rs:243", "summary": "Gas estimation returns 1 billion gas for rejected queries", "conf": null, "details": ""}, {"id": "A6-L2", "sev": "LOW", "agent": "A6", "repo": "ritual-reth-nodebuilder-internal", "file": "onnx.rs:137", "summary": "OnceLock singleton can only initialize once", "conf": null, "details": ""}, {"id": "A6-L3", "sev": "LOW", "agent": "A6", "repo": "ritual-reth-nodebuilder-internal", "file": "test_nondeterministic.rs", "summary": "Test nondeterministic precompile enabled by env var", "conf": null, "details": ""}, {"id": "A6-L4", "sev": "LOW", "agent": "A6", "repo": "ritual-reth-nodebuilder-internal", "file": "sigver.rs:368", "summary": "Unnecessary hex encoding/decoding in signature verification", "conf": null, "details": ""}, {"id": "A7-01", "sev": "LOW", "agent": "A7", "repo": "ritual-reth-nodebuilder-internal", "file": "lib.rs/inspector.rs", "summary": "Address overlap between sync/async precompiles in 0x08XX range", "conf": null, "details": ""}, {"id": "A7-02", "sev": "MEDIUM", "agent": "A7", "repo": "ritual-reth-nodebuilder-internal", "file": "inspector.rs:144", "summary": "Inspector does not check call scheme (DELEGATECALL/STATICCALL)", "conf": null, "details": ""}, {"id": "A7-03", "sev": "LOW", "agent": "A7", "repo": "ritual-reth-nodebuilder-internal", "file": "inspector.rs:176", "summary": "Multiple async calls per tx -- enforcement spread across layers", "conf": null, "details": ""}, {"id": "A7-04", "sev": "MEDIUM", "agent": "A7", "repo": "ritual-reth-nodebuilder-internal", "file": "async_evm.rs:125", "summary": "async_context() panics on missing context (cross-ref A5-04)", "conf": null, "details": ""}, {"id": "A7-05", "sev": "LOW", "agent": "A7", "repo": "ritual-reth-nodebuilder-internal", "file": "lib.rs:499", "summary": "Proptest does not cover all 12 valid precompile addresses", "conf": null, "details": ""}, {"id": "A7-06", "sev": "MEDIUM", "agent": "A7", "repo": "ritual-reth-nodebuilder-internal", "file": "detector.rs:923", "summary": "Phase 2 deadline validation asymmetry (detector vs verifier)", "conf": null, "details": ""}, {"id": "A7-07", "sev": "LOW", "agent": "A7", "repo": "ritual-reth-nodebuilder-internal", "file": "onnx.rs:174", "summary": "ONNX returns success with empty bytes on failure", "conf": null, "details": ""}, {"id": "A7-08", "sev": "INFO", "agent": "A7", "repo": "ritual-reth-nodebuilder-internal", "file": "onnx.rs:239", "summary": "onnx_precompile_with_context fragile Option move pattern", "conf": null, "details": ""}, {"id": "A7-09", "sev": "INFO", "agent": "A7", "repo": "ritual-reth-nodebuilder-internal", "file": "verifier.rs:1588", "summary": "Duplicate sender check per-block only (correct by design)", "conf": null, "details": ""}, {"id": "A7-10", "sev": "INFO", "agent": "A7", "repo": "ritual-reth-nodebuilder-internal", "file": "executor.rs:630", "summary": "execute_one_with_state_hook omits debug logging", "conf": null, "details": ""}, {"id": "A7-11", "sev": "INFO", "agent": "A7", "repo": "ritual-reth-nodebuilder-internal", "file": "async_evm.rs", "summary": "AsyncCommitmentutionContext garbled type name", "conf": null, "details": ""}, {"id": "A7-12", "sev": "INFO", "agent": "A7", "repo": "ritual-reth-nodebuilder-internal", "file": "inspector.rs", "summary": "ONNX at 0x0800 correctly excluded from async inspector", "conf": null, "details": ""}, {"id": "A7-13", "sev": "INFO", "agent": "A7", "repo": "ritual-reth-nodebuilder-internal", "file": "executor.rs:208", "summary": "transact_system_call aggressively filters state to contract address", "conf": null, "details": ""}, {"id": "B1-01", "sev": "MEDIUM", "agent": "B1", "repo": "executor-go-internal", "file": "httpcall/handler.go:171", "summary": "HTTP handler decrypts secrets twice (wasted computation)", "conf": null, "details": ""}, {"id": "B1-02", "sev": "HIGH", "agent": "B1", "repo": "executor-go-internal", "file": "agentcall/handler.go:430", "summary": "No response size limit -- unbounded memory allocation (OOM risk)", "conf": null, "details": ""}, {"id": "B1-03", "sev": "LOW-MEDIUM", "agent": "B1", "repo": "executor-go-internal", "file": "longrunninghttp/request.go:331", "summary": "Missing header key/value length validation", "conf": null, "details": ""}, {"id": "B1-04", "sev": "MEDIUM", "agent": "B1", "repo": "executor-go-internal", "file": "poll/service.go:401", "summary": "Non-2xx drops job permanently, no retry", "conf": null, "details": ""}, {"id": "B1-05", "sev": "LOW-MEDIUM", "agent": "B1", "repo": "executor-go-internal", "file": "longrunninghttp/handler.go:364", "summary": "PII mappings silenced then used -- misleading code", "conf": null, "details": ""}, {"id": "B1-06", "sev": "MEDIUM", "agent": "B1", "repo": "executor-go-internal", "file": "agentcall/handler.go", "summary": "Agent call handler missing maxResponseSize configuration", "conf": null, "details": ""}, {"id": "B1-07", "sev": "LOW-MEDIUM", "agent": "B1", "repo": "executor-go-internal", "file": "httpcall/handler.go:632", "summary": "makeHTTPRequest does not detect truncation from LimitReader", "conf": null, "details": ""}, {"id": "B1-08", "sev": "LOW", "agent": "B1", "repo": "executor-go-internal", "file": "llmcall/response_types.go:42", "summary": "int64() for token counts without overflow protection", "conf": null, "details": ""}, {"id": "B1-09", "sev": "MEDIUM", "agent": "B1", "repo": "executor-go-internal", "file": "poll/service.go:750", "summary": "Phase 1/Phase 2 ABI schema mismatch (5 vs 6 fields)", "conf": null, "details": ""}, {"id": "B1-10", "sev": "LOW", "agent": "B1", "repo": "executor-go-internal", "file": "poll/service.go:527", "summary": "Race condition in poll service job re-addition on retry", "conf": null, "details": ""}, {"id": "B1-11", "sev": "LOW", "agent": "B1", "repo": "executor-go-internal", "file": "llmcall/request.go:146", "summary": "LLM N parameter validation missing", "conf": null, "details": ""}, {"id": "B1-12", "sev": "LOW", "agent": "B1", "repo": "executor-go-internal", "file": "longrunninghttp/request.go", "summary": "Long-running HTTP handler does not validate JQ queries at decode time", "conf": null, "details": ""}, {"id": "B1-13", "sev": "LOW", "agent": "B1", "repo": "executor-go-internal", "file": "agentcall/request.go", "summary": "Agent call request Encode() method missing", "conf": null, "details": ""}, {"id": "B1-14", "sev": "LOW", "agent": "B1", "repo": "executor-go-internal", "file": "httpcall/handler.go:644", "summary": "Header map drops multi-value headers", "conf": null, "details": ""}, {"id": "B1-15", "sev": "INFO", "agent": "B1", "repo": "executor-go-internal", "file": "--", "summary": "Consistent error handling pattern (no bugs, observation)", "conf": null, "details": ""}, {"id": "B1-16", "sev": "INFO", "agent": "B1", "repo": "executor-go-internal", "file": "longrunninghttp/handler.go:511", "summary": "DeliveryGasLimit conversion could overflow", "conf": null, "details": ""}, {"id": "B2-1", "sev": "HIGH", "agent": "B2", "repo": "executor-go-internal", "file": "tdx.go:334", "summary": "Signing error returns ('', nil) instead of error", "conf": null, "details": ""}, {"id": "B2-2", "sev": "MEDIUM", "agent": "B2", "repo": "executor-go-internal", "file": "submitter.go:298", "summary": "Potential panic in buildPayload on 1-char output", "conf": null, "details": ""}, {"id": "B2-3", "sev": "MEDIUM", "agent": "B2", "repo": "executor-go-internal", "file": "tdx.go:151", "summary": "TDX quote caching serves stale attestations", "conf": null, "details": ""}, {"id": "B2-4", "sev": "INFO", "agent": "B2", "repo": "executor-go-internal", "file": "tdx.go:216", "summary": "Inconsistent hashing between TDX and Signature attestation", "conf": null, "details": ""}, {"id": "B2-5", "sev": "MEDIUM", "agent": "B2", "repo": "executor-go-internal", "file": "poll/submitter.go:206", "summary": "Poll service uses json.Marshal instead of marshalJSONSorted", "conf": null, "details": ""}, {"id": "B2-6", "sev": "LOW", "agent": "B2", "repo": "executor-go-internal", "file": "service.go:750", "summary": "No attestation self-validation before submission", "conf": null, "details": ""}, {"id": "B2-7", "sev": "MEDIUM", "agent": "B2", "repo": "executor-go-internal", "file": "service.go:809", "summary": "Fire-and-forget submission with no delivery guarantee", "conf": null, "details": ""}, {"id": "B2-8", "sev": "LOW", "agent": "B2", "repo": "executor-go-internal", "file": "submitter.go:366", "summary": "Submitter broadcasts to ALL endpoints (duplicates on retry)", "conf": null, "details": ""}, {"id": "B2-9", "sev": "MEDIUM", "agent": "B2", "repo": "executor-go-internal", "file": "submitter.go:236", "summary": "Queue full drops results silently, returns nil", "conf": null, "details": ""}, {"id": "B2-10", "sev": "INFO", "agent": "B2", "repo": "executor-go-internal", "file": "models/job.go:22", "summary": "EmissionBlockNumber not in signed proof data", "conf": null, "details": ""}, {"id": "B2-11", "sev": "LOW", "agent": "B2", "repo": "executor-go-internal", "file": "registration.go:378", "summary": "Registration marks success before TX confirmation", "conf": null, "details": ""}, {"id": "B3-CRIT-01", "sev": "CRITICAL", "agent": "B3", "repo": "executor-go-internal", "file": "service.go:445", "summary": "TOCTOU race in queueSingleJob -- duplicate futures", "conf": null, "details": ""}, {"id": "B3-CRIT-02", "sev": "CRITICAL", "agent": "B3", "repo": "executor-go-internal", "file": "contract_event_monitor.go", "summary": "WebSocket conn data race -- gorilla/websocket concurrent writes", "conf": null, "details": ""}, {"id": "B3-CRIT-03", "sev": "HIGH", "agent": "B3", "repo": "executor-go-internal", "file": "submitter.go:77", "summary": "DNS cache refresh goroutine leaks on destruction", "conf": null, "details": ""}, {"id": "B3-HIGH-01", "sev": "HIGH", "agent": "B3", "repo": "executor-go-internal", "file": "submitter.go:298", "summary": "Panic on empty output string in buildPayload", "conf": null, "details": ""}, {"id": "B3-HIGH-02", "sev": "HIGH", "agent": "B3", "repo": "executor-go-internal", "file": "blockmonitor/monitor.go", "summary": "ethClient data race -- read/write without sync", "conf": null, "details": ""}, {"id": "B3-HIGH-03", "sev": "HIGH", "agent": "B3", "repo": "executor-go-internal", "file": "phase1monitor/monitor.go:199", "summary": "Ping goroutine has no lifecycle management", "conf": null, "details": ""}, {"id": "B3-HIGH-04", "sev": "HIGH", "agent": "B3", "repo": "executor-go-internal", "file": "service.go:798", "summary": "future.done closed before submission -- silent data loss", "conf": null, "details": ""}, {"id": "B3-HIGH-05", "sev": "HIGH", "agent": "B3", "repo": "executor-go-internal", "file": "poll/service.go:385", "summary": "Non-atomic write to X402PaymentRequired", "conf": null, "details": ""}, {"id": "B3-MED-01", "sev": "MEDIUM", "agent": "B3", "repo": "executor-go-internal", "file": "service.go:332", "summary": "Shutdown sequence ordering -- monitor stopped after submitter", "conf": null, "details": ""}, {"id": "B3-MED-02", "sev": "MEDIUM", "agent": "B3", "repo": "executor-go-internal", "file": "service.go:819", "summary": "processedTxs map can grow unboundedly", "conf": null, "details": ""}, {"id": "B3-MED-03", "sev": "MEDIUM", "agent": "B3", "repo": "executor-go-internal", "file": "sovereignexec/service.go:76", "summary": "Stop() does not wait for active job goroutines", "conf": null, "details": ""}, {"id": "B3-MED-04", "sev": "MEDIUM", "agent": "B3", "repo": "executor-go-internal", "file": "spawn/service.go:487", "summary": "processPendingJobs launches unbounded goroutines", "conf": null, "details": ""}, {"id": "B3-MED-05", "sev": "MEDIUM", "agent": "B3", "repo": "executor-go-internal", "file": "blockmonitor/monitor.go:79", "summary": "Double-close panic on Unsubscribe then Stop", "conf": null, "details": ""}, {"id": "B3-MED-06", "sev": "MEDIUM", "agent": "B3", "repo": "executor-go-internal", "file": "health/server.go:362", "summary": "Health check goroutine leak if service deadlocked", "conf": null, "details": ""}, {"id": "B3-LOW-01", "sev": "LOW", "agent": "B3", "repo": "executor-go-internal", "file": "poll/service.go:193", "summary": "runBlockLoop goroutine untracked", "conf": null, "details": ""}, {"id": "B3-LOW-02", "sev": "LOW", "agent": "B3", "repo": "executor-go-internal", "file": "ws_client.go:170", "summary": "sendCh not drained on Stop", "conf": null, "details": ""}, {"id": "B3-LOW-03", "sev": "LOW", "agent": "B3", "repo": "executor-go-internal", "file": "registration.go:216", "summary": "getRegistryClient not thread-safe", "conf": null, "details": ""}, {"id": "B3-LOW-04", "sev": "LOW", "agent": "B3", "repo": "executor-go-internal", "file": "contract_event_monitor.go:160", "summary": "reconnectAttempts not protected by lock", "conf": null, "details": ""}, {"id": "C1-01", "sev": "MEDIUM", "agent": "C1", "repo": "ritual-sc-internal", "file": "AsyncJobTracker.sol:426", "summary": "Phase 2 deadline offset vs absolute block number ambiguity", "conf": null, "details": ""}, {"id": "C1-02", "sev": "LOW", "agent": "C1", "repo": "ritual-sc-internal", "file": "AsyncJobTracker.sol:620", "summary": "Zero Phase 2 deadline offset silently accepted", "conf": null, "details": ""}, {"id": "C1-03", "sev": "INFO", "agent": "C1", "repo": "ritual-sc-internal", "file": "AsyncJobTracker.sol:763", "summary": "cleanupExpired() has no access control (by design)", "conf": null, "details": ""}, {"id": "C1-04", "sev": "INFO", "agent": "C1", "repo": "ritual-sc-internal", "file": "AsyncJobTracker.sol:780", "summary": "cleanupBatch() has no access control (by design)", "conf": null, "details": ""}, {"id": "C1-05", "sev": "LOW", "agent": "C1", "repo": "ritual-sc-internal", "file": "AsyncJobTracker.sol:706", "summary": "_cleanup() partial bucket processing can stall progress", "conf": null, "details": ""}, {"id": "C1-06", "sev": "GOOD", "agent": "C1", "repo": "ritual-sc-internal", "file": "AsyncJobTracker.sol", "summary": "No double-settlement possible (well-designed)", "conf": null, "details": ""}, {"id": "C1-07", "sev": "GOOD", "agent": "C1", "repo": "ritual-sc-internal", "file": "AsyncJobTracker.sol", "summary": "No reentrancy vectors", "conf": null, "details": ""}, {"id": "C1-08", "sev": "LOW", "agent": "C1", "repo": "ritual-sc-internal", "file": "AsyncJobTracker.sol:293", "summary": "removeJob() misleading error for non-existent job", "conf": null, "details": ""}, {"id": "C1-09", "sev": "INFO", "agent": "C1", "repo": "ritual-sc-internal", "file": "AsyncJobTracker.sol:576", "summary": "_decodeDeliveryConfig gas optimization opportunity", "conf": null, "details": ""}, {"id": "C1-10", "sev": "BY DESIGN", "agent": "C1", "repo": "ritual-sc-internal", "file": "AsyncJobTracker.sol:438", "summary": "Deadline extension only, never shortening", "conf": null, "details": ""}, {"id": "C1-11", "sev": "INFO", "agent": "C1", "repo": "ritual-sc-internal", "file": "AsyncJobTracker.sol:30", "summary": "Error message says 5KB but limit is 10KB", "conf": null, "details": ""}, {"id": "C1-12", "sev": "GOOD", "agent": "C1", "repo": "ritual-sc-internal", "file": "AsyncJobTracker.sol:210", "summary": "Duplicate job ID after expiry handled correctly", "conf": null, "details": ""}, {"id": "C1-13", "sev": "INFO", "agent": "C1", "repo": "ritual-sc-internal", "file": "AsyncJobTracker.sol:698", "summary": "totalPending underflow guard masks accounting bugs", "conf": null, "details": ""}, {"id": "C1-14", "sev": "LOW", "agent": "C1", "repo": "ritual-sc-internal", "file": "AsyncJobTracker.sol:438", "summary": "No event for Phase 2 deadline value", "conf": null, "details": ""}, {"id": "C1-15", "sev": "INFO", "agent": "C1", "repo": "ritual-sc-internal", "file": "AsyncJobTracker.sol:626", "summary": "Assembly mload bounds are correct", "conf": null, "details": ""}, {"id": "C1-16", "sev": "BY DESIGN", "agent": "C1", "repo": "ritual-sc-internal", "file": "AsyncDelivery.sol:230", "summary": "Callback failure still completes delivery", "conf": null, "details": ""}, {"id": "C1-17", "sev": "LOW", "agent": "C1", "repo": "ritual-sc-internal", "file": "AsyncDelivery.sol:222", "summary": "ETH dust burned by REVM (acceptable)", "conf": null, "details": ""}, {"id": "C2-01", "sev": "HIGH", "agent": "C2", "repo": "ritual-sc-internal", "file": "RitualWallet.sol:238", "summary": "Partial payment creates insolvency in settlePhase1Fees", "conf": null, "details": ""}, {"id": "C2-02", "sev": "MEDIUM-HIGH", "agent": "C2", "repo": "ritual-sc-internal", "file": "RitualWallet.sol:256", "summary": "Reentrancy in settlePhase1Fees", "conf": null, "details": ""}, {"id": "C2-03", "sev": "MEDIUM", "agent": "C2", "repo": "ritual-sc-internal", "file": "RitualWallet.sol:200", "summary": "Reentrancy in payExecutor", "conf": null, "details": ""}, {"id": "C2-04", "sev": "MEDIUM", "agent": "C2", "repo": "ritual-sc-internal", "file": "RitualWallet.sol:133", "summary": "Reentrancy in withdraw", "conf": null, "details": ""}, {"id": "C2-05", "sev": "HIGH", "agent": "C2", "repo": "ritual-sc-internal", "file": "RitualWallet.sol:155", "summary": "deductExecutionFees returns 0 -- partial payment grief", "conf": null, "details": ""}, {"id": "C2-06", "sev": "LOW-MEDIUM", "agent": "C2", "repo": "ritual-sc-internal", "file": "RitualWallet.sol:163", "summary": "Integer overflow in fee calculation", "conf": null, "details": ""}, {"id": "C2-07", "sev": "LOW-MEDIUM", "agent": "C2", "repo": "ritual-sc-internal", "file": "RitualWallet.sol:274", "summary": "receive() bypasses lock extension", "conf": null, "details": ""}, {"id": "C2-08", "sev": "MEDIUM", "agent": "C2", "repo": "ritual-sc-internal", "file": "TEEServiceRegistry.sol:350", "summary": "markServiceOffline only works for TEE address", "conf": null, "details": ""}, {"id": "C2-09", "sev": "LOW", "agent": "C2", "repo": "ritual-sc-internal", "file": "TEEServiceRegistry.sol:648", "summary": "forceServiceOffline stale mapping edge case", "conf": null, "details": ""}, {"id": "C2-10", "sev": "MEDIUM", "agent": "C2", "repo": "ritual-sc-internal", "file": "TEEServiceRegistry.sol:760", "summary": "ValidationMode.NONE in production", "conf": null, "details": ""}, {"id": "C2-11", "sev": "LOW-MEDIUM", "agent": "C2", "repo": "ritual-sc-internal", "file": "TEEServiceRegistry.sol:891", "summary": "Endpoint collision overwrites mapping", "conf": null, "details": ""}, {"id": "C2-12", "sev": "LOW", "agent": "C2", "repo": "ritual-sc-internal", "file": "AsyncDelivery.sol:145", "summary": "No explicit double-settlement guard (safe via reverts)", "conf": null, "details": ""}, {"id": "C2-13", "sev": "LOW", "agent": "C2", "repo": "ritual-sc-internal", "file": "TEEServiceRegistry.sol:301", "summary": "DKMS registration skips whitelist check", "conf": null, "details": ""}, {"id": "C2-14", "sev": "INFO", "agent": "C2", "repo": "ritual-sc-internal", "file": "RitualWallet.sol:116", "summary": "No address(0) check in depositFor", "conf": null, "details": ""}, {"id": "C2-15", "sev": "INFO", "agent": "C2", "repo": "ritual-sc-internal", "file": "TEEServiceRegistry.sol:728", "summary": "Timestamp conversion heuristic", "conf": null, "details": ""}, {"id": "C2-16", "sev": "INFO", "agent": "C2", "repo": "ritual-sc-internal", "file": "ITEEServiceRegistry.sol:72", "summary": "ServiceWentOffline event parameter mismatch", "conf": null, "details": ""}, {"id": "C2-17", "sev": "INFO", "agent": "C2", "repo": "ritual-sc-internal", "file": "--", "summary": "No fee escrow at commitment time (design observation)", "conf": null, "details": ""}, {"id": "C2-18", "sev": "INFO", "agent": "C2", "repo": "ritual-sc-internal", "file": "RitualWallet.sol:57", "summary": "Inconsistent error style in onlyAsyncDelivery", "conf": null, "details": ""}, {"id": "C3-S-01", "sev": "MEDIUM", "agent": "C3", "repo": "ritual-sc-internal", "file": "Scheduler.sol:997", "summary": "Base fee spike causes execute() revert (underflow)", "conf": null, "details": ""}, {"id": "C3-S-02", "sev": "MEDIUM", "agent": "C3", "repo": "ritual-sc-internal", "file": "Scheduler.sol:595", "summary": "No fund reservation for multi-execution schedules", "conf": null, "details": ""}, {"id": "C3-S-03", "sev": "LOW", "agent": "C3", "repo": "ritual-sc-internal", "file": "Scheduler.sol:400", "summary": "uint32 overflow in expiry calculation", "conf": null, "details": ""}, {"id": "C3-S-04", "sev": "LOW", "agent": "C3", "repo": "ritual-sc-internal", "file": "Scheduler.sol:1018", "summary": "Fragile calldata layout convention for execution index", "conf": null, "details": ""}, {"id": "C3-S-05", "sev": "LOW", "agent": "C3", "repo": "ritual-sc-internal", "file": "Scheduler.sol:874", "summary": "Payer cannot cancel scheduled calls", "conf": null, "details": ""}, {"id": "C3-S-06", "sev": "INFO", "agent": "C3", "repo": "ritual-sc-internal", "file": "Scheduler.sol", "summary": "No minimum gas parameter validation", "conf": null, "details": ""}, {"id": "C3-S-07", "sev": "INFO", "agent": "C3", "repo": "ritual-sc-internal", "file": "Scheduler.sol:382", "summary": "Expired calls not queryable", "conf": null, "details": ""}, {"id": "C3-S-08", "sev": "INFO", "agent": "C3", "repo": "ritual-sc-internal", "file": "Scheduler.sol:763", "summary": "Predicate validation permissive (one-time check)", "conf": null, "details": ""}, {"id": "C3-S-09", "sev": "LOW", "agent": "C3", "repo": "ritual-sc-internal", "file": "Scheduler.sol:921", "summary": "Cleanup scan restarts from index 0 each time", "conf": null, "details": ""}, {"id": "C3-A-01", "sev": "MEDIUM", "agent": "C3", "repo": "ritual-sc-internal", "file": "AgentHeartbeat.sol:149", "summary": "Unbounded loop over 10k agents in checkAndRevive()", "conf": null, "details": ""}, {"id": "C3-A-02", "sev": "LOW", "agent": "C3", "repo": "ritual-sc-internal", "file": "AgentHeartbeat.sol:172", "summary": "Monitored-to-Failed has no immediate revival attempt", "conf": null, "details": ""}, {"id": "C3-A-03", "sev": "LOW", "agent": "C3", "repo": "ritual-sc-internal", "file": "Staking.sol:304", "summary": "EIP-712 typehash mismatch in signature verification", "conf": null, "details": ""}, {"id": "C3-A-04", "sev": "LOW", "agent": "C3", "repo": "ritual-sc-internal", "file": "Staking.sol:238", "summary": "delegateFor() allows unconsented delegation", "conf": null, "details": ""}, {"id": "C3-A-05", "sev": "INFO", "agent": "C3", "repo": "ritual-sc-internal", "file": "DepositContract.sol:141", "summary": "assert(false) instead of revert (unreachable)", "conf": null, "details": ""}, {"id": "C3-A-06", "sev": "INFO", "agent": "C3", "repo": "ritual-sc-internal", "file": "PersistentAgent.sol:158", "summary": "setSecrets() has no access control (example contract)", "conf": null, "details": ""}, {"id": "C3-A-07", "sev": "INFO", "agent": "C3", "repo": "ritual-sc-internal", "file": "ScheduledConsumer.sol:227", "summary": "cancelScheduledCall() has no access control (griefing)", "conf": null, "details": ""}, {"id": "C3-A-08", "sev": "INFO", "agent": "C3", "repo": "ritual-sc-internal", "file": "Distribution.sol", "summary": "Distribution missing UUPS pattern", "conf": null, "details": ""}, {"id": "D1-01", "sev": "HIGH", "agent": "D1", "repo": "ritual-alloy-internal", "file": "scheduled.rs:223", "summary": "Encode/decode asymmetry for optional fields (TxScheduled)", "conf": null, "details": ""}, {"id": "D1-02", "sev": "HIGH", "agent": "D1", "repo": "ritual-alloy-internal", "file": "async_settlement.rs:155", "summary": "Encode/decode asymmetry for optional fields (TxAsyncSettlement)", "conf": null, "details": ""}, {"id": "D1-03", "sev": "HIGH", "agent": "D1", "repo": "ritual-alloy-internal", "file": "scheduled.rs:310", "summary": "Missing RLP list header in encode_for_signing (all 3 types)", "conf": null, "details": ""}, {"id": "D1-04", "sev": "HIGH", "agent": "D1", "repo": "ritual-alloy-internal", "file": "rlp.rs:118", "summary": "Unsafe type punning via type_name string matching", "conf": null, "details": ""}, {"id": "D1-05", "sev": "MEDIUM", "agent": "D1", "repo": "ritual-alloy-internal", "file": "spc_call.rs:69", "summary": "SpcCall missing per-item RLP list wrapping", "conf": null, "details": ""}, {"id": "D1-06", "sev": "MEDIUM", "agent": "D1", "repo": "ritual-alloy-internal", "file": "scheduled.rs:261", "summary": "to: None decode via error string matching", "conf": null, "details": ""}, {"id": "D1-07", "sev": "MEDIUM", "agent": "D1", "repo": "ritual-alloy-internal", "file": "scheduled.rs:331", "summary": "Hash inconsistency between into_signed and eip2718_decode", "conf": null, "details": ""}, {"id": "D1-08", "sev": "MEDIUM", "agent": "D1", "repo": "ritual-alloy-internal", "file": "scheduled.rs:152", "summary": "size() omits ttl field", "conf": null, "details": ""}, {"id": "D1-09", "sev": "LOW", "agent": "D1", "repo": "ritual-alloy-internal", "file": "scheduled.rs:431", "summary": "No trailing bytes validation in rlp_decode_fields", "conf": null, "details": ""}, {"id": "D1-10", "sev": "LOW", "agent": "D1", "repo": "ritual-alloy-internal", "file": "scheduled.rs:357", "summary": "U256->u128 gas price conversion can panic", "conf": null, "details": ""}, {"id": "D1-11", "sev": "LOW", "agent": "D1", "repo": "ritual-alloy-internal", "file": "scheduled.rs:310", "summary": "Unnecessary clone in encode_for_signing (performance)", "conf": null, "details": ""}, {"id": "D2-H1", "sev": "HIGH", "agent": "D2", "repo": "ritual-revm-internal", "file": "async_context.rs:551", "summary": "Unsound unsafe impl Send+Sync on raw pointer struct", "conf": null, "details": ""}, {"id": "D2-H2", "sev": "HIGH", "agent": "D2", "repo": "ritual-revm-internal", "file": "zk_two_phase.rs:172", "summary": "Gas metering inconsistency (saturating_add vs checked_add)", "conf": null, "details": ""}, {"id": "D2-M1", "sev": "MEDIUM", "agent": "D2", "repo": "ritual-revm-internal", "file": "precompile_provider.rs:158", "summary": "is_static ignored for all async precompiles (EIP-214 violation)", "conf": null, "details": ""}, {"id": "D2-M2", "sev": "MEDIUM", "agent": "D2", "repo": "ritual-revm-internal", "file": "image_call.rs:208", "summary": "Input validation inconsistency across precompiles", "conf": null, "details": ""}, {"id": "D2-M3", "sev": "MEDIUM", "agent": "D2", "repo": "ritual-revm-internal", "file": "async_context.rs:29", "summary": "Instant::now() in consensus struct (non-determinism)", "conf": null, "details": ""}, {"id": "D2-L1", "sev": "LOW", "agent": "D2", "repo": "ritual-revm-internal", "file": "llm_call.rs:21", "summary": "LLM base gas 100x lower than all other precompiles", "conf": null, "details": ""}, {"id": "D2-L2", "sev": "LOW", "agent": "D2", "repo": "ritual-revm-internal", "file": "lib.rs:194", "summary": "Conditional compilation splits precompile registration", "conf": null, "details": ""}, {"id": "D2-L3", "sev": "LOW", "agent": "D2", "repo": "ritual-revm-internal", "file": "async_context.rs:216", "summary": "derive(Clone) clones raw pointer", "conf": null, "details": ""}, {"id": "D2-L4", "sev": "LOW", "agent": "D2", "repo": "ritual-revm-internal", "file": "async_context.rs:221", "summary": "spc_call_index not journal-managed, inner revert desyncs", "conf": null, "details": ""}, {"id": "D2-I1", "sev": "INFO", "agent": "D2", "repo": "ritual-revm-internal", "file": "zk_two_phase.rs:198", "summary": "abi_encode_bytes_pair .into() redundancy", "conf": null, "details": ""}, {"id": "D2-I2", "sev": "INFO", "agent": "D2", "repo": "ritual-revm-internal", "file": "lib.rs", "summary": "System transaction bypass surface is wide", "conf": null, "details": ""}, {"id": "D2-I3", "sev": "INFO", "agent": "D2", "repo": "ritual-revm-internal", "file": "post_execution.rs:15", "summary": "ASYNC_DELIVERY_ADDRESS is hardcoded", "conf": null, "details": ""}, {"id": "D3-1.1", "sev": "HIGH", "agent": "D3", "repo": "ritual-alloy-evm-internal", "file": "eth/mod.rs:302", "summary": "Garbled type name AsyncCommitmentutionContext", "conf": null, "details": ""}, {"id": "D3-1.2", "sev": "MEDIUM", "agent": "D3", "repo": "ritual-alloy-evm-internal", "file": "tx.rs:264", "summary": "unwrap() on u128::try_from for gas_price", "conf": null, "details": ""}, {"id": "D3-1.3", "sev": "MEDIUM", "agent": "D3", "repo": "ritual-alloy-evm-internal", "file": "tx.rs:357", "summary": "delivery_spc_calls silently dropped in TxAsyncSettlement conversion", "conf": null, "details": ""}, {"id": "D3-1.4", "sev": "MEDIUM-HIGH", "agent": "D3", "repo": "ritual-alloy-evm-internal", "file": "eth/block.rs:524", "summary": "Reverted system txs have no logs, causing block rejection", "conf": null, "details": ""}, {"id": "D3-1.5", "sev": "HIGH", "agent": "D3", "repo": "ritual-alloy-evm-internal", "file": "eth/block.rs:271", "summary": "Heartbeat address from env var = hidden consensus parameter", "conf": null, "details": ""}, {"id": "D3-1.6", "sev": "LOW", "agent": "D3", "repo": "ritual-alloy-evm-internal", "file": "evm.rs:92", "summary": "transact_system_call_with_gas_limit default ignores gas limit", "conf": null, "details": ""}, {"id": "D3-1.7", "sev": "INFO", "agent": "D3", "repo": "ritual-alloy-evm-internal", "file": "eth/block.rs:452", "summary": "System transactions bypass block gas limit check", "conf": null, "details": ""}, {"id": "D3-1.8", "sev": "MEDIUM", "agent": "D3", "repo": "ritual-alloy-evm-internal", "file": "eth/block.rs:548", "summary": "Return value gas_used vs gas_contribution mismatch", "conf": null, "details": ""}, {"id": "D3-1.9", "sev": "LOW", "agent": "D3", "repo": "ritual-alloy-evm-internal", "file": "eth/block.rs:477", "summary": "ONNX skip signal checked after state commit would occur", "conf": null, "details": ""}, {"id": "D3-1.10", "sev": "INFO", "agent": "D3", "repo": "ritual-alloy-evm-internal", "file": "block_reward.rs", "summary": "Block reward system calls propagate errors (consensus safety)", "conf": null, "details": ""}, {"id": "D3-2.1", "sev": "INFO", "agent": "D3", "repo": "ritual-revm-inspectors-internal", "file": "edge_cov.rs", "summary": "EdgeCovInspector has no state reset between transactions", "conf": null, "details": ""}, {"id": "D3-2.2", "sev": "INFO", "agent": "D3", "repo": "ritual-revm-inspectors-internal", "file": "edge_cov.rs:16", "summary": "EdgeCovInspector hash collision rate (by design)", "conf": null, "details": ""}, {"id": "D3-2.3", "sev": "INFO", "agent": "D3", "repo": "ritual-revm-inspectors-internal", "file": "--", "summary": "No Ritual-specific inspector for async transaction types (clean)", "conf": null, "details": ""}, {"id": "D3-3.1", "sev": "INFO", "agent": "D3", "repo": "ritual-alloy-hardforks-internal", "file": "--", "summary": "No Ritual-specific hardfork definitions", "conf": null, "details": ""}, {"id": "D3-3.2", "sev": "LOW", "agent": "D3", "repo": "ritual-alloy-hardforks-internal", "file": "ethereum.rs:512", "summary": "from_mainnet_block_number skips GrayGlacier (upstream)", "conf": null, "details": ""}, {"id": "E1-C1", "sev": "CRITICAL", "agent": "E1", "repo": "ritual-common-internal", "file": "verifier.rs:214", "summary": "X.509 bypasses expired/not-yet-valid certs", "conf": null, "details": ""}, {"id": "E1-C2", "sev": "CRITICAL", "agent": "E1", "repo": "ritual-common-internal", "file": "verifier.rs:250", "summary": "expect() panic on malformed signature (DoS)", "conf": null, "details": ""}, {"id": "E1-C3", "sev": "CRITICAL", "agent": "E1", "repo": "ritual-common-internal", "file": "verifier.rs:252", "summary": "Hardcoded COSE magic constants, size-dependent verification", "conf": null, "details": ""}, {"id": "E1-C4", "sev": "CRITICAL", "agent": "E1", "repo": "ritual-common-internal", "file": "nitro/__init__.py:287", "summary": "SKIP_VERIFICATION env var (testnet-intentional)", "conf": null, "details": ""}, {"id": "E1-H1", "sev": "HIGH", "agent": "E1", "repo": "ritual-common-internal", "file": "verifier.rs:281", "summary": "Non-constant-time nonce comparison (timing side channel)", "conf": null, "details": ""}, {"id": "E1-H2", "sev": "HIGH", "agent": "E1", "repo": "ritual-common-internal", "file": "nitro/__init__.py:333", "summary": "SSL verification disabled for enclave attestation fetch", "conf": null, "details": ""}, {"id": "E1-H3", "sev": "HIGH", "agent": "E1", "repo": "ritual-common-internal", "file": "secp256r1_verify.py:23", "summary": "assert used for input validation (compiled out with -O)", "conf": null, "details": ""}, {"id": "E1-H4", "sev": "MEDIUM", "agent": "E1", "repo": "ritual-common-internal", "file": "delivery.py:4", "summary": "validate_delivery_selector logic correct but confusing", "conf": null, "details": ""}, {"id": "E1-H5", "sev": "MEDIUM", "agent": "E1", "repo": "ritual-common-internal", "file": "attestation.py:104", "summary": "Non-constant-time PCR/nonce/userData comparisons (Python)", "conf": null, "details": ""}, {"id": "E1-H6", "sev": "HIGH", "agent": "E1", "repo": "ritual-common-internal", "file": "verifier.rs:254", "summary": "Unsafe usize arithmetic -- integer underflow risk", "conf": null, "details": ""}, {"id": "E1-M1", "sev": "LOW", "agent": "E1", "repo": "ritual-common-internal", "file": "verifier.rs:410", "summary": "try_into().expect() in payload parsing", "conf": null, "details": ""}, {"id": "E1-M2", "sev": "MEDIUM", "agent": "E1", "repo": "ritual-common-internal", "file": "verifier.rs:462", "summary": "PCR parsing silently skips missing entries", "conf": null, "details": ""}, {"id": "E1-M3", "sev": "MEDIUM", "agent": "E1", "repo": "ritual-common-internal", "file": "verifier.rs:590", "summary": "unix_time=0 forces time validation bypass", "conf": null, "details": ""}, {"id": "E1-M4", "sev": "MEDIUM", "agent": "E1", "repo": "ritual-common-internal", "file": "Cargo.toml", "summary": "serde_cbor crate is unmaintained", "conf": null, "details": ""}, {"id": "E1-M5", "sev": "MEDIUM", "agent": "E1", "repo": "ritual-common-internal", "file": "Cargo.toml", "summary": "rustls 0.20.4 is significantly outdated", "conf": null, "details": ""}, {"id": "E1-M6", "sev": "MEDIUM", "agent": "E1", "repo": "ritual-common-internal", "file": "nitro/__init__.py:43", "summary": "Sensitive data logged at INFO level", "conf": null, "details": ""}, {"id": "E1-M7", "sev": "MEDIUM", "agent": "E1", "repo": "ritual-common-internal", "file": "utils/web3.py:34", "summary": "Singleton Web3Manager accumulates middleware", "conf": null, "details": ""}, {"id": "E1-L1", "sev": "LOW", "agent": "E1", "repo": "ritual-common-internal", "file": "delivery.py:11", "summary": "normalize_selector_for_abi silently truncates long selectors", "conf": null, "details": ""}, {"id": "E1-L2", "sev": "LOW", "agent": "E1", "repo": "ritual-common-internal", "file": "secp256r1_verify.py:67", "summary": "Accepts arbitrary-length DER signatures without validation", "conf": null, "details": ""}, {"id": "E1-L3", "sev": "LOW", "agent": "E1", "repo": "ritual-common-internal", "file": "verifier.rs:600", "summary": "Test placeholder in verifier -- no meaningful test coverage", "conf": null, "details": ""}, {"id": "E2-1", "sev": "HIGH", "agent": "E2", "repo": "ritual-node-internal", "file": "core.py:135", "summary": "Duplicate blocks_per_epoch field -- silently shadowed", "conf": null, "details": ""}, {"id": "E2-2", "sev": "HIGH", "agent": "E2", "repo": "ritual-node-internal", "file": "core.py:273", "summary": "Duplicate executor_go_image field", "conf": null, "details": ""}, {"id": "E2-3", "sev": "HIGH", "agent": "E2", "repo": "ritual-node-internal", "file": "docker.py:1632", "summary": "wss:// for non-TLS Reth nodes", "conf": null, "details": ""}, {"id": "E2-4", "sev": "HIGH", "agent": "E2", "repo": "ritual-node-internal", "file": "local.json:6", "summary": "txpool_lifetime=15s below 45s minimum for FHE", "conf": null, "details": ""}, {"id": "E2-5", "sev": "HIGH", "agent": "E2", "repo": "ritual-node-internal", "file": "prefunded-pk.txt", "summary": "Hardcoded private keys in repository", "conf": null, "details": ""}, {"id": "E2-6", "sev": "HIGH", "agent": "E2", "repo": "ritual-node-internal", "file": "docker.py:2059", "summary": "Hardcoded Redis password", "conf": null, "details": ""}, {"id": "E2-7", "sev": "HIGH", "agent": "E2", "repo": "ritual-node-internal", "file": "blockscout.py:28", "summary": "Hardcoded Blockscout DB password", "conf": null, "details": ""}, {"id": "E2-8", "sev": "MEDIUM", "agent": "E2", "repo": "ritual-node-internal", "file": "core.py:179", "summary": "epoch_boundary/blocks_per_epoch semantic overlap", "conf": null, "details": ""}, {"id": "E2-9", "sev": "MEDIUM", "agent": "E2", "repo": "ritual-node-internal", "file": "extract_genesis_hash.sh:84", "summary": "Ambiguous multi-hash extraction", "conf": null, "details": ""}, {"id": "E2-10", "sev": "MEDIUM", "agent": "E2", "repo": "ritual-node-internal", "file": "cli.py:361", "summary": "Race condition in parallel startup (sleep 5 workaround)", "conf": null, "details": ""}, {"id": "E2-11", "sev": "MEDIUM", "agent": "E2", "repo": "ritual-node-internal", "file": "port_utils.py:58", "summary": "Asymmetric port allocation -- potential collisions", "conf": null, "details": ""}, {"id": "E2-12", "sev": "MEDIUM", "agent": "E2", "repo": "ritual-node-internal", "file": "docker.py:172", "summary": "Deterministic 'abandon' mnemonic for all keys", "conf": null, "details": ""}, {"id": "E2-13", "sev": "MEDIUM", "agent": "E2", "repo": "ritual-node-internal", "file": "docker.py:886", "summary": "SKIP_VALIDITY_CONSTRAINTS + privileged Docker (testnet-intentional)", "conf": null, "details": ""}, {"id": "E2-14", "sev": "MEDIUM", "agent": "E2", "repo": "ritual-node-internal", "file": "docker.py:911", "summary": "Duplicate env var in Reth config", "conf": null, "details": ""}, {"id": "E2-15", "sev": "MEDIUM", "agent": "E2", "repo": "ritual-node-internal", "file": "local.json:101", "summary": "use_mock_vllm_proxy is a dead field", "conf": null, "details": ""}, {"id": "E2-16", "sev": "MEDIUM", "agent": "E2", "repo": "ritual-node-internal", "file": "summit.py:581", "summary": "4 Summit genesis fields never written to TOML", "conf": null, "details": ""}, {"id": "E2-17", "sev": "MEDIUM", "agent": "E2", "repo": "ritual-node-internal", "file": "blockscout.py:43", "summary": "Fetches external IP then immediately overwrites it", "conf": null, "details": ""}, {"id": "E2-18", "sev": "LOW", "agent": "E2", "repo": "ritual-node-internal", "file": "geth_constants.py:13", "summary": "GENESIS_DIFFICULTY set to non-zero for post-Merge chain", "conf": null, "details": ""}, {"id": "E2-19", "sev": "LOW", "agent": "E2", "repo": "ritual-node-internal", "file": "el_genesis.py:106", "summary": "baseBlockReward bypassed by on-chain contract", "conf": null, "details": ""}, {"id": "E2-20", "sev": "LOW", "agent": "E2", "repo": "ritual-node-internal", "file": "geth_constants.py:160", "summary": "FUNDED_ACCOUNT_BALANCE comment inaccurate", "conf": null, "details": ""}, {"id": "E2-21", "sev": "LOW", "agent": "E2", "repo": "ritual-node-internal", "file": "el_genesis.py:214", "summary": "System account at 0xfa7e commented out", "conf": null, "details": ""}, {"id": "E2-22", "sev": "LOW", "agent": "E2", "repo": "ritual-node-internal", "file": "docker.py:583", "summary": "get_llm_config_env_vars method unused (dead code)", "conf": null, "details": ""}, {"id": "E2-23", "sev": "LOW", "agent": "E2", "repo": "ritual-node-internal", "file": "el_genesis.py:82", "summary": "genesis_timestamp uses wall clock time", "conf": null, "details": ""}, {"id": "E2-24", "sev": "LOW", "agent": "E2", "repo": "ritual-node-internal", "file": "el_genesis.py:173", "summary": "Precompile addresses allocated nonce 1 but missing code", "conf": null, "details": ""}, {"id": "E2-25", "sev": "INFO", "agent": "E2", "repo": "ritual-node-internal", "file": "docker.py:172", "summary": "Same BIP39 mnemonic for executor and validator keys", "conf": null, "details": ""}, {"id": "E2-26", "sev": "INFO", "agent": "E2", "repo": "ritual-node-internal", "file": "cli.py:263", "summary": "Docker compose network isolation concern", "conf": null, "details": ""}, {"id": "E2-27", "sev": "INFO", "agent": "E2", "repo": "ritual-node-internal", "file": "docker.py:2480", "summary": "FHE executor missing rpc_urls/ws_urls fallback", "conf": null, "details": ""}, {"id": "E2-28", "sev": "INFO", "agent": "E2", "repo": "ritual-node-internal", "file": "--", "summary": "executor_py_image present in config but not in NetworkConfig model", "conf": null, "details": ""}, {"id": "E3-C1", "sev": "CRITICAL", "agent": "E3", "repo": "ritual-sc-internal", "file": "AsyncDelivery.sol", "summary": "AsyncDelivery.sol has ZERO test coverage", "conf": null, "details": ""}, {"id": "E3-C2", "sev": "LOW", "agent": "E3", "repo": "ritual-sc-internal", "file": "AsyncJobTracker.t.sol", "summary": "AsyncJobTracker missing sad-path tests", "conf": null, "details": ""}, {"id": "E3-C3", "sev": "CRITICAL", "agent": "E3", "repo": "ritual-sc-internal", "file": "--", "summary": "Staking/Slashing/Deposit stack entirely untested", "conf": null, "details": ""}, {"id": "E3-C4", "sev": "HIGH", "agent": "E3", "repo": "ritual-sc-internal", "file": "RitualWallet.sol", "summary": "RitualWallet only has MockRitualWallet, no real tests", "conf": null, "details": ""}, {"id": "E3-C5", "sev": "MEDIUM", "agent": "E3", "repo": "ritual-sc-internal", "file": "Scheduler.t.sol", "summary": "Scheduler predicates have zero tests", "conf": null, "details": ""}, {"id": "E3-C6", "sev": "MEDIUM", "agent": "E3", "repo": "ritual-sc-internal", "file": "PrecompileConsumer.t.sol", "summary": "PrecompileConsumer only tests ONNX precompile", "conf": null, "details": ""}, {"id": "E3-C7", "sev": "LOW", "agent": "E3", "repo": "ritual-sc-internal", "file": "Scheduler.t.sol:159", "summary": "testCancel does not verify post-cancel state", "conf": null, "details": ""}, {"id": "E3-C8", "sev": "MEDIUM", "agent": "E3", "repo": "traffic-gen-internal", "file": "test_executor_selection.py", "summary": "Tests reimplement logic instead of calling real code", "conf": null, "details": ""}, {"id": "E3-C9", "sev": "MEDIUM", "agent": "E3", "repo": "traffic-gen-internal", "file": "--", "summary": "All E2E tests skipped in CI (opt-in only)", "conf": null, "details": ""}, {"id": "E3-C10", "sev": "LOW", "agent": "E3", "repo": "traffic-gen-internal", "file": "test_pricing.py", "summary": "Python/Solidity constant sync unverified", "conf": null, "details": ""}];
+const THEMES = [{"id": "T1", "name": "Environment Variables as Consensus Parameters", "desc": "Multiple env vars create hidden consensus parameters that cause chain splits if inconsistent across nodes.", "findings": ["A1-007", "A4-F4", "A5-09", "A6-C4", "E1-C4", "D3-1.5", "E2-13", "A6-L3"]}, {"id": "T2", "name": "Attestation Security Defense-in-Depth Failure", "desc": "Every layer of Nitro attestation verification has bypasses: X.509 chain not verified, certs time-bypassed, nonce hardcoded to zero, PCR validation disabled.", "findings": ["A6-C4", "A6-C5", "A6-C6", "A6-H4", "E1-C1", "E1-C2", "E1-C3", "E1-C4", "E1-H1", "E1-H5", "E1-M3"]}, {"id": "T3", "name": "Non-Determinism in Native Precompiles", "desc": "Three independent sources of non-determinism in consensus-critical precompiles: ONNX FP, JQ timeouts, gas estimation FP math.", "findings": ["A6-C1", "A6-H5", "A6-H6", "A2-004", "D2-M3"]}, {"id": "T4", "name": "Executor Reliability", "desc": "Multiple paths where completed work is permanently lost: errors swallowed, fire-and-forget submission, queue drops.", "findings": ["B2-1", "B2-7", "B2-9", "B3-HIGH-04", "B1-04"]}, {"id": "T5", "name": "RLP Encoding Fragility", "desc": "Custom transaction types have structural encoding issues: optional field asymmetry, missing list headers, hash path divergence.", "findings": ["D1-01", "D1-02", "D1-03", "D1-04", "D1-05", "D1-06", "D1-07"]}, {"id": "T6", "name": "Reorg Safety Gap", "desc": "All in-memory state stores used by the block builder are forward-only with no revert handling.", "findings": ["A3-001", "A3-002", "A3-003", "A3-004", "A3-005", "A3-008"]}, {"id": "T7", "name": "Test Coverage Gaps", "desc": "Critical contracts and flows have zero test coverage, including AsyncDelivery, RitualWallet, staking stack, and scheduler predicates.", "findings": ["E3-C1", "E3-C3", "E3-C4", "E3-C5", "E3-C6", "E3-C8", "E3-C9"]}];
+
+const SEV_ORDER = ['CRITICAL','HIGH','MEDIUM-HIGH','MEDIUM','LOW-MEDIUM','LOW','INFO','GOOD','BY DESIGN','N/A'];
+const SEV_COLORS = {
+  'CRITICAL':'#ff3366','HIGH':'#ff6b35','MEDIUM-HIGH':'#ff9f1c','MEDIUM':'#f5c542',
+  'LOW-MEDIUM':'#8ac926','LOW':'#36d399','INFO':'#38bdf8','GOOD':'#22d3ee',
+  'BY DESIGN':'#a78bfa','N/A':'#64748b'
+};
+
+// ===== STATE =====
+let state = loadState();
+function loadState(){
+  try{
+    const s = JSON.parse(localStorage.getItem('ritual_findings_state') || '{}');
+    return {
+      dismissed: s.dismissed || {},
+      notes: s.notes || {},
+      filters: s.filters || {sevs:[],agents:[],repos:[],themes:[]},
+      search: s.search || '',
+      sort: s.sort || 'severity',
+      showDismissed: s.showDismissed !== undefined ? s.showDismissed : true
+    };
+  } catch(e){ return {dismissed:{},notes:{},filters:{sevs:[],agents:[],repos:[],themes:[]},search:'',sort:'severity',showDismissed:true}; }
+}
+function saveState(){
+  try{ localStorage.setItem('ritual_findings_state', JSON.stringify(state)); } catch(e){}
+}
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', () => {
+  buildHeaderBadges();
+  buildFilters();
+  buildThemes();
+  buildStats();
+  renderFindings();
+  restoreUI();
+
+  // Tabs
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('tab-' + t.dataset.tab).classList.add('active');
+  }));
+
+  // Search
+  const sb = document.getElementById('searchBox');
+  sb.value = state.search;
+  let debounce;
+  sb.addEventListener('input', () => {
+    clearTimeout(debounce);
+    debounce = setTimeout(() => { state.search = sb.value; saveState(); renderFindings(); }, 200);
+  });
+
+  // Show dismissed
+  const sd = document.getElementById('showDismissed');
+  sd.checked = state.showDismissed;
+  sd.addEventListener('change', () => { state.showDismissed = sd.checked; saveState(); renderFindings(); });
+});
+
+function restoreUI(){
+  // Restore filter button states
+  document.querySelectorAll('#sevFilters .filter-btn').forEach(b => {
+    if(state.filters.sevs.includes(b.dataset.val)) b.classList.add('active');
+  });
+  document.querySelectorAll('#agentFilters .filter-btn').forEach(b => {
+    if(state.filters.agents.includes(b.dataset.val)) b.classList.add('active');
+  });
+  document.querySelectorAll('#repoFilters .filter-btn').forEach(b => {
+    if(state.filters.repos.includes(b.dataset.val)) b.classList.add('active');
+  });
+  document.querySelectorAll('#themeFilters .filter-btn').forEach(b => {
+    if(state.filters.themes.includes(b.dataset.val)) b.classList.add('active');
+  });
+  // Sort buttons
+  document.querySelectorAll('.sort-row .filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.sort === state.sort);
+  });
+}
+
+// ===== HEADER BADGES =====
+function buildHeaderBadges(){
+  const counts = {};
+  SEV_ORDER.forEach(s => counts[s] = 0);
+  FINDINGS.forEach(f => { counts[f.sev] = (counts[f.sev]||0) + 1; });
+  const dismissedCount = Object.keys(state.dismissed).filter(k => state.dismissed[k]).length;
+  const el = document.getElementById('headerBadges');
+  let h = '';
+  SEV_ORDER.forEach(s => {
+    if(counts[s] > 0){
+      const cls = s.replace(/\s+/g,'-');
+      h += '<span class="sev-badge sev-' + cls + '">' + s + ' ' + counts[s] + '</span>';
+    }
+  });
+  h += '<span style="color:var(--text-2);font-size:0.75rem;margin-left:8px">' + FINDINGS.length + ' total &middot; ' + dismissedCount + ' dismissed &middot; ' + (FINDINGS.length - dismissedCount) + ' active</span>';
+  el.innerHTML = h;
+}
+
+// ===== FILTERS =====
+function buildFilters(){
+  const sevs = [...new Set(FINDINGS.map(f=>f.sev))].sort((a,b)=>SEV_ORDER.indexOf(a)-SEV_ORDER.indexOf(b));
+  const agents = [...new Set(FINDINGS.map(f=>f.agent))].sort();
+  const repos = [...new Set(FINDINGS.map(f=>f.repo))].sort();
+  const themeNames = THEMES.map(t=>t.name);
+
+  fillFilterGroup('sevFilters', sevs, 'sevs');
+  fillFilterGroup('agentFilters', agents, 'agents');
+  fillFilterGroup('repoFilters', repos, 'repos');
+  fillFilterGroup('themeFilters', themeNames, 'themes');
+}
+
+function fillFilterGroup(elId, values, filterKey){
+  const el = document.getElementById(elId);
+  values.forEach(v => {
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn';
+    btn.dataset.val = v;
+    btn.textContent = v;
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('active');
+      if(btn.classList.contains('active')){
+        if(!state.filters[filterKey].includes(v)) state.filters[filterKey].push(v);
+      } else {
+        state.filters[filterKey] = state.filters[filterKey].filter(x=>x!==v);
+      }
+      saveState();
+      renderFindings();
+    });
+    el.appendChild(btn);
+  });
+}
+
+// ===== SORTING =====
+function setSort(s){
+  state.sort = s;
+  document.querySelectorAll('.sort-row .filter-btn').forEach(b => b.classList.toggle('active', b.dataset.sort === s));
+  saveState();
+  renderFindings();
+}
+
+function sortFindings(arr){
+  const s = state.sort;
+  return [...arr].sort((a,b) => {
+    if(s==='severity') return SEV_ORDER.indexOf(a.sev) - SEV_ORDER.indexOf(b.sev);
+    if(s==='agent') return a.agent.localeCompare(b.agent) || SEV_ORDER.indexOf(a.sev) - SEV_ORDER.indexOf(b.sev);
+    if(s==='confidence') return (b.conf||0) - (a.conf||0);
+    if(s==='file') return (a.file||'').localeCompare(b.file||'');
+    if(s==='id') return a.id.localeCompare(b.id);
+    return 0;
+  });
+}
+
+// ===== FILTERING =====
+function getThemeFindingIds(themeName){
+  const t = THEMES.find(x=>x.name===themeName);
+  return t ? t.findings : [];
+}
+
+function filterFindings(){
+  let arr = FINDINGS;
+  const f = state.filters;
+  if(f.sevs.length) arr = arr.filter(x => f.sevs.includes(x.sev));
+  if(f.agents.length) arr = arr.filter(x => f.agents.includes(x.agent));
+  if(f.repos.length) arr = arr.filter(x => f.repos.includes(x.repo));
+  if(f.themes.length){
+    const ids = new Set();
+    f.themes.forEach(tn => getThemeFindingIds(tn).forEach(id => ids.add(id)));
+    arr = arr.filter(x => ids.has(x.id));
+  }
+  if(!state.showDismissed) arr = arr.filter(x => !state.dismissed[x.id]);
+  if(state.search){
+    const q = state.search.toLowerCase();
+    arr = arr.filter(x =>
+      x.id.toLowerCase().includes(q) ||
+      x.summary.toLowerCase().includes(q) ||
+      (x.file||'').toLowerCase().includes(q) ||
+      (x.details||'').toLowerCase().includes(q) ||
+      x.repo.toLowerCase().includes(q) ||
+      x.agent.toLowerCase().includes(q)
+    );
+  }
+  return arr;
+}
+
+// ===== RENDER =====
+function renderFindings(){
+  const filtered = filterFindings();
+  const sorted = sortFindings(filtered);
+  const el = document.getElementById('cardList');
+  document.getElementById('resultsCount').textContent = sorted.length + ' of ' + FINDINGS.length + ' findings shown';
+  buildHeaderBadges();
+
+  if(sorted.length === 0){
+    el.innerHTML = '<div style="text-align:center;padding:48px;color:var(--text-2)">No findings match your filters.</div>';
+    return;
+  }
+
+  let h = '';
+  sorted.forEach(f => {
+    const sevCls = f.sev.replace(/\s+/g,'-');
+    const isDismissed = state.dismissed[f.id];
+    const note = state.notes[f.id] || '';
+    h += '<div class="finding-card' + (isDismissed ? ' dismissed' : '') + '" id="card-' + f.id + '">';
+    h += '<div class="card-header" onclick="toggleCard(\'' + f.id + '\')">';
+    h += '<span class="fid">' + esc(f.id) + '</span>';
+    h += '<span class="sev-badge sev-' + sevCls + '">' + esc(f.sev) + '</span>';
+    h += '<span class="fsummary">' + esc(f.summary) + '</span>';
+    h += '<span class="fmeta">';
+    h += '<span class="agent-tag">' + esc(f.agent) + '</span>';
+    h += '<span class="repo-tag">' + esc(f.repo) + '</span>';
+    if(f.conf) h += '<span class="conf">' + Math.round(f.conf*100) + '%</span>';
+    h += '</span>';
+    h += '<span class="expand-icon">&#9654;</span>';
+    h += '</div>';
+    h += '<div class="card-detail">';
+    h += '<dl class="detail-grid">';
+    h += '<dt>File</dt><dd class="mono">' + esc(f.file || 'N/A') + '</dd>';
+    h += '<dt>Repository</dt><dd>' + esc(f.repo) + '</dd>';
+    h += '<dt>Agent</dt><dd>' + esc(f.agent) + '</dd>';
+    h += '<dt>Confidence</dt><dd>' + (f.conf ? Math.round(f.conf*100) + '%' : 'N/A') + '</dd>';
+    // themes this finding belongs to
+    const fthemes = THEMES.filter(t => t.findings.includes(f.id)).map(t => t.name);
+    if(fthemes.length) h += '<dt>Themes</dt><dd>' + fthemes.map(esc).join(', ') + '</dd>';
+    h += '</dl>';
+    if(f.details) h += '<div class="detail-text">' + esc(f.details) + '</div>';
+    h += '<div class="dismiss-row">';
+    h += '<label><input type="checkbox" ' + (isDismissed ? 'checked' : '') + ' onchange="toggleDismiss(\'' + f.id + '\', this.checked)"> Dismissed</label>';
+    h += '<input type="text" class="dismiss-note" placeholder="Dismissal note..." value="' + escAttr(note) + '" onchange="setNote(\'' + f.id + '\', this.value)">';
+    h += '</div></div></div>';
+  });
+  el.innerHTML = h;
+}
+
+function toggleCard(id){
+  const el = document.getElementById('card-' + id);
+  if(el) el.classList.toggle('open');
+}
+
+function toggleDismiss(id, checked){
+  state.dismissed[id] = checked;
+  saveState();
+  const el = document.getElementById('card-' + id);
+  if(el) el.classList.toggle('dismissed', checked);
+  buildHeaderBadges();
+  if(!state.showDismissed && checked) renderFindings();
+}
+
+function setNote(id, val){
+  state.notes[id] = val;
+  saveState();
+}
+
+function esc(s){
+  if(!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(s){
+  if(!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ===== THEMES =====
+function buildThemes(){
+  const el = document.getElementById('themesGrid');
+  let h = '';
+  THEMES.forEach(t => {
+    h += '<div class="theme-card">';
+    h += '<h3>' + esc(t.name) + '</h3>';
+    h += '<p>' + esc(t.desc) + '</p>';
+    h += '<div class="theme-findings">';
+    t.findings.forEach(fid => {
+      h += '<span class="theme-fid" onclick="jumpToFinding(\'' + fid + '\')">' + fid + '</span>';
+    });
+    h += '</div></div>';
+  });
+  el.innerHTML = h;
+}
+
+function jumpToFinding(id){
+  // Switch to findings tab
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
+  document.querySelector('[data-tab="findings"]').classList.add('active');
+  document.getElementById('tab-findings').classList.add('active');
+  // Clear filters, search for ID
+  state.search = id;
+  state.filters = {sevs:[],agents:[],repos:[],themes:[]};
+  document.getElementById('searchBox').value = id;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    if(b.dataset.val) b.classList.remove('active');
+  });
+  saveState();
+  renderFindings();
+  setTimeout(() => {
+    const card = document.getElementById('card-' + id);
+    if(card){ card.classList.add('open'); card.scrollIntoView({behavior:'smooth',block:'center'}); }
+  }, 100);
+}
+
+// ===== STATS =====
+function buildStats(){
+  const el = document.getElementById('statsGrid');
+  let h = '';
+
+  // Severity distribution
+  const sevCounts = {};
+  SEV_ORDER.forEach(s => sevCounts[s] = 0);
+  FINDINGS.forEach(f => sevCounts[f.sev] = (sevCounts[f.sev]||0)+1);
+  const maxSev = Math.max(...Object.values(sevCounts));
+  h += '<div class="stat-box"><h3>Findings by Severity</h3><div class="bar-chart">';
+  SEV_ORDER.forEach(s => {
+    if(sevCounts[s] > 0){
+      const pct = (sevCounts[s]/maxSev*100).toFixed(1);
+      h += '<div class="bar-row"><span class="bar-label">' + s + '</span><div class="bar-track"><div class="bar-fill" style="width:' + pct + '%;background:' + (SEV_COLORS[s]||'#666') + '"></div></div><span class="bar-count">' + sevCounts[s] + '</span></div>';
+    }
+  });
+  h += '</div></div>';
+
+  // Repo distribution
+  const repoCounts = {};
+  FINDINGS.forEach(f => repoCounts[f.repo] = (repoCounts[f.repo]||0)+1);
+  const repoSorted = Object.entries(repoCounts).sort((a,b)=>b[1]-a[1]);
+  const maxRepo = repoSorted[0] ? repoSorted[0][1] : 1;
+  h += '<div class="stat-box"><h3>Findings by Repository</h3><div class="bar-chart">';
+  repoSorted.forEach(([repo,cnt]) => {
+    const pct = (cnt/maxRepo*100).toFixed(1);
+    h += '<div class="bar-row"><span class="bar-label">' + repo + '</span><div class="bar-track"><div class="bar-fill" style="width:' + pct + '%;background:var(--accent)"></div></div><span class="bar-count">' + cnt + '</span></div>';
+  });
+  h += '</div></div>';
+
+  // Agent distribution
+  const agentCounts = {};
+  FINDINGS.forEach(f => agentCounts[f.agent] = (agentCounts[f.agent]||0)+1);
+  const agentSorted = Object.entries(agentCounts).sort((a,b)=>b[1]-a[1]);
+  const maxAgent = agentSorted[0] ? agentSorted[0][1] : 1;
+  h += '<div class="stat-box"><h3>Findings by Agent</h3><div class="bar-chart">';
+  agentSorted.forEach(([agent,cnt]) => {
+    const pct = (cnt/maxAgent*100).toFixed(1);
+    h += '<div class="bar-row"><span class="bar-label">' + agent + '</span><div class="bar-track"><div class="bar-fill" style="width:' + pct + '%;background:var(--accent2)"></div></div><span class="bar-count">' + cnt + '</span></div>';
+  });
+  h += '</div></div>';
+
+  // Active vs Dismissed
+  const dismissedCount = Object.keys(state.dismissed).filter(k => state.dismissed[k]).length;
+  const activeCount = FINDINGS.length - dismissedCount;
+  h += '<div class="stat-box"><h3>Active vs Dismissed</h3>';
+  h += '<div style="display:flex;gap:24px;align-items:center;margin-top:8px">';
+  h += '<div style="text-align:center"><div style="font-size:2.5rem;font-weight:700;color:var(--accent)">' + activeCount + '</div><div style="font-size:0.8rem;color:var(--text-2)">Active</div></div>';
+  h += '<div style="text-align:center"><div style="font-size:2.5rem;font-weight:700;color:var(--text-2)">' + dismissedCount + '</div><div style="font-size:0.8rem;color:var(--text-2)">Dismissed</div></div>';
+  h += '</div>';
+  // severity breakdown for active
+  h += '<div style="margin-top:16px"><div style="font-size:0.8rem;color:var(--text-2);margin-bottom:8px">Active by severity:</div><div style="display:flex;gap:6px;flex-wrap:wrap">';
+  SEV_ORDER.forEach(s => {
+    const active = FINDINGS.filter(f => f.sev === s && !state.dismissed[f.id]).length;
+    if(active > 0){
+      const cls = s.replace(/\s+/g,'-');
+      h += '<span class="sev-badge sev-' + cls + '">' + s + ' ' + active + '</span>';
+    }
+  });
+  h += '</div></div></div>';
+
+  // Confidence distribution
+  const confBuckets = {'90-100%':0,'80-89%':0,'70-79%':0,'60-69%':0,'Below 60%':0,'N/A':0};
+  FINDINGS.forEach(f => {
+    if(!f.conf) confBuckets['N/A']++;
+    else if(f.conf >= 0.9) confBuckets['90-100%']++;
+    else if(f.conf >= 0.8) confBuckets['80-89%']++;
+    else if(f.conf >= 0.7) confBuckets['70-79%']++;
+    else if(f.conf >= 0.6) confBuckets['60-69%']++;
+    else confBuckets['Below 60%']++;
+  });
+  const maxConf = Math.max(...Object.values(confBuckets));
+  h += '<div class="stat-box"><h3>Confidence Distribution</h3><div class="bar-chart">';
+  Object.entries(confBuckets).forEach(([label,cnt]) => {
+    if(cnt > 0){
+      const pct = (cnt/maxConf*100).toFixed(1);
+      h += '<div class="bar-row"><span class="bar-label">' + label + '</span><div class="bar-track"><div class="bar-fill" style="width:' + pct + '%;background:var(--low)"></div></div><span class="bar-count">' + cnt + '</span></div>';
+    }
+  });
+  h += '</div></div>';
+
+  // Theme coverage
+  h += '<div class="stat-box"><h3>Theme Coverage</h3><div class="bar-chart">';
+  const maxTheme = Math.max(...THEMES.map(t=>t.findings.length));
+  THEMES.forEach(t => {
+    const pct = (t.findings.length/maxTheme*100).toFixed(1);
+    h += '<div class="bar-row"><span class="bar-label" title="' + esc(t.name) + '">' + esc(t.name.substring(0,25)) + '</span><div class="bar-track"><div class="bar-fill" style="width:' + pct + '%;background:var(--bydesign)"></div></div><span class="bar-count">' + t.findings.length + '</span></div>';
+  });
+  h += '</div></div>';
+
+  el.innerHTML = h;
+}
+
+// ===== EXPORT / RESET =====
+function exportJSON(){
+  const exported = {
+    exportDate: new Date().toISOString(),
+    totalFindings: FINDINGS.length,
+    dismissed: state.dismissed,
+    notes: state.notes,
+    findings: FINDINGS.map(f => ({
+      ...f,
+      dismissed: !!state.dismissed[f.id],
+      dismissalNote: state.notes[f.id] || ''
+    }))
+  };
+  const blob = new Blob([JSON.stringify(exported, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ritual-findings-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function resetAll(){
+  if(!confirm('Reset all dismissed findings, notes, and filter state?')) return;
+  localStorage.removeItem('ritual_findings_state');
+  location.reload();
+}
+</script>
+</body>
+</html>

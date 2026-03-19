@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ritual Chain - Precompile Sad Paths Analysis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #000000;
+  --gray-950: #0a0f1a;
+  --gray-900: #111827;
+  --gray-800: #1f2937;
+  --gray-700: #374151;
+  --gray-600: #4b5563;
+  --gray-500: #6b7280;
+  --gray-400: #9ca3af;
+  --gray-300: #d1d5db;
+  --white: #ffffff;
+  --green: #19d184;
+  --green-dim: rgba(25, 209, 132, 0.12);
+  --green-glow: rgba(25, 209, 132, 0.3);
+  --lime: #bfff00;
+  --lime-dim: rgba(191, 255, 0, 0.1);
+  --pink: #ff1dce;
+  --pink-dim: rgba(255, 29, 206, 0.1);
+  --gold: rgb(250, 204, 21);
+  --gold-dim: rgba(250, 204, 21, 0.1);
+  --red: #ef4444;
+  --red-dim: rgba(239, 68, 68, 0.1);
+  --cyan: #67e8f9;
+  --cyan-dim: rgba(103, 232, 249, 0.1);
+  --radius: 0.375rem;
+  --font-body: 'Barlow', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--black);
+  color: var(--white);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Grain overlay ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--gray-950); }
+::-webkit-scrollbar-thumb { background: var(--gray-700); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gray-600); }
+
+/* ── Layout ── */
+.container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+
+/* ── Nav ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--gray-800);
+}
+nav .container {
+  display: flex; align-items: center; justify-content: space-between;
+  height: 56px;
+}
+.nav-brand {
+  display: flex; align-items: center; gap: 12px;
+  font-weight: 600; font-size: 15px; letter-spacing: 0.02em;
+}
+.nav-brand .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green-glow);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--green-glow); }
+  50% { opacity: 0.6; box-shadow: 0 0 16px var(--green-glow); }
+}
+.nav-links { display: flex; gap: 8px; }
+.nav-links a {
+  color: var(--gray-400); text-decoration: none; font-size: 13px;
+  padding: 6px 12px; border-radius: var(--radius);
+  transition: all 0.2s;
+  font-weight: 500;
+}
+.nav-links a:hover { color: var(--white); background: var(--gray-800); }
+
+/* ── Hero ── */
+.hero {
+  padding: 120px 0 64px;
+  border-bottom: 1px solid var(--gray-800);
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -200px; right: -200px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, var(--green-dim) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -150px; left: -100px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, var(--pink-dim) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-label {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-mono); font-size: 12px;
+  color: var(--green); letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  padding: 4px 12px;
+  background: var(--green-dim);
+  border-radius: var(--radius);
+  border: 1px solid rgba(25, 209, 132, 0.2);
+}
+.hero h1 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700; line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+  position: relative;
+}
+.hero h1 span { color: var(--green); }
+.hero-sub {
+  font-size: 18px; color: var(--gray-400);
+  max-width: 640px; line-height: 1.6;
+  margin-bottom: 40px;
+}
+
+/* ── Stats bar ── */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1px;
+  background: var(--gray-700);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 0;
+}
+.stat {
+  background: var(--gray-900);
+  padding: 20px 24px;
+  text-align: center;
+}
+.stat-value {
+  font-size: 32px; font-weight: 700;
+  font-family: var(--font-mono);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.stat-value.critical { color: var(--red); }
+.stat-value.high { color: var(--gold); }
+.stat-value.medium { color: var(--cyan); }
+.stat-value.good { color: var(--green); }
+.stat-label {
+  font-size: 12px; color: var(--gray-500);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  font-weight: 500;
+}
+
+/* ── Section ── */
+section { padding: 64px 0; border-bottom: 1px solid var(--gray-800); }
+section:last-child { border-bottom: none; }
+.section-header {
+  display: flex; align-items: baseline; gap: 16px;
+  margin-bottom: 32px;
+}
+.section-number {
+  font-family: var(--font-mono); font-size: 13px;
+  color: var(--green); font-weight: 600;
+}
+.section-title {
+  font-size: 24px; font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.section-desc {
+  color: var(--gray-400); font-size: 15px;
+  max-width: 700px; margin-bottom: 32px;
+}
+
+/* ── Risk Matrix ── */
+.risk-matrix {
+  width: 100%; border-collapse: separate;
+  border-spacing: 0; border-radius: var(--radius);
+  overflow: hidden; font-size: 14px;
+}
+.risk-matrix thead th {
+  background: var(--gray-800);
+  padding: 12px 16px; text-align: center;
+  font-weight: 600; font-size: 12px;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--gray-300);
+  border-bottom: 1px solid var(--gray-700);
+}
+.risk-matrix thead th:first-child { text-align: left; }
+.risk-matrix tbody td {
+  padding: 14px 16px; text-align: center;
+  background: var(--gray-900);
+  border-bottom: 1px solid rgba(55, 65, 81, 0.5);
+}
+.risk-matrix tbody td:first-child {
+  text-align: left; font-weight: 500;
+  font-family: var(--font-mono); font-size: 13px;
+}
+.risk-matrix tbody tr:hover td { background: var(--gray-800); }
+
+.badge {
+  display: inline-block; padding: 3px 10px;
+  border-radius: 100px; font-size: 11px;
+  font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.badge-crit { background: var(--red-dim); color: var(--red); border: 1px solid rgba(239,68,68,0.25); }
+.badge-high { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(250,204,21,0.25); }
+.badge-med  { background: var(--cyan-dim); color: var(--cyan); border: 1px solid rgba(103,232,249,0.25); }
+.badge-low  { background: var(--green-dim); color: var(--green); border: 1px solid rgba(25,209,132,0.25); }
+.badge-none { background: transparent; color: var(--gray-600); border: 1px solid var(--gray-700); }
+
+/* ── Finding Cards ── */
+.findings-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+.finding-card {
+  background: var(--gray-900);
+  border-radius: var(--radius);
+  border: 1px solid var(--gray-800);
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.finding-card:hover { border-color: var(--gray-700); }
+.finding-card.severity-critical { border-left: 3px solid var(--red); }
+.finding-card.severity-high { border-left: 3px solid var(--gold); }
+.finding-card.severity-medium { border-left: 3px solid var(--cyan); }
+
+.finding-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 20px;
+  cursor: pointer;
+  user-select: none;
+}
+.finding-header:hover { background: rgba(255,255,255,0.02); }
+.finding-id {
+  font-family: var(--font-mono); font-size: 12px;
+  color: var(--gray-500); min-width: 32px;
+  font-weight: 600;
+}
+.finding-title { flex: 1; font-weight: 500; font-size: 15px; }
+.finding-component {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--gray-500); padding: 3px 8px;
+  background: var(--gray-800); border-radius: var(--radius);
+}
+.finding-chevron {
+  color: var(--gray-600); transition: transform 0.2s;
+  font-size: 18px; width: 20px; text-align: center;
+}
+.finding-card.open .finding-chevron { transform: rotate(90deg); }
+
+.finding-body {
+  display: none; padding: 0 20px 20px 64px;
+  border-top: 1px solid var(--gray-800);
+}
+.finding-card.open .finding-body { display: block; padding-top: 16px; }
+
+.finding-body p { color: var(--gray-300); font-size: 14px; margin-bottom: 12px; line-height: 1.7; }
+.finding-body .file-ref {
+  font-family: var(--font-mono); font-size: 12px;
+  color: var(--green); display: inline-block;
+  padding: 2px 8px; background: var(--green-dim);
+  border-radius: var(--radius); margin-bottom: 8px;
+}
+.finding-body code {
+  font-family: var(--font-mono); font-size: 13px;
+  background: var(--gray-800); padding: 12px 16px;
+  border-radius: var(--radius); display: block;
+  overflow-x: auto; color: var(--gray-300);
+  line-height: 1.6; margin: 12px 0;
+  border: 1px solid var(--gray-700);
+}
+.finding-body code .kw { color: var(--pink); }
+.finding-body code .fn { color: var(--cyan); }
+.finding-body code .cm { color: var(--gray-600); }
+.finding-body code .st { color: var(--lime); }
+.finding-meta {
+  display: flex; gap: 16px; flex-wrap: wrap;
+  margin-top: 12px; padding-top: 12px;
+  border-top: 1px solid var(--gray-800);
+}
+.finding-meta-item {
+  font-size: 12px; color: var(--gray-500);
+}
+.finding-meta-item strong { color: var(--gray-300); font-weight: 500; }
+
+/* ── Coverage Matrix ── */
+.coverage-matrix {
+  width: 100%; border-collapse: separate;
+  border-spacing: 0; border-radius: var(--radius);
+  overflow: hidden; font-size: 13px;
+}
+.coverage-matrix thead th {
+  background: var(--gray-800); padding: 10px 12px;
+  font-weight: 600; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--gray-400); text-align: center;
+  border-bottom: 1px solid var(--gray-700);
+}
+.coverage-matrix thead th:first-child { text-align: left; min-width: 200px; }
+.coverage-matrix tbody td {
+  padding: 10px 12px; text-align: center;
+  background: var(--gray-900);
+  border-bottom: 1px solid rgba(55,65,81,0.4);
+}
+.coverage-matrix tbody td:first-child {
+  text-align: left; font-family: var(--font-mono);
+  font-size: 12px; font-weight: 500;
+}
+.coverage-matrix tbody tr:hover td { background: var(--gray-800); }
+.cov-yes { color: var(--green); font-weight: 600; }
+.cov-no { color: var(--red); opacity: 0.7; }
+.cov-partial { color: var(--gold); }
+
+/* ── Bug Pattern Chart ── */
+.pattern-bars { display: flex; flex-direction: column; gap: 12px; }
+.pattern-row {
+  display: flex; align-items: center; gap: 16px;
+}
+.pattern-label {
+  width: 240px; font-size: 14px; color: var(--gray-300);
+  flex-shrink: 0; text-align: right;
+}
+.pattern-bar-track {
+  flex: 1; height: 28px; background: var(--gray-800);
+  border-radius: var(--radius); overflow: hidden;
+  position: relative;
+}
+.pattern-bar-fill {
+  height: 100%; border-radius: var(--radius);
+  display: flex; align-items: center;
+  padding-left: 12px;
+  font-family: var(--font-mono); font-size: 12px;
+  font-weight: 600; color: var(--white);
+  transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pattern-bar-fill.t1 { background: linear-gradient(90deg, rgba(239,68,68,0.6), rgba(239,68,68,0.3)); }
+.pattern-bar-fill.t2 { background: linear-gradient(90deg, rgba(250,204,21,0.5), rgba(250,204,21,0.25)); }
+.pattern-bar-fill.t3 { background: linear-gradient(90deg, rgba(103,232,249,0.4), rgba(103,232,249,0.2)); }
+.pattern-bar-fill.t4 { background: linear-gradient(90deg, rgba(25,209,132,0.4), rgba(25,209,132,0.2)); }
+.pattern-bar-fill.t5 { background: linear-gradient(90deg, rgba(191,255,0,0.4), rgba(191,255,0,0.2)); }
+.pattern-count {
+  margin-left: 12px; font-family: var(--font-mono);
+  font-size: 13px; color: var(--gray-400);
+  flex-shrink: 0;
+}
+
+/* ── FSM Transitions ── */
+.fsm-list { display: flex; flex-direction: column; gap: 8px; }
+.fsm-item {
+  display: flex; align-items: flex-start; gap: 16px;
+  padding: 14px 20px;
+  background: var(--gray-900); border-radius: var(--radius);
+  border: 1px solid var(--gray-800);
+}
+.fsm-num {
+  font-family: var(--font-mono); font-size: 12px;
+  color: var(--gray-600); min-width: 24px;
+  padding-top: 2px; font-weight: 600;
+}
+.fsm-content { flex: 1; }
+.fsm-title { font-weight: 500; font-size: 14px; margin-bottom: 4px; }
+.fsm-desc { font-size: 13px; color: var(--gray-400); line-height: 1.5; }
+
+/* ── Action Plan ── */
+.action-timeline { position: relative; padding-left: 32px; }
+.action-timeline::before {
+  content: ''; position: absolute;
+  left: 11px; top: 8px; bottom: 8px;
+  width: 2px; background: var(--gray-700);
+}
+.action-week {
+  position: relative; margin-bottom: 32px;
+}
+.action-week:last-child { margin-bottom: 0; }
+.action-dot {
+  position: absolute; left: -32px; top: 6px;
+  width: 22px; height: 22px;
+  border-radius: 50%; background: var(--gray-900);
+  border: 2px solid var(--green);
+  display: flex; align-items: center; justify-content: center;
+}
+.action-dot.urgent { border-color: var(--red); }
+.action-dot.arch { border-color: var(--pink); }
+.action-dot-inner {
+  width: 8px; height: 8px; border-radius: 50%;
+}
+.action-dot.urgent .action-dot-inner { background: var(--red); }
+.action-dot .action-dot-inner { background: var(--green); }
+.action-dot.arch .action-dot-inner { background: var(--pink); }
+.action-week-label {
+  font-family: var(--font-mono); font-size: 12px;
+  color: var(--green); text-transform: uppercase;
+  letter-spacing: 0.06em; margin-bottom: 12px;
+  font-weight: 600;
+}
+.action-week.urgent .action-week-label { color: var(--red); }
+.action-week.arch .action-week-label { color: var(--pink); }
+.action-items { display: flex; flex-direction: column; gap: 8px; }
+.action-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 16px;
+  background: var(--gray-900); border-radius: var(--radius);
+  font-size: 14px; color: var(--gray-300);
+  border: 1px solid var(--gray-800);
+}
+.action-ref {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--gray-500); min-width: 28px;
+  padding-top: 1px;
+}
+
+/* ── Floating Point Section ── */
+.fp-callout {
+  background: linear-gradient(135deg, rgba(239,68,68,0.08), rgba(255,29,206,0.05));
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  margin-bottom: 24px;
+}
+.fp-callout-title {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 16px; font-weight: 600; margin-bottom: 12px;
+  color: var(--red);
+}
+.fp-callout p { color: var(--gray-300); font-size: 14px; line-height: 1.7; }
+
+.fp-flow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2px; background: var(--gray-700);
+  border-radius: var(--radius); overflow: hidden;
+  margin-top: 20px;
+}
+.fp-step {
+  background: var(--gray-900); padding: 20px;
+  text-align: center;
+}
+.fp-step-num {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--gray-600); margin-bottom: 6px;
+}
+.fp-step-text {
+  font-size: 13px; color: var(--gray-300); line-height: 1.5;
+}
+.fp-step-text em { color: var(--red); font-style: normal; font-weight: 600; }
+
+/* ── Footer ── */
+footer {
+  padding: 40px 0; text-align: center;
+  color: var(--gray-600); font-size: 13px;
+}
+footer a { color: var(--green); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+  .stats-bar { grid-template-columns: repeat(2, 1fr); }
+  .pattern-label { width: 140px; font-size: 12px; }
+  .finding-component { display: none; }
+  .finding-body { padding-left: 20px; }
+  .fp-flow { grid-template-columns: 1fr; }
+  .risk-matrix { font-size: 12px; }
+  .risk-matrix thead th, .risk-matrix tbody td { padding: 8px 6px; }
+}
+
+/* ── Animations ── */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-in {
+  animation: fade-up 0.5s ease-out forwards;
+  opacity: 0;
+}
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+
+/* ── Tier filter tabs ── */
+.tier-tabs {
+  display: flex; gap: 8px; margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.tier-tab {
+  padding: 6px 16px; border-radius: 100px;
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; border: 1px solid var(--gray-700);
+  background: transparent; color: var(--gray-400);
+  transition: all 0.2s;
+  font-family: var(--font-body);
+}
+.tier-tab:hover { border-color: var(--gray-500); color: var(--white); }
+.tier-tab.active { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+.tier-tab.active-crit { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+.tier-tab.active-high { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
+.tier-tab.active-med { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-dim); }
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <div class="container">
+    <div class="nav-brand">
+      <div class="dot"></div>
+      <span>Ritual Chain / Sad Paths Audit</span>
+    </div>
+    <div class="nav-links">
+      <a href="#risk-matrix">Risk Matrix</a>
+      <a href="#findings">Findings</a>
+      <a href="#consensus">FP Consensus</a>
+      <a href="#coverage">Coverage</a>
+      <a href="#patterns">Patterns</a>
+      <a href="#fsm">Async FSM</a>
+      <a href="#actions">Action Plan</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<header class="hero">
+  <div class="container">
+    <div class="hero-label animate-in">MECE Static Analysis Report</div>
+    <h1 class="animate-in delay-1">Precompile <span>Sad Paths</span></h1>
+    <p class="hero-sub animate-in delay-2">
+      Mutually exclusive, collectively exhaustive analysis of all native and async precompile error paths, coverage gaps, and consensus risks across the Ritual Chain execution layer.
+    </p>
+    <div class="stats-bar animate-in delay-3">
+      <div class="stat">
+        <div class="stat-value critical">9</div>
+        <div class="stat-label">Tier 1 / Chain-Halt</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value high">8</div>
+        <div class="stat-label">Tier 2 / DoS</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value medium">6</div>
+        <div class="stat-label">Tier 3 / FSM Gaps</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value good">33</div>
+        <div class="stat-label">Known Bugs Cataloged</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" style="color:var(--pink)">8</div>
+        <div class="stat-label">Repos Analyzed</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" style="color:var(--lime)">0%</div>
+        <div class="stat-label">Adversarial Coverage</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ── RISK MATRIX ── -->
+<section id="risk-matrix">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-number">01</span>
+      <h2 class="section-title">Consolidated Risk Matrix</h2>
+    </div>
+    <p class="section-desc">Component-level risk assessment across crash, consensus, hang, and economic attack vectors. Based on static code analysis of all precompile implementations.</p>
+    <table class="risk-matrix">
+      <thead>
+        <tr>
+          <th>Component</th>
+          <th>Crash</th>
+          <th>Consensus</th>
+          <th>Hang</th>
+          <th>Economic</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>ONNX (0x0800)</td>
+          <td><span class="badge badge-crit">Critical</span></td>
+          <td><span class="badge badge-crit">Critical</span></td>
+          <td><span class="badge badge-low">Low</span></td>
+          <td><span class="badge badge-low">Low</span></td>
+          <td><span class="badge badge-crit">Confirmed</span></td>
+        </tr>
+        <tr>
+          <td>JQ (0x0803)</td>
+          <td><span class="badge badge-crit">Critical</span></td>
+          <td><span class="badge badge-low">Low</span></td>
+          <td><span class="badge badge-high">High</span></td>
+          <td><span class="badge badge-low">Low</span></td>
+          <td><span class="badge badge-crit">Confirmed</span></td>
+        </tr>
+        <tr>
+          <td>Nitro (0x0101)</td>
+          <td><span class="badge badge-crit">Critical</span></td>
+          <td><span class="badge badge-low">Low</span></td>
+          <td><span class="badge badge-med">Medium</span></td>
+          <td><span class="badge badge-low">Low</span></td>
+          <td><span class="badge badge-crit">Confirmed</span></td>
+        </tr>
+        <tr>
+          <td>Async FSM</td>
+          <td><span class="badge badge-low">Low</span></td>
+          <td><span class="badge badge-high">High</span></td>
+          <td><span class="badge badge-med">Medium</span></td>
+          <td><span class="badge badge-high">High</span></td>
+          <td><span class="badge badge-high">Confirmed</span></td>
+        </tr>
+        <tr>
+          <td>Executor Handlers</td>
+          <td><span class="badge badge-low">Low</span></td>
+          <td><span class="badge badge-low">Low</span></td>
+          <td><span class="badge badge-high">High</span></td>
+          <td><span class="badge badge-med">Medium</span></td>
+          <td><span class="badge badge-high">Confirmed</span></td>
+        </tr>
+        <tr>
+          <td>Gas Calculation</td>
+          <td><span class="badge badge-low">Low</span></td>
+          <td><span class="badge badge-high">High</span></td>
+          <td><span class="badge badge-low">Low</span></td>
+          <td><span class="badge badge-low">Low</span></td>
+          <td><span class="badge badge-high">Confirmed</span></td>
+        </tr>
+        <tr>
+          <td>Ed25519 (0x009)</td>
+          <td><span class="badge badge-low">Low</span></td>
+          <td><span class="badge badge-low">Low</span></td>
+          <td><span class="badge badge-low">Low</span></td>
+          <td><span class="badge badge-low">Low</span></td>
+          <td><span class="badge badge-low">Safe</span></td>
+        </tr>
+        <tr>
+          <td>SECP256R1 (0x0100)</td>
+          <td><span class="badge badge-low">Low</span></td>
+          <td><span class="badge badge-low">Low</span></td>
+          <td><span class="badge badge-low">Low</span></td>
+          <td><span class="badge badge-low">Low</span></td>
+          <td><span class="badge badge-low">Safe</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ── FINDINGS ── -->
+<section id="findings">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-number">02</span>
+      <h2 class="section-title">Detailed Findings</h2>
+    </div>
+    <p class="section-desc">All identified issues organized by severity tier. Click to expand for code references, mechanism details, and trigger conditions.</p>
+
+    <div class="tier-tabs">
+      <button class="tier-tab active" onclick="filterFindings('all', this)">All (23)</button>
+      <button class="tier-tab" onclick="filterFindings('tier1', this)" data-active="active-crit">Tier 1 &mdash; Chain Halt (9)</button>
+      <button class="tier-tab" onclick="filterFindings('tier2', this)" data-active="active-high">Tier 2 &mdash; DoS / Hang (8)</button>
+      <button class="tier-tab" onclick="filterFindings('tier3', this)" data-active="active-med">Tier 3 &mdash; FSM Gaps (6)</button>
+    </div>
+
+    <div class="findings-grid" id="findings-grid">
+
+      <!-- TIER 1 -->
+      <div class="finding-card severity-critical" data-tier="tier1">
+        <div class="finding-header" onclick="toggleFinding(this)">
+          <span class="finding-id">C1</span>
+          <span class="badge badge-crit">Critical</span>
+          <span class="finding-title">FP nondeterminism causes consensus divergence across hardware</span>
+          <span class="finding-component">ONNX 0x0800</span>
+          <span class="finding-chevron">&#9654;</span>
+        </div>
+        <div class="finding-body">
+          <span class="file-ref">onnx_inference.rs:718-730</span>
+          <p>ONNX runs as a native synchronous precompile. IEEE 754 floating-point operations (especially FMA) produce platform-dependent results. AMD vs Intel CPUs will compute different least-significant bits, producing different state roots on different validators.</p>
+          <code><span class="kw">let</span> session = Session::builder()
+    .with_optimization_level(GraphOptimizationLevel::Disable)
+    .with_intra_threads(<span class="st">1</span>)   <span class="cm">// Not enough for cross-platform determinism</span>
+    .with_inter_threads(<span class="st">1</span>)
+    .commit_from_memory(&model_bytes)?;</code>
+          <p>The code attempts to enforce determinism by disabling optimizations and using single-threading, but this is insufficient for bit-exact reproducibility across different CPU architectures.</p>
+          <div class="finding-meta">
+            <span class="finding-meta-item"><strong>Impact:</strong> Chain fork between heterogeneous validators</span>
+            <span class="finding-meta-item"><strong>Why untested:</strong> All test nodes use identical GCP instance types</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="finding-card severity-critical" data-tier="tier1">
+        <div class="finding-header" onclick="toggleFinding(this)">
+          <span class="finding-id">C2</span>
+          <span class="badge badge-crit">Critical</span>
+          <span class="finding-title">Floating-point sqrt in gas calculation</span>
+          <span class="finding-component">ONNX Gas</span>
+          <span class="finding-chevron">&#9654;</span>
+        </div>
+        <div class="finding-body">
+          <span class="file-ref">onnx_complexity.rs:428-438</span>
+          <p>Gas cost calculation uses <code>flops.sqrt()</code> and floating-point multiplication. Different CPUs produce different sqrt results, leading to different gas charges and different execution outcomes across nodes.</p>
+          <code><span class="kw">pub fn</span> <span class="fn">calculate_gas_cost</span>(flops: f64, base_gas_cost: u64, flop_gas_rate: f64) -> u64 {
+    <span class="kw">let</span> normalized_flops = flops.<span class="fn">sqrt</span>();  <span class="cm">// NOT deterministic across CPUs</span>
+    <span class="kw">let</span> gas_from_flops = (normalized_flops * flop_gas_rate) <span class="kw">as</span> u64;
+    base_gas_cost + gas_from_flops
+}</code>
+          <div class="finding-meta">
+            <span class="finding-meta-item"><strong>Impact:</strong> Different gas costs &rarr; different execution outcomes &rarr; consensus divergence</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="finding-card severity-critical" data-tier="tier1">
+        <div class="finding-header" onclick="toggleFinding(this)">
+          <span class="finding-id">C3</span>
+          <span class="badge badge-crit">Critical</span>
+          <span class="finding-title">Chunk indexing panic on malformed tensor data</span>
+          <span class="finding-component">ONNX 0x0800</span>
+          <span class="finding-chevron">&#9654;</span>
+        </div>
+        <div class="finding-body">
+          <span class="file-ref">types.rs:315-927 (multiple locations)</span>
+          <p>When a user sends a tensor where <code>values.len()</code> is not a multiple of the element size (e.g., 2 bytes for Float32 expecting 4-byte chunks), direct <code>chunk[N]</code> indexing panics with "index out of bounds". This is exactly the class of bug the ONNX incident exposed.</p>
+          <code><span class="cm">// to_vec_f32() - Panics if chunk.len() < 4</span>
+<span class="kw">let</span> val = f32::from_be_bytes([
+    chunk[<span class="st">0</span>], chunk[<span class="st">1</span>], chunk[<span class="st">2</span>], chunk[<span class="st">3</span>]  <span class="cm">// PANIC if incomplete</span>
+]);</code>
+          <p>Affected: <code>to_vec_f32()</code>, <code>to_vec_f64()</code>, <code>to_vec_i32()</code>, <code>to_vec_i64()</code>, <code>to_vec_u32()</code>, <code>to_vec_u64()</code>, fixed-point conversions, and RLP encoding (lines 816-927).</p>
+          <div class="finding-meta">
+            <span class="finding-meta-item"><strong>Trigger:</strong> Single malformed transaction</span>
+            <span class="finding-meta-item"><strong>Impact:</strong> Node crash</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="finding-card severity-critical" data-tier="tier1">
+        <div class="finding-header" onclick="toggleFinding(this)">
+          <span class="finding-id">C4</span>
+          <span class="badge badge-crit">Critical</span>
+          <span class="finding-title">Stack overflow in JSON recursive traversal</span>
+          <span class="finding-component">JQ 0x0803</span>
+          <span class="finding-chevron">&#9654;</span>
+        </div>
+        <div class="finding-body">
+          <span class="file-ref">jq.rs:181-214</span>
+          <p><code>compute_json_stats()</code> uses pure recursion with NO depth limit. Deeply nested JSON (10K+ levels) overflows Rust's ~2MB stack. This happens before any gas or execution limits are checked.</p>
+          <code><span class="kw">fn</span> <span class="fn">rec</span>(v: &Value, depth: u32, acc: &<span class="kw">mut</span> JsonStats) {
+    acc.num_values = acc.num_values.saturating_add(<span class="st">1</span>);
+    acc.max_depth = acc.max_depth.max(depth);
+    <span class="kw">match</span> v {
+        <span class="cm">// ...recursively calls rec() with depth + 1</span>
+        <span class="cm">// NO DEPTH LIMIT</span>
+    }
+}</code>
+          <div class="finding-meta">
+            <span class="finding-meta-item"><strong>Trigger:</strong> JSON with 10K+ nesting levels</span>
+            <span class="finding-meta-item"><strong>Impact:</strong> Process crash (stack overflow)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="finding-card severity-critical" data-tier="tier1">
+        <div class="finding-header" onclick="toggleFinding(this)">
+          <span class="finding-id">C5</span>
+          <span class="badge badge-crit">Critical</span>
+          <span class="finding-title">Stack overflow in array flattening</span>
+          <span class="finding-component">JQ 0x0803</span>
+          <span class="finding-chevron">&#9654;</span>
+        </div>
+        <div class="finding-body">
+          <span class="file-ref">jq.rs:641-663</span>
+          <p>Recursive flattening with zero depth limit. Comment in code literally says "Always recurse". Deeply nested arrays <code>[[[[...]]]]</code> overflow the stack.</p>
+          <code><span class="kw">fn</span> <span class="fn">flatten_value</span>(val: Value, output: &<span class="kw">mut</span> Vec&lt;Value&gt;) {
+    <span class="kw">match</span> val {
+        Value::Array(arr) => {
+            <span class="kw">for</span> elem <span class="kw">in</span> arr {
+                <span class="fn">flatten_value</span>(elem, output); <span class="cm">// Always recurse - NO DEPTH LIMIT</span>
+            }
+        }
+    }
+}</code>
+          <div class="finding-meta">
+            <span class="finding-meta-item"><strong>Trigger:</strong> Nested arrays in JQ query result</span>
+            <span class="finding-meta-item"><strong>Impact:</strong> Process crash (stack overflow)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="finding-card severity-critical" data-tier="tier1">
+        <div class="finding-header" onclick="toggleFinding(this)">
+          <span class="finding-id">C6</span>
+          <span class="badge badge-crit">Critical</span>
+          <span class="finding-title">Buffer underflow panic in Nitro cert verification</span>
+          <span class="finding-component">Nitro 0x0101</span>
+          <span class="finding-chevron">&#9654;</span>
+        </div>
+        <div class="finding-body">
+          <span class="file-ref">ritual-nsm/verifier.rs:144</span>
+          <p>Slices public key assuming it is at least 97 bytes. If a malformed certificate has a shorter key, the subtraction underflows and panics.</p>
+          <code><span class="kw">let</span> public_key = &public_key[public_key.len() - <span class="st">97</span>..];
+<span class="cm">// If public_key.len() < 97: PANIC (attempt to subtract with overflow)</span></code>
+          <div class="finding-meta">
+            <span class="finding-meta-item"><strong>Trigger:</strong> Malformed X.509 certificate with small public key</span>
+            <span class="finding-meta-item"><strong>Impact:</strong> Node crash</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="finding-card severity-critical" data-tier="tier1">
+        <div class="finding-header" onclick="toggleFinding(this)">
+          <span class="finding-id">C7</span>
+          <span class="badge badge-crit">Critical</span>
+          <span class="finding-title">Integer underflow in Nitro payload length calculation</span>
+          <span class="finding-component">Nitro 0x0101</span>
+          <span class="finding-chevron">&#9654;</span>
+        </div>
+        <div class="finding-body">
+          <span class="file-ref">ritual-nsm/verifier.rs:154</span>
+          <p>For any payload under 4352 bytes, <code>payload.len() + 94 - 4446</code> underflows. In debug mode this panics; in release mode it wraps, producing incorrect verification data.</p>
+          <code><span class="kw">let</span> payload_length_bytes: u8 = (payload.len() + <span class="st">94</span> - <span class="st">4446</span>)
+    .try_into()
+    .map_err(|err| VerificationError::PayloadLengthBytesConversionFailed(err))?;
+<span class="cm">// payload of 1000 bytes: 1000 + 94 - 4446 = -3352 &rarr; UNDERFLOW</span></code>
+          <div class="finding-meta">
+            <span class="finding-meta-item"><strong>Trigger:</strong> Payload &lt; 4352 bytes</span>
+            <span class="finding-meta-item"><strong>Impact:</strong> Panic (debug) or incorrect verification (release)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="finding-card severity-critical" data-tier="tier1">
+        <div class="finding-header" onclick="toggleFinding(this)">
+          <span class="finding-id">C8</span>
+          <span class="badge badge-crit">Critical</span>
+          <span class="finding-title">Shape product overflow causes 17GB allocation attempt</span>
+          <span class="finding-component">ONNX 0x0800</span>
+          <span class="finding-chevron">&#9654;</span>
+        </div>
+        <div class="finding-body">
+          <span class="file-ref">types.rs:325, 357, 381, 396</span>
+          <p><code>shape.iter().product()</code> on user-supplied dimensions can overflow. Shape <code>[65535, 65535]</code> with Float32 requests ~17GB allocation, causing OOM crash. No validation of shape product before allocation.</p>
+          <div class="finding-meta">
+            <span class="finding-meta-item"><strong>Trigger:</strong> Large shape dimensions in tensor</span>
+            <span class="finding-meta-item"><strong>Impact:</strong> OOM crash</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="finding-card severity-critical" data-tier="tier1">
+        <div class="finding-header" onclick="toggleFinding(this)">
+          <span class="finding-id">C9</span>
+          <span class="badge badge-crit">Critical</span>
+          <span class="finding-title">Atomicity violation: async execution without settlement</span>
+          <span class="finding-component">Async FSM</span>
+          <span class="finding-chevron">&#9654;</span>
+        </div>
+        <div class="finding-body">
+          <span class="file-ref">ethereum/payload/src/lib.rs</span>
+          <p>If an async transaction executes successfully but the settlement doesn't fit in the block, the execution succeeds but settlement is skipped without rollback. The executor performs work but is never paid. This is a known economic attack vector that remains unfixed.</p>
+          <div class="finding-meta">
+            <span class="finding-meta-item"><strong>Status:</strong> KNOWN, UNFIXED</span>
+            <span class="finding-meta-item"><strong>Impact:</strong> Executor griefing attack</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TIER 2 -->
+      <div class="finding-card severity-high" data-tier="tier2">
+        <div class="finding-header" onclick="toggleFinding(this)">
+          <span class="finding-id">H1</span>
+          <span class="badge badge-high">High</span>
+          <span class="finding-title">context.Background() causes infinite hang in LLM handler</span>
+          <span class="finding-component">Executor</span>
+          <span class="finding-chevron">&#9654;</span>
+        </div>
+        <div class="finding-body">
+          <span class="file-ref">llmcall/handler.go:386, audiocall/handler.go:323</span>
+          <p>Attestation verification uses <code>context.Background()</code> inside a singleflight call. If vLLM proxy is unreachable, the first request hangs forever, and all subsequent requests queue behind it in the singleflight group.</p>
+          <div class="finding-meta">
+            <span class="finding-meta-item"><strong>Impact:</strong> All LLM/audio requests hang indefinitely</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="finding-card severity-high" data-tier="tier2">
+        <div class="finding-header" onclick="toggleFinding(this)">
+          <span class="finding-id">H2</span>
+          <span class="badge badge-high">High</span>
+          <span class="finding-title">JQ timeout only checked between output iterations</span>
+          <span class="finding-component">JQ 0x0803</span>
+          <span class="finding-chevron">&#9654;</span>
+        </div>
+        <div class="finding-body">
+          <span class="file-ref">jq.rs:460-463</span>
+          <p>Timeout is checked after <code>outputs.next()</code> returns. If a JQ filter blocks on a single computation that never yields, the timeout is never evaluated. Can hang the node thread.</p>
+          <div class="finding-meta">
+            <span class="finding-meta-item"><strong>Trigger:</strong> JQ expression with single expensive operation</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="finding-card severity-high" data-tier="tier2">
+        <div class="finding-header" onclick="toggleFinding(this)">
+          <span class="finding-id">H3</span>
+          <span class="badge badge-high">High</span>
+          <span class="finding-title">No size limit on JSON input before parsing</span>
+          <span class="finding-component">JQ 0x0803</span>
+          <span class="finding-chevron">&#9654;</span>
+        </div>
+        <div class="finding-body">
+          <span class="file-ref">jq.rs:591-598</span>
+          <p>serde_json parses arbitrarily large JSON before any gas or execution limits are applied. A 100MB+ JSON input causes OOM with ~2x memory overhead during parsing.</p>
+          <div class="finding-meta">
+            <span class="finding-meta-item"><strong>Trigger:</strong> Very large JSON input in JQ call</span>
+            <span class="finding-meta-item"><strong>Impact:</strong> OOM crash</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="finding-card severity-high" data-tier="tier2">
+        <div class="finding-header" onclick="toggleFinding(this)">
+          <span class="finding-id">H4</span>
+          <span class="badge badge-high">High</span>
+          <span class="finding-title">Unbounded PCR map and cabundle allocation in Nitro</span>
+          <span class="finding-component">Nitro 0x0101</span>
+          <span class="finding-chevron">&#9654;</span>
+        </div>
+        <div class="finding-body">
+          <span class="file-ref">ritual-nsm/verifier.rs:373-427</span>
+          <p>No limit on PCR map entry count or cabundle array size. Attacker can send CBOR with 1M PCR entries, causing unbounded memory allocation. Fixed 100K gas regardless of input size.</p>
+          <div class="finding-meta">
+            <span class="finding-meta-item"><strong>Trigger:</strong> Large CBOR attestation document</span>
+            <span class="finding-meta-item"><strong>Impact:</strong> Memory exhaustion</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="finding-card severity-high" data-tier="tier2">
+        <div class="finding-header" onclick="toggleFinding(this)">
+          <span class="finding-id">H5</span>
+          <span class="badge badge-high">High</span>
+          <span class="finding-title">Fixed gas costs enable CPU exhaustion attacks</span>
+          <span class="finding-component">Ed25519 / SECP256R1 / Nitro</span>
+          <span class="finding-chevron">&#9654;</span>
+        </div>
+        <div class="finding-body">
+          <span class="file-ref">sigver.rs:26-30</span>
+          <p>All crypto precompiles charge fixed gas (Ed25519: 2,000, SECP256R1: 3,450, Nitro: 100,000) regardless of input size. 100MB message at 2,000 gas makes verification extremely cheap for attackers.</p>
+          <div class="finding-meta">
+            <span class="finding-meta-item"><strong>Impact:</strong> CPU exhaustion at low gas cost</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="finding-card severity-high" data-tier="tier2">
+        <div class="finding-header" onclick="toggleFinding(this)">
+          <span class="finding-id">H6</span>
+          <span class="badge badge-high">High</span>
+          <span class="finding-title">SSE scanner 64KB default buffer limit</span>
+          <span class="finding-component">Executor LLM</span>
+          <span class="finding-chevron">&#9654;</span>
+        </div>
+        <div class="finding-body">
+          <span class="file-ref">llmcall/handler.go:1477</span>
+          <p>Go's <code>bufio.Scanner</code> default max buffer is 64KB. If a single SSE line from vLLM exceeds this (e.g., large function call output), the scanner errors with "token too long" and the stream breaks.</p>
+          <div class="finding-meta">
+            <span class="finding-meta-item"><strong>Impact:</strong> Streaming responses silently truncated</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="finding-card severity-high" data-tier="tier2">
+        <div class="finding-header" onclick="toggleFinding(this)">
+          <span class="finding-id">H7</span>
+          <span class="badge badge-high">High</span>
+          <span class="finding-title">Parser recursion in cost analysis bypasses gas limits</span>
+          <span class="finding-component">JQ 0x0803</span>
+          <span class="finding-chevron">&#9654;</span>
+        </div>
+        <div class="finding-body">
+          <span class="file-ref">jq_cost.rs:834-857</span>
+          <p>The cost analysis parser itself has no recursion depth limit. Pathological JQ like <code>map(map(map(...)))</code> with 150+ levels causes stack overflow during analysis, before gas estimation even runs.</p>
+          <div class="finding-meta">
+            <span class="finding-meta-item"><strong>Impact:</strong> Crash before gas check</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="finding-card severity-high" data-tier="tier2">
+        <div class="finding-header" onclick="toggleFinding(this)">
+          <span class="finding-id">H8</span>
+          <span class="badge badge-high">High</span>
+          <span class="finding-title">io.ReadAll without size limit on agent orchestrator response</span>
+          <span class="finding-component">Executor Agent</span>
+          <span class="finding-chevron">&#9654;</span>
+        </div>
+        <div class="finding-body">
+          <span class="file-ref">agentcall/handler.go:430</span>
+          <p><code>io.ReadAll(resp.Body)</code> reads the entire orchestrator response without size limits. A malfunctioning or adversarial orchestrator returning a multi-GB response causes OOM in the executor.</p>
+          <div class="finding-meta">
+            <span class="finding-meta-item"><strong>Impact:</strong> Executor OOM</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TIER 3 -->
+      <div class="finding-card severity-medium" data-tier="tier3">
+        <div class="finding-header" onclick="toggleFinding(this)">
+          <span class="finding-id">F1</span>
+          <span class="badge badge-med">FSM</span>
+          <span class="finding-title">Nested async from delivery callback untested</span>
+          <span class="finding-component">Async FSM</span>
+          <span class="finding-chevron">&#9654;</span>
+        </div>
+        <div class="finding-body">
+          <p>When a Phase 2 delivery settlement's callback calls another async precompile, a nested commitment is created. Fee calculation must use the nested job's commit_block, not the original. This multi-stage path requires complex simulation and has no test coverage.</p>
+          <div class="finding-meta">
+            <span class="finding-meta-item"><strong>Risk:</strong> Builder/verifier divergence on nested fee calculation</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="finding-card severity-medium" data-tier="tier3">
+        <div class="finding-header" onclick="toggleFinding(this)">
+          <span class="finding-id">F2</span>
+          <span class="badge badge-med">FSM</span>
+          <span class="finding-title">Settlement for expired job: builder/verifier asymmetry</span>
+          <span class="finding-component">Async FSM</span>
+          <span class="finding-chevron">&#9654;</span>
+        </div>
+        <div class="finding-body">
+          <p>Builder gracefully skips expired settlements (logs + continues). Verifier hard-fails with <code>BlockVerificationError</code>. If timing differs between them (e.g., block boundary race), the verifier rejects a block the builder considered valid.</p>
+          <div class="finding-meta">
+            <span class="finding-meta-item"><strong>Risk:</strong> Block rejection under timing edge cases</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="finding-card severity-medium" data-tier="tier3">
+        <div class="finding-header" onclick="toggleFinding(this)">
+          <span class="finding-id">F3</span>
+          <span class="badge badge-med">FSM</span>
+          <span class="finding-title">Settlement for non-existent job race condition</span>
+          <span class="finding-component">Async FSM</span>
+          <span class="finding-chevron">&#9654;</span>
+        </div>
+        <div class="finding-body">
+          <p>Race between job creation (commitment included in block) and settlement arrival. If settlement references a job that hasn't been committed yet, builder skips it but verifier may hard-fail depending on state.</p>
+          <div class="finding-meta">
+            <span class="finding-meta-item"><strong>Risk:</strong> Block rejection during high-throughput periods</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="finding-card severity-medium" data-tier="tier3">
+        <div class="finding-header" onclick="toggleFinding(this)">
+          <span class="finding-id">F4</span>
+          <span class="badge badge-med">FSM</span>
+          <span class="finding-title">Phase 2 deadline extension interaction untested</span>
+          <span class="finding-component">Async FSM</span>
+          <span class="finding-chevron">&#9654;</span>
+        </div>
+        <div class="finding-body">
+          <p>Expiry calculation uses <code>max(original_expiry, phase2Deadline)</code>. The interaction between original TTL and Phase 2 deadline extension has no test coverage, particularly when Phase 2 deadline is shorter than original TTL.</p>
+        </div>
+      </div>
+
+      <div class="finding-card severity-medium" data-tier="tier3">
+        <div class="finding-header" onclick="toggleFinding(this)">
+          <span class="finding-id">F5</span>
+          <span class="badge badge-med">FSM</span>
+          <span class="finding-title">Fee calculation overflow with max values</span>
+          <span class="finding-component">Async FSM</span>
+          <span class="finding-chevron">&#9654;</span>
+        </div>
+        <div class="finding-body">
+          <p>Integer overflow potential in fee distribution when max gas values or extreme block distances are used. Edge case in fee struct construction where executor_fee + commitment_fee + inclusion_fee could overflow u256.</p>
+        </div>
+      </div>
+
+      <div class="finding-card severity-medium" data-tier="tier3">
+        <div class="finding-header" onclick="toggleFinding(this)">
+          <span class="finding-id">F6</span>
+          <span class="badge badge-med">FSM</span>
+          <span class="finding-title">Multiple concurrent settlements atomicity under load</span>
+          <span class="finding-component">Async FSM</span>
+          <span class="finding-chevron">&#9654;</span>
+        </div>
+        <div class="finding-body">
+          <p>When multiple FulfilledAsync + Settlement pairs exist in a single block, if one settlement fails mid-execution, the atomicity guarantee (skip both fulfilled + settlement) needs to not affect neighboring pairs. No load testing validates this.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── FP CONSENSUS ── -->
+<section id="consensus">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-number">03</span>
+      <h2 class="section-title">Floating-Point Consensus Risk</h2>
+    </div>
+    <p class="section-desc">The single most critical architectural issue. Native ONNX precompile produces nondeterministic results across CPU architectures, creating a consensus failure vector.</p>
+
+    <div class="fp-callout">
+      <div class="fp-callout-title">&#9888; Architecture-Level Consensus Risk</div>
+      <p>ONNX (0x0800) is a <strong>synchronous native precompile</strong> &mdash; inference runs inside block execution and results go directly into EVM state. IEEE 754 floating-point is not bit-exact across hardware. Different validators will compute different state roots, causing chain forks.</p>
+    </div>
+
+    <div class="fp-flow">
+      <div class="fp-step">
+        <div class="fp-step-num">Step 1</div>
+        <div class="fp-step-text">Node A (Intel) runs ONNX inference, gets result <em>r_A</em></div>
+      </div>
+      <div class="fp-step">
+        <div class="fp-step-num">Step 2</div>
+        <div class="fp-step-text">Node B (AMD) runs same inference, gets <em>r_B &ne; r_A</em> (FMA difference)</div>
+      </div>
+      <div class="fp-step">
+        <div class="fp-step-num">Step 3</div>
+        <div class="fp-step-text">Node A builds block with state root from <em>r_A</em></div>
+      </div>
+      <div class="fp-step">
+        <div class="fp-step-num">Step 4</div>
+        <div class="fp-step-text">Node B re-executes, computes <em>different state root</em></div>
+      </div>
+      <div class="fp-step">
+        <div class="fp-step-num">Step 5</div>
+        <div class="fp-step-text">Node B <em>rejects the block</em> &rarr; <em>Chain Fork</em></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── COVERAGE ── -->
+<section id="coverage">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-number">04</span>
+      <h2 class="section-title">Traffic-Gen Coverage Matrix</h2>
+    </div>
+    <p class="section-desc">Current test traffic covers valid inputs only. Zero adversarial, empty, oversized, or malformed input testing across all precompiles.</p>
+
+    <table class="coverage-matrix">
+      <thead>
+        <tr>
+          <th>Precompile</th>
+          <th>Valid</th>
+          <th>Invalid</th>
+          <th>Empty</th>
+          <th>Oversized</th>
+          <th>Malformed</th>
+          <th>Boundary</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>ONNX (0x0800)</td>
+          <td><span class="cov-yes">&#10003;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+        </tr>
+        <tr>
+          <td>HTTP (0x0801)</td>
+          <td><span class="cov-yes">&#10003;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-partial">~</span></td>
+        </tr>
+        <tr>
+          <td>LLM (0x0802)</td>
+          <td><span class="cov-yes">&#10003;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+        </tr>
+        <tr>
+          <td>JQ (0x0803)</td>
+          <td><span class="cov-yes">&#10003;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+        </tr>
+        <tr>
+          <td>LR-HTTP (0x0805)</td>
+          <td><span class="cov-yes">&#10003;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+        </tr>
+        <tr>
+          <td>ZK (0x0806)</td>
+          <td><span class="cov-yes">&#10003;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+        </tr>
+        <tr>
+          <td>FHE (0x0807)</td>
+          <td><span class="cov-yes">&#10003;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+        </tr>
+        <tr>
+          <td>Agent (0x0808)</td>
+          <td><span class="cov-yes">&#10003;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+        </tr>
+        <tr>
+          <td>Ed25519 (0x009)</td>
+          <td><span class="cov-yes">&#10003;</span></td>
+          <td><span class="cov-partial">~</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+        </tr>
+        <tr>
+          <td>SECP256R1 (0x0100)</td>
+          <td><span class="cov-yes">&#10003;</span></td>
+          <td><span class="cov-partial">~</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+          <td><span class="cov-no">&#10007;</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p style="margin-top:16px; font-size:13px; color:var(--gray-500);">
+      <span class="cov-yes">&#10003;</span> = Tested &nbsp;&nbsp;
+      <span class="cov-partial">~</span> = Partial (well-formed invalid only) &nbsp;&nbsp;
+      <span class="cov-no">&#10007;</span> = Not tested
+    </p>
+  </div>
+</section>
+
+<!-- ── PATTERNS ── -->
+<section id="patterns">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-number">05</span>
+      <h2 class="section-title">Known Bug Root Cause Patterns</h2>
+    </div>
+    <p class="section-desc">Distribution of 33 documented bugs by root cause class. These patterns predict where uncaught bugs are most likely to exist.</p>
+
+    <div class="pattern-bars">
+      <div class="pattern-row">
+        <span class="pattern-label">Error Handling (silent defaults, panics)</span>
+        <div class="pattern-bar-track">
+          <div class="pattern-bar-fill t1" style="width: 35%;">35%</div>
+        </div>
+        <span class="pattern-count">10</span>
+      </div>
+      <div class="pattern-row">
+        <span class="pattern-label">State Machine (builder/verifier diverge)</span>
+        <div class="pattern-bar-track">
+          <div class="pattern-bar-fill t2" style="width: 27%;">27%</div>
+        </div>
+        <span class="pattern-count">9</span>
+      </div>
+      <div class="pattern-row">
+        <span class="pattern-label">Missing Validation (bounds, size, path)</span>
+        <div class="pattern-bar-track">
+          <div class="pattern-bar-fill t3" style="width: 18%;">18%</div>
+        </div>
+        <span class="pattern-count">6</span>
+      </div>
+      <div class="pattern-row">
+        <span class="pattern-label">Resource Management (timeouts, limits)</span>
+        <div class="pattern-bar-track">
+          <div class="pattern-bar-fill t4" style="width: 15%;">15%</div>
+        </div>
+        <span class="pattern-count">5</span>
+      </div>
+      <div class="pattern-row">
+        <span class="pattern-label">Serialization / Encoding</span>
+        <div class="pattern-bar-track">
+          <div class="pattern-bar-fill t5" style="width: 12%;">12%</div>
+        </div>
+        <span class="pattern-count">4</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FSM ── -->
+<section id="fsm">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-number">06</span>
+      <h2 class="section-title">Async FSM Untested Transitions</h2>
+    </div>
+    <p class="section-desc">State transitions in the async commitment/settlement flow that lack deterministic test coverage. The builder/verifier asymmetry pattern repeats across multiple transitions.</p>
+
+    <div class="fsm-list">
+      <div class="fsm-item">
+        <span class="fsm-num">F1</span>
+        <div class="fsm-content">
+          <div class="fsm-title">Nested async from delivery callback</div>
+          <div class="fsm-desc">Phase 2 delivery callback triggers new async precompile. Fee calc must use nested job's commit_block. Most complex untested path.</div>
+        </div>
+        <span class="badge badge-high">High</span>
+      </div>
+      <div class="fsm-item">
+        <span class="fsm-num">F2</span>
+        <div class="fsm-content">
+          <div class="fsm-title">Settlement for expired job</div>
+          <div class="fsm-desc">Builder skips gracefully, verifier hard-fails. Timing race at block boundary could cause divergence.</div>
+        </div>
+        <span class="badge badge-high">High</span>
+      </div>
+      <div class="fsm-item">
+        <span class="fsm-num">F3</span>
+        <div class="fsm-content">
+          <div class="fsm-title">Settlement for non-existent job</div>
+          <div class="fsm-desc">Race between job creation and settlement across block boundaries.</div>
+        </div>
+        <span class="badge badge-med">Medium</span>
+      </div>
+      <div class="fsm-item">
+        <span class="fsm-num">F4</span>
+        <div class="fsm-content">
+          <div class="fsm-title">Phase 2 deadline extension</div>
+          <div class="fsm-desc">max(original_expiry, phase2Deadline) interaction when Phase 2 deadline &lt; original TTL.</div>
+        </div>
+        <span class="badge badge-med">Medium</span>
+      </div>
+      <div class="fsm-item">
+        <span class="fsm-num">F5</span>
+        <div class="fsm-content">
+          <div class="fsm-title">Fee calculation overflow</div>
+          <div class="fsm-desc">Integer overflow with max gas values or extreme block distances in fee struct.</div>
+        </div>
+        <span class="badge badge-med">Medium</span>
+      </div>
+      <div class="fsm-item">
+        <span class="fsm-num">F6</span>
+        <div class="fsm-content">
+          <div class="fsm-title">Multiple concurrent settlements</div>
+          <div class="fsm-desc">Atomicity of skip-both under load when multiple pairs coexist in one block.</div>
+        </div>
+        <span class="badge badge-med">Medium</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── ACTION PLAN ── -->
+<section id="actions">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-number">07</span>
+      <h2 class="section-title">Recommended Action Plan</h2>
+    </div>
+    <p class="section-desc">Priority-ordered remediation plan. Week 1 covers ship-blocking fixes. Week 2 builds adversarial test coverage. Architectural items are pre-mainnet requirements.</p>
+
+    <div class="action-timeline">
+      <div class="action-week urgent">
+        <div class="action-dot urgent"><div class="action-dot-inner"></div></div>
+        <div class="action-week-label">Week 1 &mdash; Ship Blockers</div>
+        <div class="action-items">
+          <div class="action-item"><span class="action-ref">C3</span> Add bounds checking to ONNX tensor chunk operations in types.rs</div>
+          <div class="action-item"><span class="action-ref">C8</span> Add shape product overflow check before allocation</div>
+          <div class="action-item"><span class="action-ref">C4,5</span> Add recursion depth limits to JQ compute_json_stats and flatten_for_arrays</div>
+          <div class="action-item"><span class="action-ref">C6,7</span> Fix Nitro buffer/integer underflows in verifier.rs</div>
+          <div class="action-item"><span class="action-ref">H3</span> Add JSON input size limit to JQ before serde parse</div>
+          <div class="action-item"><span class="action-ref">H1</span> Replace context.Background() with timeout context in executor handlers</div>
+        </div>
+      </div>
+
+      <div class="action-week">
+        <div class="action-dot"><div class="action-dot-inner"></div></div>
+        <div class="action-week-label">Week 2 &mdash; Adversarial Traffic Agent</div>
+        <div class="action-items">
+          <div class="action-item"><span class="action-ref">All</span> Create adversarial traffic actions in traffic-gen for each precompile</div>
+          <div class="action-item"><span class="action-ref">All</span> Add empty, malformed, oversized, invalid model, wrong shape test inputs</div>
+          <div class="action-item"><span class="action-ref">All</span> Run locally on 2-node setup, validate FAILURE_GAS_COST returns (no crashes)</div>
+          <div class="action-item"><span class="action-ref">H5</span> Implement input-size-scaled gas costs for crypto precompiles</div>
+        </div>
+      </div>
+
+      <div class="action-week arch">
+        <div class="action-dot arch"><div class="action-dot-inner"></div></div>
+        <div class="action-week-label">Pre-Mainnet &mdash; Architectural</div>
+        <div class="action-items">
+          <div class="action-item"><span class="action-ref">C1,2</span> Resolve ONNX FP consensus: move to async pattern or implement deterministic FP</div>
+          <div class="action-item"><span class="action-ref">C9</span> Fix atomicity violation in async settlement (rollback on skip)</div>
+          <div class="action-item"><span class="action-ref">F1-6</span> Build FSM transition tests for all untested async paths</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="container">
+    <p>Ritual Chain &middot; Precompile Sad Paths MECE Analysis &middot; Generated 2026-03-12</p>
+    <p style="margin-top:8px;">8 parallel agents &middot; 33 known bugs cataloged &middot; 23 new findings</p>
+  </div>
+</footer>
+
+<script>
+function toggleFinding(header) {
+  const card = header.closest('.finding-card');
+  card.classList.toggle('open');
+}
+
+function filterFindings(tier, btn) {
+  // Update tabs
+  document.querySelectorAll('.tier-tab').forEach(t => {
+    t.className = 'tier-tab';
+  });
+  if (tier === 'all') btn.classList.add('active');
+  else if (tier === 'tier1') { btn.classList.add('active-crit'); }
+  else if (tier === 'tier2') { btn.classList.add('active-high'); }
+  else if (tier === 'tier3') { btn.classList.add('active-med'); }
+
+  // Filter cards
+  document.querySelectorAll('.finding-card').forEach(card => {
+    if (tier === 'all') {
+      card.style.display = '';
+    } else {
+      card.style.display = card.dataset.tier === tier ? '' : 'none';
+    }
+  });
+}
+
+// Animate pattern bars on scroll
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.querySelectorAll('.pattern-bar-fill').forEach(bar => {
+        const width = bar.style.width;
+        bar.style.width = '0%';
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            bar.style.width = width;
+          });
+        });
+      });
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.3 });
+
+const patternSection = document.querySelector('.pattern-bars');
+if (patternSection) observer.observe(patternSection);
+</script>
+
+</body>
+</html>
