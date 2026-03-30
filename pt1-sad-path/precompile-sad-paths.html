@@ -561,11 +561,11 @@ footer a:hover { text-decoration: underline; }
     </p>
     <div class="stats-bar animate-in delay-3">
       <div class="stat">
-        <div class="stat-value critical">9</div>
+        <div class="stat-value critical">7</div>
         <div class="stat-label">Tier 1 / Chain-Halt</div>
       </div>
       <div class="stat">
-        <div class="stat-value high">8</div>
+        <div class="stat-value high">7</div>
         <div class="stat-label">Tier 2 / DoS</div>
       </div>
       <div class="stat">
@@ -573,7 +573,7 @@ footer a:hover { text-decoration: underline; }
         <div class="stat-label">Tier 3 / FSM Gaps</div>
       </div>
       <div class="stat">
-        <div class="stat-value good">33</div>
+        <div class="stat-value good">30</div>
         <div class="stat-label">Known Bugs Cataloged</div>
       </div>
       <div class="stat">
@@ -621,14 +621,6 @@ footer a:hover { text-decoration: underline; }
           <td><span class="badge badge-crit">Critical</span></td>
           <td><span class="badge badge-low">Low</span></td>
           <td><span class="badge badge-high">High</span></td>
-          <td><span class="badge badge-low">Low</span></td>
-          <td><span class="badge badge-crit">Confirmed</span></td>
-        </tr>
-        <tr>
-          <td>Nitro (0x0101)</td>
-          <td><span class="badge badge-crit">Critical</span></td>
-          <td><span class="badge badge-low">Low</span></td>
-          <td><span class="badge badge-med">Medium</span></td>
           <td><span class="badge badge-low">Low</span></td>
           <td><span class="badge badge-crit">Confirmed</span></td>
         </tr>
@@ -687,9 +679,9 @@ footer a:hover { text-decoration: underline; }
     <p class="section-desc">All identified issues organized by severity tier. Click to expand for code references, mechanism details, and trigger conditions.</p>
 
     <div class="tier-tabs">
-      <button class="tier-tab active" onclick="filterFindings('all', this)">All (23)</button>
-      <button class="tier-tab" onclick="filterFindings('tier1', this)" data-active="active-crit">Tier 1 &mdash; Chain Halt (9)</button>
-      <button class="tier-tab" onclick="filterFindings('tier2', this)" data-active="active-high">Tier 2 &mdash; DoS / Hang (8)</button>
+      <button class="tier-tab active" onclick="filterFindings('all', this)">All (20)</button>
+      <button class="tier-tab" onclick="filterFindings('tier1', this)" data-active="active-crit">Tier 1 &mdash; Chain Halt (7)</button>
+      <button class="tier-tab" onclick="filterFindings('tier2', this)" data-active="active-high">Tier 2 &mdash; DoS / Hang (7)</button>
       <button class="tier-tab" onclick="filterFindings('tier3', this)" data-active="active-med">Tier 3 &mdash; FSM Gaps (6)</button>
     </div>
 
@@ -822,48 +814,6 @@ footer a:hover { text-decoration: underline; }
         <div class="finding-header" onclick="toggleFinding(this)">
           <span class="finding-id">C6</span>
           <span class="badge badge-crit">Critical</span>
-          <span class="finding-title">Buffer underflow panic in Nitro cert verification</span>
-          <span class="finding-component">Nitro 0x0101</span>
-          <span class="finding-chevron">&#9654;</span>
-        </div>
-        <div class="finding-body">
-          <span class="file-ref">ritual-nsm/verifier.rs:144</span>
-          <p>Slices public key assuming it is at least 97 bytes. If a malformed certificate has a shorter key, the subtraction underflows and panics.</p>
-          <code><span class="kw">let</span> public_key = &public_key[public_key.len() - <span class="st">97</span>..];
-<span class="cm">// If public_key.len() < 97: PANIC (attempt to subtract with overflow)</span></code>
-          <div class="finding-meta">
-            <span class="finding-meta-item"><strong>Trigger:</strong> Malformed X.509 certificate with small public key</span>
-            <span class="finding-meta-item"><strong>Impact:</strong> Node crash</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="finding-card severity-critical" data-tier="tier1">
-        <div class="finding-header" onclick="toggleFinding(this)">
-          <span class="finding-id">C7</span>
-          <span class="badge badge-crit">Critical</span>
-          <span class="finding-title">Integer underflow in Nitro payload length calculation</span>
-          <span class="finding-component">Nitro 0x0101</span>
-          <span class="finding-chevron">&#9654;</span>
-        </div>
-        <div class="finding-body">
-          <span class="file-ref">ritual-nsm/verifier.rs:154</span>
-          <p>For any payload under 4352 bytes, <code>payload.len() + 94 - 4446</code> underflows. In debug mode this panics; in release mode it wraps, producing incorrect verification data.</p>
-          <code><span class="kw">let</span> payload_length_bytes: u8 = (payload.len() + <span class="st">94</span> - <span class="st">4446</span>)
-    .try_into()
-    .map_err(|err| VerificationError::PayloadLengthBytesConversionFailed(err))?;
-<span class="cm">// payload of 1000 bytes: 1000 + 94 - 4446 = -3352 &rarr; UNDERFLOW</span></code>
-          <div class="finding-meta">
-            <span class="finding-meta-item"><strong>Trigger:</strong> Payload &lt; 4352 bytes</span>
-            <span class="finding-meta-item"><strong>Impact:</strong> Panic (debug) or incorrect verification (release)</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="finding-card severity-critical" data-tier="tier1">
-        <div class="finding-header" onclick="toggleFinding(this)">
-          <span class="finding-id">C8</span>
-          <span class="badge badge-crit">Critical</span>
           <span class="finding-title">Shape product overflow causes 17GB allocation attempt</span>
           <span class="finding-component">ONNX 0x0800</span>
           <span class="finding-chevron">&#9654;</span>
@@ -880,7 +830,7 @@ footer a:hover { text-decoration: underline; }
 
       <div class="finding-card severity-critical" data-tier="tier1">
         <div class="finding-header" onclick="toggleFinding(this)">
-          <span class="finding-id">C9</span>
+          <span class="finding-id">C7</span>
           <span class="badge badge-crit">Critical</span>
           <span class="finding-title">Atomicity violation: async execution without settlement</span>
           <span class="finding-component">Async FSM</span>
@@ -953,31 +903,13 @@ footer a:hover { text-decoration: underline; }
         <div class="finding-header" onclick="toggleFinding(this)">
           <span class="finding-id">H4</span>
           <span class="badge badge-high">High</span>
-          <span class="finding-title">Unbounded PCR map and cabundle allocation in Nitro</span>
-          <span class="finding-component">Nitro 0x0101</span>
-          <span class="finding-chevron">&#9654;</span>
-        </div>
-        <div class="finding-body">
-          <span class="file-ref">ritual-nsm/verifier.rs:373-427</span>
-          <p>No limit on PCR map entry count or cabundle array size. Attacker can send CBOR with 1M PCR entries, causing unbounded memory allocation. Fixed 100K gas regardless of input size.</p>
-          <div class="finding-meta">
-            <span class="finding-meta-item"><strong>Trigger:</strong> Large CBOR attestation document</span>
-            <span class="finding-meta-item"><strong>Impact:</strong> Memory exhaustion</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="finding-card severity-high" data-tier="tier2">
-        <div class="finding-header" onclick="toggleFinding(this)">
-          <span class="finding-id">H5</span>
-          <span class="badge badge-high">High</span>
           <span class="finding-title">Fixed gas costs enable CPU exhaustion attacks</span>
-          <span class="finding-component">Ed25519 / SECP256R1 / Nitro</span>
+          <span class="finding-component">Ed25519 / SECP256R1</span>
           <span class="finding-chevron">&#9654;</span>
         </div>
         <div class="finding-body">
           <span class="file-ref">sigver.rs:26-30</span>
-          <p>All crypto precompiles charge fixed gas (Ed25519: 2,000, SECP256R1: 3,450, Nitro: 100,000) regardless of input size. 100MB message at 2,000 gas makes verification extremely cheap for attackers.</p>
+          <p>Ed25519 and SECP256R1 precompiles charge fixed gas (2,000 and 3,450 respectively) regardless of input size. A very large message at 2,000 gas makes verification disproportionately cheap for attackers.</p>
           <div class="finding-meta">
             <span class="finding-meta-item"><strong>Impact:</strong> CPU exhaustion at low gas cost</span>
           </div>
@@ -986,7 +918,7 @@ footer a:hover { text-decoration: underline; }
 
       <div class="finding-card severity-high" data-tier="tier2">
         <div class="finding-header" onclick="toggleFinding(this)">
-          <span class="finding-id">H6</span>
+          <span class="finding-id">H5</span>
           <span class="badge badge-high">High</span>
           <span class="finding-title">SSE scanner 64KB default buffer limit</span>
           <span class="finding-component">Executor LLM</span>
@@ -1003,7 +935,7 @@ footer a:hover { text-decoration: underline; }
 
       <div class="finding-card severity-high" data-tier="tier2">
         <div class="finding-header" onclick="toggleFinding(this)">
-          <span class="finding-id">H7</span>
+          <span class="finding-id">H6</span>
           <span class="badge badge-high">High</span>
           <span class="finding-title">Parser recursion in cost analysis bypasses gas limits</span>
           <span class="finding-component">JQ 0x0803</span>
@@ -1020,7 +952,7 @@ footer a:hover { text-decoration: underline; }
 
       <div class="finding-card severity-high" data-tier="tier2">
         <div class="finding-header" onclick="toggleFinding(this)">
-          <span class="finding-id">H8</span>
+          <span class="finding-id">H7</span>
           <span class="badge badge-high">High</span>
           <span class="finding-title">io.ReadAll without size limit on agent orchestrator response</span>
           <span class="finding-component">Executor Agent</span>
@@ -1296,15 +1228,15 @@ footer a:hover { text-decoration: underline; }
       <span class="section-number">05</span>
       <h2 class="section-title">Known Bug Root Cause Patterns</h2>
     </div>
-    <p class="section-desc">Distribution of 33 documented bugs by root cause class. These patterns predict where uncaught bugs are most likely to exist.</p>
+    <p class="section-desc">Distribution of 30 documented bugs by root cause class. These patterns predict where uncaught bugs are most likely to exist.</p>
 
     <div class="pattern-bars">
       <div class="pattern-row">
         <span class="pattern-label">Error Handling (silent defaults, panics)</span>
         <div class="pattern-bar-track">
-          <div class="pattern-bar-fill t1" style="width: 35%;">35%</div>
+          <div class="pattern-bar-fill t1" style="width: 33%;">33%</div>
         </div>
-        <span class="pattern-count">10</span>
+        <span class="pattern-count">9</span>
       </div>
       <div class="pattern-row">
         <span class="pattern-label">State Machine (builder/verifier diverge)</span>
@@ -1415,9 +1347,8 @@ footer a:hover { text-decoration: underline; }
         <div class="action-week-label">Week 1 &mdash; Ship Blockers</div>
         <div class="action-items">
           <div class="action-item"><span class="action-ref">C3</span> Add bounds checking to ONNX tensor chunk operations in types.rs</div>
-          <div class="action-item"><span class="action-ref">C8</span> Add shape product overflow check before allocation</div>
+          <div class="action-item"><span class="action-ref">C6</span> Add shape product overflow check before allocation</div>
           <div class="action-item"><span class="action-ref">C4,5</span> Add recursion depth limits to JQ compute_json_stats and flatten_for_arrays</div>
-          <div class="action-item"><span class="action-ref">C6,7</span> Fix Nitro buffer/integer underflows in verifier.rs</div>
           <div class="action-item"><span class="action-ref">H3</span> Add JSON input size limit to JQ before serde parse</div>
           <div class="action-item"><span class="action-ref">H1</span> Replace context.Background() with timeout context in executor handlers</div>
         </div>
@@ -1430,7 +1361,7 @@ footer a:hover { text-decoration: underline; }
           <div class="action-item"><span class="action-ref">All</span> Create adversarial traffic actions in traffic-gen for each precompile</div>
           <div class="action-item"><span class="action-ref">All</span> Add empty, malformed, oversized, invalid model, wrong shape test inputs</div>
           <div class="action-item"><span class="action-ref">All</span> Run locally on 2-node setup, validate FAILURE_GAS_COST returns (no crashes)</div>
-          <div class="action-item"><span class="action-ref">H5</span> Implement input-size-scaled gas costs for crypto precompiles</div>
+          <div class="action-item"><span class="action-ref">H4</span> Implement input-size-scaled gas costs for crypto precompiles</div>
         </div>
       </div>
 
@@ -1439,7 +1370,7 @@ footer a:hover { text-decoration: underline; }
         <div class="action-week-label">Pre-Mainnet &mdash; Architectural</div>
         <div class="action-items">
           <div class="action-item"><span class="action-ref">C1,2</span> Resolve ONNX FP consensus: move to async pattern or implement deterministic FP</div>
-          <div class="action-item"><span class="action-ref">C9</span> Fix atomicity violation in async settlement (rollback on skip)</div>
+          <div class="action-item"><span class="action-ref">C7</span> Fix atomicity violation in async settlement (rollback on skip)</div>
           <div class="action-item"><span class="action-ref">F1-6</span> Build FSM transition tests for all untested async paths</div>
         </div>
       </div>
@@ -1451,7 +1382,7 @@ footer a:hover { text-decoration: underline; }
 <footer>
   <div class="container">
     <p>Ritual Chain &middot; Precompile Sad Paths MECE Analysis &middot; Generated 2026-03-12</p>
-    <p style="margin-top:8px;">8 parallel agents &middot; 33 known bugs cataloged &middot; 23 new findings</p>
+    <p style="margin-top:8px;">8 parallel agents &middot; 30 known bugs cataloged &middot; 20 new findings</p>
   </div>
 </footer>
 
