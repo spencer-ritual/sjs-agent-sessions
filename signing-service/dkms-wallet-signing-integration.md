@@ -10,7 +10,36 @@ Shift from **exporting key material** from dKMS (and from the executor’s inter
 
 This document inventories **where keys are fetched today**, **how transactions are actually built and signed** in `executor-go` and `claw-spawner`, and what that implies for dKMS API design **before** implementation.
 
-**Implementation:** New signing APIs are **additive**; **`POST /v1/get_key` stays** until a separate deprecate/remove effort. See **§6–§8** (strategy, phased plan, alignment questions).
+### API surface vs key semantics (**decided**)
+
+These are **two different things**:
+
+1. **Legacy endpoints stay put.** Do **not** change existing contracts—at minimum dKMS **`POST /v1/get_key`** (request/response shape, semantics, behavior). **Additive rollout** here means: **add new routes** for signing / address / digest; leave the old endpoint as-is for whoever still calls it. That is **not** the same topic as “do keys match across stacks?”
+
+2. **New endpoints, new contract.** Wallet-style signing lives on **separate paths** (e.g. `sign_transaction`, `get_address`, `sign_digest`). They can be designed and evolved **without** mutating `get_key`.
+
+3. **Payment identity (x402) is pinned to the owner key** (see subsection above)—not the old `get_key` + **`DeriveX402Key`** address. Other surfaces (DA, future features) may still use **different** derivations from the same root without changing the `get_key` HTTP contract.
+
+Executor-side surfaces (e.g. **`POST /v1/derive_key`**) follow the **same principle**: prefer **adding** proxy routes (`sign_transaction`, …) over silently changing behavior of an existing handler unless we explicitly decide to replace it in a coordinated deploy.
+
+See **§3** (derivation consistency when we *choose* parity), **§6**, and **§8.11**.
+
+### X402 payment: sign with the **owner key** (decided)
+
+For **x402 on-chain settlement**, we **do not** apply the legacy second HKDF (`http_dkms_salt` / `DeriveX402Key`) on top of the owner root. The **payment signer** is the **owner root** for `(keyId, index)` interpreted directly as the **Ethereum secp256k1 private key** (same 32-byte material `POST /v1/get_key` already returns for that identity). dKMS **`sign_transaction`** / **`get_address`** use this rule.
+
+**End-to-end steps (executor):**
+
+1. Upstream returns **402**; payment requirements are parsed as today.
+2. Executor **builds the unsigned EIP-1559** payment transaction (native or ERC-20), including nonce/gas/chain id—same construction as today, but **before** signing.
+3. Executor calls dKMS **`sign_transaction`** with the unsigned tx RLP and identity fields (`keyId`, `index`, `Eth`). dKMS signs with the **owner Eth key** above (not the old X402 HKDF key).
+4. Executor **broadcasts** the signed tx (retries, receipt wait), then **retries the original HTTP request** with the payment receipt header.
+
+**Implication:** The **funded “payment address”** for a user is now the address of the **owner root** key, **not** the address produced by the old `get_key` → `DeriveX402Key` path. **`traffic-gen-internal`** (see `traffic-gen-internal/docs/dkms-payment-address.md`) uses the **DKMS Key precompile** for that address—no local derivation—so it **tracks the executor** once upgraded; **re-fund** if you had balances on the legacy HKDF-derived address.
+
+**Executor `POST /v1/derive_key`:** For Eth, returns the **owner root** interpreted as the private key (aligned with signing routes), not `DeriveX402Key` over the root.
+
+**Unchanged:** **`POST /v1/get_key`** response shape (still returns the owner root bytes). **DA** keys still use a **separate** HKDF from the owner root (`DAEncryptionSalt`); only **payment / Eth wallet** identity moved to “owner key only.”
 
 ---
 
@@ -49,7 +78,7 @@ Understanding the split is required for migration planning.
 - **Request:** `keyId` (owner address), `executorId`, `index`, `dkmsKeyFormat` (`"Eth"`)
 - **Response:** `ownerRootKey` (base64), `salt`
 - **Transport / auth:** mTLS client cert tied to executor; on-chain registry checks (executor valid, `HTTP_CALL` capability today)
-- **Role:** Returns a **32-byte owner root key**; all downstream app-specific keys are derived in the **client** (executor) via HKDF (`executor-go/internal/dkms/derivation.go`)
+- **Role:** Returns a **32-byte owner root key** per `(keyId, index)`; **payment** signing uses this material **as the Eth key** (no extra X402 HKDF). **DA** and other domains may still use HKDF from that root in the executor (`derivation.go`).
 
 ### 1.2 Executor “key derivation” HTTP server (`executor-go`)
 
@@ -57,7 +86,7 @@ Runs on a **dedicated port** (e.g. `:9200`), **Docker-only**, for **agent contai
 
 | Route | Purpose |
 |-------|---------|
-| `POST /v1/derive_key` | Calls `dkms.Manager.GetOwnerRootKey` then `dkms.DeriveX402Key` and returns **`private_key` (hex) + `address`** to the caller |
+| `POST /v1/derive_key` | Calls `dkms.Manager.GetOwnerRootKey` then treats the owner root as the Eth private key (`DeriveEthPrivateKeyFromOwnerRoot`) and returns **`private_key` (hex) + `address`** (aligned with dKMS signing; not the legacy X402 HKDF layer) |
 | `POST /v1/sign_heartbeat` | Signs heartbeat digests with the **executor TEE private key** (not DKMS owner key) |
 | `POST /v1/sign_registration` | Same: **executor TEE** attestation signing |
 
@@ -82,27 +111,25 @@ Runs on a **dedicated port** (e.g. `:9200`), **Docker-only**, for **agent contai
 - `internal/handlers/longrunninghttp/handler.go` — same pattern
 - `internal/services/poll/service.go` — dKMS x402 settlement for poll jobs
 
-**Flow today:**
+**Flow (decided; see “X402 payment: sign with the owner key” above):**
 
-1. `dkms.SettleX402Payment` (`internal/dkms/x402.go`):
-   - `manager.GetOwnerRootKey(ctx, ownerAddress, keyIndex, format)`
-   - `DeriveX402Key(ownerRootKey, keyFormat, keyIndex)` → `*ecdsa.PrivateKey`
-   - `x402.SettlePaymentWithKey(ctx, requirements, signingKey, secrets)`
+1. `dkms.SettleX402Payment` (`internal/dkms/x402.go`): resolve payer via `manager.GetAddress` (owner-key address), then `x402.SettlePaymentWithDKMSSigning` — builds **unsigned** tx, calls `manager.SignTransaction` (dKMS **`sign_transaction`** with owner Eth key), **broadcast** in executor.
 
-2. **Shared tx builder/signer:** `internal/handlers/httpcall/x402/settler.go` — `settlePaymentInternal`
+2. **Tx construction:** `internal/handlers/httpcall/x402/settler.go` — `buildUnsignedPaymentTx` + shared submit/receipt logic (`SettlePaymentWithDKMSSigning`).
 
-**What `settlePaymentInternal` does (concrete construction):**
+**What the unsigned tx builder does (concrete construction):**
 
 - `ethclient.DialContext` → RPC
-- `ChainID`, `PendingNonceAt(payerAddress)`
+- `ChainID`, `PendingNonceAt(payerAddress)` (payer = **owner-key** address)
 - EIP-1559 fee fields: `SuggestGasTipCap`, latest header `BaseFee`, then `gasFeeCap = 2*baseFee + gasTipCap`
 - Builds `types.DynamicFeeTx`:
   - **Native transfer:** `To = recipient`, `Value = amount`, `Gas = 21000`, `Data = nil`
   - **ERC20:** `To = token contract`, `Value = 0`, `Data = buildERC20TransferData(recipient, amount)`, `Gas = 100000`
-- Signs: `types.LatestSignerForChainID(chainID)` + `types.SignTx(tx, signer, payerKey)`
-- Submits with retries, waits for receipt
+- **Signing:** dKMS returns signed RLP (`sign_transaction`); executor does **not** hold the private key for payment.
 
-**Implication for dKMS:** Any “send transaction” API must either accept a **fully specified unsigned EIP-1559 tx** (or equivalent canonical fields) plus **chain id**, or duplicate this construction **inside** dKMS with RPC access. The executor already has a **single helper** for the economic + encoding details: `settlePaymentInternal` (plus `buildERC20TransferData`).
+**Implication for dKMS:** `sign_transaction` accepts **RLP-encoded unsigned EIP-1559 tx** + identity; signs with **owner root as Eth key** (see top of doc). Executor keeps **construction**; dKMS keeps **ECDSA only**.
+
+**Legacy note:** The old flow was `get_key` → second HKDF (`http_dkms_salt`) → local `SignTx`. That HKDF layer has been **removed** from executor and dKMS code; payment uses the owner root as the Eth key.
 
 **Config:** dKMS payment flows require `DKMS_PAYMENT_CONFIG` in secrets so the **user authorizes** RPC URL + network + asset limits (`settler.go` `SettlePaymentWithKey` + `ParseDkmsPaymentConfig`).
 
@@ -120,14 +147,15 @@ These flows are **not** “submit EVM tx” but will remain sensitive if dKMS st
 
 ---
 
-## 3. HKDF / key identity (must stay consistent)
+## 3. HKDF / key identity
 
-Executor derives application keys from `ownerRootKey` using fixed salts (`internal/dkms/derivation.go`):
+Executor derives some keys from `ownerRootKey` using HKDF in `internal/dkms/derivation.go`:
 
-- **X402 payment key:** salt `http_dkms_salt`, format byte + big-endian index
-- **DA key:** different salt (`DAEncryptionSalt`)
+- **Eth payment / x402 (current):** No second HKDF—the **owner root** from dKMS for `(keyId, index)` **is** the secp256k1 private key (`DeriveEthPrivateKeyFromOwnerRoot` on executor; dKMS `deriveEthSigningKey` uses the same `ToECDSA` rule). **Funded address** = `pubkey(owner_root)`.
+- **Removed:** The old second HKDF on the owner root (`http_dkms_salt` / `DeriveX402Key`) for payment — **not** used anywhere in executor/dKMS for settlement or signing.
+- **DA key:** salt `DAEncryptionSalt` — **unchanged**; still derived from owner root via HKDF (`DeriveDAKeypair`).
 
-Any move to **server-side signing** must preserve **the same derivation** for a given `(owner address, index, format)` or explicitly version/migrate identities.
+**`get_key`** response bytes are unchanged; what changed is **which** transform we apply for **payment** signing (owner key directly vs old X402 HKDF).
 
 ---
 
@@ -135,7 +163,7 @@ Any move to **server-side signing** must preserve **the same derivation** for a 
 
 | Layer | Component | Today | Likely change |
 |-------|-----------|-------|---------------|
-| dKMS service | `POST /v1/get_key` | Returns root key | **Add** signing routes; keep `get_key` unchanged until follow-up (see §6) |
+| dKMS service | `POST /v1/get_key` | Returns root key | **Add** new routes only; **do not change** `get_key` (see § intro). Signing identity may match old HKDF or differ by design (§3). |
 | Executor | `internal/dkms/client.go` | `GetOwnerRootKey` HTTP | New methods: e.g. `SignTransaction`, `SendTransaction`, or `GetAddress` only |
 | Executor | `internal/dkms/manager.go` | Failover around `GetOwnerRootKey` | Same pattern for new endpoints |
 | Executor | `internal/dkms/x402.go` | Derive key locally → `SettlePaymentWithKey` | Call dKMS to sign+send (or sign-only) with structured payload; strip local private key |
@@ -209,18 +237,20 @@ We intend to implement **both** of the following (naming and paths TBD): **(1)**
 
 ---
 
-## 6. Implementation strategy: additive first, no removal yet
+## 6. Implementation strategy
 
-**Principle:** Ship **new** signing endpoints and wire **one** client path behind a flag or parallel implementation **before** changing or removing **`POST /v1/get_key`** or any executor behavior that depends on exported keys.
+**Principle:** Ship **new** dKMS routes and wire executors/agents to them. **Leave existing endpoints (e.g. `POST /v1/get_key`) unchanged**—additive means **new APIs**, not editing the old handler.
 
-| Phase | What we do | What we explicitly do *not* do yet |
-|-------|------------|-------------------------------------|
-| **A — dKMS service** | Add sign-tx + sign-raw-payload (+ optional get-address) routes; reuse existing key derivation inside the service; tests | **Delete**, **disable**, or **break** `get_key` |
-| **B — executor `internal/dkms` client** | HTTP client methods + manager failover for new routes | Switch `SettleX402Payment` / keyderivation off `get_key` by default (unless you decide otherwise) |
-| **C — integration** | Optional feature flag to use remote signing for one vertical (e.g. x402 only) | Remove `derive_key` private-key response from agent-facing server |
-| **Follow-up (separate effort)** | Policy to restrict or remove raw key export; migrate agents | “Master delete” of legacy paths |
+**Separate axis:** Whether signing on the new routes uses **byte-for-byte the same** derived key as `get_key` + HKDF is a **derivation decision** (§3). We can match for continuity or diverge on purpose; that does **not** require changing `get_key`.
 
-This doc’s **implementation plan** (§7) assumes **Phase A** is the first mergeable milestone unless you answer otherwise in §8.
+| Phase | What we do | Notes |
+|-------|------------|--------|
+| **A — dKMS service** | Add sign-tx, sign-digest, get-address (paths TBD); implement derivation policy (match legacy vs new) | **Do not** alter `get_key` |
+| **B — executor `internal/dkms` client** | HTTP client + manager failover for **new** routes | Call sites switch to remote signing; `GetOwnerRootKey` only where still needed |
+| **C — integration** | x402, key-derivation proxy, claw-spawner, etc. | Prefer **new** executor routes that call dKMS; migrating off raw key export is a **deploy coordination** issue, not “same endpoint, different behavior” |
+| **Cleanup** | Docs, metrics, registry policy | Optional deprecation of **callers** of old patterns; `get_key` can remain as long as useful |
+
+This doc’s **implementation plan** (§7) lists steps for ordering; **freezing `get_key`** is the default for the legacy route.
 
 ---
 
@@ -240,17 +270,17 @@ Steps are ordered for **safe incremental delivery**. Adjust after §8 is filled 
 
 ### Phase B — Executor client (`executor-go/internal/dkms`)
 
-1. Extend `Client` / `Manager` with `SignEVMTransaction`, `SignRawPayload` (names TBD), same discovery + failover as `GetOwnerRootKey`.
-2. **Do not** remove `GetOwnerRootKey`.
+1. Extend `Client` / `Manager` with signing helpers (e.g. `SignTransaction`, `GetAddress`), same discovery + failover as `GetOwnerRootKey` where applicable.
+2. **`GetOwnerRootKey`:** Keep for flows that still need root material (e.g. DA); narrow usage elsewhere as call sites move to **new** dKMS routes—without changing dKMS `get_key` itself.
 
-### Phase C — Call-site migration (optional, behind flag)
+### Phase C — Call-site migration
 
-1. e.g. `SettleX402Payment`: build unsigned tx as today → call dKMS sign → **broadcast in executor** (§5.1 v1); dKMS-side broadcast is out of scope for v1.
-2. Key derivation server / claw: **out of scope** for first merge unless you prioritize agent-side changes in §8.
+1. e.g. `SettleX402Payment`: build unsigned tx → call dKMS sign → **broadcast in executor** (§5.1 v1); dKMS-side broadcast is out of scope for v1.
+2. Key derivation server / claw: add **new** routes that proxy to dKMS signing; prefer not to repurpose `derive_key` in place—either keep it for legacy or add parallel endpoints, per intro.
 
-### Phase D — Follow-up (not part of “first working” milestone)
+### Phase D — Follow-up
 
-- Deprecate `get_key` for certain indices, agent `derive_key` behavior, documentation, registry policy updates.
+- Tighten who may still call raw-key export paths; documentation; registry policy. **Default:** keep **`get_key`** stable; evolve behavior on **new** routes and new executor proxies.
 
 ---
 
@@ -279,7 +309,7 @@ Answer inline in this doc, in a PR, or in thread. **Bold** items block a minimal
 ### Registry and capabilities
 
 10. **New capability** (e.g. signing) vs **reuse** `HTTP_CALL` / existing DKMS registration for new routes?
-11. **Breaking changes:** Confirm **zero** breaking change to `get_key` response or route in Phase A.
+11. **Legacy routes:** **Decided:** **Do not change** existing dKMS `get_key` (and apply the same discipline to other frozen endpoints). **New** routes may define different derivation/identity if we choose (see intro + §3)—that is **not** the same as editing `get_key`.
 
 ### Clients and rollout
 
@@ -293,12 +323,75 @@ Answer inline in this doc, in a PR, or in thread. **Bold** items block a minimal
 
 ---
 
+## Manual verification checklist
+
+Use this when validating an end-to-end deploy (executor + dKMS + chain + optional traffic-gen / agents). The first two items are distinct surfaces; the **`derive_key` consistency** subsection below is an optional cross-check.
+
+### Agent-facing API vs dKMS (**executor-go**)
+
+**Agents** (sidecars, containers on the executor Docker network) call **executor-go’s key-derivation HTTP server** (`internal/services/keyderivation/server.go`): **Bearer token** auth to routes such as **`/v1/derive_key`**, **`/v1/get_address`**, **`/v1/sign_transaction`**, **`/v1/sign_heartbeat`**, **`/v1/sign_registration`**. That server is the **agent-facing** surface—it is **not** “the agent opening mTLS to dKMS.”
+
+**Executor-go** implements that HTTP API, then uses **`dkms.Manager`** internally to reach the **dKMS** service over **mTLS** (`get_key`, `sign_transaction`, `get_address`, etc.). So the chain is: **token-authenticated call → executor → mTLS → dKMS**.
+
+When you **manually** verify agent flows, you exercise **executor-go’s** URL + token. When you test **dKMS** in isolation (no executor), you hit the dKMS service directly—that path is for operators or lower-level integration tests, not typical agent traffic.
+
+### 1. X402 on-chain payment + DKMS Key precompile + traffic-gen
+
+This is **one end-to-end check** for traffic-gen’s dKMS x402 path: settlement uses the executor, while **funding** uses the on-chain precompile—both must agree on the payer identity.
+
+**Executor settlement:** `SettleX402Payment` → dKMS **`get_address`** + **`sign_transaction`**.
+
+**Flow:** Upstream returns **402** → executor builds an **unsigned** EIP-1559 payment tx → dKMS signs with the owner Eth key → executor **broadcasts** → retry with payment receipt.
+
+**Precompile / traffic-gen:** `traffic-gen-internal` dKMS x402 actions **do not** derive payment addresses in Python. They call **`get_dkms_payment_address_via_precompile`** (DKMS Key precompile **0x081B**) to mint/fund the payer before the job (see `traffic-gen-internal/docs/dkms-payment-address.md`). The executor’s **`dkmskey`** handler uses the same dKMS manager identity for jobs that use the DKMS Key precompile. A successful **`run-x402-dkms-http-call`** therefore exercises **precompile funding + executor remote signing** together; you do not need a separate manual step to prove precompile vs executor alignment when that run passes.
+
+**What proves it works:** On-chain payment tx from the expected payer address, successful HTTP retry with `X-PAYMENT-RECEIPT` (or equivalent), no local payment private key required in the executor for the signing step; and the payer was funded at the address returned by the precompile (matching **`get_address`** for the same `(owner, index)`). For flows that use the precompile **without** traffic-gen x402 (e.g. some spawn paths), smoke-test those separately if you need coverage beyond this combined check.
+
+### 2. Claw agent heartbeat / on-chain agent transactions (agent-owned chain txs)
+
+**Sidecar** calls the executor **key-derivation** HTTP server:
+
+- **`get_address`** (e.g. index **0**) for the agent’s funded address.
+- **`sign_transaction`** with the unsigned agent tx RLP (register / heartbeat contract calls, etc.).
+
+**Also on the same base URL (not DKMS owner keys):** **`sign_heartbeat`** and **`sign_registration`** — these sign with the **executor TEE** key for fields the contract expects (`executorSignature`). They **attest the executor**, not the user’s DKMS-derived wallet.
+
+**Manual run (traffic-gen):** From **`traffic-gen-internal`**, use **`make run-spawn-agent`** to exercise the persistent-agent path (**0x0820** precompile → claw-spawner). That is the usual way to **start an agent** in dev when you want to **observe registration and heartbeats** on-chain and in logs. See the **`run-spawn-agent`** target in `traffic-gen-internal/Makefile` for defaults (`da`, `provider`, `model`, optional `executor=0x…`) and `ARGS`.
+
+**What proves it works:** Agent registers and posts heartbeats on-chain; TEE-signed fields verify; agent chain txs are signed via **`sign_transaction`** without holding a long-lived private key in the sidecar from **`derive_key`** for those txs (if you have migrated to remote sign).
+
+**Observing heartbeats (no separate dashboard):** The **agent-sidecar** (`claw-spawner/agent-sidecar/pkg/heartbeat/heartbeat.go`) is the source of truth in dev.
+
+- **Success:** On each successful on-chain heartbeat, the sidecar logs at **INFO** a line like **`heartbeat tx`** with **`hash`** (transaction hash), **`nonce`**, and **`manifest_cid`**. Registration first logs **`registration confirmed`** with **`hash`** and **`block`**.
+- **Failure:** Look for **`heartbeat tx failed`**, **`sign heartbeat failed`**, **`read heartbeatNonce failed`**, or **`too many consecutive failures`** (the loop may **`os.Exit`** after repeated errors). Executor TEE **`sign_heartbeat`** failures show up as **`sign heartbeat failed`** from the key-derivation client.
+- **Where to read logs:** **`docker logs`** on the **agent instance** container spawned by claw-spawner (or the spawner’s own logs if it forwards them). There is **no** dedicated heartbeat metrics UI in these repos—use logs plus optional **RPC** inspection of the tx hash (receipt `status == 1`).
+
+**How often:** With **WebSocket** block subscription (`SYSTEM_WS_URL` set), the sidecar reads **`defaultTimeout()`** from the heartbeat contract and posts roughly every **`defaultTimeout / 2` blocks** (re-read on a TTL). If the contract call fails, it falls back to **`HEARTBEAT_CHAIN_INTERVAL_BLOCKS`** from the environment (claw-spawner defaults **200** in `claw_spawner/config.py` and passes it into the instance). **Without WS**, a time-based ticker approximates the same interval (see **`Run`** / **`refreshInterval`** in `heartbeat.go`). The **LLM “heartbeat”** loop in OpenClaw (`agents.defaults.heartbeat.every` / entrypoint) is separate from this **on-chain** cadence.
+
+---
+
+### `POST /v1/derive_key` (key-derivation server) — what it is for
+
+The executor exposes **`POST /v1/derive_key`** on a **Docker-only** port for **agent containers**, as part of **executor-go’s agent-facing API** (Bearer token—see **Agent-facing API vs dKMS** above). It is **not** the same as calling dKMS **`get_key`** directly; it is a **proxy** that:
+
+1. Authenticates the caller (Bearer token tied to owner).
+2. Calls **`GetOwnerRootKey`** on the dKMS manager (same owner + index as the request).
+3. Interprets the returned 32-byte **owner root** as the **Ethereum private key** (`DeriveEthPrivateKeyFromOwnerRoot`) — same rule as dKMS **`sign_transaction`** / **`get_address`**.
+4. Returns **`private_key` (hex)** and **`address`** in JSON.
+
+**Why expose a key at all?** Some sidecar flows still need **raw key material** in-process, e.g. **escrow** (encrypting DA secrets with a derived key at a **non-zero index**), or **legacy tooling** that expects a hex key from `derive_key`. **Chain transactions** are preferably **`sign_transaction`** (no key export); **`derive_key`** remains for cases that cannot yet be expressed as “unsigned tx in, signed tx out.”
+
+**Manual check:** Call `derive_key` with a test owner/index and verify the returned **address** matches **`get_address`** for the same identity; use that key only in trusted agent code paths you intend to support.
+
+---
+
 ## 9. Out of scope for this note
 
 - OAuth and web2 credential flows
 - Exact registry capability enum changes (listed in §8 instead when decided)
 - Whether signing stays in dKMS only vs split with a separate “credential-service” front door
-- Removing or restricting `get_key` / `derive_key` (explicitly **later phase**; see §6)
+
+**In scope:** Adding signing/proxy routes and migrating callers. **Out of scope for “silent” edits:** Changing the contract of **`POST /v1/get_key`** without a deliberate, versioned API change (default is leave it as-is).
 
 ---
 
@@ -310,9 +403,10 @@ Answer inline in this doc, in a PR, or in thread. **Bold** items block a minimal
 | `executor-go/internal/dkms/client.go` | dKMS HTTP client, `GetKeyRequest` |
 | `executor-go/internal/dkms/manager.go` | Endpoint failover |
 | `executor-go/internal/dkms/x402.go` | `SettleX402Payment` |
-| `executor-go/internal/dkms/derivation.go` | HKDF salts and `DeriveX402Key` |
-| `executor-go/internal/handlers/httpcall/x402/settler.go` | **Transaction construction + SignTx** |
-| `executor-go/internal/services/keyderivation/server.go` | Agent `derive_key` |
+| `executor-go/internal/dkms/derivation.go` | `DeriveEthPrivateKeyFromOwnerRoot`, DA HKDF (`deriveKey`) |
+| `executor-go/internal/handlers/httpcall/x402/settler.go` | Unsigned tx build + `SettlePaymentWithDKMSSigning` |
+| `executor-go/internal/services/keyderivation/server.go` | Agent `derive_key`, `sign_transaction`, `get_address` |
 | `executor-go/internal/services/keyderivation/heartbeat.go` | Executor TEE signing (not DKMS wallet) |
 | `claw-spawner/agent-sidecar/pkg/dkms/dkms.go` | HTTP client to key-derivation + TEE sign endpoints |
-| `claw-spawner/agent-sidecar/pkg/heartbeat/heartbeat.go` | **Agent** `DeriveKey` → `sendTx` / `SignTx` / `SendTransaction` |
+| `claw-spawner/agent-sidecar/pkg/heartbeat/heartbeat.go` | `GetAddress` + `sign_transaction` + `SendTransaction` |
+| `dkms/internal/server/signing.go` | `deriveEthSigningKey` (owner root → `crypto.ToECDSA`) |
