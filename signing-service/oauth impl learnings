@@ -1,0 +1,17 @@
+OAuth implementation learnings
+
+This website is useful for setting up Twitter/X OAuth:
+https://docs.x.com/fundamentals/authentication/oauth-2-0/bearer-tokens
+
+The prerequisite section is particularly useful.
+
+OAuth app setup choices used:
+
+- App permissions: Read and write
+- App type: Web app
+- Client type: Confidential client
+
+For the app info fields, you need to use real-looking website values.
+
+- Callback URL: localhost
+- Website URL: make it hope
