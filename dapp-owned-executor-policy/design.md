@@ -1,0 +1,125 @@
+## Context
+- Governance boundary that the design must preserve:
+  - Treat the existing network `TEEServiceRegistry` and network `TEECapabilityPolicy` as controlled by Ritual Labs.
+  - Ritual Labs can add capabilities, approve workload IDs, and change network policy/configuration inside that network-owned domain.
+  - `demoDapp` must have its own separate governance domain for its executor policy and allowed workload identities.
+  - `demoDapp` should not need permission to mutate network-owned `TEEServiceRegistry` or network-owned `TEECapabilityPolicy` state in order to govern its own executor policy.
+  - More precisely: `demoDapp` should not need permission to mutate network-owned governance/config/policy state. There is still a TBD exception around operational registration state if dapp executors register through the shared registry path.
+  - Any design that only works because `demoDapp` can directly extend or reconfigure the network policy contracts is missing the point of the feature, even if that could be forced through on localnet.
+- Current network bootstrap:
+  - `ritual-node-internal/Makefile` runs `make restart-network`, which tears down the local stack, regenerates config, starts the chain and sidecars, then runs `scripts/parallel_network_setup.sh`.
+  - `scripts/parallel_network_setup.sh` discovers live service registration addresses, sets the shared `TEEServiceRegistry` validation mode, whitelists discovered services, syncs model registry state, funds services, waits for executors to register, then runs `setup_workloads.sh`.
+  - Localnet startup is therefore not just container boot; it also replays governance-like setup against the shared registry and related system contracts.
+- Shared contract topology today:
+  - `ritual-sc-internal/scripts/genesis-deployment/Deploy.s.sol` configures one `TEEServiceRegistry` with one `FlashtestationRegistry`, one `TEECapabilityPolicy`, one `TeeServiceWhitelist`, and a single registry-wide validation mode.
+  - `TEEServiceRegistry` stores a single `capabilityPolicy` pointer and exposes `setCapabilityPolicy(address)` as an owner-only function.
+  - `TEECapabilityPolicy` itself is already multi-workload and multi-capability in the sense that it can approve many workload IDs and bind multiple capabilities across workloads, but it is still one shared policy contract owned by governance or the registry owner.
+- Executor registration and workload binding today:
+  - In `ritual-sc-internal/src/async/TEEServiceRegistry.sol`, executor registration derives a `workloadId` from the TEE report body through the configured capability policy and only accepts the executor if the policy allows that workload and capability pairing.
+  - The registry persists executor metadata including `serviceWorkloadIds` and `serviceCapabilities`, so the workload identity does survive registration and is queryable later.
+  - This means trusted workload identity is currently enforced at registration time against the registry's one canonical policy.
+  - Registration through `registerTdxExecutorWithPermit(...)` mutates both contracts in the current flow. `TEEServiceRegistry` first calls `flashtestationRegistry.permitRegisterTEEService(...)`, which updates Flashtestation nonce/registration state, and then `_registerService(...)`, which writes `serviceRecords`, `serviceWorkloadIds`, `serviceCapabilities`, `addressToPrimaryAddress`, endpoint mappings, online service lists, and capability indexes inside `TEEServiceRegistry`.
+  - So if dapp executors continue to register through the shared registry path, there is an important distinction between mutating network-owned operational registration state versus mutating network-owned governance/config/policy state. The former may be unavoidable; the latter is what `demoDapp` should not require for its own governance.
+- Runtime enforcement today:
+  - In `ritual-reth-internal/crates/rpc/rpc/src/async_tx_validator.rs`, node-side async validation checks that the chosen executor is registered and has the coarse capability required for the target precompile.
+  - That validator does not check a dapp-specific workload allowlist, does not consult the calling contract, and does not evaluate a separate policy contract supplied by the dapp.
+  - As a result, workload-specific enforcement is strong at registration but weak at request submission unless a higher layer adds its own filtering.
+  - For this experiment, `demoDapp` should define its own capability and assign its own workload ID inside the dapp's own policy contract. That capability/workload pairing is part of the dapp-governed domain, not part of the network-owned `TEEServiceRegistry` or network-owned `TEECapabilityPolicy`. The authoritative enforcement should still come from the toy dapp contract selecting only executors allowed by the dapp policy.
+- Existing on-chain executor discovery and validation patterns:
+  - `ritual-sc-internal/src/heartbeat/AgentHeartbeat.sol` is useful as a reference for contract-level executor validation, not contract-level executor discovery.
+  - In `heartbeat(...)`, the contract recovers the signer from an executor signature and then calls `TEE_REGISTRY.getService(signer)` through `_isRegisteredExecutor(...)`; if the returned context is valid, the signer is accepted as the executor.
+  - That means `AgentHeartbeat` trusts a caller-supplied executor identity and checks that it is registered, but it does not enumerate or choose among multiple eligible executors on-chain.
+  - By contrast, `ritual-sc-internal/src/factory/SovereignAgentHarness.sol` shows an on-chain selection pattern: `_resolveExecutor()` calls `teeRegistry.pickServiceByCapability(...)` to pick an executor from the registry by coarse capability.
+  - For the toy dapp, this distinction matters. If we want the contract itself to choose an executor, `AgentHeartbeat` is only a partial precedent; it shows how to verify a specific executor against the registry, but not how to express dapp-owned policy-aware discovery.
+  - `SovereignAgentHarness` is closer to the "discover and select" problem, but today it only selects from the network registry using network-governed capability buckets, not a dapp-owned policy domain.
+- Client-side executor filtering that already exists:
+  - `traffic-gen-internal/src/utils/executor_selection.py` already implements model-based routing by querying `ModelPricingRegistry` for workloads, querying `TEEServiceRegistry` for executors by capability, and filtering executors by stored `workloadId`.
+  - This should be treated as testing and traffic-generation precedent rather than the canonical production integration path.
+  - It still proves the registry exposes enough data for workload-aware selection, but the logic is advisory test-client behavior today; another caller could still choose a registered executor with the right capability unless the node or contracts also enforce the same policy.
+- Existing operational hooks relevant to the experiment:
+  - Workload policy data is already manipulated by governance-style scripts such as `addWorkloadToPolicy` and `setCapabilityForWorkload` in deployment tooling, so the base policy model already supports dynamic workload approval.
+  - `setup_workloads.sh` also registers global workload-to-model mappings in `ModelPricingRegistry`, which is useful for model-based routing but is still global rather than dapp-scoped.
+  - Capability buckets such as HTTP are also wired into the network fee path, not just the registry path. In particular, executor and validator pricing for existing async capability types is determined in `ritual-reth-internal/crates/ritual-async-fees/src/`, including constants in `constants.rs`, HTTP-specific pricing in `http.rs`, and higher-level phase pricing / settlement assembly in `lib.rs`.
+  - As a result, admitting a new dapp-defined capability is not only a registry/policy question; it also requires an explicit decision about how that capability's executor compensation should be priced, and whether that pricing remains network-owned, becomes dapp-supplied, or is handled outside the current async fee pipeline.
+  - Localnet currently flips the registry into a debug validation mode during restart, which may make the experiment look easier than a production-like FULL validation configuration.
+  - If `TEEServiceRegistry` changes, expect follow-on localnet work across `ritual-sc-internal` and `ritual-node-internal`, including exported genesis / contract artifact refresh.
+- Linking points between registry and policy that matter for this design:
+  - Registration-time workload resolution:
+    - This should work the same way for network and dapp executor flows. The workload-ID derivation rule should stay shared and deterministic rather than becoming dapp-specific.
+    - If needed, workload-ID derivation can be moved out of the policy contract path and made a first-class shared dependency so network and dapp flows stay consistent without forcing all semantics through the network policy contract.
+  - Registration-time capability resolution:
+    - This is mainly relevant because `TEEServiceRegistry` stores capability at registration time and then uses it to maintain the maps/indexes needed for read-time discovery.
+    - The dapp should own the higher-level meaning of its custom capability/workload pairing, but the design still needs to remove ambiguity about how shared-registry discovery works for those executors.
+  - Read-time validity checks:
+    - This remains relevant because `TEEServiceRegistry` re-validates executor capabilities/services when building service context.
+    - For the first milestone, the registry only needs to answer whether a `CUSTOM` executor is operationally registered/usable. The toy dapp contract should perform the dapp-specific workload/policy validation externally.
+- Local debug workload path that is directly relevant for testing:
+  - `parallel_network_setup.sh` and `fund_executors.sh` both set `TEEServiceRegistry.validationMode = NONE` on localnet, which is the testing-only registration path. In that mode, `executor-go` runs with `TEE_TYPE=NONE`, emits a 64-byte dummy quote, and writes the configured capability into the last byte.
+  - `TEEServiceRegistry` then skips attestation/policy checks, reads that last byte as a `uint8`, and uses it as both the service capability enum and the stored debug workload ID. `_buildServiceContext` also treats services as automatically valid in this mode.
+  - Practically, this means a normal `executor-go` container can be reused for local testing of alternate executor identities with no real TDX quote or policy approval, but only for enum-aligned debug capabilities/workloads. Using something like `0x100` will not work: the debug path only carries a single byte, so `0x100` truncates to `0x00`, and genuinely out-of-range byte values are rejected by `TEEServiceRegistry`.
+  - So for the demo, the clean local-test option is either to add a new dapp capability to the enum and use that value in the debug path, or to extend the debug path if we need an arbitrary workload override. Separately, any custom executor container outside the normal configgen/discovery flow may still need manual bootstrap such as funding and other local setup.
+- Concrete implication for the proposed feature:
+  - A dapp can deploy its own policy contract after network startup today, but that contract is not meaningful to the shared `TEEServiceRegistry` unless the registry owner points the registry at it or the registry is changed to support composition or dapp scoping.
+  - Because the network registry/policy are assumed to be Ritual Labs-controlled, a valid design cannot rely on `demoDapp` directly editing those network-owned contracts for day-to-day governance of its executor domain.
+  - The main architectural gap is therefore not just "can we express workload rules?" but "how does a dapp-owned rule become authoritative without giving the dapp write control over Ritual Labs-owned registry/policy state?"
+  - The second major gap is enforcement at execution time: even if client selection is policy-aware, the node and contract flow currently do not reject a wrong-but-registered executor based on dapp policy.
+  - The chosen direction for the first design is to keep custom dapp executors on the shared `TEEServiceRegistry` path rather than bypassing it in favor of a `FlashtestationRegistry`-only path.
+  - The reason to stay on `TEEServiceRegistry` is to reuse operational registry features that already exist there, such as endpoint mappings, workload/capability records, online service indexes, and the service-record association between a TEE registration address and its payment address.
+  - For the first experiment, the intended proving surface is a toy dapp smart contract, not generalized node-level enforcement. Off-chain/UI indexing can choose an executor candidate, and the toy dapp contract should validate that chosen executor against the dapp policy and `TEEServiceRegistry` before submitting a job to it.
+  - For the first experiment, we can stay on `executor-go-internal` and avoid LLM/model-routing concerns, but we should not reuse the network-owned HTTP capability or the full HTTP request schema. The demo should use one new dapp-defined capability, one new workload ID, and a minimal `CUSTOM` codec whose dapp-specific portion is just `bytes payload`.
+
+## Design Plan
+- Goal: validate whether a post-genesis dapp can deploy its own workload-ID policy and successfully run a very simple executor-go-backed `CUSTOM` async job end to end through a toy dapp smart contract that validates a chosen executor against that policy while keeping those executors on the shared `TEEServiceRegistry` path.
+- Main workstreams:
+  - Define the smallest network-owned hook that lets a dapp-defined capability and dapp policy participate in the shared `TEEServiceRegistry` flow without giving `demoDapp` control over Ritual Labs-owned policy/config state.
+  - Specify the end-to-end target flow for the experiment: custom executor identity creation, registration into `TEEServiceRegistry`, dapp policy deployment and wiring, off-chain discovery/selection, contract-side validation, and a minimal `CUSTOM` bytes-payload echo flow.
+  - Define the minimal toy dapp contract that proves the idea: validate a chosen executor against dapp policy and `TEEServiceRegistry`, then submit a job without adding unrelated application behavior.
+  - Turn the known gaps into repo-by-repo deltas, likely centered on `ritual-sc-internal`, `ritual-reth-internal`, `ritual-node-internal`, `ritual-async-fees`, and the dapp/client repo that resolves executors.
+  - Define the localnet verification path that proves the chosen design works and exposes any remaining missing system hooks.
+## Baseline Decisions and Requirements
+- **Governance split:** Ritual Labs governs the network executor domain, while `demoDapp` governs its own executor domain and policy state.
+- **Network contract access:** Even in the localnet proof, `demoDapp` should not be modeled as having write access to the network-owned `TEEServiceRegistry` or network-owned `TEECapabilityPolicy`. Any privileged owner action should be treated as network/bootstrap setup, not as dapp governance.
+- **First milestone shape:** The first milestone is a privileged-owner-assisted localnet proof; it does not require a dapp governance contract.
+- **Dapp policy reuse surface:** The dapp-owned policy contract should inherit `BasePolicy`. `BasePolicy` is intended to be reusable by downstream dapps, and this proof should exercise that intended integration surface rather than introducing a completely separate policy pattern for dapps.
+- **Contract enforcement:** The first experiment should enforce "dapp may only use these executors" in the dapp's own smart contract rather than relying on RPC validation, builder validation, or general-purpose registry checks.
+- **Toy contract scope:** The first experiment should use a minimal toy contract with no extra application behavior beyond validating a chosen executor and sending a job.
+- **Execution substrate:** The first experiment should reuse `executor-go-internal`, but with a minimal `CUSTOM` request codec rather than an HTTP-like job shape.
+- **Capability/workload shape:** For the first experiment, assume one new dapp-defined capability and one new workload ID, rather than reusing a network-governed capability bucket.
+- **Workload derivation:** Workload-ID derivation should stay consistent between network and dapp flows; if needed, that derivation can be factored out of the current policy-contract path into a shared dependency rather than becoming dapp-specific.
+- **Testing mode:** For the first testing iteration, intentionally reuse `ValidationMode.NONE` and the local debug-registration path, since real attestation is unavailable in local testing.
+- **Async lifecycle reuse:** For the first experiment, requests to `CUSTOM` executors should reuse the same async job spawning, `AsyncJobTracker`, and `AsyncDelivery` pipeline that already exists. The `CUSTOM` request should keep the standard async envelope fields already expected across the stack and replace the HTTP-specific fields with a simple `bytes payload`, rather than inventing a separate dapp-owned delivery flow.
+- **Delivery callback binding:** The toy dapp contract should treat callback acceptance as a state-binding problem, not a new transport problem. It should gate the callback to the canonical `AsyncDelivery` caller, persist pending job context keyed by `jobId`, and on callback compare that stored context against canonical `AsyncJobTracker` context so the delivered result is bound to the request the dapp created and the specific executor it selected under dapp policy.
+- **Payments:** For the first experiment, keep payment handling simple: use a flat `CUSTOM` executor fee in the reth-side async fee path, and assume `demoDapp` charges the user before making the request and may apply its own application-level logic to ensure executor work is economically covered. The feature should not assume network-funded executor incentives by default.
+- **Out-of-scope runtime classes:** Do not depend on `ModelPricingRegistry`, LLM/model-routing flows, or the existing HTTP request schema for the first experiment. Stay on a minimal executor-go-backed `CUSTOM` bytes-payload path unless a dependency forces broader scope.
+- **Change policy:** Breaking changes are allowed across the stack if they produce a cleaner architecture. Prefer hard breaks over fallback compatibility layers when compatibility is not required for this effort.
+- **Schema/export flexibility:** Changing `TEEServiceRegistry`, its storage/interface, exported genesis state, or any related interfaces is acceptable if the design benefits from a clean break.
+## Key Architectural Forks
+  - Shared-registry integration hook:
+    - Status: decided.
+    - Decision: add a `CUSTOM` branch in `TEEServiceRegistry` for custom executors, rather than trying to reuse the network policy slot directly or moving to a `FlashtestationRegistry`-only path.
+  - Executor discovery/selection:
+    - Status: decided for the first milestone.
+    - Decision: use off-chain/UI/indexer discovery and selection. The toy dapp contract should only validate the chosen executor against dapp policy and `TEEServiceRegistry` before routing the job.
+  - Read-time validity model:
+    - Status: decided for the first milestone.
+    - Decision: for `CUSTOM` executors, `TEEServiceRegistry` should provide operational validity only. The toy dapp contract should perform the fine-grained workload/policy validation externally. In particular, the TEEServiceRegistry does not use an integration hook to do the determination itself
+  - Fee/settlement reuse model:
+    - Status: decided for the first milestone.
+    - Decision: reuse the existing fee/settlement path with `AsyncJobTracker`, `AsyncDelivery`, `RitualWallet`, and a flat `CUSTOM` executor fee inserted in the reth-side async-fee logic. Do not introduce custom dapp-defined pricing for this proof; instead assume `demoDapp` handles any user charging at the application layer before request submission.
+
+## Out of Scope
+- Custom dapp-defined pricing is out of scope for the first milestone.
+  - For the proof, use a flat `CUSTOM` executor fee in the relevant reth / `ritual-async-fees` area rather than introducing request-carried pricing, a dapp-owned fee market, or a new settlement model.
+  - Assume `demoDapp` charges the user before making the async request and can apply app-level logic to make sure executor work is covered economically; proving generalized on-chain custom pricing is deferred.
+- Dapp-specific whitelisting or physical-security gating is out of scope for this first design and proof.
+  - Whitelisting is treated as a temporary state of affairs for Ritual rather than a core part of the target dapp architecture, so the goal here is not to design long-term dapp whitelist policy on top of current network controls. Longer-term chain-wide mechanisms such as proof-of-cloud or another replacement for whitelist-based trust gating are a better place to solve this class of problem. For this effort, assume any existing network whitelist requirements are bootstrap constraints to work around during local testing, not part of `demoDapp`'s policy surface.
+- Fully on-chain executor discovery/selection is out of scope for the first milestone.
+  - We may eventually want an on-chain discovery mechanism, but it is not necessary to prove the core architecture. It is reasonable to assume that dapps can perform off-chain indexing and candidate selection, while the toy dapp contract performs the authoritative on-chain validation of the chosen executor.
+
+## Ambiguities To Resolve
+- New requirement / conflict to flag: the dapp-owned policy must inherit `BasePolicy`, which conflicts with the earlier "minimal standalone ownable policy" interpretation if that interpretation avoids `BasePolicy`'s registry/workload-deriver hooks.
+- Concretely, `BasePolicy` assumes a policy-owned `approvedWorkloads` mapping, a configured `registry`, and a workload-deriver-based `isAllowedPolicy(...)` flow over raw registration data. The current toy flow was intentionally narrower: the toy dapp reads `TEEServiceRegistry.getService(...)` and validates workload/capability/allowlist externally.
+- This conflict is not a reason to drop the `BasePolicy` requirement. Instead, it should be treated as a design constraint on the `ritual-sc-internal` implementation: if inheriting `BasePolicy` forces additional plumbing, broader APIs, different validation call shapes, or explicit registry/deriver configuration, that scope increase should be accepted and called out rather than silently bypassing `BasePolicy`.
+- If inheriting `BasePolicy` would force the dapp policy to mutate or depend on network-owned governance/configuration state in a way that violates the governance split above, that should be treated as a blocking design issue and surfaced explicitly.
+- Working assumption for this implementation plan: the proof adds a dedicated `CUSTOM` async operation path with its own minimal codec: the standard async envelope plus a `bytes payload`, and an initial executor-go implementation that simply echoes that payload back through the existing async lifecycle (`AsyncJobTracker`, `AsyncDelivery`, settlement). This is intentionally simpler than reusing the full HTTP request/response codecs, and still avoids trying to smuggle `CUSTOM` executors through the existing network-owned HTTP capability path.
+- Implementation plan moved to `impl-plan.md`.
