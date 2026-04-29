@@ -1,0 +1,377 @@
+# Agent Memory Taxonomy
+
+## Purpose
+
+This note classifies the main memory systems discussed for a coding-centric agent workflow in Cursor. I.e. a lit review of twitter threads about agent memory
+
+The goal is not to rank tools in the abstract. The goal is to understand what role each system plays in a larger memory stack.
+
+## Core Taxonomy
+
+### 1. File-native knowledge bases
+
+These systems store memory in files that are easy for both the human and the agent to inspect, edit, diff, and version.
+
+- `llm-wiki`
+  - best viewed as a markdown-first semantic memory system
+  - strongest for curated repo notes, architecture notes, investigations, and durable knowledge pages
+- `Obsidian`
+  - not a memory engine by itself
+  - best viewed as a UI and workflow shell for markdown memory
+  - strongest for browsing, linking, graph view, and manual curation of file-based memory
+
+Best use in coding workflows:
+- durable repo understanding
+- architecture notes
+- feature notes
+- debugging writeups
+- human review and cleanup of memory
+
+### 2. Ambient episodic capture
+
+These systems capture short-term context from what the user was just doing, even when the user does not restate it.
+
+- `Chronicle`
+  - screen-driven episodic memory
+  - strongest for "what was I just doing?" and "continue where I left off"
+  - weak as the primary long-term system of record
+
+Best use in coding workflows:
+- short-term continuity
+- ambiguous task resumption
+- recovering recent context without manual prompting
+
+### 3. Memory engines / knowledge backends
+
+These systems act as programmatic memory infrastructure behind one or more agents.
+
+- `Cognee`
+  - persistent memory engine
+  - combines ingestion, graph/vector retrieval, and explicit memory operations such as `remember`, `recall`, `forget`, and `improve`
+  - best viewed as an agent-facing memory backend, not a human-facing note workspace
+- `Honcho`
+  - stateful memory backend organized around workspaces, peers, sessions, messages, and derived representations
+  - stronger for multi-entity, multi-session, application-like memory systems
+
+Best use in coding workflows:
+- persistent retrieval behind agents
+- structured memory APIs
+- memory shared across runs or agents
+- cases where file-based memory is no longer enough on its own
+
+### 4. Opinionated brain / agent operating systems
+
+These systems bundle memory with conventions, workflows, retrieval rules, jobs, and broader agent behavior.
+
+- `gbrain`
+  - not just memory
+  - combines persistent knowledge, structured retrieval, graph-like linking, skills, and operational workflows
+  - for coding use, the relevant parts are the persistent knowledge layer, retrieval layer, and agent-usable operating patterns rather than the more opinionated personal workflow examples
+
+Best use in coding workflows:
+- when you want a more complete "agent brain" system
+- when memory, retrieval, and workflow conventions should come together as one package
+
+### 5. Full agent harnesses / runtimes
+
+These systems are not just memory layers. They provide a full agent runtime with interfaces, tools, scheduling, subagents, memory, and behavior-improvement loops.
+
+- `Letta`
+  - best viewed as a stateful-agent platform with both an API layer and a coding harness layer (`Letta Code`)
+  - combines persistent memory, memory blocks, recall over prior conversations, agent-managed memory updates, skills, and subagents
+  - sits between a memory platform and a full harness: broader than a pure memory backend, but still more explicitly memory-first than many general agent runtimes
+- `Hermes`
+  - best viewed as a full harness, not just a memory system
+  - combines persistent memory, session search, user modeling, skill creation, subagents, scheduling, tool/runtime management, and multi-interface operation
+  - stronger as an alternative agent environment than as a drop-in memory layer inside Cursor
+
+Best use in coding workflows:
+- when you want a memory-first agent platform that can also be used through a coding harness
+- when you want the agent to live outside one IDE session
+- when you want memory, skills, subagents, automation, and interfaces bundled into one runtime
+- when the goal is not just better recall, but a more autonomous long-running agent system
+
+### 6. Reference implementations / starter patterns
+
+These systems are more useful for design ideas and evaluation patterns than as the final memory substrate.
+
+- `langchain-ai/memory-agent`
+  - best viewed as a starter pattern
+  - useful for memory-tool design, storage patterns, and eval thinking
+  - less compelling as the actual long-term memory foundation
+
+Best use in coding workflows:
+- learning
+- prototyping memory behavior
+- borrowing eval patterns
+
+## Tool-by-Tool Fit
+
+### llm-wiki
+
+Primary role:
+- semantic memory in markdown
+
+Best fit:
+- repo wikis
+- runbooks
+- architecture pages
+- debugging notes
+
+### Obsidian
+
+Primary role:
+- human interface for markdown memory
+
+Best fit:
+- browsing and curating an `llm-wiki`
+- adding cross-links
+- graph-based navigation
+
+### Chronicle
+
+Primary role:
+- short-term episodic recall
+
+Best fit:
+- recovering recent activity
+- resolving ambiguous "this" / "that" references
+
+### Cognee
+
+Primary role:
+- agent memory engine
+
+Best fit:
+- programmatic memory retrieval
+- graph/vector-backed recall
+- agent integrations where memory should persist independently of one markdown vault
+
+### Honcho
+
+Primary role:
+- stateful memory platform for users, agents, sessions, and derived representations
+
+Best fit:
+- multi-agent systems
+- app/backend memory
+- user/session/entity memory models
+
+### gbrain
+
+Primary role:
+- opinionated brain layer combining memory, retrieval, and workflows
+
+Best fit:
+- teams or individuals who want to adopt a larger integrated system rather than assemble separate pieces
+
+### Hermes
+
+Primary role:
+- full agent harness with a built-in learning loop
+
+Best fit:
+- users who want a persistent agent that can run across sessions, platforms, and environments
+- cases where memory is only one part of a larger autonomous agent runtime
+- studying how a learning agent can combine skills, memory, search, scheduling, and subagents in one system
+
+### Letta
+
+Primary role:
+- memory-first stateful-agent platform, with `Letta Code` as its coding harness
+
+Best fit:
+- users who want persistent agents with explicit memory primitives such as memory blocks and recall over prior conversations
+- cases where memory should be treated as a first-class part of the agent architecture rather than an add-on
+- coding workflows where a long-lived agent should learn across sessions and remain portable across models
+
+### LangChain memory-agent
+
+Primary role:
+- example implementation
+
+Best fit:
+- borrowing ideas
+- understanding memory architecture patterns
+- building evals
+
+## Hermes Decomposed By Technique
+
+Hermes does not fit cleanly into just one category because it is a bundled system. Its techniques spread across several categories:
+
+### Procedural memory
+
+Hermes uses:
+- skills as reusable procedural memory
+- context files and system shaping files
+- agent habits encoded into its runtime behavior
+
+Closest category:
+- procedural memory / workflow systems
+
+### Semantic memory
+
+Hermes uses:
+- persistent memory
+- user profiles
+- agent-curated knowledge that can persist across sessions
+
+Closest category:
+- memory engine / backend
+
+### Episodic memory
+
+Hermes uses:
+- session search
+- cross-session recall
+- summarization over prior conversations
+
+Closest category:
+- ambient or stored episodic recall, though not screen-based like `Chronicle`
+
+### Reflective / self-improvement memory
+
+Hermes uses:
+- skill creation from experience
+- skill improvement during use
+- nudges to persist useful knowledge
+
+Closest category:
+- reflective self-improvement loop
+
+### Harness / runtime layer
+
+Hermes also adds things that the other memory systems generally do not:
+
+- terminal runtime
+- messaging interfaces
+- scheduling / cron
+- subagents
+- tool/runtime management
+- long-lived execution outside the IDE
+
+That is why Hermes deserves its own category in this taxonomy. It is not just "another memory tool." It is a full environment in which several memory techniques are already combined.
+
+## Letta Decomposed By Technique
+
+Like Hermes, Letta spans multiple layers. The important difference is that Letta feels more memory-first at the platform level, while `Letta Code` is the harness that exposes those capabilities to coding workflows.
+
+### Procedural memory
+
+Letta uses:
+- skills and agent instructions
+- agent state shaped by persistent context
+- explicit memory-management behaviors exposed to the agent
+
+Closest category:
+- procedural memory / workflow systems
+
+### Semantic memory
+
+Letta uses:
+- persistent memory blocks
+- long-lived stored context
+- searchable recall over prior interactions and stored state
+
+Closest category:
+- memory engine / backend
+
+### Episodic memory
+
+Letta uses:
+- persisted conversation history
+- recall over prior messages and prior agent activity
+
+Closest category:
+- stored episodic recall
+
+### Reflective / self-improvement memory
+
+Letta uses:
+- agent-managed memory updates
+- explicit learning over time
+- commands and flows that encourage remembering, searching, and updating memory state
+
+Closest category:
+- reflective self-improvement loop
+
+### Harness / runtime layer
+
+Letta also adds:
+
+- a stateful agent API
+- long-lived agents rather than isolated chat sessions
+- `Letta Code` as a memory-first coding harness
+- skills and subagents around a persistent agent identity
+
+That is why Letta belongs partly with memory engines and partly with full harnesses. In practice, it is most useful to think of core Letta as a stateful-agent memory platform, and `Letta Code` as the harness that turns that platform into a coding workflow.
+
+## Recommended Layered Stack For A Cursor-Centric Coding Workflow
+
+### Procedural memory
+
+Use:
+- `.cursor/skills/`
+- `.cursor/rules/`
+
+Purpose:
+- how the agent should behave
+
+### Semantic memory
+
+Use:
+- `llm-wiki`
+- optionally viewed and curated in `Obsidian`
+
+Purpose:
+- durable knowledge about repos, architecture, features, commands, investigations, and lessons
+
+### Episodic memory
+
+Use:
+- session notes
+- optionally a `Chronicle`-like layer for recent activity
+
+Purpose:
+- what just happened
+- what was observed in this run
+
+### Memory backend layer
+
+Use:
+- `Cognee` later, if needed
+
+Purpose:
+- richer retrieval and persistence behind agents once file-based memory starts to feel limiting
+
+### Reflective / self-improvement memory
+
+Use:
+- diary-first notes such as `sjs-agent-sessions/`
+- promotion into `.cursor/skills/` and `.cursor/rules/` only after repeated evidence
+
+Purpose:
+- improve the agent's habits and shared guidance over time
+
+## Main Conclusion
+
+For a Cursor-first coding workflow:
+
+- `llm-wiki + Obsidian` is the best primary memory layer
+- `Chronicle` is useful as a short-term helper layer
+- `Cognee` is the most relevant backend-style addition if the system later needs a real memory engine
+- `Honcho` is more application/backend shaped
+- `gbrain` is the broadest and most opinionated integrated brain system
+- `Letta` is a memory-first stateful-agent platform whose coding harness makes persistent learning more central to the agent design
+- `Hermes` is the clearest example of a full learning-agent harness rather than a single memory layer
+- `LangChain memory-agent` is best treated as a reference implementation
+
+The most important distinction is not "which tool is best?" but:
+
+- file-native knowledge base
+- episodic capture layer
+- memory engine / backend
+- full harness / runtime
+- reflective self-improvement loop
+
+That separation makes it easier to build a stack where the agent grows smarter over time without forcing one tool to do everything.
