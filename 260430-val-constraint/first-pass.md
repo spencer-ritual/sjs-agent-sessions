@@ -1,0 +1,52 @@
+
+## Notes to self
+
+# Setting / inital link context
+https://validity-constraints-microsite-59313947041.us-central1.run.app/
+https://github.com/ritual-net/ritual-reth-internal/issues/340 (broad set of findings)
+https://github.com/ritual-net/ritual-reth-internal/issues/352 (pruned set)
+https://github.com/ritual-net/ritual-reth-internal/issues/353 (interesting critical and missing constraint)
+
+### Meta summary
+- This note is a working context bundle for investigating validity constraints in `ritual-reth-internal`: what constraints exist, which audit findings are actually relevant to them, which checks belong in Reth versus contracts or executor code, and where similar missing-constraint bugs may still exist.
+- The microsite is useful as the broad product/design context. Issue 340 is the large raw set of findings; read it when looking for categories, patterns, or related issues. Issue 352 is the pruned set and is probably the better entry point for focused triage. Issue 353 is worth reading when looking for concrete high-signal examples of critical or missing validity constraints.
+- The notes below capture early framing and leads, not final conclusions. Treat them as a map for deciding what to inspect next: scheduled predicates, SPC constraints, builder/verifier consistency, global block correctness checks, dead audit surface area, and old Asana items that may or may not still apply.
+
+### Big picture 
+- The four useful categories of gaps are: validity gaps, where the builder included an invalid protocol transaction; inclusion gaps; consistency gaps (builder/verifier or verifier non-determinism); and global block correctness gaps, where validity depends on the block as a whole, like forbidding multiple async calls in one transaction or enforcing sequencing rules over global block order.
+- We should write down the purpose of validity constraints and categorize them by why they belong in Reth. Auditors need that context or they will read isolated checks as missing contract logic, and the categorization also helps organize the design. There is a difference between a safety/correctness check like TTL vs Anti Censorship like forced inclusion
+
+
+### Context
+- Confirmed for scheduled transactions: `shouldExecute` is not checked inside `Scheduler.execute()`. The contract stores `callPredicates[callId]` and interface-checks the predicate at schedule time, but C11 predicate enforcement is a Reth-side validity rule. Honest payload building evaluates the predicate against parent state and skips scheduled txs whose predicate is not true; block verification re-evaluates the predicate and rejects a block if a scheduled tx is included when `shouldExecute(caller, callId, executionIndex)` is false, invalid, reverted, halted, or exceeds predicate gas limits. This means the audit observation is true if reading only the smart contract, but incomplete for the actual protocol design.
+
+### PT1 sad-path springboard
+- Important caveat: the PT1 sad-path material is historical analysis from roughly two months ago. Treat it as a source of hypotheses and audit patterns only; every candidate below needs to be re-checked against the current `dev` branch before being treated as live. In my first pass here, I did not verify these PT1-derived leads against current Reth code.
+- `/home/ritual/repos/sjs-agent-sessions/pt1-sad-path` is mostly useful as a pattern source, not as a list to copy. The validity-relevant pattern is: if a sad path can change block acceptance, builder/verifier agreement, transaction inclusion obligations, or consensus-visible state roots, it should be promoted into this validity-constraint audit. If it only affects executor liveness or off-chain service reliability, it is probably adjacent context but not a Reth validity constraint.
+- The highest-signal PT1 overlap is async FSM coverage. The PT1 note flags nested async from delivery callbacks, expired/non-existent settlement asymmetry, phase-2 deadline interactions, fee overflow edges, and multi-settlement atomicity under load. Issue 353 already covers the most important version of this: every in-block async-precompile call, including nested callback calls, needs a matching commitment. Remaining follow-up is to check whether settlement timeout/refund inclusion, expired settlement handling, and multi-settlement failure isolation need explicit verifier rules or tests.
+- Another strong overlap is hidden consensus parameters and nondeterministic native execution. PT1 flags ONNX floating-point output/gas nondeterminism, JQ wall-clock timeout behavior, and env-driven bypass/config knobs. For validity-constraint work, the question is not only whether each precompile is buggy, but whether the behavior is consensus-visible. If a native precompile can affect state roots or gas outcomes, deterministic execution semantics are themselves a consensus rule; if that surface is dead or pre-production, it should be removed or explicitly de-scoped.
+- The static-analysis dashboard adds several candidate alternate-path gaps: RPC/pool checks that may not be replayed during direct block verification, custom transaction encoding/signature oddities, system-transaction sender validation, reorg-stale builder state, and input-size or ABI-shape drift across RPC, builder, verifier, and contracts. These should be filtered through the same question: can a proposer include a block that bypasses the stricter admission path while still passing the verifier?
+- Concrete next checks from this pass: verify direct-block invalid async payloads are rejected, verify scheduled/system transaction failure paths do not create builder/verifier gas-accounting asymmetry, verify all consensus-affecting env vars are either dev-only or chain-configured, and build a small matrix for async FSM edges: commitment coverage, settlement inclusion, timeout/refund inclusion, nested callback commitments, and same-block ordering/atomicity.
+
+
+### Action Items
+- For any validity or verification check that could live in the smart contract, we should consider moving it there, or explicitly justify why it remains in Reth or executor code. Custom off-chain verification increases attack surface and audit burden, while on-chain or consensus-level checks are easier to reason about and reuse. Concrete examples: `SPC-6`, `spc_call.block_number == job.commit_block`, could plausibly be checked in `AsyncDelivery` against `AsyncJobTracker`'s stored job metadata. `SPC-4`, max one SPC per transaction, clearly needs global transaction context and belongs in Reth. Some checks that could live in a smart contract may still make sense in Reth for efficiency, possibly including `SPC-2` and `SPC-8`, but those should be evaluated and justified either with a global heuristic or case by case. A check may need to remain a Reth validity constraint when the intended invariant is not merely "bad delivery cannot mutate state," but "every included protocol delivery must be valid and successful, rather than a revert that is still block-valid." - if this is the mental model it should be clarified somewhere explicitly
+- TODO: Update the smart contract docs / `IScheduledPredicate` docs to state explicitly that predicate enforcement is a consensus/execution-layer block validity rule in Reth, not an `execute()` precondition in `Scheduler.sol`, so reviewers do not conclude the predicate is accidentally missing from the contract.
+- The AWS Nitro precompile should probably be deprecated and removed completely. If there are AWS Nitro precompile artifacts left in the codebase, we should take them out rather than keep a half-broken review surface around. Similar things have been flagged around ZK and FHE: before reviewing issues, we need clarity on what is in scope, what is intentionally unused or not production-ready, and what is actually broken. Dead code makes it hard to tell whether a finding is real product risk or just stale surface area.
+
+### Nits
+- Issue 340 / the SPC-9 key-rotation flag seems wrong in practice. A new registration address would be a new TEE entity, and our executor code effectively treats one TEE address as having one generated public key that is stable for that identity. The registry may technically allow overwriting the service record on re-registration, but the executor invariant is that the key is regenerated for a new identity, not rotated under the same identity. That invariant is probably not enforceable in `TEEServiceRegistry`, but the audit/code comment assumption that TEEs routinely update public keys is not how the system is meant to work. For greater safety, we could update this contract to make this very inexplicit that TEEs cannot change their public key or update anything. Also the env var bipasses are noise that can be removed as well
+- Reth issue 352 / Gap 2 is written incorrectly where it says revival executors are chosen from currently registered `AUTONOMOUS_AGENT` executors. The current canonical revival path reads the TEE registry and filters for `HTTP_CALL` executors; `AUTONOMOUS_AGENT` exists as a capability, but it is dead code
+
+### LEADS
+- Read over sjs-agent-sessions/chain-halt-audit docs to see what is relevant now that we are post PT1 and don't assume honest validators. Try to enumerate all paths things are passed along, and make sure all hit the same checks. I.e. I think some constraints are enforced at the rpc tx submit layer - make sure they exist in the validation path too
+- Builder and verifier need to use the same types (u64 vs u256) in relevant spots
+- Double-check the reported Scheduler gas-accounting issue: **Problem (as reported):** For scheduled system transactions on the **Scheduler** path, block gas contribution is derived from **logs** (recognizable Scheduler events). When the EVM `ExecutionResult` is **not** `Success`, the executor passes **no logs** into that logic (`logs` becomes `&[]`). Then **`ScheduledEventNotFound`** can occur and **block execution fails** → block treated as invalid.
+- Double check if this issue still exists - https://app.asana.com/1/1206274797081445/project/1212017194493012/task/1213627979634998
+- double check if this is relevant - https://app.asana.com/1/1206274797081445/project/1212017194493012/task/1213531999709377
+- double check if this is relevant - https://app.asana.com/1/1206274797081445/project/1212017194493012/task/1213483172124515
+- double check if this has been fixed yet - https://app.asana.com/1/1206274797081445/project/1212017194493012/task/1213880000890206
+
+
+
+
