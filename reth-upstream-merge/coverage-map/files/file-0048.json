@@ -1,0 +1,69 @@
+{
+  "record_type": "file",
+  "file_index": 48,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/consensus/common/src/validation.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "non-exact",
+    "needs-review",
+    "reth-port"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0048-atom-0001",
+      "file_index": 48,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/consensus/common/src/validation.rs",
+      "source_hunk_hint": "@@ -3,3 +3 @@",
+      "source_kind": "other",
+      "source_snippet": "use alloy_consensus::{BlockHeader as _, EMPTY_OMMER_ROOT_HASH};\nuse tracing::{debug, error};\n        });\n        return Err(ConsensusError::BaseFeeMissing);\n        ));\n",
+      "semantic_claim": "The downstream diff for crates/consensus/common/src/validation.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/consensus/common/src/validation.rs",
+          "symbols": [
+            "validate_header_gas",
+            "validate_header_base_fee",
+            "validate_shanghai_withdrawals",
+            "validate_cancun_gas",
+            "validate_body_against_header"
+          ],
+          "snippet": "pub fn validate_header_gas<H: BlockHeader>(header: &H) -> Result<(), ConsensusError> {\n    if header.gas_used() > header.gas_limit() {\n        return Err(ConsensusError::HeaderGasUsedExceedsGasLimit {\n            gas_used: header.gas_used(),\n            gas_limit: header.gas_limit(),",
+          "evidence": "The destination keeps the module at the same relative path with overlapping symbols ['validate_header_gas', 'validate_header_base_fee', 'validate_shanghai_withdrawals', 'validate_cancun_gas', 'validate_body_against_header']."
+        }
+      ],
+      "equivalence_argument": "The downstream behavior still resides in the same integration surface in the destination workspace, but the implementation was refactored or reshaped; review is required to confirm full semantic parity.",
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "The destination keeps the module at the same relative path with overlapping symbols ['validate_header_gas', 'validate_header_base_fee', 'validate_shanghai_withdrawals', 'validate_cancun_gas', 'validate_body_against_header'].",
+      "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The downstream file maps to destination code but needs review because the destination implementation was refactored or moved.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "The destination keeps the module at the same relative path with overlapping symbols ['validate_header_gas', 'validate_header_base_fee', 'validate_shanghai_withdrawals', 'validate_cancun_gas', 'validate_body_against_header']."
+}

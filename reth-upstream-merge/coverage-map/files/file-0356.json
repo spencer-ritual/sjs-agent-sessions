@@ -1,0 +1,68 @@
+{
+  "record_type": "file",
+  "file_index": 356,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-tee-registry-reader/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "executor-selection"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0356-atom-0001",
+      "file_index": 356,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-tee-registry-reader/src/lib.rs",
+      "source_hunk_hint": "new file: module declarations and re-exports",
+      "source_kind": "other",
+      "source_snippet": "pub mod constants; pub mod error; pub mod reader; pub mod storage_layout; pub mod types; pub use ...",
+      "semantic_claim": "The TEE registry reader crate exposes constants, errors, reader/storage layout modules, and ExecutorInfo/Capability/TeeType types as its public API.",
+      "high_risk": false,
+      "risk_tags": [
+        "executor-selection"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-tee-registry-reader/src/lib.rs",
+          "symbols": [
+            "constants",
+            "RegistryReadError",
+            "ExecutorInfo",
+            "Capability",
+            "TeeType"
+          ],
+          "snippet": "pub mod constants;\npub mod error;\npub mod reader;\npub mod storage_layout;\npub mod types;\n\npub use constants::*;\npub use error::RegistryReadError;\npub use reader::*;\npub use types::{Capability, ExecutorInfo, TeeType};",
+          "evidence": "The same module declarations and public re-exports are present in the v2.2 port."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Compile a downstream crate importing RegistryReadError, ExecutorInfo, Capability, TeeType, and reader helpers from ritual_tee_registry_reader.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact code exists in the v2.2 port at the same path."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "TEE registry reader public module surface is exactly present in the v2.2 port.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "The added file is byte-for-byte present at the same path in the v2.2 port."
+}

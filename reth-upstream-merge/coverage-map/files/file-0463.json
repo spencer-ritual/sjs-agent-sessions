@@ -1,0 +1,73 @@
+{
+  "record_type": "file",
+  "file_index": 463,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/storage/codecs/src/alloy/transaction/ethereum.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "encoding",
+    "high-risk",
+    "non-exact",
+    "needs-review",
+    "reth-port"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0463-atom-0001",
+      "file_index": 463,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/storage/codecs/src/alloy/transaction/ethereum.rs",
+      "source_hunk_hint": "@@ -3,2 +3,2 @@ use alloy_consensus::{",
+      "source_kind": "other",
+      "source_snippet": "    transaction::{PasskeySignature, RlpEcdsaEncodableTx, TxScheduled, TxEip1559, TxEip2930, TxEip4844, TxEip7702, TxLegacy, TxPasskey, TxAsyncCommitment, TxAsyncSettlement, TxType},\n    EthereumTxEnvelope, Signed, Transaction,\n/// Trait for serializing transaction signature using Compact encoding.\n/// This handles both standard Signature and PasskeySignature.\npub(super) trait SignatureCompact {\n    /// Serialize signature to compact format, returns sig_bit for flags",
+      "semantic_claim": "The downstream diff for crates/storage/codecs/src/alloy/transaction/ethereum.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": true,
+      "risk_tags": [
+        "encoding"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/src/alloy/transaction/ethereum.rs",
+          "symbols": [
+            "signature_to_compact",
+            "is_passkey_tx",
+            "to_tx_compact",
+            "from_tx_compact",
+            "from_tx_compact_passkey"
+          ],
+          "snippet": "    fn signature_to_compact<B>(&self, buf: &mut B) -> usize\n    where\n        B: BufMut + AsMut<[u8]>;\n\n    /// Returns true when the envelope carries a passkey signature instead of secp256k1.",
+          "evidence": "The destination keeps the module at the same relative path with overlapping symbols ['signature_to_compact', 'is_passkey_tx', 'to_tx_compact', 'from_tx_compact', 'from_tx_compact_passkey']."
+        }
+      ],
+      "equivalence_argument": "The downstream behavior still resides in the same integration surface in the destination workspace, but the implementation was refactored or reshaped; review is required to confirm full semantic parity.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Run the destination behavior owned by crates/storage/codecs/src/alloy/transaction/ethereum.rs and verify the downstream-observed behavior still holds after the port refactor.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "The destination keeps the module at the same relative path with overlapping symbols ['signature_to_compact', 'is_passkey_tx', 'to_tx_compact', 'from_tx_compact', 'from_tx_compact_passkey'].",
+      "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The downstream file maps to destination code but needs review because the destination implementation was refactored or moved.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "The destination keeps the module at the same relative path with overlapping symbols ['signature_to_compact', 'is_passkey_tx', 'to_tx_compact', 'from_tx_compact', 'from_tx_compact_passkey']."
+}

@@ -1,0 +1,68 @@
+{
+  "record_type": "file",
+  "file_index": 98,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/ethereum/primitives/src/transaction.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "non-exact",
+    "needs-review",
+    "alloy-evm"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0098-atom-0001",
+      "file_index": 98,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ethereum/primitives/src/transaction.rs",
+      "source_hunk_hint": "@@ -2 +1,0 @@ use alloc::vec::Vec;",
+      "source_kind": "other",
+      "source_snippet": "    constants::SCHEDULED_TX_TYPE_ID,\n    transaction::{PasskeySignature, RlpEcdsaDecodableTx, RlpEcdsaEncodableTx, SpcCall},\n    BlobTransactionSidecar, EthereumTxEnvelope, SignableTransaction, Signed, TxAsyncCommitment,\n    TxAsyncSettlement, TxEip1559, TxEip2930, TxEip4844, TxEip4844Variant, TxEip4844WithSidecar,\n    TxEip7702, TxEnvelope, TxLegacy, TxPasskey, TxScheduled, Typed2718, TypedTransaction,\npub use alloy_consensus::{transaction::PooledTransaction, TxType};",
+      "semantic_claim": "The downstream diff for crates/ethereum/primitives/src/transaction.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "moved_to_dependency",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-alloy-evm-internal",
+          "path": "crates/evm/src/rpc/transaction.rs",
+          "symbols": [
+            "try_into_tx_env",
+            "EthTxEnvError",
+            "TryIntoTxEnv",
+            "Err"
+          ],
+          "snippet": "    fn try_into_tx_env(self, evm_env: &EvmEnv<Spec, BlockEnv>) -> Result<T, Self::Err>;\n}\n\n/// An Ethereum specific transaction environment error than can occur during conversion from\n/// [`TransactionRequest`].",
+          "evidence": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path."
+        }
+      ],
+      "equivalence_argument": "The downstream file name resolves uniquely in the destination search scope outside the original path, indicating the behavior likely moved rather than disappearing.",
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path.",
+      "human_question": "Confirm that landing this file in a dependency repository preserves every downstream behavior atom expected from the old fork."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The downstream file maps to destination code but needs review because the destination implementation was refactored or moved.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path."
+}

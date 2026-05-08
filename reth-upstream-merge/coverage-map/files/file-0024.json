@@ -1,0 +1,79 @@
+{
+  "record_type": "file",
+  "file_index": 24,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/chain-state/src/notifications.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "missing",
+  "tags": [
+    "missing",
+    "needs-review"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0024-atom-0001",
+      "file_index": 24,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/chain-state/src/notifications.rs",
+      "source_hunk_hint": "@@ -32,6 +32,14 @@ pub trait CanonStateSubscriptions",
+      "source_kind": "other",
+      "source_snippet": "fn subscribe_blocking_canon_state(&self, handler: ritual_blocking_pubsub::BlockingHandler<Self::Primitives>);",
+      "semantic_claim": "The CanonStateSubscriptions trait includes a synchronous blocking canonical-state subscription API.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "missing",
+      "destinations": [],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "required_change": "Decide whether to restore the blocking subscription method on CanonStateSubscriptions in the v2.2 port.",
+      "notes": "No equivalent method exists on the v2.2 CanonStateSubscriptions trait."
+    },
+    {
+      "record_id": "file-0024-atom-0002",
+      "file_index": 24,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/chain-state/src/notifications.rs",
+      "source_hunk_hint": "@@ -45,6 +53,13 @@ impl<T: CanonStateSubscriptions> CanonStateSubscriptions for &T",
+      "source_kind": "other",
+      "source_snippet": "(*self).subscribe_blocking_canon_state(handler)",
+      "semantic_claim": "Reference implementations of CanonStateSubscriptions forward blocking subscription calls to the underlying provider.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "missing",
+      "destinations": [],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "required_change": "If the trait method is restored, update the reference impl forwarding path.",
+      "notes": "This forwarding atom is absent because the v2.2 trait method is absent."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 2,
+  "adversarial_reviews": [],
+  "summary": "The blocking canonical-state subscription trait surface is missing in the v2.2 port.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "Formatting-only stream changes in this file were ignored; only the missing trait surface was atomized."
+}

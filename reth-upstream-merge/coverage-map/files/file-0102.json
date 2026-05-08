@@ -1,0 +1,77 @@
+{
+  "record_type": "file",
+  "file_index": 102,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/evm/execution-errors/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "missing",
+  "tags": [
+    "missing",
+    "high-risk",
+    "async-context",
+    "needs-review"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0102-atom-0001",
+      "file_index": 102,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/evm/execution-errors/Cargo.toml",
+      "source_hunk_hint": "@@ -31,3 +31,4 @@",
+      "source_kind": "other",
+      "source_snippet": "async-context = [\"alloy-evm/async-context\"]",
+      "semantic_claim": "`reth-execution-errors` exposes an `async-context` feature that forwards to `alloy-evm/async-context`, allowing downstream feature chains to enable async-only block execution error variants through this crate.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "negative-path"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/evm/execution-errors/Cargo.toml",
+          "symbols": [
+            "[features]"
+          ],
+          "snippet": "[features]\ndefault = [\"std\"]\nstd = [\n    \"alloy-primitives/std\",\n    \"alloy-rlp/std\",\n    \"thiserror/std\",\n    \"nybbles/std\",\n    \"reth-storage-errors/std\",\n    \"alloy-evm/std\",\n]",
+          "evidence": "The port crate defines only `default` and `std`; it does not re-export `async-context` at all."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-alloy-evm-internal",
+          "path": "crates/evm/Cargo.toml",
+          "symbols": [
+            "features.async-context"
+          ],
+          "snippet": "async-context = [\"revm-context\", \"revm/async-context\"]",
+          "evidence": "Underlying dependency support still exists in the Ritual alloy-evm dependency, so the missing link is specifically this crate's absent feature forwarding."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "In the port repo, add a minimal feature-resolution check that enables `reth-errors/async-context` or `reth-evm/async-context` from a small crate. It should fail today because `crates/errors/Cargo.toml` and `crates/evm/Cargo.toml` do not define those features, and `crates/evm/execution-errors/Cargo.toml` does not forward `alloy-evm/async-context`.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "required_change": "Restore or intentionally replace the `reth-execution-errors` async-context feature re-export so downstream async error-feature propagation can traverse this crate boundary.",
+      "notes": "Exact search found this feature only in the downstream source crate. The port crate omits it even though the dependency repo still supports `alloy-evm`'s `async-context` feature."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The downstream-only `async-context` feature re-export on `reth-execution-errors` is absent from the v2.2.0 port, leaving the async error-feature propagation chain unported.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "Searches across the port and dependency repos found no exact or near-exact replacement in `reth-execution-errors`. `alloy-evm` still defines `async-context`, but the ported Reth crate family no longer re-exports it here, so this atom remains missing."
+}

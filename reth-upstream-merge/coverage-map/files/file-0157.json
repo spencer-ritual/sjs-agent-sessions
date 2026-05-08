@@ -1,0 +1,63 @@
+{
+  "record_type": "file",
+  "file_index": 157,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/net/network/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "missing",
+  "tags": [
+    "missing",
+    "needs-review"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0157-atom-0001",
+      "file_index": 157,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/net/network/Cargo.toml",
+      "source_hunk_hint": "@@ -33,6 +33,7 @@",
+      "source_kind": "other",
+      "source_snippet": "ritual-metrics.workspace = true",
+      "semantic_claim": "The downstream `reth-network` crate adds a direct workspace dependency on `ritual-metrics` so Ritual-specific network transaction metric/logging hooks can compile and link.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/net/network/Cargo.toml",
+          "symbols": [
+            "reth-network"
+          ],
+          "snippet": "reth-consensus.workspace = true\nreth-network-peers = { workspace = true, features = [\"net\"] }\nreth-network-types = { workspace = true, features = [\"serde\"] }",
+          "evidence": "The corresponding dependency block in the port crate omits `ritual-metrics`; repo-wide search found no `ritual-metrics` declaration anywhere in the port workspace."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "not_testable",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "required_change": "Restore or intentionally reject the `ritual-metrics` dependency in `reth-network` together with the downstream network metrics call sites that depend on it.",
+      "notes": "This is not covered upstream in the port manifest. Downstream source files under `crates/net/network/src/` reference `ritual_metrics`, but those call sites are also absent in the port, so this manifest atom remains unported rather than being noise."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The downstream `reth-network` manifest adds `ritual-metrics`, and that dependency is absent from the v2.2.0 port workspace.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "Single actionable manifest atom: add the missing dependency only if the associated Ritual metrics call sites from the downstream network crate are also intended to be ported."
+}

@@ -1,0 +1,183 @@
+{
+  "record_type": "file",
+  "file_index": 359,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-tee-registry-reader/src/types.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "executor-selection",
+    "precompile",
+    "verifier"
+  ],
+  "atoms_total": 4,
+  "atoms": [
+    {
+      "record_id": "file-0359-atom-0001",
+      "file_index": 359,
+      "atom_index": 1,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-tee-registry-reader/src/types.rs",
+      "source_hunk_hint": "new file: Capability enum and TryFrom",
+      "source_kind": "other",
+      "source_snippet": "Capability::{HttpCall=0, Llm=1, ..., Telemetry=12}; TryFrom<u8>",
+      "semantic_claim": "TEE registry reader preserves Solidity capability discriminants 0-12 and rejects unknown capability bytes.",
+      "high_risk": true,
+      "risk_tags": [
+        "executor-selection",
+        "precompile",
+        "negative-path"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-tee-registry-reader/src/types.rs",
+          "symbols": [
+            "Capability",
+            "impl TryFrom<u8> for Capability"
+          ],
+          "snippet": "0 => Ok(Capability::HttpCall), ... 12 => Ok(Capability::Telemetry), _ => Err(())",
+          "evidence": "The same capability enum and byte decoder are present in the v2.2 port."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Decode every valid capability byte and one invalid byte, asserting exact variants and Err for unknown.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact code exists byte-for-byte in the v2.2 port at the same path."
+    },
+    {
+      "record_id": "file-0359-atom-0002",
+      "file_index": 359,
+      "atom_index": 2,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-tee-registry-reader/src/types.rs",
+      "source_hunk_hint": "new file: is_executor_capability",
+      "source_kind": "changed_branch_condition",
+      "source_snippet": "matches!(HttpCall | Llm | WormholeQuery | ZkCall | ImageCall | AudioCall | VideoCall | Fhe)",
+      "semantic_claim": "TEE registry reader filters executor-capable services to the supported precompile execution capabilities.",
+      "high_risk": true,
+      "risk_tags": [
+        "executor-selection",
+        "precompile"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-tee-registry-reader/src/types.rs",
+          "symbols": [
+            "Capability::is_executor_capability"
+          ],
+          "snippet": "Capability::HttpCall | Capability::Llm | Capability::WormholeQuery | Capability::ZkCall | Capability::ImageCall | Capability::AudioCall | Capability::VideoCall | Capability::Fhe",
+          "evidence": "The same executor-capability filter is present in the v2.2 port."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Assert Streaming, VllmProxy, Dkms, AutonomousAgent, and Telemetry do not pass the executor filter while the listed executor capabilities do.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact code exists byte-for-byte in the v2.2 port at the same path."
+    },
+    {
+      "record_id": "file-0359-atom-0003",
+      "file_index": 359,
+      "atom_index": 3,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-tee-registry-reader/src/types.rs",
+      "source_hunk_hint": "new file: TeeType enum",
+      "source_kind": "other",
+      "source_snippet": "TeeType::{Debug=0, Tdx=1}",
+      "semantic_claim": "TEE registry reader preserves Solidity TEE type discriminants for debug and TDX executors.",
+      "high_risk": false,
+      "risk_tags": [
+        "executor-selection"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-tee-registry-reader/src/types.rs",
+          "symbols": [
+            "TeeType"
+          ],
+          "snippet": "pub enum TeeType { Debug = 0, Tdx = 1 }",
+          "evidence": "The same TEE type enum is present in the v2.2 port."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Deserialize or construct both TEE type discriminants and assert their u8 values are 0 and 1.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact code exists byte-for-byte in the v2.2 port at the same path."
+    },
+    {
+      "record_id": "file-0359-atom-0004",
+      "file_index": 359,
+      "atom_index": 4,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-tee-registry-reader/src/types.rs",
+      "source_hunk_hint": "new file: ExecutorInfo and tuple conversion",
+      "source_kind": "other",
+      "source_snippet": "ExecutorInfo { payment_address, tee_address, tee_type, capability, public_key, cert_hash, workload_id } -> (Address, Address, u8, Vec<u8>, FixedBytes<32>, u8)",
+      "semantic_claim": "TEE registry reader preserves executor metadata and the tuple format expected by the SPC verifier.",
+      "high_risk": true,
+      "risk_tags": [
+        "executor-selection",
+        "verifier"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-tee-registry-reader/src/types.rs",
+          "symbols": [
+            "ExecutorInfo",
+            "impl From<ExecutorInfo>"
+          ],
+          "snippet": "(s.payment_address, s.tee_address, s.tee_type, s.public_key, s.workload_id, s.capability as u8)",
+          "evidence": "The same ExecutorInfo fields and SPC verifier tuple conversion are present in the v2.2 port."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Convert an ExecutorInfo with non-default addresses, public key, workload id, and capability and assert the SPC tuple positions and capability byte.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact code exists byte-for-byte in the v2.2 port at the same path."
+    }
+  ],
+  "high_risk_atoms_total": 3,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "TEE registry reader types and SPC tuple conversion are exactly present in the v2.2 port.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "The added file is byte-for-byte present at the same path; atoms split discriminants, filtering, TEE type, and verifier tuple behavior."
+}

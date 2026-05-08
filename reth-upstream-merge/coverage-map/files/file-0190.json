@@ -1,0 +1,68 @@
+{
+  "record_type": "file",
+  "file_index": 190,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/node/builder/src/components/execute.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "non-exact",
+    "needs-review",
+    "reth-port"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0190-atom-0001",
+      "file_index": 190,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/node/builder/src/components/execute.rs",
+      "source_hunk_hint": "@@ -21,0 +22,13 @@ pub trait ExecutorBuilder<Node: FullNodeTypes>: Send {",
+      "source_kind": "other",
+      "source_snippet": "\n    /// Creates the EVM config with access to the transaction pool for block verification.\n    fn build_evm_with_pool(\n        self,\n        ctx: &BuilderContext<Node>,\n        pool: impl reth_transaction_pool::TransactionPoolExt + Clone + 'static,",
+      "semantic_claim": "The downstream diff for crates/node/builder/src/components/execute.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/node/builder/src/components/execute.rs",
+          "symbols": [
+            "build_evm",
+            "ExecutorBuilder",
+            "that",
+            "EVM"
+          ],
+          "snippet": "    fn build_evm(\n        self,\n        ctx: &BuilderContext<Node>,\n    ) -> impl Future<Output = eyre::Result<Self::EVM>> + Send;\n}",
+          "evidence": "The destination keeps the module at the same relative path with overlapping symbols ['build_evm', 'ExecutorBuilder', 'that', 'EVM']."
+        }
+      ],
+      "equivalence_argument": "The downstream behavior still resides in the same integration surface in the destination workspace, but the implementation was refactored or reshaped; review is required to confirm full semantic parity.",
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "The destination keeps the module at the same relative path with overlapping symbols ['build_evm', 'ExecutorBuilder', 'that', 'EVM'].",
+      "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The downstream file maps to destination code but needs review because the destination implementation was refactored or moved.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "The destination keeps the module at the same relative path with overlapping symbols ['build_evm', 'ExecutorBuilder', 'that', 'EVM']."
+}

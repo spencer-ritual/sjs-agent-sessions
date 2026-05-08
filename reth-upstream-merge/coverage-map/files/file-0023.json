@@ -1,0 +1,53 @@
+{
+  "record_type": "file",
+  "file_index": 23,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/chain-state/src/noop.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "missing",
+  "tags": [
+    "missing",
+    "needs-review"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0023-atom-0001",
+      "file_index": 23,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/chain-state/src/noop.rs",
+      "source_hunk_hint": "@@ -12,6 +12,10 @@ impl<C: Send + Sync, N: NodePrimitives> CanonStateSubscriptions for NoopProvider",
+      "source_kind": "other",
+      "source_snippet": "fn subscribe_blocking_canon_state(&self, _handler: ritual_blocking_pubsub::BlockingHandler<N>) { }",
+      "semantic_claim": "NoopProvider implements the blocking canonical-state subscription API as a no-op.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "missing",
+      "destinations": [],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "required_change": "If blocking canonical-state subscription is restored, update NoopProvider to satisfy the trait.",
+      "notes": "The v2.2 trait lacks this method, so the noop implementation is absent."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "NoopProvider's blocking canonical-state subscription adapter is missing because the v2.2 trait lacks the method.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "Adapter atom depends on the broader chain-state blocking subscription decision."
+}

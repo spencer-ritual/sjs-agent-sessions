@@ -1,0 +1,66 @@
+{
+  "record_type": "file",
+  "file_index": 357,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-tee-registry-reader/src/reader.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "reth-port"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0357-atom-0001",
+      "file_index": 357,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-tee-registry-reader/src/reader.rs",
+      "source_hunk_hint": "@@ -0,0 +1,477 @@",
+      "source_kind": "other",
+      "source_snippet": "//! TEEServiceRegistry reader functions\n//!\n//! All functions read directly from contract - NO CACHING\n//! Uses TEE address (primary address) as the lookup key.\n\nuse crate::constants::{MAX_PUBLIC_KEY_LEN, MAX_SERVICES};",
+      "semantic_claim": "The downstream diff for crates/ritual-tee-registry-reader/src/reader.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-tee-registry-reader/src/reader.rs",
+          "symbols": [
+            "read_executor_public_keys",
+            "read_executor_public_keys_from_state",
+            "read_executor",
+            "read_executor_from_state",
+            "read_all_executors"
+          ],
+          "snippet": "pub fn read_executor_public_keys<DB: Database>(\n    db: &mut DB,\n    contract: Address,\n    tee_addresses: &[Address],\n) -> Result<HashMap<Address, Vec<u8>>, RegistryReadError> {",
+          "evidence": "The destination file is byte-for-byte identical to the downstream source file."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "The destination file is byte-for-byte identical to the downstream source file."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The downstream file is present exactly in the destination search scope.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "The destination file is byte-for-byte identical to the downstream source file."
+}

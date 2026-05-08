@@ -1,0 +1,72 @@
+{
+  "record_type": "file",
+  "file_index": 334,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-scheduled-verification/src/slots.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "verifier",
+    "scheduled",
+    "high-risk",
+    "reth-port"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0334-atom-0001",
+      "file_index": 334,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-scheduled-verification/src/slots.rs",
+      "source_hunk_hint": "@@ -0,0 +1,275 @@",
+      "source_kind": "other",
+      "source_snippet": "//! Scheduler contract storage slot calculations\n//!\n//! Storage layout verified from compiled contract via `forge inspect Scheduler storage-layout`\n//!\n//! Scheduler.sol storage layout (from forge inspect):\n//! - Slot 0: id (uint256) - current highest call ID",
+      "semantic_claim": "The downstream diff for crates/ritual-scheduled-verification/src/slots.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": true,
+      "risk_tags": [
+        "verifier",
+        "scheduled"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/slots.rs",
+          "symbols": [
+            "call_to_slot_mapping",
+            "origin_hash_slot",
+            "executed_bitmap_slot",
+            "executed_bitmap_overflow_slot",
+            "slots_array_element"
+          ],
+          "snippet": "pub fn call_to_slot_mapping(call_id: u64) -> U256 {\n    // keccak256(call_id || slot_8)\n    let mut data = [0u8; 64];\n    data[24..32].copy_from_slice(&call_id.to_be_bytes());\n    data[32..64].copy_from_slice(&SCHEDULER_CALL_TO_SLOT_SLOT.to_be_bytes::<32>());",
+          "evidence": "The destination file is byte-for-byte identical to the downstream source file."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Run the destination behavior owned by crates/ritual-scheduled-verification/src/slots.rs and verify the downstream-observed behavior still holds after the port refactor.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "The destination file is byte-for-byte identical to the downstream source file."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The downstream file is present exactly in the destination search scope.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "The destination file is byte-for-byte identical to the downstream source file."
+}

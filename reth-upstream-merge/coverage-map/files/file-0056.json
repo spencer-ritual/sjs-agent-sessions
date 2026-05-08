@@ -1,0 +1,68 @@
+{
+  "record_type": "file",
+  "file_index": 56,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/engine/tree/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "needs-review"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0056-atom-0001",
+      "file_index": 56,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/engine/tree/Cargo.toml",
+      "source_hunk_hint": "@@ -55,2 +55,3 @@ metrics.workspace = true",
+      "source_kind": "other",
+      "source_snippet": "ritual-metrics.workspace = true",
+      "semantic_claim": "The downstream engine-tree crate adds a workspace dependency on `ritual-metrics` so Ritual-specific metrics instrumentation in this crate can compile.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "intentionally_absent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/engine/tree/Cargo.toml",
+          "symbols": [],
+          "snippet": "# metrics\nmetrics.workspace = true\nreth-metrics = { workspace = true, features = [\"common\"] }",
+          "evidence": "The ported crate manifest keeps only upstream metrics dependencies and omits `ritual-metrics` entirely."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/engine/tree/src/tree/mod.rs",
+          "symbols": [],
+          "snippet": "pub use metrics::EngineApiMetrics;\npub use payload_processor::*;\npub use payload_validator::{ ... };",
+          "evidence": "The ported engine-tree sources do not import or call `ritual_metrics`; repo-wide Cargo manifest search in the port also finds no `ritual-metrics` workspace entry, so this dependency has no destination consumer."
+        }
+      ],
+      "equivalence_argument": "The downstream manifest atom only supports Ritual-specific metrics call sites that are not present in the v2.2 port engine-tree sources. Because the destination crate retains upstream metrics plumbing without any `ritual_metrics` usage, continuing to omit the dependency is an intentional non-port decision rather than a missing carry-forward.",
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "human_question": "Confirm that the v2.2 port should keep engine-tree Ritual metrics instrumentation dropped, leaving the `ritual-metrics` manifest dependency intentionally absent.",
+      "notes": "This manifest atom is a support dependency for downstream-only Ritual instrumentation present in the source repo engine-tree code but not ported into the v2.2.0 destination."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The only downstream diff atom adds `ritual-metrics` as a compile-time dependency for Ritual-specific engine-tree instrumentation, and that instrumentation is intentionally absent from the v2.2.0 port.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "Accounted as intentionally absent rather than missing because the destination repo lacks both the dependency declaration and the corresponding `ritual_metrics` call sites in `engine/tree`."
+}

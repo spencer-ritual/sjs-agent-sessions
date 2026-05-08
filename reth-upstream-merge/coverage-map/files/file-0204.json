@@ -1,0 +1,69 @@
+{
+  "record_type": "file",
+  "file_index": 204,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/node/events/src/node.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "non-exact",
+    "needs-review",
+    "reth-port"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0204-atom-0001",
+      "file_index": 204,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/node/events/src/node.rs",
+      "source_hunk_hint": "@@ -223,2 +223,2 @@ impl NodeState {",
+      "source_kind": "other",
+      "source_snippet": "                if self.safe_block_hash != Some(safe_block_hash)\n                    && self.finalized_block_hash != Some(finalized_block_hash)\n                return;\n                return;\n        if !self.is_available()\n            || matches!(stage, StageId::Headers | StageId::Bodies | StageId::Execution)",
+      "semantic_claim": "The downstream diff for crates/node/events/src/node.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/node/events/src/node.rs",
+          "symbols": [
+            "new",
+            "num_connected_peers",
+            "build_current_stage",
+            "handle_pipeline_event",
+            "handle_consensus_engine_event"
+          ],
+          "snippet": "    const fn new(\n        peers_info: Option<Box<dyn PeersInfo>>,\n        latest_block: Option<BlockNumber>,\n    ) -> Self {\n        Self {",
+          "evidence": "The destination keeps the module at the same relative path with overlapping symbols ['new', 'num_connected_peers', 'build_current_stage', 'handle_pipeline_event', 'handle_consensus_engine_event']."
+        }
+      ],
+      "equivalence_argument": "The downstream behavior still resides in the same integration surface in the destination workspace, but the implementation was refactored or reshaped; review is required to confirm full semantic parity.",
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "The destination keeps the module at the same relative path with overlapping symbols ['new', 'num_connected_peers', 'build_current_stage', 'handle_pipeline_event', 'handle_consensus_engine_event'].",
+      "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The downstream file maps to destination code but needs review because the destination implementation was refactored or moved.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "The destination keeps the module at the same relative path with overlapping symbols ['new', 'num_connected_peers', 'build_current_stage', 'handle_pipeline_event', 'handle_consensus_engine_event']."
+}

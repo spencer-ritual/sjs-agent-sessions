@@ -1,0 +1,72 @@
+{
+  "record_type": "file",
+  "file_index": 159,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/net/network/src/error.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "negative-path",
+    "non-exact",
+    "needs-review",
+    "reth-port"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0159-atom-0001",
+      "file_index": 159,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/net/network/src/error.rs",
+      "source_hunk_hint": "@@ -75 +75 @@ impl NetworkError {",
+      "source_kind": "error_path",
+      "source_snippet": "                    return Self::Discovery(err);\n                P2PHandshakeError::HelloNotInHandshake\n                | P2PHandshakeError::NonHelloMessageInHandshake,\n                        P2PHandshakeError::NoSharedCapabilities\n                            | P2PHandshakeError::HelloNotInHandshake\n                            | P2PHandshakeError::NonHelloMessageInHandshake",
+      "semantic_claim": "The downstream diff for crates/net/network/src/error.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": false,
+      "risk_tags": [
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/net/network/src/error.rs",
+          "symbols": [
+            "flags",
+            "fmt",
+            "from_io_error",
+            "merits_discovery_ban",
+            "is_fatal_protocol_error"
+          ],
+          "snippet": "    /// Returns the appropriate flags for each variant.\n    pub const fn flags(&self) -> &'static str {\n        match self {\n            Self::Listener(_) => \"--port\",\n            Self::Discovery(_) => \"--discovery.port\",",
+          "evidence": "The destination keeps the module at the same relative path with overlapping symbols ['flags', 'fmt', 'from_io_error', 'merits_discovery_ban', 'is_fatal_protocol_error']."
+        }
+      ],
+      "equivalence_argument": "The downstream behavior still resides in the same integration surface in the destination workspace, but the implementation was refactored or reshaped; review is required to confirm full semantic parity.",
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "The destination keeps the module at the same relative path with overlapping symbols ['flags', 'fmt', 'from_io_error', 'merits_discovery_ban', 'is_fatal_protocol_error'].",
+      "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The downstream file maps to destination code but needs review because the destination implementation was refactored or moved.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "The destination keeps the module at the same relative path with overlapping symbols ['flags', 'fmt', 'from_io_error', 'merits_discovery_ban', 'is_fatal_protocol_error']."
+}

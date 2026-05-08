@@ -1,0 +1,66 @@
+{
+  "record_type": "file",
+  "file_index": 74,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/ethereum/consensus/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "non-exact",
+    "needs-review",
+    "reth-port"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0074-atom-0001",
+      "file_index": 74,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ethereum/consensus/src/lib.rs",
+      "source_hunk_hint": "@@ -57,2 +57,2 @@ impl<ChainSpec: EthChainSpec + EthereumHardforks> EthBeaconConsensus<ChainSpec>",
+      "source_kind": "other",
+      "source_snippet": "        let parent_gas_limit = if !self.chain_spec.is_london_active_at_block(parent.number())\n            && self.chain_spec.is_london_active_at_block(header.number())\n            parent.gas_limit()\n                * self\n                    .chain_spec\n                });",
+      "semantic_claim": "The downstream diff for crates/ethereum/consensus/src/lib.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/consensus/src/lib.rs",
+          "symbols": [
+            "new",
+            "validate_block_post_execution"
+          ],
+          "snippet": "    /// Create a new instance of [`EthBeaconConsensus`]\n    pub const fn new(chain_spec: Arc<ChainSpec>) -> Self {\n        Self {\n            chain_spec,\n            max_extra_data_size: MAXIMUM_EXTRA_DATA_SIZE,",
+          "evidence": "The destination keeps the module at the same relative path with overlapping symbols ['new', 'validate_block_post_execution']."
+        }
+      ],
+      "equivalence_argument": "The downstream behavior still resides in the same integration surface in the destination workspace, but the implementation was refactored or reshaped; review is required to confirm full semantic parity.",
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "The destination keeps the module at the same relative path with overlapping symbols ['new', 'validate_block_post_execution'].",
+      "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The downstream file maps to destination code but needs review because the destination implementation was refactored or moved.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "The destination keeps the module at the same relative path with overlapping symbols ['new', 'validate_block_post_execution']."
+}
