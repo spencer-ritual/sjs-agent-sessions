@@ -12,15 +12,17 @@ Date: 2026-05-05
 
 The relevant local repos currently have only `origin` configured, pointing at Ritual forks:
 
-| Local repo | Current branch | Current HEAD | Origin | Upstream source represented |
-| --- | --- | --- | --- | --- |
-| `ritual-reth-internal` | `dev` | `851b51500` | `git@github.com:ritual-net/ritual-reth-internal.git` | `https://github.com/paradigmxyz/reth` |
-| `ritual-reth-nodebuilder-internal` | `dev` | `44fa75a` | `git@github.com:ritual-net/ritual-reth-nodebuilder-internal.git` | Ritual integration repo over Reth |
-| `ritual-alloy-internal` | `dev` | `d265f1f4` | `git@github.com:ritual-net/ritual-alloy-internal.git` | `https://github.com/alloy-rs/alloy` |
-| `ritual-alloy-evm-internal` | `dev` | `d531136` | `git@github.com:ritual-net/ritual-alloy-evm-internal.git` | `https://github.com/alloy-rs/evm` |
-| `ritual-revm-internal` | `dev` | `b274a85a` | `git@github.com:ritual-net/ritual-revm-internal.git` | `https://github.com/bluealloy/revm` |
-| `ritual-revm-inspectors-internal` | `dev` | `0b81109` | `git@github.com:ritual-net/ritual-revm-inspectors-internal.git` | `https://github.com/paradigmxyz/revm-inspectors` |
-| `ritual-node-internal` | `dev` | `63974f5` | `git@github.com:ritual-net/ritual-node-internal.git` | Localnet orchestration / verification |
+
+| Local repo                         | Current branch | Current HEAD | Origin                                                           | Upstream source represented                      |
+| ---------------------------------- | -------------- | ------------ | ---------------------------------------------------------------- | ------------------------------------------------ |
+| `ritual-reth-internal`             | `dev`          | `851b51500`  | `git@github.com:ritual-net/ritual-reth-internal.git`             | `https://github.com/paradigmxyz/reth`            |
+| `ritual-reth-nodebuilder-internal` | `dev`          | `44fa75a`    | `git@github.com:ritual-net/ritual-reth-nodebuilder-internal.git` | Ritual integration repo over Reth                |
+| `ritual-alloy-internal`            | `dev`          | `d265f1f4`   | `git@github.com:ritual-net/ritual-alloy-internal.git`            | `https://github.com/alloy-rs/alloy`              |
+| `ritual-alloy-evm-internal`        | `dev`          | `d531136`    | `git@github.com:ritual-net/ritual-alloy-evm-internal.git`        | `https://github.com/alloy-rs/evm`                |
+| `ritual-revm-internal`             | `dev`          | `b274a85a`   | `git@github.com:ritual-net/ritual-revm-internal.git`             | `https://github.com/bluealloy/revm`              |
+| `ritual-revm-inspectors-internal`  | `dev`          | `0b81109`    | `git@github.com:ritual-net/ritual-revm-inspectors-internal.git`  | `https://github.com/paradigmxyz/revm-inspectors` |
+| `ritual-node-internal`             | `dev`          | `63974f5`    | `git@github.com:ritual-net/ritual-node-internal.git`             | Localnet orchestration / verification            |
+
 
 ## Target Upstream Commits
 
@@ -33,15 +35,17 @@ The upstream merge target is Reth `v2.2.0`. The release-compatible dependency ve
 
 Resolved commit targets:
 
-| Ritual repo | Upstream repo | Upstream tag/version | Tag object | Commit to merge |
-| --- | --- | --- | --- | --- |
-| `ritual-reth-internal` | `paradigmxyz/reth` | `v2.2.0` | direct commit | `88505c7fcbfdebfd3b56d88c86b62e950043c6c4` |
-| `ritual-alloy-internal` | `alloy-rs/alloy` | `v2.0.4` | `1e57a4bd5cad7b68d0ca4cd4ce2e6f81cf718956` | `f3fe4cfff0553e9e234a53208bb69b7c222c66e5` |
-| `ritual-alloy-evm-internal` | `alloy-rs/evm` | `v0.34.0` | `5848da68c37cb52f2bf677593b2a2f0799c07924` | `6022e02ee1ab669f7c1ee59b58fc7a6b3f5f15d5` |
-| `ritual-revm-internal` | `bluealloy/revm` | `v107` / `revm 38.0.0` | direct commit | `d62933180e442319a93991fe4070dbeb466ef222` |
-| `ritual-revm-inspectors-internal` | `paradigmxyz/revm-inspectors` | `v0.39.0` | `1741db702e5a798530e2bbdac94692eebd104009` | `10173a3f957c948ced52c8e54a396a445d13cd16` |
-| `ritual-reth-nodebuilder-internal` | none public upstream found | N/A | N/A | no upstream merge commit; update on top of current Ritual branch after dependency repos land |
-| `ritual-node-internal` | none public upstream needed | N/A | N/A | no upstream merge commit; use for verification unless localnet/image scripts need changes |
+
+| Ritual repo                        | Upstream repo                 | Upstream tag/version   | Tag object                                 | Commit to merge                                                                              |
+| ---------------------------------- | ----------------------------- | ---------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| `ritual-reth-internal`             | `paradigmxyz/reth`            | `v2.2.0`               | direct commit                              | `88505c7fcbfdebfd3b56d88c86b62e950043c6c4`                                                   |
+| `ritual-alloy-internal`            | `alloy-rs/alloy`              | `v2.0.4`               | `1e57a4bd5cad7b68d0ca4cd4ce2e6f81cf718956` | `f3fe4cfff0553e9e234a53208bb69b7c222c66e5`                                                   |
+| `ritual-alloy-evm-internal`        | `alloy-rs/evm`                | `v0.34.0`              | `5848da68c37cb52f2bf677593b2a2f0799c07924` | `6022e02ee1ab669f7c1ee59b58fc7a6b3f5f15d5`                                                   |
+| `ritual-revm-internal`             | `bluealloy/revm`              | `v107` / `revm 38.0.0` | direct commit                              | `d62933180e442319a93991fe4070dbeb466ef222`                                                   |
+| `ritual-revm-inspectors-internal`  | `paradigmxyz/revm-inspectors` | `v0.39.0`              | `1741db702e5a798530e2bbdac94692eebd104009` | `10173a3f957c948ced52c8e54a396a445d13cd16`                                                   |
+| `ritual-reth-nodebuilder-internal` | none public upstream found    | N/A                    | N/A                                        | no upstream merge commit; update on top of current Ritual branch after dependency repos land |
+| `ritual-node-internal`             | none public upstream needed   | N/A                    | N/A                                        | no upstream merge commit; use for verification unless localnet/image scripts need changes    |
+
 
 Evidence:
 
@@ -51,6 +55,18 @@ Evidence:
 - `bluealloy/revm` release `v107` is named `tag v107 revm v38.0.0` and resolves to commit `d62933180e442319a93991fe4070dbeb466ef222`.
 - `paradigmxyz/revm-inspectors` tag `v0.39.0` is an annotated tag that peels to commit `10173a3f957c948ced52c8e54a396a445d13cd16`.
 - `paradigmxyz/reth` `Cargo.toml` at `v2.2.0` declares `revm = "38.0.0"`, `revm-inspectors = "0.39.0"`, `alloy-evm = "0.34.0"`, and the local forked Alloy workspace crates at `2.0.4`.
+
+## What “done” means (behavior bar)
+
+This section is the merge **completeness bar** for Ritual behavior when comparing the old downstream fork to the `v2.2.0` port. It is **orthogonal** to dependency/repo layout above.
+
+- **Not sufficient:** selected scheduled (or other) traffic workloads are **green**. That only exercises **happy paths** and does not prove **negative cases**, **edge transitions**, or **failure-mode parity**.
+
+- **Not required:** **byte-for-byte** parity with downstream files. The port may **refactor** wiring (for example **node builder**, **payload builder**, pool versus canonical hooks) as long as observables match.
+
+- **Required:** **behavioral equivalence** expressed as the **same effective FSM** wherever Ritual logic is stateful: **same states, transitions, guards, and outputs** (including **errors, rejections, and ordering constraints**) over the **full behavioral surface** that downstream exposed—not only workloads already run in traffic-gen.
+
+Coverage mapping and review should treat **missing downstream behavior in the port** as the **highest-severity** gap. Finer atom labels (`structural_equivalent`, `intentionally_absent`, `moved_to_dependency`) answer **why** something is not `exact` or `missing`; they do **not** replace the core questions: **Is behavior missing? Why? Is that acceptable?**
 
 ## Design Plan
 
@@ -126,14 +142,16 @@ Conflict volume is only a weak signal. The decision should mostly come from two 
 - Mitigate reimplementation risk by first inventorying Ritual invariants from the old branch, mapping each invariant to a new upstream extension point, writing or preserving focused tests/fixtures, and reviewing the port against that checklist rather than against the old file layout.
 - If both global upstream churn and local Ritual complexity are high, use a hybrid: start from clean upstream structure, but port only after extracting the old behavior into an explicit invariant list. Avoid broad agent-driven rewrites without tests or a line-by-line invariant map.
 
-| Repo | Probe result | Conflict / rework estimate | Recommended strategy |
-| --- | --- | --- | --- |
-| `ritual-alloy-internal` | conflicted | `19 / 511` tracked files, about `3.7%` | direct conflict resolution with semantic care |
-| `ritual-revm-internal` | conflicted | `37 / 1201` tracked files, about `3.1%` | direct conflict resolution with focused semantic ports |
-| `ritual-alloy-evm-internal` | conflicted | `10 / 60` tracked files, about `16.7%` | reimplementation / port on clean upstream head |
-| `ritual-revm-inspectors-internal` | conflicted | `2 / 285` tracked files, about `0.7%` | direct conflict resolution |
-| `ritual-reth-internal` | conflicted | `266 / 1841` tracked files, about `14.4%` | reimplementation / port on clean upstream head |
+
+| Repo                               | Probe result     | Conflict / rework estimate                                       | Recommended strategy                                     |
+| ---------------------------------- | ---------------- | ---------------------------------------------------------------- | -------------------------------------------------------- |
+| `ritual-alloy-internal`            | conflicted       | `19 / 511` tracked files, about `3.7%`                           | direct conflict resolution with semantic care            |
+| `ritual-revm-internal`             | conflicted       | `37 / 1201` tracked files, about `3.1%`                          | direct conflict resolution with focused semantic ports   |
+| `ritual-alloy-evm-internal`        | conflicted       | `10 / 60` tracked files, about `16.7%`                           | reimplementation / port on clean upstream head           |
+| `ritual-revm-inspectors-internal`  | conflicted       | `2 / 285` tracked files, about `0.7%`                            | direct conflict resolution                               |
+| `ritual-reth-internal`             | conflicted       | `266 / 1841` tracked files, about `14.4%`                        | reimplementation / port on clean upstream head           |
 | `ritual-reth-nodebuilder-internal` | integration-only | about `40%` likely impact surface by static dependency/API usage | incremental reimplementation after dependency repos land |
+
 
 `ritual-alloy-internal`:
 
@@ -171,7 +189,7 @@ Conflict volume is only a weak signal. The decision should mostly come from two 
 `ritual-reth-nodebuilder-internal`:
 
 - Decision: incremental reimplementation after the dependency repos land.
-- Evidence: there is no public upstream merge target. The first commit in `ritual-reth-nodebuilder-internal` was by arshan-ritual <arshan@ritual.net>, early PR history points at an `upstream/v1.3.12` base rather than a formal GitHub fork, and static analysis found about `40%` likely impact surface across nodebuilder/EVM/payload/precompile integration code.
+- Evidence: there is no public upstream merge target. The first commit in `ritual-reth-nodebuilder-internal` was by arshan-ritual [arshan@ritual.net](mailto:arshan@ritual.net), early PR history points at an `upstream/v1.3.12` base rather than a formal GitHub fork, and static analysis found about `40%` likely impact surface across nodebuilder/EVM/payload/precompile integration code.
 - Analysis: because there is no real upstream branch to merge, conflict resolution is the wrong model. The useful upstream source of truth is Reth `v2.2.0` itself: inspect how it wires node builder, EVM, payload, and precompile components now, then port Ritual's nodebuilder-specific hooks onto that API. This should reduce time spent preserving adapters that only made sense around the older Reth `v1.3.12` shape.
 
 `ritual-node-internal`:
@@ -190,3 +208,4 @@ Conflict volume is only a weak signal. The decision should mostly come from two 
 - Is the mixed `op-revm` setup intentional, or should `ritual-reth-internal` also use `../ritual-revm-internal/crates/op-revm` for this merge?
 - Should Alloy core and OP Alloy remain crates.io-only during the Reth/nodebuilder stages, or do we need Ritual forks if upstream API movement touches Ritual patches? For `ritual-alloy-evm-internal` specifically, `alloy-op-evm` should be considered deleted unless downstream audit proves an active consumer.
 - Should `ritual-node-internal` get its own merge branch and PR in this effort, or should it remain verification-only unless localnet scripts/configs need updates?
+
