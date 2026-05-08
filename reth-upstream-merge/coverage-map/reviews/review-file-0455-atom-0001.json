@@ -1,0 +1,11 @@
+{
+  "record_type": "adversarial_review",
+  "record_id": "review-file-0455-atom-0001",
+  "atom_record_id": "file-0455-atom-0001",
+  "review_result": "pass",
+  "falsification_attempt": "Checked whether the v2 port lost the local compact derive `maybe_zero` behavior because `crates/storage/codecs/derive` is no longer checked in. The workspace depends on `reth-codecs-derive 0.3.1`, and the installed source for that version contains the same `maybe_zero` detection in `load_field_from_segments`. The active transaction codecs also carry bitflag compatibility tests.",
+  "missed_risks": [
+    "This is tied to the resolved registry version; changing `reth-codecs-derive` should re-run compact derive and transaction codec compatibility tests."
+  ],
+  "notes": "The atom is covered by the upstream derive dependency used by the v2 port, not by a local source copy."
+}

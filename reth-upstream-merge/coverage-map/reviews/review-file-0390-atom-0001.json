@@ -1,0 +1,11 @@
+{
+  "record_type": "adversarial_review",
+  "record_id": "review-file-0390-atom-0001",
+  "atom_record_id": "file-0390-atom-0001",
+  "review_result": "pass",
+  "falsification_attempt": "Checked whether the old Reth RPC fee exception disappeared when `revm_utils.rs` was removed. The same branch is present in alloy-evm `CallFees::ensure_fees`, and the v2 Reth RPC conversion crate re-exports that helper for current call transaction conversion.",
+  "missed_risks": [
+    "A direct regression test for both fee caps set to zero under a nonzero base fee would make this less reliant on code inspection."
+  ],
+  "notes": "The atom is a dependency move, not a missing Reth implementation."
+}

@@ -90,3 +90,23 @@
 - Final file classification counts: `noise=276`, `mapped=217`, `missing=81`, `blocked=5`.
 - Final atom mapping counts: `exact=35`, `moved_to_dependency=29`, `structural_equivalent=175`, `covered_by_upstream=3`, `intentionally_absent=3`, `missing=103`, `blocked=5`, `noise=4`.
 - Human review queue now contains 313 keyed entries covering every `missing`, `blocked`, `intentionally_absent`, or review-required non-exact atom.
+
+## Tx Identity/Codec First-Pass Fixup
+
+- Revisited the `Transaction identity, wire encoding, and storage codecs` feature group after the higher-level feature map was created.
+- Reclassified three high-risk missing atoms with destination evidence and adversarial review records:
+  - `file-0107-atom-0001`: explicit-gas system transaction execution is structurally preserved by `ritual-reth-internal-v2.2.0-port/crates/evm/evm/src/execute.rs` plus `ritual-alloy-evm-internal/crates/evm/src/eth/block.rs`.
+  - `file-0390-atom-0001`: RPC zero-fee call validation moved to `ritual-alloy-evm-internal/crates/evm/src/rpc/fees.rs` and is consumed by Reth through `crates/rpc/rpc-convert`.
+  - `file-0455-atom-0001`: `maybe_zero` compact derive handling is covered by the upstream `reth-codecs-derive 0.3.1` dependency and local storage codec bitflag compatibility tests.
+- Reclassified two OP-specific receipt atoms as intentionally absent for the current Summit/Ethereum v2.2 port scope:
+  - `file-0212-atom-0001`: old OP Regolith/Canyon receipt-root behavior.
+  - `file-0221-atom-0001`: old OP `OpReceipt` EIP-7702 handling.
+- Regenerated `index.jsonl`, `review-queue.md`, `validation-summary.json`, and updated `feature-map.json` / `feature-map.md`.
+- Artifact-only validation passed with `validation_errors: []`. The original name-status queue sidecar is absent from this session directory, so validation did not re-check queue metadata against that sidecar.
+- Updated aggregate atom mapping counts: `missing=98`, `structural_equivalent=176`, `intentionally_absent=5`, `exact=35`, `moved_to_dependency=30`, `noise=4`, `covered_by_upstream=4`, `blocked=5`.
+- Human review queue entries are now `310`.
+- Local-network verification:
+  - Restarted from `ritual-node-internal` with `make restart-network vllm_mode=local_mock`.
+  - `make show-network` reported four Reth nodes producing blocks with 3 peers each and 10 registered TEE services.
+  - Replayed all 21 commands from `gold1p-batch-results.json` from `traffic-gen-internal`; all 21 passed.
+  - Fresh result artifact: `sjs-agent-sessions/reth-upstream-merge/gold1p-batch-results-tx-codecs-rerun.json`.

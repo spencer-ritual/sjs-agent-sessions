@@ -9,9 +9,9 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "missing",
+  "file_classification": "mapped",
   "tags": [
-    "missing",
+    "mapped",
     "non-exact",
     "needs-review"
   ],
@@ -29,8 +29,26 @@
       "semantic_claim": "The downstream diff for crates/optimism/primitives/src/receipt.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
       "high_risk": false,
       "risk_tags": [],
-      "mapping_status": "missing",
-      "destinations": [],
+      "mapping_status": "intentionally_absent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "MERGE_NOTES.md",
+          "symbols": [],
+          "snippet": "Left OP execution out of scope for this skeleton. Upstream Reth `v2.2.0` has\nno `crates/optimism/*` workspace members and no manifest references to\n`alloy-op-evm` or `op-revm` in this fresh tree.",
+          "evidence": "The v2 port explicitly scopes out the old OP primitives crate that owned `OpReceipt`."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/primitives/src/receipt.rs",
+          "symbols": [
+            "Receipt",
+            "calculate_receipt_root_no_memo"
+          ],
+          "snippet": "pub fn calculate_receipt_root_no_memo<T: TxTy>(receipts: &[Receipt<T>]) -> B256 {\n    ordered_trie_root_with_encoder(receipts, |r, buf| {\n        alloy_consensus::TxReceipt::with_bloom_ref(r).encode_2718(buf)\n    })\n}",
+          "evidence": "The active v2 port has Ethereum receipt support, but no OP-specific `OpReceipt` enum surface."
+        }
+      ],
       "equivalence_argument": null,
       "test_strategy": "not_needed",
       "negative_test_candidate": null,
@@ -40,15 +58,16 @@
         "review_record_id": null
       },
       "review_required": true,
-      "notes": "No same-path or uniquely named destination evidence was found in the configured search scope.",
-      "required_change": "Restore or intentionally replace the downstream behavior carried by crates/optimism/primitives/src/receipt.rs; no reliable destination evidence was found in the configured search scope."
+      "human_question": "Confirm that OP receipt enum compatibility remains outside the current Reth v2.2/Summit merge scope. If OP support becomes in scope, this atom belongs to a dedicated OP primitives port.",
+      "notes": "Reclassified from missing to intentionally absent because the current v2 port explicitly omits old `crates/optimism/*` workspace members.",
+      "required_change": null
     }
   ],
   "high_risk_atoms_total": 0,
   "non_exact_atoms_total": 1,
   "adversarial_reviews": [],
-  "summary": "No reliable destination evidence was found for the downstream file-level behavior.",
+  "summary": "The old OP `OpReceipt` EIP-7702 handling is intentionally absent from the current v2 port because OP execution is out of scope.",
   "review_required": true,
   "status": "needs_review",
-  "notes": "No same-path or uniquely named destination evidence was found in the configured search scope."
+  "notes": "This remains a human scope confirmation for future OP work rather than an implementation gap in the active Summit/Ethereum port."
 }

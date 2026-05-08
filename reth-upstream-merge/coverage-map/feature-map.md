@@ -6,32 +6,145 @@ Generated from the completed coverage-map atom artifacts. This is a higher-level
 
 - File artifacts: `579/579`
 - Atoms: `357` total, `220` high-risk, `318` non-exact
-- Human-review queue entries: `313`
+- Human-review queue entries: `310`
 - Validation errors: `0`
-- Atom status counts: `{'missing': 103, 'structural_equivalent': 175, 'intentionally_absent': 3, 'exact': 35, 'moved_to_dependency': 29, 'noise': 4, 'covered_by_upstream': 3, 'blocked': 5}`
+- Atom status counts: `{'missing': 98, 'structural_equivalent': 176, 'intentionally_absent': 5, 'exact': 35, 'moved_to_dependency': 30, 'noise': 4, 'covered_by_upstream': 4, 'blocked': 5}`
 
 ## Reading Notes
 
 - Each atom is assigned to one primary feature for navigation, even when it touches multiple domains such as async plus encoding.
 - `generic` means the underlying atom record has broad placeholder wording like “introduces behavior or wiring”; treat those as traceability anchors that need source/destination inspection before implementation decisions.
-- The async-oriented groups are intentionally pulled to the top: core async, long-running async, and scheduled behavior are the highest-value review surfaces.
+- Features are ordered from transaction identity and execution foundations into async/scheduled behavior, payload validation, API/storage surfaces, and lower-level network compatibility.
 
 ## Feature Summary
 
 
 | Feature                                                   | Atoms | High Risk | Review Required | Status Counts                                                                                                                                                       | Generic Atoms |
 | --------------------------------------------------------- | ----- | --------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| Transaction identity, wire encoding, and storage codecs   | 42    | 14        | 38              | `{'structural_equivalent': 34, 'moved_to_dependency': 4, 'intentionally_absent': 2, 'covered_by_upstream': 1, 'exact': 1}`                                          | 41            |
+| Precompile dispatch, SPC, and executor registry           | 21    | 15        | 14              | `{'structural_equivalent': 10, 'missing': 3, 'blocked': 1, 'exact': 7}`                                                                                             | 14            |
+| Transaction pool, admission, and ordering                 | 12    | 8         | 12              | `{'structural_equivalent': 10, 'missing': 2}`                                                                                                                       | 12            |
 | Core async execution and settlement                       | 105   | 81        | 95              | `{'missing': 44, 'noise': 1, 'covered_by_upstream': 2, 'intentionally_absent': 1, 'structural_equivalent': 37, 'moved_to_dependency': 9, 'blocked': 3, 'exact': 8}` | 65            |
 | Long-running async delivery FSM                           | 4     | 4         | 3               | `{'missing': 1, 'moved_to_dependency': 1, 'structural_equivalent': 1, 'exact': 1}`                                                                                  | 3             |
 | Scheduled transactions and missed-obligation verification | 81    | 61        | 67              | `{'noise': 3, 'structural_equivalent': 26, 'exact': 16, 'missing': 24, 'moved_to_dependency': 12}`                                                                  | 56            |
-| Precompile dispatch, SPC, and executor registry           | 21    | 15        | 14              | `{'structural_equivalent': 10, 'missing': 3, 'blocked': 1, 'exact': 7}`                                                                                             | 14            |
-| Transaction identity, wire encoding, and storage codecs   | 42    | 14        | 41              | `{'structural_equivalent': 33, 'moved_to_dependency': 3, 'missing': 5, 'exact': 1}`                                                                                 | 41            |
 | Payload building, execution, and consensus validation     | 43    | 28        | 42              | `{'missing': 12, 'intentionally_absent': 2, 'exact': 1, 'structural_equivalent': 24, 'moved_to_dependency': 3, 'blocked': 1}`                                       | 32            |
-| Transaction pool, admission, and ordering                 | 12    | 8         | 12              | `{'structural_equivalent': 10, 'missing': 2}`                                                                                                                       | 12            |
 | RPC and external API surface                              | 14    | 9         | 14              | `{'missing': 2, 'structural_equivalent': 12}`                                                                                                                       | 14            |
 | Storage, provider, and database infrastructure            | 8     | 0         | 8               | `{'structural_equivalent': 7, 'missing': 1}`                                                                                                                        | 8             |
 | Network and P2P compatibility                             | 27    | 0         | 25              | `{'structural_equivalent': 15, 'missing': 9, 'covered_by_upstream': 1, 'exact': 1, 'moved_to_dependency': 1}`                                                       | 25            |
 
+
+## Transaction identity, wire encoding, and storage codecs
+
+Custom transaction types, RLP/hash/signature identity, runtime-field boundaries, receipts, storage compact codecs, and persistent DB encoding rules.
+
+- Counts: `42` atoms; `14` high-risk; `38` review-required; statuses `{'structural_equivalent': 34, 'moved_to_dependency': 4, 'intentionally_absent': 2, 'covered_by_upstream': 1, 'exact': 1}`.
+- Precision note: `41` atoms in this group use generic coverage wording and should be refined from source/destination evidence before code changes.
+
+Actionable gaps:
+
+- `file-0212-atom-0001` `intentionally_absent` (review, generic): `crates/optimism/consensus/src/proof.rs` — OP receipt-root compatibility remains outside the current Summit/Ethereum v2.2 port scope and needs human confirmation if OP support becomes in scope.
+- `file-0221-atom-0001` `intentionally_absent` (review, generic): `crates/optimism/primitives/src/receipt.rs` — OP receipt enum compatibility remains outside the current Summit/Ethereum v2.2 port scope and needs human confirmation if OP support becomes in scope.
+
+Representative atoms:
+
+- `file-0107-atom-0001` `structural_equivalent` (high-risk, generic): `crates/evm/src/execute.rs` — Explicit-gas system transaction execution is preserved across `reth-evm` block-builder orchestration and Alloy EVM receipt gas accounting.
+- `file-0390-atom-0001` `moved_to_dependency` (high-risk, generic): `crates/rpc/rpc-eth-types/src/revm_utils.rs` — The RPC zero-fee exception moved to Alloy EVM `CallFees::ensure_fees` and is consumed through Reth's rpc-convert layer.
+- `file-0455-atom-0001` `covered_by_upstream` (high-risk, generic): `crates/storage/codecs/derive/src/compact/mod.rs` — The consumed upstream `reth-codecs-derive 0.3.1` already contains `maybe_zero` compact-field handling.
+- `file-0212-atom-0001` `intentionally_absent` (review, generic): `crates/optimism/consensus/src/proof.rs` — OP receipt-root compatibility is out of scope for the current v2.2 port.
+- `file-0221-atom-0001` `intentionally_absent` (review, generic): `crates/optimism/primitives/src/receipt.rs` — OP receipt enum compatibility is out of scope for the current v2.2 port.
+- `file-0078-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/ethereum/evm/src/build.rs` — The downstream diff for crates/ethereum/evm/src/build.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0226-atom-0001` `moved_to_dependency` (high-risk, review, generic): `crates/optimism/rpc/src/eth/ext.rs` — The downstream diff for crates/optimism/rpc/src/eth/ext.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0372-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/rpc/rpc-engine-api/src/engine_api.rs` — The downstream diff for crates/rpc/rpc-engine-api/src/engine_api.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0378-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/rpc/rpc-eth-api/src/helpers/pending_block.rs` — The downstream diff for crates/rpc/rpc-eth-api/src/helpers/pending_block.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0384-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/rpc/rpc-eth-types/src/error/mod.rs` — The downstream diff for crates/rpc/rpc-eth-types/src/error/mod.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0388-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/rpc/rpc-eth-types/src/logs_utils.rs` — The downstream diff for crates/rpc/rpc-eth-types/src/logs_utils.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0391-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/rpc/rpc-eth-types/src/utils.rs` — The downstream diff for crates/rpc/rpc-eth-types/src/utils.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0452-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/storage/codecs/Cargo.toml` — The downstream diff for crates/storage/codecs/Cargo.toml introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0459-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/storage/codecs/src/alloy/passkey_signature.rs` — The downstream diff for crates/storage/codecs/src/alloy/passkey_signature.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0470-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/storage/codecs/src/lib.rs` — The downstream diff for crates/storage/codecs/src/lib.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0483-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/storage/libmdbx-rs/src/codec.rs` — The downstream diff for crates/storage/libmdbx-rs/src/codec.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- ... `26` more atoms in `feature-map.json`.
+
+Trace IDs by status:
+
+- `exact`: file-0458-atom-0001
+- `covered_by_upstream`: file-0455-atom-0001
+- `intentionally_absent`: file-0212-atom-0001, file-0221-atom-0001
+- `moved_to_dependency`: file-0062-atom-0001, file-0222-atom-0001, file-0226-atom-0001, file-0390-atom-0001
+- `structural_equivalent`: file-0048-atom-0001, file-0078-atom-0001, file-0097-atom-0001, file-0107-atom-0001, file-0115-atom-0001, file-0144-atom-0001, file-0164-atom-0001, file-0174-atom-0001, file-0175-atom-0001, file-0194-atom-0001, file-0204-atom-0001, file-0255-atom-0001, file-0261-atom-0001, file-0372-atom-0001, file-0378-atom-0001, file-0384-atom-0001, file-0388-atom-0001, file-0391-atom-0001, file-0438-atom-0001, file-0444-atom-0001, file-0447-atom-0001, file-0449-atom-0001, file-0450-atom-0001, file-0452-atom-0001, file-0459-atom-0001, file-0470-atom-0001, file-0476-atom-0001, file-0483-atom-0001, file-0496-atom-0001, file-0546-atom-0001, file-0552-atom-0001, file-0555-atom-0001, file-0557-atom-0001, file-0559-atom-0001
+
+## Precompile dispatch, SPC, and executor registry
+
+Ritual precompile codecs and routing, SPC signature/verification support, block-verification helpers, TEE/executor registry reads, capability filtering, and executor-selection data.
+
+- Counts: `21` atoms; `15` high-risk; `14` review-required; statuses `{'missing': 3, 'blocked': 1, 'structural_equivalent': 10, 'exact': 7}`.
+- Precision note: `14` atoms in this group use generic coverage wording and should be refined from source/destination evidence before code changes.
+
+Actionable gaps:
+
+- `file-0300-atom-0001` `missing` (high-risk, review, generic): `crates/ritual-block-verification/src/constants.rs` — The downstream diff for crates/ritual-block-verification/src/constants.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0301-atom-0001` `missing` (high-risk, review, generic): `crates/ritual-block-verification/src/error.rs` — The downstream diff for crates/ritual-block-verification/src/error.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0302-atom-0001` `blocked` (high-risk, review, generic): `crates/ritual-block-verification/src/lib.rs` — The downstream diff for crates/ritual-block-verification/src/lib.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0249-atom-0001` `missing` (review, generic): `crates/primitives-traits/src/transaction/error.rs` — The downstream diff for crates/primitives-traits/src/transaction/error.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+
+Representative atoms:
+
+- `file-0300-atom-0001` `missing` (high-risk, review, generic): `crates/ritual-block-verification/src/constants.rs` — The downstream diff for crates/ritual-block-verification/src/constants.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0301-atom-0001` `missing` (high-risk, review, generic): `crates/ritual-block-verification/src/error.rs` — The downstream diff for crates/ritual-block-verification/src/error.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0302-atom-0001` `blocked` (high-risk, review, generic): `crates/ritual-block-verification/src/lib.rs` — The downstream diff for crates/ritual-block-verification/src/lib.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0249-atom-0001` `missing` (review, generic): `crates/primitives-traits/src/transaction/error.rs` — The downstream diff for crates/primitives-traits/src/transaction/error.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0299-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/ritual-block-verification/Cargo.toml` — The downstream diff for crates/ritual-block-verification/Cargo.toml introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0317-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/ritual-precompile-codecs/Cargo.toml` — The downstream diff for crates/ritual-precompile-codecs/Cargo.toml introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0318-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/ritual-precompile-codecs/src/dkms_key.rs` — The downstream diff for crates/ritual-precompile-codecs/src/dkms_key.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0319-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/ritual-precompile-codecs/src/error.rs` — The downstream diff for crates/ritual-precompile-codecs/src/error.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0320-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/ritual-precompile-codecs/src/executor.rs` — The downstream diff for crates/ritual-precompile-codecs/src/executor.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0322-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/ritual-precompile-codecs/src/lib.rs` — The downstream diff for crates/ritual-precompile-codecs/src/lib.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0327-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/ritual-precompile-codecs/src/storage_ref.rs` — The downstream diff for crates/ritual-precompile-codecs/src/storage_ref.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0354-atom-0001` `exact` (high-risk): `crates/ritual-tee-registry-reader/src/constants.rs` — TEE registry reads cap service count at 10,000 to prevent unbounded allocation from corrupted contract state.
+- `file-0354-atom-0002` `exact` (high-risk): `crates/ritual-tee-registry-reader/src/constants.rs` — TEE registry reads cap public key bytes at 128 to prevent malformed registry state from causing unbounded allocation.
+- `file-0355-atom-0002` `exact` (high-risk): `crates/ritual-tee-registry-reader/src/error.rs` — TEE registry reads expose a typed service-count limit violation for corrupted or malicious registry state.
+- `file-0355-atom-0003` `exact` (high-risk): `crates/ritual-tee-registry-reader/src/error.rs` — TEE registry reads expose a typed public-key length violation with executor context.
+- `file-0355-atom-0004` `exact` (high-risk): `crates/ritual-tee-registry-reader/src/error.rs` — TEE registry reads expose a typed not-found error for missing executor addresses.
+- ... `5` more atoms in `feature-map.json`.
+
+Trace IDs by status:
+
+- `blocked`: file-0302-atom-0001
+- `exact`: file-0354-atom-0001, file-0354-atom-0002, file-0354-atom-0003, file-0355-atom-0002, file-0355-atom-0003, file-0355-atom-0004, file-0356-atom-0001
+- `missing`: file-0249-atom-0001, file-0300-atom-0001, file-0301-atom-0001
+- `structural_equivalent`: file-0150-atom-0001, file-0178-atom-0001, file-0180-atom-0001, file-0299-atom-0001, file-0317-atom-0001, file-0318-atom-0001, file-0319-atom-0001, file-0320-atom-0001, file-0322-atom-0001, file-0327-atom-0001
+
+## Transaction pool, admission, and ordering
+
+Txpool async/scheduled subpools, admission validation, pending/parked/blob behavior, sequencing rights, and candidate ordering.
+
+- Counts: `12` atoms; `8` high-risk; `12` review-required; statuses `{'missing': 2, 'structural_equivalent': 10}`.
+- Precision note: `12` atoms in this group use generic coverage wording and should be refined from source/destination evidence before code changes.
+
+Actionable gaps:
+
+- `file-0521-atom-0001` `missing` (high-risk, review, generic): `crates/transaction-pool/src/blocking_handlers.rs` — The downstream diff for crates/transaction-pool/src/blocking_handlers.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0545-atom-0001` `missing` (high-risk, review, generic): `crates/transaction-pool/tests/it/async_exec.rs` — The downstream diff for crates/transaction-pool/tests/it/async_exec.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+
+Representative atoms:
+
+- `file-0521-atom-0001` `missing` (high-risk, review, generic): `crates/transaction-pool/src/blocking_handlers.rs` — The downstream diff for crates/transaction-pool/src/blocking_handlers.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0545-atom-0001` `missing` (high-risk, review, generic): `crates/transaction-pool/tests/it/async_exec.rs` — The downstream diff for crates/transaction-pool/tests/it/async_exec.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0522-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/transaction-pool/src/config.rs` — The downstream diff for crates/transaction-pool/src/config.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0524-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/transaction-pool/src/lib.rs` — The downstream diff for crates/transaction-pool/src/lib.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0530-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/transaction-pool/src/pool/best.rs` — The downstream diff for crates/transaction-pool/src/pool/best.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0531-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/transaction-pool/src/pool/blob.rs` — The downstream diff for crates/transaction-pool/src/pool/blob.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0534-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/transaction-pool/src/pool/pending.rs` — The downstream diff for crates/transaction-pool/src/pool/pending.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0536-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/transaction-pool/src/pool/state.rs` — The downstream diff for crates/transaction-pool/src/pool/state.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0119-atom-0001` `structural_equivalent` (review, generic): `crates/net/discv4/src/lib.rs` — The downstream diff for crates/net/discv4/src/lib.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0161-atom-0001` `structural_equivalent` (review, generic): `crates/net/network/src/fetch/mod.rs` — The downstream diff for crates/net/network/src/fetch/mod.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0166-atom-0001` `structural_equivalent` (review, generic): `crates/net/network/src/session/active.rs` — The downstream diff for crates/net/network/src/session/active.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0490-atom-0001` `structural_equivalent` (review, generic): `crates/storage/nippy-jar/src/consistency.rs` — The downstream diff for crates/storage/nippy-jar/src/consistency.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+
+Trace IDs by status:
+
+- `missing`: file-0521-atom-0001, file-0545-atom-0001
+- `structural_equivalent`: file-0119-atom-0001, file-0161-atom-0001, file-0166-atom-0001, file-0490-atom-0001, file-0522-atom-0001, file-0524-atom-0001, file-0530-atom-0001, file-0531-atom-0001, file-0534-atom-0001, file-0536-atom-0001
 
 ## Core async execution and settlement
 
@@ -175,89 +288,6 @@ Trace IDs by status:
 - `noise`: file-0087-atom-0001, file-0087-atom-0009, file-0087-atom-0012
 - `structural_equivalent`: file-0087-atom-0002, file-0087-atom-0011, file-0163-atom-0001, file-0282-atom-0001, file-0285-atom-0001, file-0328-atom-0001, file-0329-atom-0001, file-0330-atom-0001, file-0332-atom-0001, file-0333-atom-0001, file-0366-atom-0001, file-0389-atom-0001, file-0401-atom-0001, file-0408-atom-0001, file-0412-atom-0001, file-0463-atom-0001, file-0465-atom-0001, file-0469-atom-0001, file-0514-atom-0001, file-0525-atom-0001, file-0526-atom-0001, file-0537-atom-0001, file-0541-atom-0001, file-0542-atom-0001, file-0543-atom-0001, file-0550-atom-0001
 
-## Precompile dispatch, SPC, and executor registry
-
-Ritual precompile codecs and routing, SPC signature/verification support, block-verification helpers, TEE/executor registry reads, capability filtering, and executor-selection data.
-
-- Counts: `21` atoms; `15` high-risk; `14` review-required; statuses `{'missing': 3, 'blocked': 1, 'structural_equivalent': 10, 'exact': 7}`.
-- Precision note: `14` atoms in this group use generic coverage wording and should be refined from source/destination evidence before code changes.
-
-Actionable gaps:
-
-- `file-0300-atom-0001` `missing` (high-risk, review, generic): `crates/ritual-block-verification/src/constants.rs` — The downstream diff for crates/ritual-block-verification/src/constants.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0301-atom-0001` `missing` (high-risk, review, generic): `crates/ritual-block-verification/src/error.rs` — The downstream diff for crates/ritual-block-verification/src/error.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0302-atom-0001` `blocked` (high-risk, review, generic): `crates/ritual-block-verification/src/lib.rs` — The downstream diff for crates/ritual-block-verification/src/lib.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0249-atom-0001` `missing` (review, generic): `crates/primitives-traits/src/transaction/error.rs` — The downstream diff for crates/primitives-traits/src/transaction/error.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-
-Representative atoms:
-
-- `file-0300-atom-0001` `missing` (high-risk, review, generic): `crates/ritual-block-verification/src/constants.rs` — The downstream diff for crates/ritual-block-verification/src/constants.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0301-atom-0001` `missing` (high-risk, review, generic): `crates/ritual-block-verification/src/error.rs` — The downstream diff for crates/ritual-block-verification/src/error.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0302-atom-0001` `blocked` (high-risk, review, generic): `crates/ritual-block-verification/src/lib.rs` — The downstream diff for crates/ritual-block-verification/src/lib.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0249-atom-0001` `missing` (review, generic): `crates/primitives-traits/src/transaction/error.rs` — The downstream diff for crates/primitives-traits/src/transaction/error.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0299-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/ritual-block-verification/Cargo.toml` — The downstream diff for crates/ritual-block-verification/Cargo.toml introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0317-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/ritual-precompile-codecs/Cargo.toml` — The downstream diff for crates/ritual-precompile-codecs/Cargo.toml introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0318-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/ritual-precompile-codecs/src/dkms_key.rs` — The downstream diff for crates/ritual-precompile-codecs/src/dkms_key.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0319-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/ritual-precompile-codecs/src/error.rs` — The downstream diff for crates/ritual-precompile-codecs/src/error.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0320-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/ritual-precompile-codecs/src/executor.rs` — The downstream diff for crates/ritual-precompile-codecs/src/executor.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0322-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/ritual-precompile-codecs/src/lib.rs` — The downstream diff for crates/ritual-precompile-codecs/src/lib.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0327-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/ritual-precompile-codecs/src/storage_ref.rs` — The downstream diff for crates/ritual-precompile-codecs/src/storage_ref.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0354-atom-0001` `exact` (high-risk): `crates/ritual-tee-registry-reader/src/constants.rs` — TEE registry reads cap service count at 10,000 to prevent unbounded allocation from corrupted contract state.
-- `file-0354-atom-0002` `exact` (high-risk): `crates/ritual-tee-registry-reader/src/constants.rs` — TEE registry reads cap public key bytes at 128 to prevent malformed registry state from causing unbounded allocation.
-- `file-0355-atom-0002` `exact` (high-risk): `crates/ritual-tee-registry-reader/src/error.rs` — TEE registry reads expose a typed service-count limit violation for corrupted or malicious registry state.
-- `file-0355-atom-0003` `exact` (high-risk): `crates/ritual-tee-registry-reader/src/error.rs` — TEE registry reads expose a typed public-key length violation with executor context.
-- `file-0355-atom-0004` `exact` (high-risk): `crates/ritual-tee-registry-reader/src/error.rs` — TEE registry reads expose a typed not-found error for missing executor addresses.
-- ... `5` more atoms in `feature-map.json`.
-
-Trace IDs by status:
-
-- `blocked`: file-0302-atom-0001
-- `exact`: file-0354-atom-0001, file-0354-atom-0002, file-0354-atom-0003, file-0355-atom-0002, file-0355-atom-0003, file-0355-atom-0004, file-0356-atom-0001
-- `missing`: file-0249-atom-0001, file-0300-atom-0001, file-0301-atom-0001
-- `structural_equivalent`: file-0150-atom-0001, file-0178-atom-0001, file-0180-atom-0001, file-0299-atom-0001, file-0317-atom-0001, file-0318-atom-0001, file-0319-atom-0001, file-0320-atom-0001, file-0322-atom-0001, file-0327-atom-0001
-
-## Transaction identity, wire encoding, and storage codecs
-
-Custom transaction types, RLP/hash/signature identity, runtime-field boundaries, receipts, storage compact codecs, and persistent DB encoding rules.
-
-- Counts: `42` atoms; `14` high-risk; `41` review-required; statuses `{'missing': 5, 'structural_equivalent': 33, 'moved_to_dependency': 3, 'exact': 1}`.
-- Precision note: `41` atoms in this group use generic coverage wording and should be refined from source/destination evidence before code changes.
-
-Actionable gaps:
-
-- `file-0107-atom-0001` `missing` (high-risk, review, generic): `crates/evm/src/execute.rs` — The downstream diff for crates/evm/src/execute.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0390-atom-0001` `missing` (high-risk, review, generic): `crates/rpc/rpc-eth-types/src/revm_utils.rs` — The downstream diff for crates/rpc/rpc-eth-types/src/revm_utils.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0455-atom-0001` `missing` (high-risk, review, generic): `crates/storage/codecs/derive/src/compact/mod.rs` — The downstream diff for crates/storage/codecs/derive/src/compact/mod.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0212-atom-0001` `missing` (review, generic): `crates/optimism/consensus/src/proof.rs` — The downstream diff for crates/optimism/consensus/src/proof.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0221-atom-0001` `missing` (review, generic): `crates/optimism/primitives/src/receipt.rs` — The downstream diff for crates/optimism/primitives/src/receipt.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-
-Representative atoms:
-
-- `file-0107-atom-0001` `missing` (high-risk, review, generic): `crates/evm/src/execute.rs` — The downstream diff for crates/evm/src/execute.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0390-atom-0001` `missing` (high-risk, review, generic): `crates/rpc/rpc-eth-types/src/revm_utils.rs` — The downstream diff for crates/rpc/rpc-eth-types/src/revm_utils.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0455-atom-0001` `missing` (high-risk, review, generic): `crates/storage/codecs/derive/src/compact/mod.rs` — The downstream diff for crates/storage/codecs/derive/src/compact/mod.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0212-atom-0001` `missing` (review, generic): `crates/optimism/consensus/src/proof.rs` — The downstream diff for crates/optimism/consensus/src/proof.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0221-atom-0001` `missing` (review, generic): `crates/optimism/primitives/src/receipt.rs` — The downstream diff for crates/optimism/primitives/src/receipt.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0078-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/ethereum/evm/src/build.rs` — The downstream diff for crates/ethereum/evm/src/build.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0226-atom-0001` `moved_to_dependency` (high-risk, review, generic): `crates/optimism/rpc/src/eth/ext.rs` — The downstream diff for crates/optimism/rpc/src/eth/ext.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0372-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/rpc/rpc-engine-api/src/engine_api.rs` — The downstream diff for crates/rpc/rpc-engine-api/src/engine_api.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0378-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/rpc/rpc-eth-api/src/helpers/pending_block.rs` — The downstream diff for crates/rpc/rpc-eth-api/src/helpers/pending_block.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0384-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/rpc/rpc-eth-types/src/error/mod.rs` — The downstream diff for crates/rpc/rpc-eth-types/src/error/mod.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0388-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/rpc/rpc-eth-types/src/logs_utils.rs` — The downstream diff for crates/rpc/rpc-eth-types/src/logs_utils.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0391-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/rpc/rpc-eth-types/src/utils.rs` — The downstream diff for crates/rpc/rpc-eth-types/src/utils.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0452-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/storage/codecs/Cargo.toml` — The downstream diff for crates/storage/codecs/Cargo.toml introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0459-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/storage/codecs/src/alloy/passkey_signature.rs` — The downstream diff for crates/storage/codecs/src/alloy/passkey_signature.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0470-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/storage/codecs/src/lib.rs` — The downstream diff for crates/storage/codecs/src/lib.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0483-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/storage/libmdbx-rs/src/codec.rs` — The downstream diff for crates/storage/libmdbx-rs/src/codec.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- ... `26` more atoms in `feature-map.json`.
-
-Trace IDs by status:
-
-- `exact`: file-0458-atom-0001
-- `missing`: file-0107-atom-0001, file-0212-atom-0001, file-0221-atom-0001, file-0390-atom-0001, file-0455-atom-0001
-- `moved_to_dependency`: file-0062-atom-0001, file-0222-atom-0001, file-0226-atom-0001
-- `structural_equivalent`: file-0048-atom-0001, file-0078-atom-0001, file-0097-atom-0001, file-0115-atom-0001, file-0144-atom-0001, file-0164-atom-0001, file-0174-atom-0001, file-0175-atom-0001, file-0194-atom-0001, file-0204-atom-0001, file-0255-atom-0001, file-0261-atom-0001, file-0372-atom-0001, file-0378-atom-0001, file-0384-atom-0001, file-0388-atom-0001, file-0391-atom-0001, file-0438-atom-0001, file-0444-atom-0001, file-0447-atom-0001, file-0449-atom-0001, file-0450-atom-0001, file-0452-atom-0001, file-0459-atom-0001, file-0470-atom-0001, file-0476-atom-0001, file-0483-atom-0001, file-0496-atom-0001, file-0546-atom-0001, file-0552-atom-0001, file-0555-atom-0001, file-0557-atom-0001, file-0559-atom-0001
-
 ## Payload building, execution, and consensus validation
 
 Payload builder/execution hooks, block verification, engine-tree behavior, consensus validation, chain-spec constants, extra_data policy, block rewards, and genesis-derived behavior.
@@ -311,38 +341,6 @@ Trace IDs by status:
 - `missing`: file-0026-atom-0001, file-0027-atom-0001, file-0028-atom-0001, file-0028-atom-0002, file-0028-atom-0003, file-0028-atom-0004, file-0028-atom-0005, file-0084-atom-0001, file-0088-atom-0001, file-0094-atom-0001, file-0206-atom-0001, file-0211-atom-0001
 - `moved_to_dependency`: file-0218-atom-0001, file-0311-atom-0001, file-0314-atom-0001
 - `structural_equivalent`: file-0059-atom-0001, file-0064-atom-0001, file-0074-atom-0001, file-0076-atom-0001, file-0090-atom-0001, file-0092-atom-0001, file-0136-atom-0001, file-0189-atom-0001, file-0190-atom-0001, file-0191-atom-0001, file-0192-atom-0001, file-0196-atom-0001, file-0197-atom-0001, file-0200-atom-0001, file-0201-atom-0001, file-0231-atom-0001, file-0232-atom-0001, file-0233-atom-0001, file-0236-atom-0001, file-0364-atom-0001, file-0370-atom-0001, file-0402-atom-0001, file-0407-atom-0001, file-0527-atom-0001
-
-## Transaction pool, admission, and ordering
-
-Txpool async/scheduled subpools, admission validation, pending/parked/blob behavior, sequencing rights, and candidate ordering.
-
-- Counts: `12` atoms; `8` high-risk; `12` review-required; statuses `{'missing': 2, 'structural_equivalent': 10}`.
-- Precision note: `12` atoms in this group use generic coverage wording and should be refined from source/destination evidence before code changes.
-
-Actionable gaps:
-
-- `file-0521-atom-0001` `missing` (high-risk, review, generic): `crates/transaction-pool/src/blocking_handlers.rs` — The downstream diff for crates/transaction-pool/src/blocking_handlers.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0545-atom-0001` `missing` (high-risk, review, generic): `crates/transaction-pool/tests/it/async_exec.rs` — The downstream diff for crates/transaction-pool/tests/it/async_exec.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-
-Representative atoms:
-
-- `file-0521-atom-0001` `missing` (high-risk, review, generic): `crates/transaction-pool/src/blocking_handlers.rs` — The downstream diff for crates/transaction-pool/src/blocking_handlers.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0545-atom-0001` `missing` (high-risk, review, generic): `crates/transaction-pool/tests/it/async_exec.rs` — The downstream diff for crates/transaction-pool/tests/it/async_exec.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0522-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/transaction-pool/src/config.rs` — The downstream diff for crates/transaction-pool/src/config.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0524-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/transaction-pool/src/lib.rs` — The downstream diff for crates/transaction-pool/src/lib.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0530-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/transaction-pool/src/pool/best.rs` — The downstream diff for crates/transaction-pool/src/pool/best.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0531-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/transaction-pool/src/pool/blob.rs` — The downstream diff for crates/transaction-pool/src/pool/blob.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0534-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/transaction-pool/src/pool/pending.rs` — The downstream diff for crates/transaction-pool/src/pool/pending.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0536-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/transaction-pool/src/pool/state.rs` — The downstream diff for crates/transaction-pool/src/pool/state.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0119-atom-0001` `structural_equivalent` (review, generic): `crates/net/discv4/src/lib.rs` — The downstream diff for crates/net/discv4/src/lib.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0161-atom-0001` `structural_equivalent` (review, generic): `crates/net/network/src/fetch/mod.rs` — The downstream diff for crates/net/network/src/fetch/mod.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0166-atom-0001` `structural_equivalent` (review, generic): `crates/net/network/src/session/active.rs` — The downstream diff for crates/net/network/src/session/active.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0490-atom-0001` `structural_equivalent` (review, generic): `crates/storage/nippy-jar/src/consistency.rs` — The downstream diff for crates/storage/nippy-jar/src/consistency.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-
-Trace IDs by status:
-
-- `missing`: file-0521-atom-0001, file-0545-atom-0001
-- `structural_equivalent`: file-0119-atom-0001, file-0161-atom-0001, file-0166-atom-0001, file-0490-atom-0001, file-0522-atom-0001, file-0524-atom-0001, file-0530-atom-0001, file-0531-atom-0001, file-0534-atom-0001, file-0536-atom-0001
 
 ## RPC and external API surface
 
@@ -451,4 +449,3 @@ Trace IDs by status:
 - `missing`: file-0071-atom-0001, file-0157-atom-0001, file-0207-atom-0001, file-0242-atom-0001, file-0257-atom-0001, file-0258-atom-0001, file-0310-atom-0001, file-0312-atom-0001, file-0513-atom-0001
 - `moved_to_dependency`: file-0431-atom-0001
 - `structural_equivalent`: file-0042-atom-0001, file-0050-atom-0001, file-0131-atom-0001, file-0159-atom-0001, file-0165-atom-0001, file-0169-atom-0001, file-0172-atom-0001, file-0199-atom-0001, file-0259-atom-0001, file-0262-atom-0001, file-0264-atom-0001, file-0353-atom-0001, file-0511-atom-0001, file-0512-atom-0001, file-0561-atom-0001
-

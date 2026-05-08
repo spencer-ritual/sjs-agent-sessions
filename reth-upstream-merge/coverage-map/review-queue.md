@@ -436,13 +436,6 @@
   - Required change: Restore or intentionally replace the downstream behavior carried by crates/evm/src/async_context_tests.rs; no reliable destination evidence was found in the configured search scope.
   - Likely destination: `unknown`
 
-## File 0107: crates/evm/src/execute.rs
-
-- Key: `file_index=107`, `source_path=crates/evm/src/execute.rs`, `record_id=file-0107-atom-0001`
-  - Source hunk: `@@ -256,0 +257,17 @@ pub trait BlockBuilder {`
-  - Required change: Restore or intentionally replace the downstream behavior carried by crates/evm/src/execute.rs; no reliable destination evidence was found in the configured search scope.
-  - Likely destination: `unknown`
-
 ## File 0108: crates/evm/src/lib.rs
 
 - Key: `file_index=108`, `source_path=crates/evm/src/lib.rs`, `record_id=file-0108-atom-0001`
@@ -734,8 +727,8 @@
 
 - Key: `file_index=212`, `source_path=crates/optimism/consensus/src/proof.rs`, `record_id=file-0212-atom-0001`
   - Source hunk: `@@ -22,2 +22,2 @@ pub(crate) fn calculate_receipt_root_optimism<R: DepositReceipt>(`
-  - Required change: Restore or intentionally replace the downstream behavior carried by crates/optimism/consensus/src/proof.rs; no reliable destination evidence was found in the configured search scope.
-  - Likely destination: `unknown`
+  - Human question: Confirm that OP receipt-root compatibility remains outside the current Reth v2.2/Summit merge scope. If OP support becomes in scope, this atom requires a dedicated OP stack port rather than a local one-file fix.
+  - Likely destination: `/home/ritual/repos/ritual-reth-internal-v2.2.0-port/MERGE_NOTES.md`
 
 ## File 0218: crates/optimism/payload/src/builder.rs
 
@@ -748,8 +741,8 @@
 
 - Key: `file_index=221`, `source_path=crates/optimism/primitives/src/receipt.rs`, `record_id=file-0221-atom-0001`
   - Source hunk: `@@ -43,4 +43,4 @@ impl OpReceipt {`
-  - Required change: Restore or intentionally replace the downstream behavior carried by crates/optimism/primitives/src/receipt.rs; no reliable destination evidence was found in the configured search scope.
-  - Likely destination: `unknown`
+  - Human question: Confirm that OP receipt enum compatibility remains outside the current Reth v2.2/Summit merge scope. If OP support becomes in scope, this atom belongs to a dedicated OP primitives port.
+  - Likely destination: `/home/ritual/repos/ritual-reth-internal-v2.2.0-port/MERGE_NOTES.md`
 
 ## File 0222: crates/optimism/primitives/src/transaction/signed.rs
 
@@ -1514,13 +1507,6 @@
   - Human question: Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor.
   - Likely destination: `/home/ritual/repos/ritual-reth-internal-v2.2.0-port/crates/rpc/rpc-eth-types/src/receipt.rs`
 
-## File 0390: crates/rpc/rpc-eth-types/src/revm_utils.rs
-
-- Key: `file_index=390`, `source_path=crates/rpc/rpc-eth-types/src/revm_utils.rs`, `record_id=file-0390-atom-0001`
-  - Source hunk: `@@ -114,2 +114,2 @@ impl CallFees {`
-  - Required change: Restore or intentionally replace the downstream behavior carried by crates/rpc/rpc-eth-types/src/revm_utils.rs; no reliable destination evidence was found in the configured search scope.
-  - Likely destination: `unknown`
-
 ## File 0391: crates/rpc/rpc-eth-types/src/utils.rs
 
 - Key: `file_index=391`, `source_path=crates/rpc/rpc-eth-types/src/utils.rs`, `record_id=file-0391-atom-0001`
@@ -1751,13 +1737,6 @@
   - Source hunk: `@@ -32,0 +33 @@ serde.workspace = true`
   - Human question: Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor.
   - Likely destination: `/home/ritual/repos/ritual-reth-internal-v2.2.0-port/crates/storage/codecs/Cargo.toml`
-
-## File 0455: crates/storage/codecs/derive/src/compact/mod.rs
-
-- Key: `file_index=455`, `source_path=crates/storage/codecs/derive/src/compact/mod.rs`, `record_id=file-0455-atom-0001`
-  - Source hunk: `@@ -151,4 +151,5 @@ fn load_field_from_segments(`
-  - Required change: Restore or intentionally replace the downstream behavior carried by crates/storage/codecs/derive/src/compact/mod.rs; no reliable destination evidence was found in the configured search scope.
-  - Likely destination: `unknown`
 
 ## File 0459: crates/storage/codecs/src/alloy/passkey_signature.rs
 

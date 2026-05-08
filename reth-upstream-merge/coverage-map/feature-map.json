@@ -6,16 +6,16 @@
     "atoms_total": 357,
     "high_risk_atoms_total": 220,
     "non_exact_atoms_total": 318,
-    "human_review_queue_total": 313,
+    "human_review_queue_total": 310,
     "validation_errors": [],
     "counts_by_atom_mapping_status": {
-      "missing": 103,
-      "structural_equivalent": 175,
-      "intentionally_absent": 3,
+      "missing": 98,
+      "structural_equivalent": 176,
+      "intentionally_absent": 5,
       "exact": 35,
-      "moved_to_dependency": 29,
+      "moved_to_dependency": 30,
       "noise": 4,
-      "covered_by_upstream": 3,
+      "covered_by_upstream": 4,
       "blocked": 5
     }
   },
@@ -8052,12 +8052,13 @@
       "scope": "Custom transaction types, RLP/hash/signature identity, runtime-field boundaries, receipts, storage compact codecs, and persistent DB encoding rules.",
       "atoms_total": 42,
       "high_risk_atoms_total": 14,
-      "review_required_atoms_total": 41,
+      "review_required_atoms_total": 38,
       "generic_atoms_total": 41,
       "counts_by_mapping_status": {
-        "structural_equivalent": 33,
-        "moved_to_dependency": 3,
-        "missing": 5,
+        "structural_equivalent": 34,
+        "moved_to_dependency": 4,
+        "intentionally_absent": 2,
+        "covered_by_upstream": 1,
         "exact": 1
       },
       "atoms": [
@@ -8225,23 +8226,45 @@
           "source_hunk_hint": "@@ -256,0 +257,17 @@ pub trait BlockBuilder {",
           "source_kind": "other",
           "semantic_claim": "The downstream diff for crates/evm/src/execute.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
-          "mapping_status": "missing",
+          "mapping_status": "structural_equivalent",
           "high_risk": true,
-          "review_required": true,
+          "review_required": false,
           "risk_tags": [
             "execution"
           ],
           "file_tags": [
-            "missing",
+            "mapped",
             "execution",
             "high-risk",
             "non-exact",
-            "needs-review"
+            "reth-port",
+            "alloy-evm"
           ],
-          "required_change": "Restore or intentionally replace the downstream behavior carried by crates/evm/src/execute.rs; no reliable destination evidence was found in the configured search scope.",
+          "required_change": null,
           "human_question": null,
-          "destinations": [],
-          "negative_test_candidate": "Exercise the crates/evm/src/execute.rs behavior boundary in the port and verify the downstream path-specific behavior still exists; absence or changed rejection/ordering would falsify the mapping.",
+          "destinations": [
+            {
+              "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+              "path": "crates/evm/evm/src/execute.rs",
+              "symbols": [
+                "BlockBuilder::execute_system_transaction_with_gas",
+                "BasicBlockBuilder::execute_system_transaction_with_gas"
+              ],
+              "snippet": "fn execute_system_transaction_with_gas(\n    &mut self,\n    tx: impl ExecutorTx<Self::Executor>,\n    f: impl FnOnce(&ExecutionResult<<<Self::Executor as BlockExecutor>::Evm as Evm>::HaltReason>) -> u64,\n) -> Result<(u64, u64), BlockExecutionError>;",
+              "evidence": "The v2.2 Reth block-builder trait preserves the old downstream system-transaction hook and forwards it through BasicBlockBuilder while saving the recovered transaction."
+            },
+            {
+              "repo": "/home/ritual/repos/ritual-alloy-evm-internal",
+              "path": "crates/evm/src/eth/block.rs",
+              "symbols": [
+                "execute_system_transaction_with_gas",
+                "ReceiptBuilderCtx"
+              ],
+              "snippet": "let block_gas_contribution = f(&result);\n\nself.block_regular_gas_used += block_gas_contribution;\nself.block_state_gas_used += block_gas_contribution;\nself.cumulative_tx_gas_used += block_gas_contribution;",
+              "evidence": "The executor implementation applies the closure-returned gas contribution to block and cumulative receipt gas before building the receipt."
+            }
+          ],
+          "negative_test_candidate": "Execute a Ritual system transaction whose EVM gas differs from its intended block gas contribution and assert the receipt cumulative gas uses the closure-returned contribution while the transaction remains in the built block.",
           "confidence_note": "generic_atom_needs_human_refinement"
         },
         {
@@ -8526,18 +8549,35 @@
           "source_hunk_hint": "@@ -22,2 +22,2 @@ pub(crate) fn calculate_receipt_root_optimism<R: DepositReceipt>(",
           "source_kind": "other",
           "semantic_claim": "The downstream diff for crates/optimism/consensus/src/proof.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
-          "mapping_status": "missing",
+          "mapping_status": "intentionally_absent",
           "high_risk": false,
           "review_required": true,
           "risk_tags": [],
           "file_tags": [
-            "missing",
+            "mapped",
             "non-exact",
             "needs-review"
           ],
-          "required_change": "Restore or intentionally replace the downstream behavior carried by crates/optimism/consensus/src/proof.rs; no reliable destination evidence was found in the configured search scope.",
-          "human_question": null,
-          "destinations": [],
+          "required_change": null,
+          "human_question": "Confirm that OP receipt-root compatibility remains outside the current Reth v2.2/Summit merge scope. If OP support becomes in scope, this atom requires a dedicated OP stack port rather than a local one-file fix.",
+          "destinations": [
+            {
+              "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+              "path": "MERGE_NOTES.md",
+              "symbols": [],
+              "snippet": "Preserved the upstream Reth `v2.2.0` workspace member list. No old\n`crates/optimism/*`, `alloy-op-evm`, or `op-revm` paths were reintroduced.",
+              "evidence": "The v2 port explicitly scoped OP execution and old optimism crates out of the fresh upstream skeleton."
+            },
+            {
+              "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+              "path": "Cargo.toml",
+              "symbols": [
+                "workspace.members"
+              ],
+              "snippet": "reth-evm = { path = \"crates/evm/evm\", default-features = false }\nreth-evm-ethereum = { path = \"crates/ethereum/evm\", default-features = false }",
+              "evidence": "The v2 workspace has Ethereum/Summit execution crates but no `crates/optimism/*` member for OP receipt-root behavior."
+            }
+          ],
           "negative_test_candidate": null,
           "confidence_note": "generic_atom_needs_human_refinement"
         },
@@ -8550,18 +8590,36 @@
           "source_hunk_hint": "@@ -43,4 +43,4 @@ impl OpReceipt {",
           "source_kind": "other",
           "semantic_claim": "The downstream diff for crates/optimism/primitives/src/receipt.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
-          "mapping_status": "missing",
+          "mapping_status": "intentionally_absent",
           "high_risk": false,
           "review_required": true,
           "risk_tags": [],
           "file_tags": [
-            "missing",
+            "mapped",
             "non-exact",
             "needs-review"
           ],
-          "required_change": "Restore or intentionally replace the downstream behavior carried by crates/optimism/primitives/src/receipt.rs; no reliable destination evidence was found in the configured search scope.",
-          "human_question": null,
-          "destinations": [],
+          "required_change": null,
+          "human_question": "Confirm that OP receipt enum compatibility remains outside the current Reth v2.2/Summit merge scope. If OP support becomes in scope, this atom belongs to a dedicated OP primitives port.",
+          "destinations": [
+            {
+              "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+              "path": "MERGE_NOTES.md",
+              "symbols": [],
+              "snippet": "Left OP execution out of scope for this skeleton. Upstream Reth `v2.2.0` has\nno `crates/optimism/*` workspace members and no manifest references to\n`alloy-op-evm` or `op-revm` in this fresh tree.",
+              "evidence": "The v2 port explicitly scopes out the old OP primitives crate that owned `OpReceipt`."
+            },
+            {
+              "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+              "path": "crates/ethereum/primitives/src/receipt.rs",
+              "symbols": [
+                "Receipt",
+                "calculate_receipt_root_no_memo"
+              ],
+              "snippet": "pub fn calculate_receipt_root_no_memo<T: TxTy>(receipts: &[Receipt<T>]) -> B256 {\n    ordered_trie_root_with_encoder(receipts, |r, buf| {\n        alloy_consensus::TxReceipt::with_bloom_ref(r).encode_2718(buf)\n    })\n}",
+              "evidence": "The active v2 port has Ethereum receipt support, but no OP-specific `OpReceipt` enum surface."
+            }
+          ],
           "negative_test_candidate": null,
           "confidence_note": "generic_atom_needs_human_refinement"
         },
@@ -8901,25 +8959,48 @@
           "source_hunk_hint": "@@ -114,2 +114,2 @@ impl CallFees {",
           "source_kind": "other",
           "semantic_claim": "The downstream diff for crates/rpc/rpc-eth-types/src/revm_utils.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
-          "mapping_status": "missing",
+          "mapping_status": "moved_to_dependency",
           "high_risk": true,
-          "review_required": true,
+          "review_required": false,
           "risk_tags": [
             "execution",
             "rpc"
           ],
           "file_tags": [
-            "missing",
+            "mapped",
             "execution",
             "rpc",
             "high-risk",
             "non-exact",
-            "needs-review"
+            "alloy-evm",
+            "reth-port"
           ],
-          "required_change": "Restore or intentionally replace the downstream behavior carried by crates/rpc/rpc-eth-types/src/revm_utils.rs; no reliable destination evidence was found in the configured search scope.",
+          "required_change": null,
           "human_question": null,
-          "destinations": [],
-          "negative_test_candidate": "Exercise the crates/rpc/rpc-eth-types/src/revm_utils.rs behavior boundary in the port and verify the downstream path-specific behavior still exists; absence or changed rejection/ordering would falsify the mapping.",
+          "destinations": [
+            {
+              "repo": "/home/ritual/repos/ritual-alloy-evm-internal",
+              "path": "crates/evm/src/rpc/fees.rs",
+              "symbols": [
+                "CallFees::ensure_fees",
+                "get_effective_gas_price"
+              ],
+              "snippet": "if !(max_fee.is_zero() && max_priority_fee_per_gas.is_zero())\n    && max_fee < block_base_fee\n{\n    return Err(CallFeesError::FeeCapTooLow);\n}",
+              "evidence": "The zero max-fee plus zero priority-fee exception from downstream Reth now lives in Alloy EVM's shared RPC fee conversion helper."
+            },
+            {
+              "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+              "path": "crates/rpc/rpc-convert/src/lib.rs",
+              "symbols": [
+                "CallFees",
+                "CallFeesError",
+                "EthTxEnvError"
+              ],
+              "snippet": "pub use alloy_evm::rpc::{CallFees, CallFeesError, EthTxEnvError, TryIntoTxEnv};",
+              "evidence": "Reth v2 consumes the moved fee helper through `reth-rpc-convert` rather than the old `revm_utils.rs` location."
+            }
+          ],
+          "negative_test_candidate": "Call `CallFees::ensure_fees(None, Some(0), Some(0), nonzero_base_fee, None, None, None)` through the v2 dependency path and assert it returns zero gas price rather than FeeCapTooLow.",
           "confidence_note": "generic_atom_needs_human_refinement"
         },
         {
@@ -9205,23 +9286,52 @@
           "source_hunk_hint": "@@ -151,4 +151,5 @@ fn load_field_from_segments(",
           "source_kind": "other",
           "semantic_claim": "The downstream diff for crates/storage/codecs/derive/src/compact/mod.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
-          "mapping_status": "missing",
+          "mapping_status": "covered_by_upstream",
           "high_risk": true,
-          "review_required": true,
+          "review_required": false,
           "risk_tags": [
             "encoding"
           ],
           "file_tags": [
-            "missing",
+            "mapped",
             "encoding",
             "high-risk",
             "non-exact",
-            "needs-review"
+            "upstream-covered",
+            "reth-port"
           ],
-          "required_change": "Restore or intentionally replace the downstream behavior carried by crates/storage/codecs/derive/src/compact/mod.rs; no reliable destination evidence was found in the configured search scope.",
+          "required_change": null,
           "human_question": null,
-          "destinations": [],
-          "negative_test_candidate": "Exercise the crates/storage/codecs/derive/src/compact/mod.rs behavior boundary in the port and verify the downstream path-specific behavior still exists; absence or changed rejection/ordering would falsify the mapping.",
+          "destinations": [
+            {
+              "repo": "/home/ritual/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/reth-codecs-derive-0.3.1",
+              "path": "src/compact/mod.rs",
+              "symbols": [
+                "load_field_from_segments"
+              ],
+              "snippet": "let should_compact = is_flag_type(&ftype) ||\n    field.attrs.iter().any(|attr| {\n        attr.path().segments.iter().any(|path| path.ident == \"maybe_zero\")\n    });",
+              "evidence": "The registry `reth-codecs-derive 0.3.1` used by the v2 port already contains the downstream `maybe_zero` compact-field handling."
+            },
+            {
+              "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+              "path": "Cargo.toml",
+              "symbols": [
+                "reth-codecs-derive"
+              ],
+              "snippet": "reth-codecs = { path = \"crates/storage/codecs\", default-features = false }\nreth-codecs-derive = \"0.3.1\"",
+              "evidence": "The v2 port consumes upstream `reth-codecs-derive 0.3.1` rather than carrying a local derive crate copy."
+            },
+            {
+              "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+              "path": "crates/storage/codecs/src/alloy/mod.rs",
+              "symbols": [
+                "validate_bitflag_backwards_compat"
+              ],
+              "snippet": "validate_bitflag_backwards_compat!(TxEip1559, UnusedBits::NotZero);\nvalidate_bitflag_backwards_compat!(TxEip4844, UnusedBits::NotZero);\nvalidate_bitflag_backwards_compat!(TxEip7702, UnusedBits::NotZero);",
+              "evidence": "The active v2 storage codec adapters keep explicit bitflag compatibility tests for transaction DB encoding."
+            }
+          ],
+          "negative_test_candidate": "Derive `Compact` for a fixture with `#[maybe_zero] maybe: B256`, encode a zero value and a nonzero value, and assert the generated compact flags distinguish absence from encoded bytes without shifting downstream transaction bitflags.",
           "confidence_note": "generic_atom_needs_human_refinement"
         },
         {

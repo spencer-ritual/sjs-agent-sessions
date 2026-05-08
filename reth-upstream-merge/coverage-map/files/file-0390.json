@@ -9,14 +9,15 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "missing",
+  "file_classification": "mapped",
   "tags": [
-    "missing",
+    "mapped",
     "execution",
     "rpc",
     "high-risk",
     "non-exact",
-    "needs-review"
+    "alloy-evm",
+    "reth-port"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -35,26 +36,50 @@
         "execution",
         "rpc"
       ],
-      "mapping_status": "missing",
-      "destinations": [],
-      "equivalence_argument": null,
+      "mapping_status": "moved_to_dependency",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-alloy-evm-internal",
+          "path": "crates/evm/src/rpc/fees.rs",
+          "symbols": [
+            "CallFees::ensure_fees",
+            "get_effective_gas_price"
+          ],
+          "snippet": "if !(max_fee.is_zero() && max_priority_fee_per_gas.is_zero())\n    && max_fee < block_base_fee\n{\n    return Err(CallFeesError::FeeCapTooLow);\n}",
+          "evidence": "The zero max-fee plus zero priority-fee exception from downstream Reth now lives in Alloy EVM's shared RPC fee conversion helper."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc-convert/src/lib.rs",
+          "symbols": [
+            "CallFees",
+            "CallFeesError",
+            "EthTxEnvError"
+          ],
+          "snippet": "pub use alloy_evm::rpc::{CallFees, CallFeesError, EthTxEnvError, TryIntoTxEnv};",
+          "evidence": "Reth v2 consumes the moved fee helper through `reth-rpc-convert` rather than the old `revm_utils.rs` location."
+        }
+      ],
+      "equivalence_argument": "Old downstream patched `crates/rpc/rpc-eth-types/src/revm_utils.rs` so RPC call fee validation treats `maxFeePerGas=0` and `maxPriorityFeePerGas=0` as absent rather than rejecting them below a nonzero base fee. In v2.2, fee conversion moved to Alloy EVM; Reth re-exports and maps the same `CallFees`/`CallFeesError` through `reth-rpc-convert` and `reth-rpc-eth-types`, preserving the externally visible RPC behavior without restoring the old file layout.",
       "test_strategy": "adapted_equivalence_test",
-      "negative_test_candidate": "Exercise the crates/rpc/rpc-eth-types/src/revm_utils.rs behavior boundary in the port and verify the downstream path-specific behavior still exists; absence or changed rejection/ordering would falsify the mapping.",
+      "negative_test_candidate": "Call `CallFees::ensure_fees(None, Some(0), Some(0), nonzero_base_fee, None, None, None)` through the v2 dependency path and assert it returns zero gas price rather than FeeCapTooLow.",
       "adversarial_review": {
         "required": true,
-        "status": "not_requested",
-        "review_record_id": null
+        "status": "pass",
+        "review_record_id": "review-file-0390-atom-0001"
       },
-      "review_required": true,
-      "notes": "No same-path or uniquely named destination evidence was found in the configured search scope.",
-      "required_change": "Restore or intentionally replace the downstream behavior carried by crates/rpc/rpc-eth-types/src/revm_utils.rs; no reliable destination evidence was found in the configured search scope."
+      "review_required": false,
+      "notes": "Reclassified after locating the moved fee helper in Alloy EVM and its Reth re-export path.",
+      "required_change": null
     }
   ],
   "high_risk_atoms_total": 1,
   "non_exact_atoms_total": 1,
-  "adversarial_reviews": [],
-  "summary": "No reliable destination evidence was found for the downstream file-level behavior.",
-  "review_required": true,
-  "status": "needs_review",
-  "notes": "No same-path or uniquely named destination evidence was found in the configured search scope."
+  "adversarial_reviews": [
+    "coverage-map/reviews/review-file-0390-atom-0001.json"
+  ],
+  "summary": "The downstream RPC zero-fee exception moved from Reth `revm_utils.rs` into Alloy EVM `CallFees` and is consumed through Reth's rpc-convert layer.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Reclassified from missing based on destination code evidence in Alloy EVM and Reth RPC conversion."
 }

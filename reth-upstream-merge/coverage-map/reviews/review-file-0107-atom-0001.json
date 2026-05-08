@@ -1,0 +1,11 @@
+{
+  "record_type": "adversarial_review",
+  "record_id": "review-file-0107-atom-0001",
+  "atom_record_id": "file-0107-atom-0001",
+  "review_result": "pass",
+  "falsification_attempt": "Checked whether the v2 port merely retained a trait declaration without executor receipt accounting. The hook exists in reth-evm's BlockBuilder surface and forwards into alloy-evm, where the closure-returned block gas contribution updates block_regular_gas_used, block_state_gas_used, cumulative_tx_gas_used, and the receipt builder context.",
+  "missed_risks": [
+    "Focused tests should still cover a system transaction where EVM gas differs from receipt/block gas contribution."
+  ],
+  "notes": "The old downstream behavior is structurally preserved by the v2 Reth/Alloy EVM split."
+}
