@@ -115,3 +115,18 @@
 - Restored v2.2 payload and pending-block handling for async precompile validation errors: transient ONNX/JQ errors skip the candidate, permanent ONNX malformed requests mark the pool transaction invalid through the existing hard-invalid consensus error.
 - Reclassified `file-0249-atom-0001`, `file-0300-atom-0001`, `file-0301-atom-0001`, and `file-0302-atom-0001` from missing/blocked to structural equivalents with destination evidence.
 - Added adversarial review records for the high-risk block-verification constants/error/lib atoms and rebuilt derived review/index/validation artifacts.
+
+### 2026-05-08 - Transaction pool/admission first pass
+- Added a focused `reth-transaction-pool` regression proving canonical `TxAsyncCommitment` processing prunes the original transaction, creates async metadata, records commit/expiry blocks, and locks the original sender.
+- Reclassified `file-0521-atom-0001`, `file-0524-atom-0001`, `file-0536-atom-0001`, and `file-0545-atom-0001` as structural equivalents with adversarial review records.
+- Reclassified semicolon/rustfmt-only records `file-0119`, `file-0161`, `file-0166`, `file-0490`, `file-0522`, `file-0530`, `file-0531`, and `file-0534` as noise.
+## Curated Test-Atom Insertion - 2026-05-08
+
+Inserted curated grouped test-derived atoms into canonical per-file artifacts. Raw supplemental atoms were pruned by demoting helpers, no-assert tests, and default-only noise; sibling tests were grouped by production behavior family.
+## Curated Feature-Preservation Insertion - 2026-05-08
+
+Inserted curated grouped feature-derived atoms from `feature-preservation-map.md` into canonical per-file artifacts. Validation-gate-only lines, broad port-inventory bullets, and claims already covered by existing atoms were demoted into audit decisions.
+
+## Curated Functionality-Flow Insertion - 2026-05-08
+
+Inserted curated grouped functionality-flow-derived atoms from `functionality-flow-traces.md` into canonical per-file artifacts. Validation-only lines, broad flow inventory, deployment-only claims, and claims already covered by existing atoms were demoted into audit decisions.

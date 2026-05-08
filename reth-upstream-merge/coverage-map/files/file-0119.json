@@ -9,61 +9,17 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "mapped",
+  "file_classification": "noise",
   "tags": [
-    "mapped",
-    "non-exact",
-    "needs-review",
-    "reth-port"
+    "noise"
   ],
-  "atoms_total": 1,
-  "atoms": [
-    {
-      "record_id": "file-0119-atom-0001",
-      "file_index": 119,
-      "atom_index": 1,
-      "atoms_total": 1,
-      "source_path": "crates/net/discv4/src/lib.rs",
-      "source_hunk_hint": "@@ -761,2 +761,2 @@ impl Discv4Service {",
-      "source_kind": "other",
-      "source_snippet": "                    node.value.has_endpoint_proof\n                        && !self.pending_find_nodes.contains_key(&node.key.preimage().0)\n            return;\n            return false;\n                return true;\n            return;",
-      "semantic_claim": "The downstream diff for crates/net/discv4/src/lib.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
-      "high_risk": false,
-      "risk_tags": [],
-      "mapping_status": "structural_equivalent",
-      "destinations": [
-        {
-          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
-          "path": "crates/net/discv4/src/lib.rs",
-          "symbols": [
-            "spawn",
-            "noop",
-            "t",
-            "bind",
-            "local_addr"
-          ],
-          "snippet": "/// See also [`Discv4::spawn`]\n#[derive(Debug, Clone)]\npub struct Discv4 {\n    /// The address of the udp socket\n    local_addr: SocketAddr,",
-          "evidence": "The destination keeps the module at the same relative path with overlapping symbols ['spawn', 'noop', 't', 'bind', 'local_addr']."
-        }
-      ],
-      "equivalence_argument": "The downstream behavior still resides in the same integration surface in the destination workspace, but the implementation was refactored or reshaped; review is required to confirm full semantic parity.",
-      "test_strategy": "not_needed",
-      "negative_test_candidate": null,
-      "adversarial_review": {
-        "required": false,
-        "status": "not_requested",
-        "review_record_id": null
-      },
-      "review_required": true,
-      "notes": "The destination keeps the module at the same relative path with overlapping symbols ['spawn', 'noop', 't', 'bind', 'local_addr'].",
-      "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor."
-    }
-  ],
+  "atoms_total": 0,
+  "atoms": [],
   "high_risk_atoms_total": 0,
-  "non_exact_atoms_total": 1,
+  "non_exact_atoms_total": 0,
   "adversarial_reviews": [],
-  "summary": "The downstream file maps to destination code but needs review because the destination implementation was refactored or moved.",
-  "review_required": true,
-  "status": "needs_review",
-  "notes": "The destination keeps the module at the same relative path with overlapping symbols ['spawn', 'noop', 't', 'bind', 'local_addr']."
+  "summary": "Formatting-only Rust semicolon/rustfmt normalization intentionally skipped as noise.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Formatting-only Rust normalization in discv4; unrelated to txpool admission or ordering."
 }

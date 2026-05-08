@@ -3,14 +3,14 @@
   "source": "coverage-map/files/file-####.json",
   "validation_summary": {
     "files_processed": 579,
-    "atoms_total": 357,
-    "high_risk_atoms_total": 220,
-    "non_exact_atoms_total": 318,
-    "human_review_queue_total": 306,
+    "atoms_total": 349,
+    "high_risk_atoms_total": 216,
+    "non_exact_atoms_total": 310,
+    "human_review_queue_total": 294,
     "validation_errors": [],
     "counts_by_atom_mapping_status": {
-      "missing": 95,
-      "structural_equivalent": 180,
+      "missing": 93,
+      "structural_equivalent": 174,
       "intentionally_absent": 5,
       "exact": 35,
       "moved_to_dependency": 30,
@@ -11473,170 +11473,14 @@
       "feature_id": "txpool-admission",
       "title": "Transaction pool, admission, and ordering",
       "scope": "Txpool async/scheduled subpools, admission validation, pending/parked/blob behavior, sequencing rights, and candidate ordering.",
-      "atoms_total": 12,
-      "high_risk_atoms_total": 8,
-      "review_required_atoms_total": 12,
-      "generic_atoms_total": 12,
+      "atoms_total": 4,
+      "high_risk_atoms_total": 4,
+      "review_required_atoms_total": 0,
+      "generic_atoms_total": 4,
       "counts_by_mapping_status": {
-        "structural_equivalent": 10,
-        "missing": 2
+        "structural_equivalent": 4
       },
       "atoms": [
-        {
-          "primary_feature": "txpool-admission",
-          "feature_title": "Transaction pool, admission, and ordering",
-          "record_id": "file-0119-atom-0001",
-          "file_index": 119,
-          "source_path": "crates/net/discv4/src/lib.rs",
-          "source_hunk_hint": "@@ -761,2 +761,2 @@ impl Discv4Service {",
-          "source_kind": "other",
-          "semantic_claim": "The downstream diff for crates/net/discv4/src/lib.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
-          "mapping_status": "structural_equivalent",
-          "high_risk": false,
-          "review_required": true,
-          "risk_tags": [],
-          "file_tags": [
-            "mapped",
-            "non-exact",
-            "needs-review",
-            "reth-port"
-          ],
-          "required_change": null,
-          "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor.",
-          "destinations": [
-            {
-              "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
-              "path": "crates/net/discv4/src/lib.rs",
-              "symbols": [
-                "spawn",
-                "noop",
-                "t",
-                "bind",
-                "local_addr"
-              ],
-              "snippet": "/// See also [`Discv4::spawn`]\n#[derive(Debug, Clone)]\npub struct Discv4 {\n    /// The address of the udp socket\n    local_addr: SocketAddr,",
-              "evidence": "The destination keeps the module at the same relative path with overlapping symbols ['spawn', 'noop', 't', 'bind', 'local_addr']."
-            }
-          ],
-          "negative_test_candidate": null,
-          "confidence_note": "generic_atom_needs_human_refinement"
-        },
-        {
-          "primary_feature": "txpool-admission",
-          "feature_title": "Transaction pool, admission, and ordering",
-          "record_id": "file-0161-atom-0001",
-          "file_index": 161,
-          "source_path": "crates/net/network/src/fetch/mod.rs",
-          "source_hunk_hint": "@@ -120 +120 @@ impl<N: NetworkPrimitives> StateFetcher<N> {",
-          "source_kind": "other",
-          "semantic_claim": "The downstream diff for crates/net/network/src/fetch/mod.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
-          "mapping_status": "structural_equivalent",
-          "high_risk": false,
-          "review_required": true,
-          "risk_tags": [],
-          "file_tags": [
-            "mapped",
-            "non-exact",
-            "needs-review",
-            "reth-port"
-          ],
-          "required_change": null,
-          "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor.",
-          "destinations": [
-            {
-              "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
-              "path": "crates/net/network/src/fetch/mod.rs",
-              "symbols": [
-                "new",
-                "new_active_peer",
-                "on_session_closed",
-                "update_peer_block",
-                "on_pending_disconnect"
-              ],
-              "snippet": "    /// Receiver for new incoming download requests\n    download_requests_rx: UnboundedReceiverStream<DownloadRequest<N>>,\n    /// Sender for download requests, used to detach a [`FetchClient`]\n    download_requests_tx: UnboundedSender<DownloadRequest<N>>,\n}",
-              "evidence": "The destination keeps the module at the same relative path with overlapping symbols ['new', 'new_active_peer', 'on_session_closed', 'update_peer_block', 'on_pending_disconnect']."
-            }
-          ],
-          "negative_test_candidate": null,
-          "confidence_note": "generic_atom_needs_human_refinement"
-        },
-        {
-          "primary_feature": "txpool-admission",
-          "feature_title": "Transaction pool, admission, and ordering",
-          "record_id": "file-0166-atom-0001",
-          "file_index": 166,
-          "source_path": "crates/net/network/src/session/active.rs",
-          "source_hunk_hint": "@@ -223 +223 @@ impl<N: NetworkPrimitives> ActiveSession<N> {",
-          "source_kind": "other",
-          "semantic_claim": "The downstream diff for crates/net/network/src/session/active.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
-          "mapping_status": "structural_equivalent",
-          "high_risk": false,
-          "review_required": true,
-          "risk_tags": [],
-          "file_tags": [
-            "mapped",
-            "non-exact",
-            "needs-review",
-            "reth-port"
-          ],
-          "required_change": null,
-          "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor.",
-          "destinations": [
-            {
-              "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
-              "path": "crates/net/network/src/session/active.rs",
-              "symbols": [
-                "is_disconnecting",
-                "next_id",
-                "shrink_to_fit",
-                "queued_response_count"
-              ],
-              "snippet": "    fn is_disconnecting(&self) -> bool {\n        self.conn.inner().is_disconnecting()\n    }\n\n    /// Returns the next request id",
-              "evidence": "The destination keeps the module at the same relative path with overlapping symbols ['is_disconnecting', 'next_id', 'shrink_to_fit', 'queued_response_count']."
-            }
-          ],
-          "negative_test_candidate": null,
-          "confidence_note": "generic_atom_needs_human_refinement"
-        },
-        {
-          "primary_feature": "txpool-admission",
-          "feature_title": "Transaction pool, admission, and ordering",
-          "record_id": "file-0490-atom-0001",
-          "file_index": 490,
-          "source_path": "crates/storage/nippy-jar/src/consistency.rs",
-          "source_hunk_hint": "@@ -59 +59 @@ impl<H: NippyJarHeader> NippyJarChecker<H> {",
-          "source_kind": "other",
-          "semantic_claim": "The downstream diff for crates/storage/nippy-jar/src/consistency.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
-          "mapping_status": "structural_equivalent",
-          "high_risk": false,
-          "review_required": true,
-          "risk_tags": [],
-          "file_tags": [
-            "mapped",
-            "non-exact",
-            "needs-review",
-            "reth-port"
-          ],
-          "required_change": null,
-          "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor.",
-          "destinations": [
-            {
-              "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
-              "path": "crates/storage/nippy-jar/src/consistency.rs",
-              "symbols": [
-                "new",
-                "check_consistency",
-                "ensure_consistency",
-                "handle_consistency",
-                "load_files"
-              ],
-              "snippet": "    /// Creates a new instance of [`NippyJarChecker`] with the provided [`NippyJar`].\n    ///\n    /// This method initializes the checker without any associated file handles for\n    /// the data or offsets files. The [`NippyJar`] passed in contains all necessary\n    /// configurations for handling data.",
-              "evidence": "The destination keeps the module at the same relative path with overlapping symbols ['new', 'check_consistency', 'ensure_consistency', 'handle_consistency', 'load_files']."
-            }
-          ],
-          "negative_test_candidate": null,
-          "confidence_note": "generic_atom_needs_human_refinement"
-        },
         {
           "primary_feature": "txpool-admission",
           "feature_title": "Transaction pool, admission, and ordering",
@@ -11646,37 +11490,9 @@
           "source_hunk_hint": "@@ -0,0 +1,284 @@",
           "source_kind": "other",
           "semantic_claim": "The downstream diff for crates/transaction-pool/src/blocking_handlers.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
-          "mapping_status": "missing",
-          "high_risk": true,
-          "review_required": true,
-          "risk_tags": [
-            "txpool"
-          ],
-          "file_tags": [
-            "missing",
-            "txpool",
-            "high-risk",
-            "non-exact",
-            "needs-review"
-          ],
-          "required_change": "Restore or intentionally replace the downstream behavior carried by crates/transaction-pool/src/blocking_handlers.rs; no reliable destination evidence was found in the configured search scope.",
-          "human_question": null,
-          "destinations": [],
-          "negative_test_candidate": "Exercise the crates/transaction-pool/src/blocking_handlers.rs behavior boundary in the port and verify the downstream path-specific behavior still exists; absence or changed rejection/ordering would falsify the mapping.",
-          "confidence_note": "generic_atom_needs_human_refinement"
-        },
-        {
-          "primary_feature": "txpool-admission",
-          "feature_title": "Transaction pool, admission, and ordering",
-          "record_id": "file-0522-atom-0001",
-          "file_index": 522,
-          "source_path": "crates/transaction-pool/src/config.rs",
-          "source_hunk_hint": "@@ -72,4 +72,4 @@ impl PoolConfig {",
-          "source_kind": "other",
-          "semantic_claim": "The downstream diff for crates/transaction-pool/src/config.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
           "mapping_status": "structural_equivalent",
           "high_risk": true,
-          "review_required": true,
+          "review_required": false,
           "risk_tags": [
             "txpool"
           ],
@@ -11685,26 +11501,46 @@
             "txpool",
             "high-risk",
             "non-exact",
-            "needs-review",
             "reth-port"
           ],
           "required_change": null,
-          "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor.",
+          "human_question": null,
           "destinations": [
             {
               "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
-              "path": "crates/transaction-pool/src/config.rs",
+              "path": "crates/transaction-pool/src/pool/mod.rs",
               "symbols": [
-                "is_exceeded",
-                "default",
-                "new"
+                "PoolInner::on_canonical_state_change",
+                "process_async_commitment_transactions",
+                "process_async_settlement_transactions"
               ],
-              "snippet": "    pub const fn is_exceeded(&self, pool_size: PoolSize) -> bool {\n        self.blob_limit.is_exceeded(pool_size.blob, pool_size.blob_size) ||\n            self.pending_limit.is_exceeded(pool_size.pending, pool_size.pending_size) ||\n            self.basefee_limit.is_exceeded(pool_size.basefee, pool_size.basefee_size) ||\n            self.queued_limit.is_exceeded(pool_size.queued, pool_size.queued_size)",
-              "evidence": "The destination keeps the module at the same relative path with overlapping symbols ['is_exceeded', 'default', 'new']."
+              "snippet": "let processed_async_commitments = self.process_async_commitment_transactions(new_tip);\nlet removed_async_settlements = self.process_async_settlement_transactions(new_tip);",
+              "evidence": "The txpool canonical-state update now invokes async commitment and settlement lifecycle transitions directly after the normal pool update, so the async pool state is maintained without a separate blocking handler file."
+            },
+            {
+              "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+              "path": "crates/ethereum/payload/src/lib.rs",
+              "symbols": [
+                "compute_obligations",
+                "create_scheduled_execution_transaction_from_state",
+                "verify_scheduled_transactions_full_with_predicate_evaluator"
+              ],
+              "snippet": "let obligations = compute_obligations(&mut scheduled_db, current_block, base_fee, None)?;\nlet scheduled_tx = create_scheduled_execution_transaction_from_state(builder.evm_mut().db_mut(), &obligation);",
+              "evidence": "Scheduled system transactions are synthesized and validated from parent Scheduler state in the payload path rather than submitted into a txpool scheduled subpool by a canonical-state callback."
+            },
+            {
+              "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+              "path": "crates/ritual-block-verification/src/lib.rs",
+              "symbols": [
+                "verify_scheduled_transactions_full_with_predicate_evaluator",
+                "verify_missed_scheduled_obligations"
+              ],
+              "snippet": "compute_obligations(&mut db, block_number, base_fee, None)",
+              "evidence": "Verifier-side missed-obligation checks replace the old best-effort canonical scheduling callback as the consensus safety boundary."
             }
           ],
-          "negative_test_candidate": "Run the destination behavior owned by crates/transaction-pool/src/config.rs and verify the downstream-observed behavior still holds after the port refactor.",
-          "confidence_note": "generic_atom_needs_human_refinement"
+          "negative_test_candidate": "Insert an original async transaction, canonicalize a block containing its TxAsyncCommitment, and assert the original is pruned from normal pools while async metadata is created and locks the sender.",
+          "confidence_note": "first_pass_verified"
         },
         {
           "primary_feature": "txpool-admission",
@@ -11717,7 +11553,7 @@
           "semantic_claim": "The downstream diff for crates/transaction-pool/src/lib.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
           "mapping_status": "structural_equivalent",
           "high_risk": true,
-          "review_required": true,
+          "review_required": false,
           "risk_tags": [
             "txpool"
           ],
@@ -11726,157 +11562,37 @@
             "txpool",
             "high-risk",
             "non-exact",
-            "needs-review",
             "reth-port"
           ],
           "required_change": null,
-          "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor.",
+          "human_question": null,
           "destinations": [
+            {
+              "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+              "path": "crates/transaction-pool/src/traits.rs",
+              "symbols": [
+                "TransactionPool::get_fulfilled_original_async_commitment_transactions",
+                "TransactionPool::submit_async_result",
+                "TransactionPool::mark_async_awaiting_delivery",
+                "TransactionPool::get_async_metadata"
+              ],
+              "snippet": "fn submit_async_result(&self, submission: crate::pool::AsyncResultSubmission) -> Result<(), crate::pool::AsyncPoolError>;\nfn get_async_metadata(&self, original_tx_hash: &TxHash) -> Option<crate::pool::AsyncTxMetadata<Self::Transaction>>;",
+              "evidence": "The v2.2 public trait still exposes async lifecycle result submission, metadata lookup, fulfilled-original replay, and delivery-ready replay boundaries needed by RPC and payload building."
+            },
             {
               "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
               "path": "crates/transaction-pool/src/lib.rs",
               "symbols": [
-                "t",
-                "new",
-                "inner",
-                "config",
-                "validate"
+                "Pool::add_async_metadata",
+                "Pool::submit_async_result",
+                "Pool::get_fulfilled_original_async_commitment_transactions"
               ],
-              "snippet": "//! Reth's transaction pool implementation.\n//!\n//! This crate provides a generic transaction pool implementation.\n//!\n//! ## Functionality",
-              "evidence": "The destination keeps the module at the same relative path with overlapping symbols ['t', 'new', 'inner', 'config', 'validate']."
+              "snippet": "pub fn submit_async_result(&self, submission: AsyncResultSubmission) -> Result<(), AsyncPoolError> {\n    self.pool.submit_async_result(submission)\n}",
+              "evidence": "Pool wrappers forward the async lifecycle APIs to PoolInner for consumers that hold the concrete Pool type."
             }
           ],
-          "negative_test_candidate": "Run the destination behavior owned by crates/transaction-pool/src/lib.rs and verify the downstream-observed behavior still holds after the port refactor.",
-          "confidence_note": "generic_atom_needs_human_refinement"
-        },
-        {
-          "primary_feature": "txpool-admission",
-          "feature_title": "Transaction pool, admission, and ordering",
-          "record_id": "file-0530-atom-0001",
-          "file_index": 530,
-          "source_path": "crates/transaction-pool/src/pool/best.rs",
-          "source_hunk_hint": "@@ -58,2 +58,3 @@ impl<T: TransactionOrdering> Iterator for BestTransactionsWithFees<T> {",
-          "source_kind": "other",
-          "semantic_claim": "The downstream diff for crates/transaction-pool/src/pool/best.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
-          "mapping_status": "structural_equivalent",
-          "high_risk": true,
-          "review_required": true,
-          "risk_tags": [
-            "txpool"
-          ],
-          "file_tags": [
-            "mapped",
-            "txpool",
-            "high-risk",
-            "non-exact",
-            "needs-review",
-            "reth-port"
-          ],
-          "required_change": null,
-          "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor.",
-          "destinations": [
-            {
-              "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
-              "path": "crates/transaction-pool/src/pool/best.rs",
-              "symbols": [
-                "mark_invalid",
-                "no_updates",
-                "skip_blobs",
-                "set_skip_blobs",
-                "next"
-              ],
-              "snippet": "    fn mark_invalid(&mut self, tx: &Self::Item, kind: &InvalidPoolTransactionError) {\n        BestTransactions::mark_invalid(&mut self.best, tx, kind)\n    }\n\n    fn no_updates(&mut self) {",
-              "evidence": "The destination keeps the module at the same relative path with overlapping symbols ['mark_invalid', 'no_updates', 'skip_blobs', 'set_skip_blobs', 'next']."
-            }
-          ],
-          "negative_test_candidate": "Run the destination behavior owned by crates/transaction-pool/src/pool/best.rs and verify the downstream-observed behavior still holds after the port refactor.",
-          "confidence_note": "generic_atom_needs_human_refinement"
-        },
-        {
-          "primary_feature": "txpool-admission",
-          "feature_title": "Transaction pool, admission, and ordering",
-          "record_id": "file-0531-atom-0001",
-          "file_index": 531,
-          "source_path": "crates/transaction-pool/src/pool/blob.rs",
-          "source_hunk_hint": "@@ -100,4 +100,4 @@ impl<T: PoolTransaction> BlobTransactions<T> {",
-          "source_kind": "other",
-          "semantic_claim": "The downstream diff for crates/transaction-pool/src/pool/blob.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
-          "mapping_status": "structural_equivalent",
-          "high_risk": true,
-          "review_required": true,
-          "risk_tags": [
-            "txpool"
-          ],
-          "file_tags": [
-            "mapped",
-            "txpool",
-            "high-risk",
-            "non-exact",
-            "needs-review",
-            "reth-port"
-          ],
-          "required_change": null,
-          "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor.",
-          "destinations": [
-            {
-              "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
-              "path": "crates/transaction-pool/src/pool/blob.rs",
-              "symbols": [
-                "add_transaction",
-                "next_id",
-                "remove_transaction",
-                "satisfy_attributes",
-                "exceeds"
-              ],
-              "snippet": "    pub fn add_transaction(&mut self, tx: Arc<ValidPoolTransaction<T>>) {\n        assert!(tx.is_eip4844(), \"transaction is not a blob tx\");\n        let id = *tx.id();\n        assert!(!self.contains(&id), \"transaction already included {:?}\", self.get(&id).unwrap());\n        let submission_id = self.next_id();",
-              "evidence": "The destination keeps the module at the same relative path with overlapping symbols ['add_transaction', 'next_id', 'remove_transaction', 'satisfy_attributes', 'exceeds']."
-            }
-          ],
-          "negative_test_candidate": "Run the destination behavior owned by crates/transaction-pool/src/pool/blob.rs and verify the downstream-observed behavior still holds after the port refactor.",
-          "confidence_note": "generic_atom_needs_human_refinement"
-        },
-        {
-          "primary_feature": "txpool-admission",
-          "feature_title": "Transaction pool, admission, and ordering",
-          "record_id": "file-0534-atom-0001",
-          "file_index": 534,
-          "source_path": "crates/transaction-pool/src/pool/pending.rs",
-          "source_hunk_hint": "@@ -191 +191 @@ impl<T: TransactionOrdering> PendingPool<T> {",
-          "source_kind": "other",
-          "semantic_claim": "The downstream diff for crates/transaction-pool/src/pool/pending.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
-          "mapping_status": "structural_equivalent",
-          "high_risk": true,
-          "review_required": true,
-          "risk_tags": [
-            "txpool"
-          ],
-          "file_tags": [
-            "mapped",
-            "txpool",
-            "high-risk",
-            "non-exact",
-            "needs-review",
-            "reth-port"
-          ],
-          "required_change": null,
-          "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor.",
-          "destinations": [
-            {
-              "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
-              "path": "crates/transaction-pool/src/pool/pending.rs",
-              "symbols": [
-                "new",
-                "with_buffer",
-                "clear_transactions",
-                "best",
-                "best_with_basefee_and_blobfee"
-              ],
-              "snippet": "    /// Used to broadcast new transactions that have been added to the `PendingPool` to existing\n    /// `static_files` of this pool.\n    new_transaction_notifier: broadcast::Sender<PendingTransaction<T>>,\n}\n",
-              "evidence": "The destination keeps the module at the same relative path with overlapping symbols ['new', 'with_buffer', 'clear_transactions', 'best', 'best_with_basefee_and_blobfee']."
-            }
-          ],
-          "negative_test_candidate": "Run the destination behavior owned by crates/transaction-pool/src/pool/pending.rs and verify the downstream-observed behavior still holds after the port refactor.",
-          "confidence_note": "generic_atom_needs_human_refinement"
+          "negative_test_candidate": "Submit async result metadata through the pool trait and assert payload-facing fulfilled-original lookup returns only non-expired fulfilled entries; attempt a new sender transaction while async metadata locks that sender and expect SenderLocked.",
+          "confidence_note": "first_pass_verified"
         },
         {
           "primary_feature": "txpool-admission",
@@ -11889,7 +11605,7 @@
           "semantic_claim": "The downstream diff for crates/transaction-pool/src/pool/state.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
           "mapping_status": "structural_equivalent",
           "high_risk": true,
-          "review_required": true,
+          "review_required": false,
           "risk_tags": [
             "txpool"
           ],
@@ -11898,28 +11614,36 @@
             "txpool",
             "high-risk",
             "non-exact",
-            "needs-review",
             "reth-port"
           ],
           "required_change": null,
-          "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor.",
+          "human_question": null,
           "destinations": [
             {
               "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
               "path": "crates/transaction-pool/src/pool/state.rs",
               "symbols": [
-                "is_pending",
-                "is_blob",
-                "has_nonce_gap",
-                "is_queued",
-                "is_base_fee"
+                "SubPool",
+                "TxState::is_pending",
+                "TxState::determine_queued_reason"
               ],
-              "snippet": "    pub(crate) const fn is_pending(&self) -> bool {\n        self.bits() >= Self::PENDING_POOL_BITS.bits()\n    }\n\n    /// Whether this transaction is a blob transaction.",
-              "evidence": "The destination keeps the module at the same relative path with overlapping symbols ['is_pending', 'is_blob', 'has_nonce_gap', 'is_queued', 'is_base_fee']."
+              "snippet": "pub enum SubPool {\n    Queued = 0,\n    BaseFee,\n    Blob,\n    Pending,\n}",
+              "evidence": "The executable transaction subpool state remains the v2.2 upstream four-pool model; Ritual-specific async/scheduled lifecycle is no longer encoded as SubPool variants."
+            },
+            {
+              "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+              "path": "crates/transaction-pool/src/pool/async_pool.rs",
+              "symbols": [
+                "AsyncPool",
+                "AsyncTxMetadata",
+                "AsyncState"
+              ],
+              "snippet": "pub enum AsyncState {\n    AwaitingExecution,\n    Fulfilled,\n    AwaitingDelivery,\n    DeliveryReady,\n}",
+              "evidence": "Async lifecycle state is tracked in a dedicated metadata pool instead of in normal transaction subpool classification."
             }
           ],
-          "negative_test_candidate": "Run the destination behavior owned by crates/transaction-pool/src/pool/state.rs and verify the downstream-observed behavior still holds after the port refactor.",
-          "confidence_note": "generic_atom_needs_human_refinement"
+          "negative_test_candidate": "Attempt to add a non-system transaction from a sender with canonical async metadata and expect SenderLocked; canonicalize a commitment and assert the async metadata lock is installed without requiring a SubPool::AsyncCommitment variant.",
+          "confidence_note": "first_pass_verified"
         },
         {
           "primary_feature": "txpool-admission",
@@ -11930,26 +11654,45 @@
           "source_hunk_hint": "@@ -0,0 +1,57 @@",
           "source_kind": "other",
           "semantic_claim": "The downstream diff for crates/transaction-pool/tests/it/async_exec.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
-          "mapping_status": "missing",
+          "mapping_status": "structural_equivalent",
           "high_risk": true,
-          "review_required": true,
+          "review_required": false,
           "risk_tags": [
             "async-fsm",
             "txpool"
           ],
           "file_tags": [
-            "missing",
+            "mapped",
             "async-fsm",
             "txpool",
             "high-risk",
             "non-exact",
-            "needs-review"
+            "reth-port"
           ],
-          "required_change": "Restore or intentionally replace the downstream behavior carried by crates/transaction-pool/tests/it/async_exec.rs; no reliable destination evidence was found in the configured search scope.",
+          "required_change": null,
           "human_question": null,
-          "destinations": [],
-          "negative_test_candidate": "Exercise the crates/transaction-pool/tests/it/async_exec.rs behavior boundary in the port and verify the downstream path-specific behavior still exists; absence or changed rejection/ordering would falsify the mapping.",
-          "confidence_note": "generic_atom_needs_human_refinement"
+          "destinations": [
+            {
+              "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+              "path": "crates/transaction-pool/src/pool/mod.rs",
+              "symbols": [
+                "canonical_async_commitment_moves_original_to_async_pool"
+              ],
+              "snippet": "fn canonical_async_commitment_moves_original_to_async_pool() {\n    ...\n    test_pool.on_canonical_state_change(crate::CanonicalStateUpdate { ... });\n}",
+              "evidence": "The new regression asserts a canonical TxAsyncCommitment prunes the original transaction from normal pools, creates async metadata, records commit/expiry blocks, and locks the original sender."
+            },
+            {
+              "repo": "/home/ritual/repos/sjs-agent-sessions",
+              "path": "reth-upstream-merge/gold1p-batch-results-precompile-registry-rerun.json",
+              "symbols": [
+                "gold1p precompile-sensitive rerun"
+              ],
+              "snippet": "15/15 precompile-sensitive gold1p workloads passed",
+              "evidence": "Traffic evidence exercises async/precompile transaction admission and payload inclusion on the local network."
+            }
+          ],
+          "negative_test_candidate": "Remove the canonical async commitment processing call from PoolInner::on_canonical_state_change; the new regression should leave the original in the normal pool and fail to find async metadata.",
+          "confidence_note": "first_pass_verified"
         }
       ]
     },

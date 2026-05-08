@@ -9,13 +9,13 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "missing",
+  "file_classification": "mapped",
   "tags": [
-    "missing",
+    "mapped",
     "txpool",
     "high-risk",
     "non-exact",
-    "needs-review"
+    "reth-port"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -33,26 +33,62 @@
       "risk_tags": [
         "txpool"
       ],
-      "mapping_status": "missing",
-      "destinations": [],
-      "equivalence_argument": null,
-      "test_strategy": "adapted_equivalence_test",
-      "negative_test_candidate": "Exercise the crates/transaction-pool/src/blocking_handlers.rs behavior boundary in the port and verify the downstream path-specific behavior still exists; absence or changed rejection/ordering would falsify the mapping.",
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/mod.rs",
+          "symbols": [
+            "PoolInner::on_canonical_state_change",
+            "process_async_commitment_transactions",
+            "process_async_settlement_transactions"
+          ],
+          "snippet": "let processed_async_commitments = self.process_async_commitment_transactions(new_tip);\nlet removed_async_settlements = self.process_async_settlement_transactions(new_tip);",
+          "evidence": "The txpool canonical-state update now invokes async commitment and settlement lifecycle transitions directly after the normal pool update, so the async pool state is maintained without a separate blocking handler file."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "compute_obligations",
+            "create_scheduled_execution_transaction_from_state",
+            "verify_scheduled_transactions_full_with_predicate_evaluator"
+          ],
+          "snippet": "let obligations = compute_obligations(&mut scheduled_db, current_block, base_fee, None)?;\nlet scheduled_tx = create_scheduled_execution_transaction_from_state(builder.evm_mut().db_mut(), &obligation);",
+          "evidence": "Scheduled system transactions are synthesized and validated from parent Scheduler state in the payload path rather than submitted into a txpool scheduled subpool by a canonical-state callback."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "verify_scheduled_transactions_full_with_predicate_evaluator",
+            "verify_missed_scheduled_obligations"
+          ],
+          "snippet": "compute_obligations(&mut db, block_number, base_fee, None)",
+          "evidence": "Verifier-side missed-obligation checks replace the old best-effort canonical scheduling callback as the consensus safety boundary."
+        }
+      ],
+      "equivalence_argument": "The downstream blocking handler was not restored as a file because its live behavior is split across v2.2 owners: txpool canonical updates process async commitments/settlements, and scheduled/heartbeat work is handled by state-derived payload construction plus verifier missed-obligation checks. The old ritual-scheduling callback path is intentionally not part of the active v2.2 FSM.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Insert an original async transaction, canonicalize a block containing its TxAsyncCommitment, and assert the original is pruned from normal pools while async metadata is created and locks the sender.",
       "adversarial_review": {
         "required": true,
-        "status": "not_requested",
-        "review_record_id": null
+        "status": "pass",
+        "review_record_id": "review-file-0521-atom-0001"
       },
-      "review_required": true,
-      "notes": "No same-path or uniquely named destination evidence was found in the configured search scope.",
-      "required_change": "Restore or intentionally replace the downstream behavior carried by crates/transaction-pool/src/blocking_handlers.rs; no reliable destination evidence was found in the configured search scope."
+      "review_required": false,
+      "notes": "The old file mixed async-pool finalization, legacy ritual-scheduling, and heartbeat revive enqueueing. The active v2.2 path intentionally does not restore the dormant ritual-scheduling blocking handler; scheduled obligations are state-derived during payload build and verified against parent state.",
+      "human_question": null,
+      "required_change": null
     }
   ],
   "high_risk_atoms_total": 1,
   "non_exact_atoms_total": 1,
-  "adversarial_reviews": [],
-  "summary": "No reliable destination evidence was found for the downstream file-level behavior.",
-  "review_required": true,
-  "status": "needs_review",
-  "notes": "No same-path or uniquely named destination evidence was found in the configured search scope."
+  "adversarial_reviews": [
+    "coverage-map/reviews/review-file-0521-atom-0001.json"
+  ],
+  "summary": "Old blocking canonical-handler behavior is preserved through refactored v2.2 owners: async commitment/settlement updates run in txpool canonical-state maintenance, while scheduled obligation construction and verification live in payload and block-verification crates.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "The old file mixed async-pool finalization, legacy ritual-scheduling, and heartbeat revive enqueueing. The active v2.2 path intentionally does not restore the dormant ritual-scheduling blocking handler; scheduled obligations are state-derived during payload build and verified against parent state."
 }

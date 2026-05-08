@@ -1,0 +1,11 @@
+{
+  "record_type": "adversarial_review",
+  "record_id": "review-file-0521-atom-0001",
+  "atom_record_id": "file-0521-atom-0001",
+  "review_result": "pass",
+  "falsification_attempt": "Checked whether the missing blocking_handlers.rs file represented an unported live v2.2 dependency. The old async commitment finalization behavior exists in PoolInner::on_canonical_state_change, and the scheduled/heartbeat branch belongs to the superseded ritual-scheduling path that the port replaced with parent-state obligation synthesis plus verifier missed-obligation checks.",
+  "missed_risks": [
+    "The old chain-state blocking-before-async notification ordering is tracked separately by async-core file-0022 and is not closed by this txpool reclassification."
+  ],
+  "notes": "Added a destination-only txpool regression for canonical async commitment processing."
+}

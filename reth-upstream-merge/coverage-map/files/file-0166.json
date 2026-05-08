@@ -9,60 +9,17 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "mapped",
+  "file_classification": "noise",
   "tags": [
-    "mapped",
-    "non-exact",
-    "needs-review",
-    "reth-port"
+    "noise"
   ],
-  "atoms_total": 1,
-  "atoms": [
-    {
-      "record_id": "file-0166-atom-0001",
-      "file_index": 166,
-      "atom_index": 1,
-      "atoms_total": 1,
-      "source_path": "crates/net/network/src/session/active.rs",
-      "source_hunk_hint": "@@ -223 +223 @@ impl<N: NetworkPrimitives> ActiveSession<N> {",
-      "source_kind": "other",
-      "source_snippet": "                    };\n        Instant::now()\n            + Duration::from_millis(self.internal_request_timeout.load(Ordering::Relaxed))\n                    return true;\n                return Some(Poll::Pending);\n            return terminate;",
-      "semantic_claim": "The downstream diff for crates/net/network/src/session/active.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
-      "high_risk": false,
-      "risk_tags": [],
-      "mapping_status": "structural_equivalent",
-      "destinations": [
-        {
-          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
-          "path": "crates/net/network/src/session/active.rs",
-          "symbols": [
-            "is_disconnecting",
-            "next_id",
-            "shrink_to_fit",
-            "queued_response_count"
-          ],
-          "snippet": "    fn is_disconnecting(&self) -> bool {\n        self.conn.inner().is_disconnecting()\n    }\n\n    /// Returns the next request id",
-          "evidence": "The destination keeps the module at the same relative path with overlapping symbols ['is_disconnecting', 'next_id', 'shrink_to_fit', 'queued_response_count']."
-        }
-      ],
-      "equivalence_argument": "The downstream behavior still resides in the same integration surface in the destination workspace, but the implementation was refactored or reshaped; review is required to confirm full semantic parity.",
-      "test_strategy": "not_needed",
-      "negative_test_candidate": null,
-      "adversarial_review": {
-        "required": false,
-        "status": "not_requested",
-        "review_record_id": null
-      },
-      "review_required": true,
-      "notes": "The destination keeps the module at the same relative path with overlapping symbols ['is_disconnecting', 'next_id', 'shrink_to_fit', 'queued_response_count'].",
-      "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor."
-    }
-  ],
+  "atoms_total": 0,
+  "atoms": [],
   "high_risk_atoms_total": 0,
-  "non_exact_atoms_total": 1,
+  "non_exact_atoms_total": 0,
   "adversarial_reviews": [],
-  "summary": "The downstream file maps to destination code but needs review because the destination implementation was refactored or moved.",
-  "review_required": true,
-  "status": "needs_review",
-  "notes": "The destination keeps the module at the same relative path with overlapping symbols ['is_disconnecting', 'next_id', 'shrink_to_fit', 'queued_response_count']."
+  "summary": "Formatting-only Rust semicolon/rustfmt normalization intentionally skipped as noise.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Formatting-only Rust normalization in active session handling; unrelated to txpool admission or ordering."
 }

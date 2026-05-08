@@ -1,0 +1,11 @@
+{
+  "record_type": "adversarial_review",
+  "record_id": "review-file-0545-atom-0001",
+  "atom_record_id": "file-0545-atom-0001",
+  "review_result": "pass",
+  "falsification_attempt": "Checked whether the old async_exec.rs test still maps to a live v2.2 primitive. The old Transaction::AsyncCommitment test shape is stale; the active invariant is canonical TxAsyncCommitment lifecycle transition, now covered by a focused unit regression.",
+  "missed_risks": [
+    "This does not reintroduce a full e2e test under crates/transaction-pool/tests/it; broader happy-path coverage remains the gold1p traffic suite."
+  ],
+  "notes": "The replacement test is intentionally lower-level and deterministic."
+}

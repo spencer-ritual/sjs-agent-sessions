@@ -15,7 +15,6 @@
     "txpool",
     "high-risk",
     "non-exact",
-    "needs-review",
     "reth-port"
   ],
   "atoms_total": 1,
@@ -40,34 +39,46 @@
           "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
           "path": "crates/transaction-pool/src/pool/state.rs",
           "symbols": [
-            "is_pending",
-            "is_blob",
-            "has_nonce_gap",
-            "is_queued",
-            "is_base_fee"
+            "SubPool",
+            "TxState::is_pending",
+            "TxState::determine_queued_reason"
           ],
-          "snippet": "    pub(crate) const fn is_pending(&self) -> bool {\n        self.bits() >= Self::PENDING_POOL_BITS.bits()\n    }\n\n    /// Whether this transaction is a blob transaction.",
-          "evidence": "The destination keeps the module at the same relative path with overlapping symbols ['is_pending', 'is_blob', 'has_nonce_gap', 'is_queued', 'is_base_fee']."
+          "snippet": "pub enum SubPool {\n    Queued = 0,\n    BaseFee,\n    Blob,\n    Pending,\n}",
+          "evidence": "The executable transaction subpool state remains the v2.2 upstream four-pool model; Ritual-specific async/scheduled lifecycle is no longer encoded as SubPool variants."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/async_pool.rs",
+          "symbols": [
+            "AsyncPool",
+            "AsyncTxMetadata",
+            "AsyncState"
+          ],
+          "snippet": "pub enum AsyncState {\n    AwaitingExecution,\n    Fulfilled,\n    AwaitingDelivery,\n    DeliveryReady,\n}",
+          "evidence": "Async lifecycle state is tracked in a dedicated metadata pool instead of in normal transaction subpool classification."
         }
       ],
-      "equivalence_argument": "The downstream behavior still resides in the same integration surface in the destination workspace, but the implementation was refactored or reshaped; review is required to confirm full semantic parity.",
+      "equivalence_argument": "The old extra SubPool variants are intentionally replaced rather than ported literally. Normal candidate ordering still uses pending/basefee/blob/queued state, while async and scheduled special cases are enforced by async metadata sender locks, canonical commitment handling, payload-built scheduled obligations, and block-verifier checks.",
       "test_strategy": "destination_only_regression",
-      "negative_test_candidate": "Run the destination behavior owned by crates/transaction-pool/src/pool/state.rs and verify the downstream-observed behavior still holds after the port refactor.",
+      "negative_test_candidate": "Attempt to add a non-system transaction from a sender with canonical async metadata and expect SenderLocked; canonicalize a commitment and assert the async metadata lock is installed without requiring a SubPool::AsyncCommitment variant.",
       "adversarial_review": {
         "required": true,
-        "status": "not_requested",
-        "review_record_id": null
+        "status": "pass",
+        "review_record_id": "review-file-0536-atom-0001"
       },
-      "review_required": true,
-      "notes": "The destination keeps the module at the same relative path with overlapping symbols ['is_pending', 'is_blob', 'has_nonce_gap', 'is_queued', 'is_base_fee'].",
-      "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor."
+      "review_required": false,
+      "notes": "Old Scheduled and AsyncCommitment SubPool variants were part of the superseded direct-subpool design. The active v2.2 design keeps async commitments as canonical lifecycle metadata and treats scheduled transactions through payload/verifier state-derived obligations.",
+      "human_question": null,
+      "required_change": null
     }
   ],
   "high_risk_atoms_total": 1,
   "non_exact_atoms_total": 1,
-  "adversarial_reviews": [],
-  "summary": "The downstream file maps to destination code but needs review because the destination implementation was refactored or moved.",
-  "review_required": true,
-  "status": "needs_review",
-  "notes": "The destination keeps the module at the same relative path with overlapping symbols ['is_pending', 'is_blob', 'has_nonce_gap', 'is_queued', 'is_base_fee']."
+  "adversarial_reviews": [
+    "coverage-map/reviews/review-file-0536-atom-0001.json"
+  ],
+  "summary": "The current pool keeps upstream pending/basefee/blob/queued subpools and moves Ritual async/scheduled behavior out of SubPool variants into async lifecycle metadata and payload/verifier scheduled execution.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Old Scheduled and AsyncCommitment SubPool variants were part of the superseded direct-subpool design. The active v2.2 design keeps async commitments as canonical lifecycle metadata and treats scheduled transactions through payload/verifier state-derived obligations."
 }

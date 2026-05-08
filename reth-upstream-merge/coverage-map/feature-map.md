@@ -5,10 +5,10 @@ Generated from the completed coverage-map atom artifacts. This is a higher-level
 ## Source State
 
 - File artifacts: `579/579`
-- Atoms: `357` total, `220` high-risk, `318` non-exact
-- Human-review queue entries: `306`
+- Atoms: `349` total, `216` high-risk, `310` non-exact
+- Human-review queue entries: `294`
 - Validation errors: `0`
-- Atom status counts: `{'missing': 95, 'structural_equivalent': 180, 'intentionally_absent': 5, 'exact': 35, 'moved_to_dependency': 30, 'noise': 4, 'covered_by_upstream': 4, 'blocked': 4}`
+- Atom status counts: `{'missing': 93, 'structural_equivalent': 174, 'intentionally_absent': 5, 'exact': 35, 'moved_to_dependency': 30, 'noise': 4, 'covered_by_upstream': 4, 'blocked': 4}`
 
 ## Reading Notes
 
@@ -23,7 +23,7 @@ Generated from the completed coverage-map atom artifacts. This is a higher-level
 | --------------------------------------------------------- | ----- | --------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
 | Transaction identity, wire encoding, and storage codecs   | 42    | 14        | 38              | `{'structural_equivalent': 34, 'moved_to_dependency': 4, 'intentionally_absent': 2, 'covered_by_upstream': 1, 'exact': 1}`                                          | 41            |
 | Precompile dispatch, SPC, and executor registry           | 21    | 15        | 10              | `{'structural_equivalent': 14, 'exact': 7}`                                                                                                                         | 14            |
-| Transaction pool, admission, and ordering                 | 12    | 8         | 12              | `{'structural_equivalent': 10, 'missing': 2}`                                                                                                                       | 12            |
+| Transaction pool, admission, and ordering                 | 4     | 4         | 0               | `{'structural_equivalent': 4}`                                                                                                                                      | 4             |
 | Core async execution and settlement                       | 105   | 81        | 95              | `{'missing': 44, 'noise': 1, 'covered_by_upstream': 2, 'intentionally_absent': 1, 'structural_equivalent': 37, 'moved_to_dependency': 9, 'blocked': 3, 'exact': 8}` | 65            |
 | Long-running async delivery FSM                           | 4     | 4         | 3               | `{'missing': 1, 'moved_to_dependency': 1, 'structural_equivalent': 1, 'exact': 1}`                                                                                  | 3             |
 | Scheduled transactions and missed-obligation verification | 81    | 61        | 67              | `{'noise': 3, 'structural_equivalent': 26, 'exact': 16, 'missing': 24, 'moved_to_dependency': 12}`                                                                  | 56            |
@@ -111,35 +111,25 @@ Trace IDs by status:
 
 ## Transaction pool, admission, and ordering
 
-Txpool async/scheduled subpools, admission validation, pending/parked/blob behavior, sequencing rights, and candidate ordering.
+Txpool async/scheduled admission, canonical async commitment finalization, and candidate ordering. Formatting-only network/storage/txpool records previously grouped here were reclassified as noise. Sequencing-rights crate atoms remain tracked in their existing scheduled/payload feature groups rather than this narrowed first pass.
 
-- Counts: `12` atoms; `8` high-risk; `12` review-required; statuses `{'missing': 2, 'structural_equivalent': 10}`.
-- Precision note: `12` atoms in this group use generic coverage wording and should be refined from source/destination evidence before code changes.
+- Counts: `4` atoms; `4` high-risk; `0` review-required; statuses `{'structural_equivalent': 4}`.
+- Precision note: all four remaining atoms use generic coverage wording but now have destination evidence and adversarial review records.
 
 Actionable gaps:
 
-- `file-0521-atom-0001` `missing` (high-risk, review, generic): `crates/transaction-pool/src/blocking_handlers.rs` — The downstream diff for crates/transaction-pool/src/blocking_handlers.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0545-atom-0001` `missing` (high-risk, review, generic): `crates/transaction-pool/tests/it/async_exec.rs` — The downstream diff for crates/transaction-pool/tests/it/async_exec.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- None in this feature group after the first pass.
 
 Representative atoms:
 
-- `file-0521-atom-0001` `missing` (high-risk, review, generic): `crates/transaction-pool/src/blocking_handlers.rs` — The downstream diff for crates/transaction-pool/src/blocking_handlers.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0545-atom-0001` `missing` (high-risk, review, generic): `crates/transaction-pool/tests/it/async_exec.rs` — The downstream diff for crates/transaction-pool/tests/it/async_exec.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0522-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/transaction-pool/src/config.rs` — The downstream diff for crates/transaction-pool/src/config.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0524-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/transaction-pool/src/lib.rs` — The downstream diff for crates/transaction-pool/src/lib.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0530-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/transaction-pool/src/pool/best.rs` — The downstream diff for crates/transaction-pool/src/pool/best.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0531-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/transaction-pool/src/pool/blob.rs` — The downstream diff for crates/transaction-pool/src/pool/blob.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0534-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/transaction-pool/src/pool/pending.rs` — The downstream diff for crates/transaction-pool/src/pool/pending.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0536-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/transaction-pool/src/pool/state.rs` — The downstream diff for crates/transaction-pool/src/pool/state.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0119-atom-0001` `structural_equivalent` (review, generic): `crates/net/discv4/src/lib.rs` — The downstream diff for crates/net/discv4/src/lib.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0161-atom-0001` `structural_equivalent` (review, generic): `crates/net/network/src/fetch/mod.rs` — The downstream diff for crates/net/network/src/fetch/mod.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0166-atom-0001` `structural_equivalent` (review, generic): `crates/net/network/src/session/active.rs` — The downstream diff for crates/net/network/src/session/active.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0490-atom-0001` `structural_equivalent` (review, generic): `crates/storage/nippy-jar/src/consistency.rs` — The downstream diff for crates/storage/nippy-jar/src/consistency.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0521-atom-0001` `structural_equivalent` (high-risk, generic): `crates/transaction-pool/src/blocking_handlers.rs` — Old blocking handler behavior is split across txpool canonical async lifecycle processing plus payload/verifier scheduled obligation handling; the dormant `ritual-scheduling` blocking callback was intentionally not restored.
+- `file-0524-atom-0001` `structural_equivalent` (high-risk, generic): `crates/transaction-pool/src/lib.rs` — Async lifecycle pool APIs and sender-lock admission are preserved through current v2.2 traits and `Pool` wrappers; old direct scheduled/async subpool APIs are replaced by canonical metadata and payload-derived scheduling.
+- `file-0536-atom-0001` `structural_equivalent` (high-risk, generic): `crates/transaction-pool/src/pool/state.rs` — Normal candidate ordering remains the upstream pending/basefee/blob/queued model, while Ritual async/scheduled lifecycle moved out of `SubPool` variants.
+- `file-0545-atom-0001` `structural_equivalent` (high-risk, generic): `crates/transaction-pool/tests/it/async_exec.rs` — The stale old integration test is replaced by `canonical_async_commitment_moves_original_to_async_pool` and existing gold1p async/precompile traffic evidence.
 
 Trace IDs by status:
 
-- `missing`: file-0521-atom-0001, file-0545-atom-0001
-- `structural_equivalent`: file-0119-atom-0001, file-0161-atom-0001, file-0166-atom-0001, file-0490-atom-0001, file-0522-atom-0001, file-0524-atom-0001, file-0530-atom-0001, file-0531-atom-0001, file-0534-atom-0001, file-0536-atom-0001
+- `structural_equivalent`: file-0521-atom-0001, file-0524-atom-0001, file-0536-atom-0001, file-0545-atom-0001
 
 ## Core async execution and settlement
 
