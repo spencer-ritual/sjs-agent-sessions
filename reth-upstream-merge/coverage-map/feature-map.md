@@ -6,9 +6,9 @@ Generated from the completed coverage-map atom artifacts. This is a higher-level
 
 - File artifacts: `579/579`
 - Atoms: `357` total, `220` high-risk, `318` non-exact
-- Human-review queue entries: `310`
+- Human-review queue entries: `306`
 - Validation errors: `0`
-- Atom status counts: `{'missing': 98, 'structural_equivalent': 176, 'intentionally_absent': 5, 'exact': 35, 'moved_to_dependency': 30, 'noise': 4, 'covered_by_upstream': 4, 'blocked': 5}`
+- Atom status counts: `{'missing': 95, 'structural_equivalent': 180, 'intentionally_absent': 5, 'exact': 35, 'moved_to_dependency': 30, 'noise': 4, 'covered_by_upstream': 4, 'blocked': 4}`
 
 ## Reading Notes
 
@@ -22,7 +22,7 @@ Generated from the completed coverage-map atom artifacts. This is a higher-level
 | Feature                                                   | Atoms | High Risk | Review Required | Status Counts                                                                                                                                                       | Generic Atoms |
 | --------------------------------------------------------- | ----- | --------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
 | Transaction identity, wire encoding, and storage codecs   | 42    | 14        | 38              | `{'structural_equivalent': 34, 'moved_to_dependency': 4, 'intentionally_absent': 2, 'covered_by_upstream': 1, 'exact': 1}`                                          | 41            |
-| Precompile dispatch, SPC, and executor registry           | 21    | 15        | 14              | `{'structural_equivalent': 10, 'missing': 3, 'blocked': 1, 'exact': 7}`                                                                                             | 14            |
+| Precompile dispatch, SPC, and executor registry           | 21    | 15        | 10              | `{'structural_equivalent': 14, 'exact': 7}`                                                                                                                         | 14            |
 | Transaction pool, admission, and ordering                 | 12    | 8         | 12              | `{'structural_equivalent': 10, 'missing': 2}`                                                                                                                       | 12            |
 | Core async execution and settlement                       | 105   | 81        | 95              | `{'missing': 44, 'noise': 1, 'covered_by_upstream': 2, 'intentionally_absent': 1, 'structural_equivalent': 37, 'moved_to_dependency': 9, 'blocked': 3, 'exact': 8}` | 65            |
 | Long-running async delivery FSM                           | 4     | 4         | 3               | `{'missing': 1, 'moved_to_dependency': 1, 'structural_equivalent': 1, 'exact': 1}`                                                                                  | 3             |
@@ -77,22 +77,19 @@ Trace IDs by status:
 
 Ritual precompile codecs and routing, SPC signature/verification support, block-verification helpers, TEE/executor registry reads, capability filtering, and executor-selection data.
 
-- Counts: `21` atoms; `15` high-risk; `14` review-required; statuses `{'missing': 3, 'blocked': 1, 'structural_equivalent': 10, 'exact': 7}`.
+- Counts: `21` atoms; `15` high-risk; `10` review-required; statuses `{'structural_equivalent': 14, 'exact': 7}`.
 - Precision note: `14` atoms in this group use generic coverage wording and should be refined from source/destination evidence before code changes.
 
 Actionable gaps:
 
-- `file-0300-atom-0001` `missing` (high-risk, review, generic): `crates/ritual-block-verification/src/constants.rs` — The downstream diff for crates/ritual-block-verification/src/constants.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0301-atom-0001` `missing` (high-risk, review, generic): `crates/ritual-block-verification/src/error.rs` — The downstream diff for crates/ritual-block-verification/src/error.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0302-atom-0001` `blocked` (high-risk, review, generic): `crates/ritual-block-verification/src/lib.rs` — The downstream diff for crates/ritual-block-verification/src/lib.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0249-atom-0001` `missing` (review, generic): `crates/primitives-traits/src/transaction/error.rs` — The downstream diff for crates/primitives-traits/src/transaction/error.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- No unresolved `missing` or `blocked` atoms remain after the first-pass precompile/SPC/block-verification review.
 
 Representative atoms:
 
-- `file-0300-atom-0001` `missing` (high-risk, review, generic): `crates/ritual-block-verification/src/constants.rs` — The downstream diff for crates/ritual-block-verification/src/constants.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0301-atom-0001` `missing` (high-risk, review, generic): `crates/ritual-block-verification/src/error.rs` — The downstream diff for crates/ritual-block-verification/src/error.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0302-atom-0001` `blocked` (high-risk, review, generic): `crates/ritual-block-verification/src/lib.rs` — The downstream diff for crates/ritual-block-verification/src/lib.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
-- `file-0249-atom-0001` `missing` (review, generic): `crates/primitives-traits/src/transaction/error.rs` — The downstream diff for crates/primitives-traits/src/transaction/error.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
+- `file-0300-atom-0001` `structural_equivalent` (high-risk, generic): `crates/ritual-block-verification/src/constants.rs` — Block-verification constants are preserved in the v2.2 port and extended with shared short-async verifier bounds.
+- `file-0301-atom-0001` `structural_equivalent` (high-risk, generic): `crates/ritual-block-verification/src/error.rs` — Block-verification error classification is preserved with v2.2 grouped verifier variants.
+- `file-0302-atom-0001` `structural_equivalent` (high-risk, generic): `crates/ritual-block-verification/src/lib.rs` — The old block-verifier wrapper is replaced by v2.2 function-based verifier hooks plus nodebuilder-owned EVM replay integration.
+- `file-0249-atom-0001` `structural_equivalent` (generic): `crates/primitives-traits/src/transaction/error.rs` — Permanent precompile request eviction is preserved through Alloy EVM validation errors and the v2.2 hard-invalid pool path.
 - `file-0299-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/ritual-block-verification/Cargo.toml` — The downstream diff for crates/ritual-block-verification/Cargo.toml introduces behavior or wiring that must be accounted for in the v2.2 merge target.
 - `file-0317-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/ritual-precompile-codecs/Cargo.toml` — The downstream diff for crates/ritual-precompile-codecs/Cargo.toml introduces behavior or wiring that must be accounted for in the v2.2 merge target.
 - `file-0318-atom-0001` `structural_equivalent` (high-risk, review, generic): `crates/ritual-precompile-codecs/src/dkms_key.rs` — The downstream diff for crates/ritual-precompile-codecs/src/dkms_key.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.
@@ -109,10 +106,8 @@ Representative atoms:
 
 Trace IDs by status:
 
-- `blocked`: file-0302-atom-0001
 - `exact`: file-0354-atom-0001, file-0354-atom-0002, file-0354-atom-0003, file-0355-atom-0002, file-0355-atom-0003, file-0355-atom-0004, file-0356-atom-0001
-- `missing`: file-0249-atom-0001, file-0300-atom-0001, file-0301-atom-0001
-- `structural_equivalent`: file-0150-atom-0001, file-0178-atom-0001, file-0180-atom-0001, file-0299-atom-0001, file-0317-atom-0001, file-0318-atom-0001, file-0319-atom-0001, file-0320-atom-0001, file-0322-atom-0001, file-0327-atom-0001
+- `structural_equivalent`: file-0150-atom-0001, file-0178-atom-0001, file-0180-atom-0001, file-0249-atom-0001, file-0299-atom-0001, file-0300-atom-0001, file-0301-atom-0001, file-0302-atom-0001, file-0317-atom-0001, file-0318-atom-0001, file-0319-atom-0001, file-0320-atom-0001, file-0322-atom-0001, file-0327-atom-0001
 
 ## Transaction pool, admission, and ordering
 

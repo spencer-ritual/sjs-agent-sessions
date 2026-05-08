@@ -9,12 +9,13 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "missing",
+  "file_classification": "mapped",
   "tags": [
-    "missing",
+    "mapped",
     "negative-path",
     "non-exact",
-    "needs-review"
+    "reth-port",
+    "alloy-evm"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -32,26 +33,55 @@
       "risk_tags": [
         "negative-path"
       ],
-      "mapping_status": "missing",
-      "destinations": [],
-      "equivalence_argument": null,
-      "test_strategy": "not_needed",
-      "negative_test_candidate": null,
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-alloy-evm-internal",
+          "path": "crates/evm/src/block/error.rs",
+          "symbols": [
+            "BlockValidationError::OnnxRequestPermanentlyInvalid"
+          ],
+          "snippet": "OnnxRequestPermanentlyInvalid { reason: String, hash: B256 }",
+          "evidence": "The executor layer carries a dedicated permanent ONNX/precompile request validation error even though v2.2 consumes upstream reth-primitives-traits rather than the old local enum variant."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "is_permanently_invalid_precompile_request",
+            "best_txs.mark_invalid"
+          ],
+          "snippet": "if is_permanently_invalid_precompile_request(&error) { best_txs.mark_invalid(... InvalidTransactionError::TxTypeNotSupported); continue; }",
+          "evidence": "The payload builder now maps permanent precompile validation errors to the existing hard-invalid pool path, preserving eviction of the transaction and descendants."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/error.rs",
+          "symbols": [
+            "InvalidPoolTransactionError::is_bad_transaction"
+          ],
+          "snippet": "InvalidTransactionError::TxTypeNotSupported | InvalidTransactionError::SignerAccountHasBytecode | InvalidTransactionError::GasLimitTooHigh => true,",
+          "evidence": "The replacement hard-invalid consensus error is still classified as a bad transaction for pool eviction/descendant invalidation semantics."
+        }
+      ],
+      "equivalence_argument": "The old local `InvalidTransactionError::PrecompileRequestPermanentlyInvalid` variant is no longer available because v2.2 consumes upstream `reth-primitives-traits`. The behavior is preserved by keeping the specific permanent-precompile signal in Alloy EVM and mapping it at Reth payload/pending-block boundaries to the existing hard-invalid `TxTypeNotSupported` pool error, which still evicts the transaction and descendants.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Trigger an ONNX malformed-request sentinel during payload building and assert the builder marks the pool transaction invalid instead of returning a fatal payload error.",
       "adversarial_review": {
         "required": false,
         "status": "not_requested",
         "review_record_id": null
       },
-      "review_required": true,
-      "notes": "No same-path or uniquely named destination evidence was found in the configured search scope.",
-      "required_change": "Restore or intentionally replace the downstream behavior carried by crates/primitives-traits/src/transaction/error.rs; no reliable destination evidence was found in the configured search scope."
+      "review_required": false,
+      "notes": "Restored at the payload and pending-block error boundary using the v2.2 upstream transaction-error surface.",
+      "required_change": null
     }
   ],
   "high_risk_atoms_total": 0,
   "non_exact_atoms_total": 1,
   "adversarial_reviews": [],
-  "summary": "No reliable destination evidence was found for the downstream file-level behavior.",
-  "review_required": true,
-  "status": "needs_review",
-  "notes": "No same-path or uniquely named destination evidence was found in the configured search scope."
+  "summary": "Permanent precompile request eviction is preserved through Alloy EVM validation errors and the v2.2 hard-invalid pool classification path.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Reclassified from missing after restoring the Reth payload/pending-block mapping for permanent precompile validation errors."
 }

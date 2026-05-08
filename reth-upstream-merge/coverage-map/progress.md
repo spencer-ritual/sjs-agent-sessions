@@ -110,3 +110,8 @@
   - `make show-network` reported four Reth nodes producing blocks with 3 peers each and 10 registered TEE services.
   - Replayed all 21 commands from `gold1p-batch-results.json` from `traffic-gen-internal`; all 21 passed.
   - Fresh result artifact: `sjs-agent-sessions/reth-upstream-merge/gold1p-batch-results-tx-codecs-rerun.json`.
+
+### 2026-05-08 - Precompile dispatch/SPC/executor registry first pass
+- Restored v2.2 payload and pending-block handling for async precompile validation errors: transient ONNX/JQ errors skip the candidate, permanent ONNX malformed requests mark the pool transaction invalid through the existing hard-invalid consensus error.
+- Reclassified `file-0249-atom-0001`, `file-0300-atom-0001`, `file-0301-atom-0001`, and `file-0302-atom-0001` from missing/blocked to structural equivalents with destination evidence.
+- Added adversarial review records for the high-risk block-verification constants/error/lib atoms and rebuilt derived review/index/validation artifacts.

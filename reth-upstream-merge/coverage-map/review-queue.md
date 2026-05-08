@@ -800,13 +800,6 @@
   - Human question: Confirm that landing this file in a dependency repository preserves every downstream behavior atom expected from the old fork.
   - Likely destination: `/home/ritual/repos/ritual-reth-internal-v2.2.0-port/crates/transaction-pool/src/pool/size.rs`
 
-## File 0249: crates/primitives-traits/src/transaction/error.rs
-
-- Key: `file_index=249`, `source_path=crates/primitives-traits/src/transaction/error.rs`, `record_id=file-0249-atom-0001`
-  - Source hunk: `@@ -44,0 +45,4 @@ pub enum InvalidTransactionError {`
-  - Required change: Restore or intentionally replace the downstream behavior carried by crates/primitives-traits/src/transaction/error.rs; no reliable destination evidence was found in the configured search scope.
-  - Likely destination: `unknown`
-
 ## File 0250: crates/primitives-traits/src/transaction/signed.rs
 
 - Key: `file_index=250`, `source_path=crates/primitives-traits/src/transaction/signed.rs`, `record_id=file-0250-atom-0001`
@@ -1058,27 +1051,6 @@
   - Source hunk: `@@ -0,0 +1,42 @@`
   - Human question: Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor.
   - Likely destination: `/home/ritual/repos/ritual-reth-internal-v2.2.0-port/crates/ritual-block-verification/Cargo.toml`
-
-## File 0300: crates/ritual-block-verification/src/constants.rs
-
-- Key: `file_index=300`, `source_path=crates/ritual-block-verification/src/constants.rs`, `record_id=file-0300-atom-0001`
-  - Source hunk: `@@ -0,0 +1,28 @@`
-  - Required change: Restore or intentionally replace the downstream behavior carried by crates/ritual-block-verification/src/constants.rs; no reliable destination evidence was found in the configured search scope.
-  - Likely destination: `unknown`
-
-## File 0301: crates/ritual-block-verification/src/error.rs
-
-- Key: `file_index=301`, `source_path=crates/ritual-block-verification/src/error.rs`, `record_id=file-0301-atom-0001`
-  - Source hunk: `@@ -0,0 +1,167 @@`
-  - Required change: Restore or intentionally replace the downstream behavior carried by crates/ritual-block-verification/src/error.rs; no reliable destination evidence was found in the configured search scope.
-  - Likely destination: `unknown`
-
-## File 0302: crates/ritual-block-verification/src/lib.rs
-
-- Key: `file_index=302`, `source_path=crates/ritual-block-verification/src/lib.rs`, `record_id=file-0302-atom-0001`
-  - Source hunk: `@@ -0,0 +1,12 @@`
-  - Required change: Resolve whether the downstream crates/ritual-block-verification/src/lib.rs behavior is still implemented in the destination module at the same relative path or whether it must be restored explicitly.
-  - Likely destination: `unknown`
 
 ## File 0303: crates/ritual-block-verification/src/nonce_lock.rs
 

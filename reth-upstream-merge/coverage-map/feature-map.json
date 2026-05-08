@@ -6,17 +6,17 @@
     "atoms_total": 357,
     "high_risk_atoms_total": 220,
     "non_exact_atoms_total": 318,
-    "human_review_queue_total": 310,
+    "human_review_queue_total": 306,
     "validation_errors": [],
     "counts_by_atom_mapping_status": {
-      "missing": 98,
-      "structural_equivalent": 176,
+      "missing": 95,
+      "structural_equivalent": 180,
       "intentionally_absent": 5,
       "exact": 35,
       "moved_to_dependency": 30,
       "noise": 4,
       "covered_by_upstream": 4,
-      "blocked": 5
+      "blocked": 4
     }
   },
   "features": [
@@ -7247,12 +7247,10 @@
       "scope": "Ritual precompile codecs and routing, SPC signature/verification support, block-verification helpers, TEE/executor registry reads, capability filtering, and executor-selection data.",
       "atoms_total": 21,
       "high_risk_atoms_total": 15,
-      "review_required_atoms_total": 14,
+      "review_required_atoms_total": 10,
       "generic_atoms_total": 14,
       "counts_by_mapping_status": {
-        "structural_equivalent": 10,
-        "missing": 3,
-        "blocked": 1,
+        "structural_equivalent": 14,
         "exact": 7
       },
       "atoms": [
@@ -7385,23 +7383,53 @@
           "source_hunk_hint": "@@ -44,0 +45,4 @@ pub enum InvalidTransactionError {",
           "source_kind": "error_path",
           "semantic_claim": "The downstream diff for crates/primitives-traits/src/transaction/error.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
-          "mapping_status": "missing",
+          "mapping_status": "structural_equivalent",
           "high_risk": false,
-          "review_required": true,
+          "review_required": false,
           "risk_tags": [
             "negative-path"
           ],
           "file_tags": [
-            "missing",
+            "mapped",
             "negative-path",
             "non-exact",
-            "needs-review"
+            "reth-port",
+            "alloy-evm"
           ],
-          "required_change": "Restore or intentionally replace the downstream behavior carried by crates/primitives-traits/src/transaction/error.rs; no reliable destination evidence was found in the configured search scope.",
+          "required_change": null,
           "human_question": null,
-          "destinations": [],
-          "negative_test_candidate": null,
-          "confidence_note": "generic_atom_needs_human_refinement"
+          "destinations": [
+            {
+              "repo": "/home/ritual/repos/ritual-alloy-evm-internal",
+              "path": "crates/evm/src/block/error.rs",
+              "symbols": [
+                "BlockValidationError::OnnxRequestPermanentlyInvalid"
+              ],
+              "snippet": "OnnxRequestPermanentlyInvalid { reason: String, hash: B256 }",
+              "evidence": "The executor layer carries a dedicated permanent ONNX/precompile request validation error even though v2.2 consumes upstream reth-primitives-traits rather than the old local enum variant."
+            },
+            {
+              "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+              "path": "crates/ethereum/payload/src/lib.rs",
+              "symbols": [
+                "is_permanently_invalid_precompile_request",
+                "best_txs.mark_invalid"
+              ],
+              "snippet": "if is_permanently_invalid_precompile_request(&error) { best_txs.mark_invalid(... InvalidTransactionError::TxTypeNotSupported); continue; }",
+              "evidence": "The payload builder now maps permanent precompile validation errors to the existing hard-invalid pool path, preserving eviction of the transaction and descendants."
+            },
+            {
+              "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+              "path": "crates/transaction-pool/src/error.rs",
+              "symbols": [
+                "InvalidPoolTransactionError::is_bad_transaction"
+              ],
+              "snippet": "InvalidTransactionError::TxTypeNotSupported | InvalidTransactionError::SignerAccountHasBytecode | InvalidTransactionError::GasLimitTooHigh => true,",
+              "evidence": "The replacement hard-invalid consensus error is still classified as a bad transaction for pool eviction/descendant invalidation semantics."
+            }
+          ],
+          "negative_test_candidate": "Trigger an ONNX malformed-request sentinel during payload building and assert the builder marks the pool transaction invalid instead of returning a fatal payload error.",
+          "confidence_note": "specific"
         },
         {
           "primary_feature": "precompile-registry",
@@ -7449,24 +7477,46 @@
           "source_hunk_hint": "@@ -0,0 +1,28 @@",
           "source_kind": "changed_constant",
           "semantic_claim": "The downstream diff for crates/ritual-block-verification/src/constants.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
-          "mapping_status": "missing",
+          "mapping_status": "structural_equivalent",
           "high_risk": true,
-          "review_required": true,
+          "review_required": false,
           "risk_tags": [
             "verifier"
           ],
           "file_tags": [
-            "missing",
+            "mapped",
             "verifier",
             "high-risk",
             "non-exact",
-            "needs-review"
+            "reth-port"
           ],
-          "required_change": "Restore or intentionally replace the downstream behavior carried by crates/ritual-block-verification/src/constants.rs; no reliable destination evidence was found in the configured search scope.",
+          "required_change": null,
           "human_question": null,
-          "destinations": [],
-          "negative_test_candidate": "Exercise the crates/ritual-block-verification/src/constants.rs behavior boundary in the port and verify the downstream path-specific behavior still exists; absence or changed rejection/ordering would falsify the mapping.",
-          "confidence_note": "generic_atom_needs_human_refinement"
+          "destinations": [
+            {
+              "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+              "path": "crates/ritual-block-verification/src/constants.rs",
+              "symbols": [
+                "DEFAULT_TEE_SERVICE_REGISTRY",
+                "SPC_PROOF_SIGNATURE_LENGTH",
+                "MAX_PUBLIC_KEY_LEN"
+              ],
+              "snippet": "pub const SPC_PROOF_SIGNATURE_LENGTH: usize = 65;\npub const MAX_PUBLIC_KEY_LEN: usize = 128;",
+              "evidence": "The v2.2 port keeps the old block-verification address/signature/public-key constants at the same crate boundary."
+            },
+            {
+              "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+              "path": "crates/ritual-block-verification/src/constants.rs",
+              "symbols": [
+                "MAX_SHORT_ASYNC_INPUT_SIZE",
+                "MAX_SHORT_ASYNC_TTL_BLOCKS"
+              ],
+              "snippet": "pub const MAX_SHORT_ASYNC_INPUT_SIZE: usize = MAX_ASYNC_INPUT_SIZE;\npub const MAX_SHORT_ASYNC_TTL_BLOCKS: u64 = 500;",
+              "evidence": "The v2.2 verifier constants module extends the old surface with shared async input/TTL bounds used by builder/verifier checks."
+            }
+          ],
+          "negative_test_candidate": "Compile a destination consumer importing `SPC_PROOF_SIGNATURE_LENGTH`, `MAX_PUBLIC_KEY_LEN`, and the Ritual precompile address re-exports from `ritual_block_verification::constants`.",
+          "confidence_note": "specific"
         },
         {
           "primary_feature": "precompile-registry",
@@ -7477,26 +7527,38 @@
           "source_hunk_hint": "@@ -0,0 +1,167 @@",
           "source_kind": "error_path",
           "semantic_claim": "The downstream diff for crates/ritual-block-verification/src/error.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
-          "mapping_status": "missing",
+          "mapping_status": "structural_equivalent",
           "high_risk": true,
-          "review_required": true,
+          "review_required": false,
           "risk_tags": [
             "verifier",
             "negative-path"
           ],
           "file_tags": [
-            "missing",
+            "mapped",
             "verifier",
             "negative-path",
             "high-risk",
             "non-exact",
-            "needs-review"
+            "reth-port"
           ],
-          "required_change": "Restore or intentionally replace the downstream behavior carried by crates/ritual-block-verification/src/error.rs; no reliable destination evidence was found in the configured search scope.",
+          "required_change": null,
           "human_question": null,
-          "destinations": [],
-          "negative_test_candidate": "Exercise the crates/ritual-block-verification/src/error.rs behavior boundary in the port and verify the downstream path-specific behavior still exists; absence or changed rejection/ordering would falsify the mapping.",
-          "confidence_note": "generic_atom_needs_human_refinement"
+          "destinations": [
+            {
+              "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+              "path": "crates/ritual-block-verification/src/error.rs",
+              "symbols": [
+                "BlockVerificationError",
+                "ErrorClass",
+                "BlockVerificationError::error_class"
+              ],
+              "snippet": "pub enum BlockVerificationError { ... InvalidAsyncCommitment(String), InvalidAsyncSettlement(String), InvalidSpc(String), ParentState(String), ... }",
+              "evidence": "The destination keeps the typed verifier error enum and block-local/system classification surface, with v2.2-specific grouped variants for async settlement, SPC, nonce-lock, scheduled, and parent-state failures."
+            }
+          ],
+          "negative_test_candidate": "Construct representative `BlockVerificationError` values and assert provider/database/pool access failures classify as `System` while malformed SPC/async/scheduled errors classify as `BlockLocal`.",
+          "confidence_note": "specific"
         },
         {
           "primary_feature": "precompile-registry",
@@ -7507,24 +7569,47 @@
           "source_hunk_hint": "@@ -0,0 +1,12 @@",
           "source_kind": "other",
           "semantic_claim": "The downstream diff for crates/ritual-block-verification/src/lib.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
-          "mapping_status": "blocked",
+          "mapping_status": "structural_equivalent",
           "high_risk": true,
-          "review_required": true,
+          "review_required": false,
           "risk_tags": [
             "verifier"
           ],
           "file_tags": [
-            "blocked",
+            "mapped",
             "verifier",
             "high-risk",
             "non-exact",
-            "needs-review"
+            "reth-port",
+            "nodebuilder"
           ],
-          "required_change": "Resolve whether the downstream crates/ritual-block-verification/src/lib.rs behavior is still implemented in the destination module at the same relative path or whether it must be restored explicitly.",
-          "human_question": "The destination file still exists but lacks enough shared structure for a reliable automated equivalence claim.",
-          "destinations": [],
-          "negative_test_candidate": "Exercise the crates/ritual-block-verification/src/lib.rs behavior boundary in the port and verify the downstream path-specific behavior still exists; absence or changed rejection/ordering would falsify the mapping.",
-          "confidence_note": "generic_atom_needs_human_refinement"
+          "required_change": null,
+          "human_question": null,
+          "destinations": [
+            {
+              "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+              "path": "crates/ritual-block-verification/src/lib.rs",
+              "symbols": [
+                "verify_short_async_block_with_simulators",
+                "recover_original_transaction",
+                "SimulatedAsyncCall",
+                "validate_ritual_async_block_structure"
+              ],
+              "snippet": "pub fn verify_short_async_block_with_simulators(...) -> Result<(), BlockVerificationError> { ... verify_spc_calls(block, parent_state)?; verify_nonce_locks(block, parent_state)?; }",
+              "evidence": "The v2.2 crate exposes function-based verifier entry points and public helper types instead of the old `BlockVerifier` trait-object wrapper."
+            },
+            {
+              "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+              "path": "bin/src/main.rs",
+              "symbols": [
+                "RitualShortAsyncPostExecutionValidator::validate_post_execution_block"
+              ],
+              "snippet": "ritual_block_verification::verify_short_async_block_with_simulators(block, parent_state, |commitment| { ... }, |caller, call_id, execution_index, predicate_addr| { ... })",
+              "evidence": "Nodebuilder supplies the EVM replay and predicate-evaluation hooks that the old in-crate `BlockVerifier` owned, consuming the v2.2 function API directly."
+            }
+          ],
+          "negative_test_candidate": "Run nodebuilder/Reth post-execution validation on a block containing async settlement/SPC data and assert `verify_short_async_block_with_simulators` rejects malformed SPC proofs while accepting the happy path.",
+          "confidence_note": "specific"
         },
         {
           "primary_feature": "precompile-registry",

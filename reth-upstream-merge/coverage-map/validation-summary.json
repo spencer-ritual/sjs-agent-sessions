@@ -1171,39 +1171,42 @@
     "review_queue": "coverage-map/review-queue.md",
     "reviews": [
       "coverage-map/reviews/review-file-0107-atom-0001.json",
+      "coverage-map/reviews/review-file-0300-atom-0001.json",
+      "coverage-map/reviews/review-file-0301-atom-0001.json",
+      "coverage-map/reviews/review-file-0302-atom-0001.json",
       "coverage-map/reviews/review-file-0390-atom-0001.json",
       "coverage-map/reviews/review-file-0455-atom-0001.json"
     ]
   },
   "counts_by_file_classification": {
     "noise": 276,
-    "missing": 76,
-    "mapped": 222,
-    "blocked": 5
+    "missing": 73,
+    "mapped": 226,
+    "blocked": 4
   },
   "counts_by_file_status": {
-    "complete": 296,
-    "needs_review": 283
+    "complete": 300,
+    "needs_review": 279
   },
   "counts_by_atom_mapping_status": {
-    "missing": 98,
-    "structural_equivalent": 176,
+    "missing": 95,
+    "structural_equivalent": 180,
     "intentionally_absent": 5,
     "exact": 35,
     "moved_to_dependency": 30,
     "noise": 4,
     "covered_by_upstream": 4,
-    "blocked": 5
+    "blocked": 4
   },
   "atoms_total": 357,
   "high_risk_atoms_total": 220,
   "non_exact_atoms_total": 318,
   "adversarial_review_status": {
-    "not_requested": 354,
+    "not_requested": 351,
     "required": 190,
-    "pass": 3
+    "pass": 6
   },
-  "human_review_queue_total": 310,
+  "human_review_queue_total": 306,
   "validation_checks": {
     "exactly_579_file_artifacts_exist": true,
     "all_expected_file_indices_exist": true,

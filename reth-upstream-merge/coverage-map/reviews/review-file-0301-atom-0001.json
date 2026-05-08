@@ -1,0 +1,11 @@
+{
+  "record_type": "adversarial_review",
+  "record_id": "review-file-0301-atom-0001",
+  "atom_record_id": "file-0301-atom-0001",
+  "review_result": "pass",
+  "falsification_attempt": "Checked whether verifier negative-path classification disappeared. The destination still exposes BlockVerificationError, ErrorClass, error_class(), and is_system_error(), while refactoring some detailed old variants into grouped v2.2 verifier categories.",
+  "missed_risks": [
+    "Focused tests should still cover representative system vs block-local classification values."
+  ],
+  "notes": "The old error taxonomy is preserved behaviorally but not byte-for-byte."
+}
