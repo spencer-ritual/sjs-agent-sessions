@@ -1,0 +1,76 @@
+{
+  "record_type": "file",
+  "file_index": 356,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-tee-registry-reader/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "tee-registry-reader",
+    "crate-root"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0356-atom-0001",
+      "file_index": 356,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-tee-registry-reader/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,19 @@; module declarations and exports",
+      "source_kind": "tee_registry_reader_crate_root",
+      "source_snippet": "pub mod constants;\npub mod error;\npub mod reader;\npub mod storage_layout;\npub mod types;\npub use constants::*;\npub use error::RegistryReadError;\npub use reader::*;\npub use types::{Capability, ExecutorInfo, TeeType};",
+      "semantic_claim": "The old divergence adds the TEE registry reader crate root, documenting the no-cache direct-contract-read model and re-exporting constants, errors, reader functions, storage layout, and public types.",
+      "high_risk": false,
+      "risk_tags": [
+        "crate-root",
+        "public-api",
+        "no-cache"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-tee-registry-reader/src/lib.rs",
+          "symbols": [
+            "constants",
+            "reader",
+            "storage_layout",
+            "Capability",
+            "ExecutorInfo",
+            "TeeType"
+          ],
+          "evidence": "Destination lines 1-19 exactly match source-added diff lines 75297-75316."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the public module and re-export surface.",
+      "test_strategy": "tee_registry_reader_public_api_compile_tests",
+      "negative_test_candidate": "Removing `read_executor` from re-exports should break downstream direct-reader callers.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The TEE registry reader crate root is exact-port preserved.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 356: A\tcrates/ritual-tee-registry-reader/src/lib.rs.",
+    "Destination file has 19 lines and matches the source-added content exactly.",
+    "No review queue entry required because the atom is exact."
+  ]
+}

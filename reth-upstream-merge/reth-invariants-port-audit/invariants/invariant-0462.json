@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "910f91cf4b627222a8222f3976af0db517075458",
+      "evidence": "The enum discriminants and TryFrom mapping decode 7/8/9 as ImageCall/AudioCall/VideoCall and classify them as executor capabilities.",
+      "path": "crates/ritual-tee-registry-reader/src/types.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub enum Capability {\n    HttpCall = 0,\n    Llm = 1,\n    ZkCall = 5,\n    Dkms = 6,\n    ImageCall = 7,\n    AudioCall = 8,\n    VideoCall = 9,\n    Fhe = 10,\n}\n\npub fn is_executor_capability(&self) -> bool {\n    matches!(self, Capability::HttpCall | Capability::Llm | Capability::WormholeQuery | Capability::ZkCall | Capability::ImageCall | Capability::AudioCall | Capability::VideoCall | Capability::Fhe)\n}",
+      "symbols": [
+        "Capability::try_from",
+        "Capability::is_executor_capability"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "910f91cf4b627222a8222f3976af0db517075458",
+      "evidence": "Registry reads decode the stored capability byte and retain services whose decoded capability is an executor capability.",
+      "path": "crates/ritual-tee-registry-reader/src/reader.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let capability = Capability::try_from(capability_raw).map_err(|_| RegistryReadError::StorageReadFailed { ... })?;\n...\nif info.capability.is_executor_capability() { executors.push(info); }",
+      "symbols": [
+        "read_executor",
+        "read_all_executors"
+      ]
+    }
+  ],
+  "equivalence_argument": "The capability byte is decoded from registry storage before filtering through is_executor_capability, so image/audio/video registry records are retained as executor services.",
+  "evidence_files": [
+    "crates/ritual-tee-registry-reader/src/types.rs",
+    "crates/ritual-tee-registry-reader/src/reader.rs"
+  ],
+  "invariant_id": "cur-330f2dc63e-image-audio-video-executor-capabilities",
+  "invariant_index": 462,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The reader tests also assert try_from(7/8/9) and executor classification for the media capabilities.",
+  "rationale": "The diff adds ImageCall, AudioCall, and VideoCall enum variants with discriminants 7, 8, and 9, updates TryFrom<u8>, marks them in is_executor_capability, and adds tests for those mappings. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "349d2d2068d82e5cd1171a9f0699899f5d6877b2"
+  ],
+  "statement": "The TEE registry reader must decode capability values 7, 8, and 9 as ImageCall, AudioCall, and VideoCall respectively, and treat all three as executor capabilities.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Assert Capability::try_from(7/8/9) returns ImageCall/AudioCall/VideoCall and that is_executor_capability is true for each, while 10 still returns Err. Then read a mocked registry service record containing each capability and assert it is retained as an executor service."
+  ],
+  "summary": "Image, audio, and video capability values are decoded and retained.",
+  "test_or_falsification_candidate": "Assert Capability::try_from(7/8/9) returns ImageCall/AudioCall/VideoCall and that is_executor_capability is true for each, while 10 still returns Err. Then read a mocked registry service record containing each capability and assert it is retained as an executor service.",
+  "title": "Image audio video are executor capabilities",
+  "total_invariants": 1954
+}

@@ -1,0 +1,109 @@
+{
+  "cluster_key": "scheduler:payload-building:part-03",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Incident buffer defaults, hard cap, and calldata bound are explicit.",
+      "path": "crates/ritual-metrics/src/scheduling.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const DEFAULT_SCHEDULED_INCIDENT_TRACE_CAPACITY: usize = 1024;\npub const MAX_SCHEDULED_INCIDENT_TRACE_CAPACITY: usize = 50_000;\npub const MAX_INCIDENT_INPUT_BYTES: usize = 2048;",
+      "symbols": [
+        "ScheduledIncidentTraceConfig",
+        "MAX_SCHEDULED_INCIDENT_TRACE_CAPACITY",
+        "MAX_INCIDENT_INPUT_BYTES"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Tracing is enabled by default unless disabled and stored calldata is truncated.",
+      "path": "crates/ritual-metrics/src/scheduling.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let enabled = std::env::var(SCHEDULED_INCIDENT_TRACE_ENABLED_ENV).ok().map(|v| v != \"0\").unwrap_or(true);\n...\nif input.len() > MAX_INCIDENT_INPUT_BYTES { ... truncated ... }",
+      "symbols": [
+        "incident_trace_config",
+        "encode_input"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Writer is bounded, evicts oldest entries, and drops on contention with a counter instead of blocking.",
+      "path": "crates/ritual-metrics/src/scheduling.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "match incident_trace_buffer().try_lock() {\n    Ok(mut guard) => { if guard.len() >= capacity { guard.pop_front(); } guard.push_back(entry); }\n    Err(TryLockError::WouldBlock) => { SCHEDULED_INCIDENT_DROPPED_ON_CONTENTION.fetch_add(1, Ordering::Relaxed); }\n}",
+      "symbols": [
+        "record_scheduled_incident",
+        "scheduled_incident_dropped_on_contention"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Reader returns newest-first incidents capped by configured capacity.",
+      "path": "crates/ritual-metrics/src/scheduling.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "guard.iter().rev().take(effective_limit).cloned().collect()",
+      "symbols": [
+        "recent_scheduled_incidents"
+      ]
+    }
+  ],
+  "equivalence_argument": "Exact mapping in ritual-metrics scheduled incident buffer.",
+  "evidence_files": [
+    "crates/ritual-metrics/src/scheduling.rs"
+  ],
+  "invariant_id": "cur-ab7e5d41a1-scheduled-incident-buffer-bounded-best-effort",
+  "invariant_index": 62,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-metrics/src/scheduling.rs"
+    ],
+    "checked_queries": [
+      "SCHEDULED_INCIDENT_TRACE_ENABLED|MAX_INCIDENT_INPUT_BYTES|try_lock|pop_front"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "record_scheduled_incident",
+      "MAX_INCIDENT_INPUT_BYTES",
+      "scheduled_incident_dropped_on_contention",
+      "recent_scheduled_incidents"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped exactly.",
+  "rationale": "The non-blocking try_lock rule is incorporated into the later bounded incident buffer invariant with capacity, truncation, eviction, enablement, and contention-drop semantics.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "f3084852a85954ee3bb88f8597a16dbf9c279dc4",
+    "8a0660f57736b826231b3db41f503c3011853d24"
+  ],
+  "statement": "Scheduled incident collection is enabled by default unless RITUAL_SCHEDULED_INCIDENT_TRACE_ENABLED=0, uses a bounded ring buffer with default capacity 1024 and hard cap 50000, truncates stored calldata to 2048 bytes, evicts oldest entries when full, and drops samples with a contention counter instead of blocking payload building when the buffer lock is contended.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Set incident trace capacity and record more entries than capacity, then assert newest-first retrieval and oldest-entry eviction.",
+    "Hold the incident buffer lock while recording another incident and assert the call returns promptly, appends nothing, and increments scheduled_incident_dropped_on_contention.",
+    "Disable tracing with RITUAL_SCHEDULED_INCIDENT_TRACE_ENABLED=0 and assert no incidents are stored."
+  ],
+  "summary": "Scheduled incident buffer is bounded and best-effort in the port.",
+  "test_or_falsification_candidate": "Capacity=2, record A/B/C and assert C,B newest-first; hold lock and assert a dropped-on-contention increment; disable env and assert no storage.",
+  "title": "Scheduled incident buffer is bounded and best-effort",
+  "total_invariants": 1954
+}

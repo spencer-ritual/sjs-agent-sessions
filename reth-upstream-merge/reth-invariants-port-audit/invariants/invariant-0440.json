@@ -1,0 +1,67 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "970542d1b36413978b3179faeb582ddec3dfc136",
+      "evidence": "The builder validates the detected async precompile payload with the shared validate_async_payload routine before decoding executor and TTL into a commitment.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "fn validate_async_commitment_call(\n    async_call: &BasicAsyncCallResult,\n) -> Result<ritual_precompile_codecs::DecodedPrecompileData, String> {\n    async_commitment_metadata(async_call.precompile_address, \"detected async precompile\")?;\n\n    let input = async_call.input.as_ref();\n    validate_async_payload(async_call.precompile_address, input, MAX_SHORT_ASYNC_TTL_BLOCKS)\n        .map_err(|err| format!(\"invalid async commitment payload: {err}\"))?;\n\n    try_decode_precompile_data(async_call.precompile_address, input)\n        .map_err(|err| format!(\"malformed async commitment input: {err}\"))\n}",
+      "symbols": [
+        "build_short_async_commitment_transaction",
+        "validate_async_commitment_call"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "970542d1b36413978b3179faeb582ddec3dfc136",
+      "evidence": "The verifier independently enforces TTL bounds, nonzero executor, payload validity, and decoded executor/TTL parity for each async commitment.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "fn validate_commitment_structure(\n    commitment: &TxAsyncCommitment,\n) -> Result<&'static AsyncPrecompileMetadata, BlockVerificationError> {\n    if commitment.ttl == 0 || commitment.ttl > MAX_SHORT_ASYNC_TTL_BLOCKS {\n        return Err(BlockVerificationError::InvalidAsyncCommitment(format!(\n            \"TTL {} outside async commitment bounds 1..={}\",\n            commitment.ttl, MAX_SHORT_ASYNC_TTL_BLOCKS\n        )));\n    }\n    let metadata = async_commitment_metadata(commitment.precompile_address, \"async commitment\")\n        .map_err(BlockVerificationError::InvalidAsyncCommitment)?;\n    if commitment.executor_address.is_zero() {\n        return Err(BlockVerificationError::InvalidAsyncCommitment(\n            \"executor address cannot be zero\".to_string(),\n        ));\n    }\n    validate_async_payload(\n        commitment.precompile_address,\n        commitment.precompile_input.as_ref(),\n        MAX_SHORT_ASYNC_TTL_BLOCKS,\n    )?;\n    let decoded = try_decode_precompile_data(commitment.precompile_address, commitment.precompile_input.as_ref())?;\n    if decoded.executor != commitment.executor_address { /* reject */ }\n    if decoded.ttl != commitment.ttl { /* reject */ }",
+      "symbols": [
+        "validate_commitment_structure",
+        "validate_async_payload",
+        "try_decode_precompile_data"
+      ]
+    }
+  ],
+  "equivalence_argument": "The builder rejects zero executor payloads via validate_async_payload before creating commitments, while the verifier separately rejects zero executor commitments structurally. Nonzero executor addresses pass this field-level gate and are checked by later registry/state validation.",
+  "evidence_files": [
+    "crates/ritual-async/src/detector.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-61f062dcf8-builder-skips-zero-executor-commitments",
+  "invariant_index": 440,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The current builder returns an error rather than silently creating a commitment when executor is zero; this is equivalent to skipping inclusion of an invalid async commitment.",
+  "rationale": "The detector gains the zero-address executor check and the new unit/property tests define equivalence with verifier rejection for zero executor only. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "f8fb121b11e86ff62326e87045ce26aa76a10a2a"
+  ],
+  "statement": "The async detector must return None and skip creating an async commitment when executor_address is Address::ZERO, while nonzero executor addresses are not rejected solely by this validation, matching verifier executor validation.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Run detector and verifier validation with Address::ZERO, Address::repeat_byte(0x42), and fuzzed 20-byte addresses; assert both reject only the zero address under this rule."
+  ],
+  "summary": "Builder and verifier reject zero executor commitments.",
+  "test_or_falsification_candidate": "Run detector and verifier validation with Address::ZERO, Address::repeat_byte(0x42), and fuzzed 20-byte addresses; assert both reject only the zero address under this rule.",
+  "title": "Builder skips zero executor commitments",
+  "total_invariants": 1954
+}

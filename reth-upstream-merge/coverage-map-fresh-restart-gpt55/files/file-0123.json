@@ -1,0 +1,33 @@
+{
+  "record_type": "file",
+  "file_index": 123,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/net/discv5/src/enr.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "semicolon_only",
+    "net",
+    "discv5"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The discv5 ENR divergence is semicolon-only rustfmt noise in the non-secp256k1 early return; no ENR-to-discv4 peer ID conversion behavior changed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 123: M\tcrates/net/discv5/src/enr.rs.",
+    "The isolated patch only changes `return None` to `return None;` when the ENR public key is not secp256k1.",
+    "No public-key type check, key encoding, secp256k1 parsing, or PeerId derivation changed."
+  ]
+}

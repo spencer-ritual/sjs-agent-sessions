@@ -1,0 +1,55 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "Inspector-created EVMs set inspect=true, and transact_raw uses inspect_replay instead of normal transact when that flag is enabled.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "pub fn with_inspect(mut self, inspect: bool) -> Self { self.inspect = inspect; self }\nif self.inspect {\n    self.inner.set_tx(tx);\n    self.inner.inspect_replay()\n} else {\n    self.inner.transact(tx)\n}\n... create_evm_with_inspector(...).with_inspect(true)",
+      "symbols": [
+        "RitualEvm::with_inspect",
+        "RitualEvm::transact_raw",
+        "RitualEvmFactory::create_evm_with_inspector"
+      ]
+    }
+  ],
+  "equivalence_argument": "The inspector factory path sets the inspection flag on the RitualEvm value, and transact_raw branches on that flag to use revm_inspector::InspectEvm::inspect_replay after installing the transaction.",
+  "evidence_files": [
+    "crates/node/src/executor.rs",
+    "crates/node/Cargo.toml"
+  ],
+  "invariant_id": "cur-abc0a6e569-inspector-uses-inspect-replay",
+  "invariant_index": 286,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to nodebuilder RitualEvm inspector path.",
+  "rationale": "The diff adds an inspect flag to RitualEvm, preserves it across precompile configuration, adds with_inspect, branches transact_raw to inspect_replay when enabled, and sets with_inspect(true) in the factory path that receives an inspector. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "a2379daf423e91ca823b016434ab691c52732eff"
+  ],
+  "statement": "When RitualEvmFactory creates an EVM with an inspector, the resulting RitualEvm has inspection mode enabled, and transact_raw executes by setting the transaction on the inner EVM and calling inspect_replay rather than calling transact directly.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create a RitualEvm through the inspector factory path with a test inspector that records callbacks, execute a transaction, and assert inspect_replay callbacks occur; create one with inspect=false and assert transact_raw uses normal transact without inspector replay callbacks."
+  ],
+  "summary": "Inspector EVMs enable inspect mode and execute through inspect_replay.",
+  "test_or_falsification_candidate": "Create an inspector EVM with a callback-recording inspector and assert transact_raw triggers inspect_replay callbacks; compare with inspect=false normal transact.",
+  "title": "Inspector EVM uses inspect replay",
+  "total_invariants": 1954
+}

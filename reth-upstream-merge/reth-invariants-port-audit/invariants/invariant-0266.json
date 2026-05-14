@@ -1,0 +1,94 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The node crate enables async-context by default and propagates that feature to the EVM dependencies.",
+      "path": "crates/node/Cargo.toml",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "[features]\ndefault = [\"async-context\"]\nasync-context = []\n\nalloy-evm = { workspace = true, default-features = false, features = [\"async-context\"] }\nrevm = { workspace = true, features = [\"async-context\"] }",
+      "symbols": [
+        "features.default",
+        "async-context"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The factory wraps the supplied DB/env in an async-aware context and installs Ritual precompiles for the created EVM.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "let async_ctx = revm_context::async_context::AsyncCommitmentutionContext::default();\nAsyncEthEvmContext::new(inner_context).with_async_context(Box::new(async_ctx));\n\nRitualEvm::new(async_context, NoOpInspector::default()).with_precompiles(RitualPrecompiles::new())",
+      "symbols": [
+        "RitualEvmFactory::create_evm",
+        "RitualEvmFactory::create_evm_with_inspector"
+      ]
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "c7845a2265d1245116728116e7418f636ef3b8af",
+      "evidence": "The default async context used by the nodebuilder factory is ExecutionMode::Building.",
+      "path": "crates/context/src/async_context.rs",
+      "repo": "/home/ritual/repos/ritual-revm-internal",
+      "snippet": "impl Default for ExecutionMode { fn default() -> Self { Self::Building } }\n\nimpl Default for AsyncCommitmentutionContext { fn default() -> Self { Self { execution_mode: ExecutionMode::default(), ... } } }",
+      "symbols": [
+        "ExecutionMode",
+        "AsyncCommitmentutionContext::default"
+      ]
+    }
+  ],
+  "equivalence_argument": "The nodebuilder repo owns RitualEvmFactory in the v2.2.0 architecture. Although it uses AsyncCommitmentutionContext::default rather than an explicit with_mode call, the dependency context default is ExecutionMode::Building, preserving the required building-mode async context with the supplied DB/env and Ritual precompiles.",
+  "evidence_files": [
+    "crates/node/Cargo.toml",
+    "crates/node/src/executor.rs"
+  ],
+  "invariant_id": "cur-3291941596-uses-async-building-context",
+  "invariant_index": 266,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+    "/home/ritual/repos/ritual-revm-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/node/Cargo.toml",
+      "crates/node/src/executor.rs",
+      "crates/context/src/async_context.rs"
+    ],
+    "checked_queries": [
+      "RitualEvmFactory async-context default",
+      "ExecutionMode Building default",
+      "RitualPrecompiles::new"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-revm-internal"
+    ],
+    "checked_symbols": [
+      "RitualEvmFactory::create_evm",
+      "AsyncCommitmentutionContext::default",
+      "ExecutionMode::Building"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in dependency because RitualEvmFactory lives in ritual-reth-nodebuilder-internal.",
+  "rationale": "The commit subject says the EVM factory is fixed to initialize with the new async context, the Cargo diff enables async-context by default and on alloy-evm, and the factory explicitly creates AsyncExecutionContext::with_mode(ExecutionMode::Building) before building the mainnet EVM with RitualPrecompiles. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "1d2acf214b3beb244cfcbc6a29f796b43195c92e"
+  ],
+  "statement": "With the node crate's default features, RitualEvmFactory::create_evm must construct an EVM whose execution context is AsyncExecutionContext in ExecutionMode::Building while preserving the supplied DB, cfg env, block env, NoOpInspector, and Ritual precompiles.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Build the node crate with default features, instantiate RitualEvmFactory with a test DB and EvmEnv, execute or inspect a transaction/precompile path that requires AsyncExecutionContext, and assert it observes ExecutionMode::Building rather than a missing/default non-async context; also assert Ritual precompiles remain installed."
+  ],
+  "summary": "Nodebuilder creates Ritual EVMs with a default building-mode async context.",
+  "test_or_falsification_candidate": "Instantiate RitualEvmFactory with default features and assert the context reports ExecutionMode::Building while Ritual precompiles are installed.",
+  "title": "Node EVM uses async building context",
+  "total_invariants": 1954
+}

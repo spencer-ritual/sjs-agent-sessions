@@ -1,0 +1,623 @@
+{
+  "record_type": "file",
+  "file_index": 111,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/evm/src/spc.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "high-risk",
+    "non-exact",
+    "evm",
+    "spc",
+    "async-precompile",
+    "block-verification",
+    "executor-registry",
+    "transaction-identity",
+    "proof-validation",
+    "tests",
+    "mapped",
+    "reviewed"
+  ],
+  "atoms_total": 10,
+  "atoms": [
+    {
+      "record_id": "file-0111-atom-0001",
+      "file_index": 111,
+      "atom_index": 1,
+      "atoms_total": 10,
+      "source_path": "crates/evm/src/spc.rs",
+      "source_hunk_hint": "@@ -0,0 +1,22 @@",
+      "source_kind": "error_path",
+      "source_snippet": "pub struct SpcVerificationError {\n    pub message: String,\n}\n\nimpl fmt::Display for SpcVerificationError {\n    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {\n        write!(f, \"SPC verification error: {}\", self.message)\n    }\n}\n\nimpl std::error::Error for SpcVerificationError {}\n\nimpl From<String> for SpcVerificationError {\n    fn from(message: String) -> Self {\n        Self { message }\n    }\n}",
+      "semantic_claim": "The added file defines a public cloneable SPC verification error wrapper with a single message field, a fixed Display prefix of 'SPC verification error: ', std::error::Error implementation, and From<String> conversion.",
+      "high_risk": false,
+      "risk_tags": [
+        "spc-verification",
+        "error-path",
+        "public-api",
+        "display-format",
+        "verifier-builder-parity"
+      ],
+      "mapping_status": "renamed_exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/evm/evm/src/spc.rs",
+          "evidence": "Restores the public reth_evm::spc API: SpcVerificationError, SpcVerifier, SpcVerificationRequest, BatchVerificationResult, all_valid, and total_count."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/evm/evm/src/lib.rs",
+          "evidence": "Exports #[cfg(feature = \"std\")] pub mod spc."
+        }
+      ],
+      "equivalence_argument": "The source API is restored under the v2 crate path and backed by the node bridge plus ritual-spc-verification concrete implementation. Any non-exactness is path/ownership split, not missing FSM/runtime behavior.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Add an integration compile/API regression that either proves no destination consumer requires reth_evm::spc::SpcVerificationError or reintroduces an equivalent public error type with a tested Display/From<String> contract.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed: public SpcVerificationError is restored under the v2 path, including message field, Display prefix, std::error::Error, Clone, and From<String>. No FSM gap."
+    },
+    {
+      "record_id": "file-0111-atom-0002",
+      "file_index": 111,
+      "atom_index": 2,
+      "atoms_total": 10,
+      "source_path": "crates/evm/src/spc.rs",
+      "source_hunk_hint": "@@ -0,0 +24,88 @@",
+      "source_kind": "other",
+      "source_snippet": "pub trait SpcVerifier: Send + Sync {\n    type Error: std::error::Error + Send + Sync + 'static;\n\n    fn verify_batch(\n        &self,\n        requests: Vec<SpcVerificationRequest>,\n        max_parallelism: usize,\n    ) -> Pin<Box<dyn Future<Output = Result<BatchVerificationResult, Self::Error>> + Send + '_>>;\n\n    fn verify_parallel_optimized(\n        &self,\n        requests: Vec<SpcVerificationRequest>,\n    ) -> Pin<Box<dyn Future<Output = Result<BatchVerificationResult, Self::Error>> + Send + '_>>;\n\n    fn get_previous_block_data(&self, block_number: u64) -> Result<(B256, u64, u64), Self::Error>;\n\n    fn ensure_registry_synced(\n        &self,\n        needed_block: u64,\n    ) -> Pin<Box<dyn Future<Output = Result<(), Self::Error>> + Send + '_>>;\n\n    fn update_registry_from_data(\n        &self,\n        executors: Vec<(Address, Address, u8, Vec<u8>, alloy_primitives::FixedBytes<32>, u8)>,\n        block_number: u64,\n    ) -> Result<(), Self::Error>;\n}",
+      "semantic_claim": "The file introduces a public Send+Sync SpcVerifier trait boundary with an associated error type and methods for batch proof verification, optimized parallel verification, previous-block context retrieval, lazy registry sync, and registry updates from executor tuples.",
+      "high_risk": false,
+      "risk_tags": [
+        "spc-verification",
+        "public-api",
+        "async-precompile-proof-validation",
+        "executor-registry",
+        "verifier-builder-parity"
+      ],
+      "mapping_status": "renamed_exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/evm/evm/src/spc.rs",
+          "evidence": "Restores the public reth_evm::spc API: SpcVerificationError, SpcVerifier, SpcVerificationRequest, BatchVerificationResult, all_valid, and total_count."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/evm/evm/src/lib.rs",
+          "evidence": "Exports #[cfg(feature = \"std\")] pub mod spc."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/spc.rs",
+          "evidence": "SpcVerifierImpl implements reth_evm::spc::SpcVerifier and converts requests/results to and from the concrete ritual-spc-verification crate."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/verifier.rs",
+          "evidence": "Concrete verifier implements verify_batch, verify_parallel_optimized, get_previous_block_data, ensure_registry_synced, update_registry_from_data, and fail-closed result counting."
+        }
+      ],
+      "equivalence_argument": "The source API is restored under the v2 crate path and backed by the node bridge plus ritual-spc-verification concrete implementation. Any non-exactness is path/ownership split, not missing FSM/runtime behavior.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Run the nodebuilder/Reth integration compile path against the v2 port and assert all stale reth_evm::spc::SpcVerifier consumers are either ported to the new verifier hook or backed by a compatible trait shim.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed: public SpcVerifier trait boundary is restored and implemented by the node SpcVerifierImpl bridge. No verifier-builder API gap remains."
+    },
+    {
+      "record_id": "file-0111-atom-0003",
+      "file_index": 111,
+      "atom_index": 3,
+      "atoms_total": 10,
+      "source_path": "crates/evm/src/spc.rs",
+      "source_hunk_hint": "@@ -0,0 +37,56 @@ and @@ -0,0 +62,76 @@",
+      "source_kind": "call_ordering",
+      "source_snippet": "fn verify_batch(\n    &self,\n    requests: Vec<SpcVerificationRequest>,\n    max_parallelism: usize,\n) -> Pin<Box<dyn Future<Output = Result<BatchVerificationResult, Self::Error>> + Send + '_>>;\n\nfn verify_parallel_optimized(\n    &self,\n    requests: Vec<SpcVerificationRequest>,\n) -> Pin<Box<dyn Future<Output = Result<BatchVerificationResult, Self::Error>> + Send + '_>>;",
+      "semantic_claim": "SPC proof validation is specified as asynchronous trait methods returning Send futures borrowed from self, with one max_parallelism-bounded API and one optimized parallel API over owned request batches.",
+      "high_risk": false,
+      "risk_tags": [
+        "async-precompile-proof-validation",
+        "parallelism",
+        "spc-verification",
+        "call-ordering",
+        "executor-correctness"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/evm/evm/src/spc.rs",
+          "evidence": "Restores the public reth_evm::spc API: SpcVerificationError, SpcVerifier, SpcVerificationRequest, BatchVerificationResult, all_valid, and total_count."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/evm/evm/src/lib.rs",
+          "evidence": "Exports #[cfg(feature = \"std\")] pub mod spc."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/spc.rs",
+          "evidence": "SpcVerifierImpl implements reth_evm::spc::SpcVerifier and converts requests/results to and from the concrete ritual-spc-verification crate."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/verifier.rs",
+          "evidence": "Concrete verifier implements verify_batch, verify_parallel_optimized, get_previous_block_data, ensure_registry_synced, update_registry_from_data, and fail-closed result counting."
+        }
+      ],
+      "equivalence_argument": "The source API is restored under the v2 crate path and backed by the node bridge plus ritual-spc-verification concrete implementation. Any non-exactness is path/ownership split, not missing FSM/runtime behavior.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Create a block with multiple SPC settlements and verify the destination validator rejects any invalid proof while preserving deterministic behavior and acceptable latency without relying on the old max_parallelism contract.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed: async batch and optimized parallel verifier methods are present through the public trait and concrete verifier bridge. Runtime behavior is covered by ritual-spc-verification."
+    },
+    {
+      "record_id": "file-0111-atom-0004",
+      "file_index": 111,
+      "atom_index": 4,
+      "atoms_total": 10,
+      "source_path": "crates/evm/src/spc.rs",
+      "source_hunk_hint": "@@ -0,0 +78,88 @@",
+      "source_kind": "state_transition",
+      "source_snippet": "fn get_previous_block_data(&self, block_number: u64) -> Result<(B256, u64, u64), Self::Error>;\n\nfn ensure_registry_synced(\n    &self,\n    needed_block: u64,\n) -> Pin<Box<dyn Future<Output = Result<(), Self::Error>> + Send + '_>>;\n\nfn update_registry_from_data(\n    &self,\n    executors: Vec<(Address, Address, u8, Vec<u8>, alloy_primitives::FixedBytes<32>, u8)>,\n    block_number: u64,\n) -> Result<(), Self::Error>;",
+      "semantic_claim": "The verifier API binds proof validation to previous-block context and executor registry state: callers can query previous block data, lazily sync the registry to a needed block, and update in-memory executor metadata from block-derived tuples.",
+      "high_risk": false,
+      "risk_tags": [
+        "block-number-binding",
+        "previous-block-context",
+        "executor-registry",
+        "executor-correctness",
+        "verifier-builder-parity"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/evm/evm/src/spc.rs",
+          "evidence": "Restores the public reth_evm::spc API: SpcVerificationError, SpcVerifier, SpcVerificationRequest, BatchVerificationResult, all_valid, and total_count."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/evm/evm/src/lib.rs",
+          "evidence": "Exports #[cfg(feature = \"std\")] pub mod spc."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/spc.rs",
+          "evidence": "SpcVerifierImpl implements reth_evm::spc::SpcVerifier and converts requests/results to and from the concrete ritual-spc-verification crate."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/verifier.rs",
+          "evidence": "Concrete verifier implements verify_batch, verify_parallel_optimized, get_previous_block_data, ensure_registry_synced, update_registry_from_data, and fail-closed result counting."
+        }
+      ],
+      "equivalence_argument": "The source API is restored under the v2 crate path and backed by the node bridge plus ritual-spc-verification concrete implementation. Any non-exactness is path/ownership split, not missing FSM/runtime behavior.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Exercise a verifier path where the executor registry changes across blocks and assert v2 validation uses the parent-state executor public key corresponding to the SPC job block rather than stale or future executor metadata.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed: previous-block lookup, no-op compatibility registry sync, and registry updates from executor tuples are implemented through SpcVerifierImpl and the concrete verifier. No stale-registry FSM gap found in this API slice."
+    },
+    {
+      "record_id": "file-0111-atom-0005",
+      "file_index": 111,
+      "atom_index": 5,
+      "atoms_total": 10,
+      "source_path": "crates/evm/src/spc.rs",
+      "source_hunk_hint": "@@ -0,0 +90,122 @@",
+      "source_kind": "new_field",
+      "source_snippet": "pub struct SpcVerificationRequest {\n    pub precompile_input: Bytes,\n    pub output: Bytes,\n    pub proof: Bytes,\n    pub precompile_address: Address,\n    pub executor: Address,\n    pub block_number: u64,\n    pub tx_hash: B256,\n    pub previous_block_hash: B256,\n    pub previous_block_number: u64,\n    pub previous_block_timestamp: u64,\n    pub proposer_signature: Bytes,\n    pub error: Option<String>,\n    pub success: bool,\n}",
+      "semantic_claim": "The request data model carries all proof-validation material and trace fields in one owned struct: precompile input/output/proof/address, executor address, SPC block number, transaction hash, previous-block hash/number/timestamp, proposer signature, optional error message, and success flag.",
+      "high_risk": false,
+      "risk_tags": [
+        "spc-verification",
+        "transaction-identity",
+        "proof-validation",
+        "block-number-binding",
+        "request-fields"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/evm/evm/src/spc.rs",
+          "evidence": "Restores the public reth_evm::spc API: SpcVerificationError, SpcVerifier, SpcVerificationRequest, BatchVerificationResult, all_valid, and total_count."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/evm/evm/src/lib.rs",
+          "evidence": "Exports #[cfg(feature = \"std\")] pub mod spc."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/spc.rs",
+          "evidence": "SpcVerifierImpl implements reth_evm::spc::SpcVerifier and converts requests/results to and from the concrete ritual-spc-verification crate."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/verifier.rs",
+          "evidence": "Concrete verifier implements verify_batch, verify_parallel_optimized, get_previous_block_data, ensure_registry_synced, update_registry_from_data, and fail-closed result counting."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/types.rs",
+          "evidence": "Concrete SpcVerificationRequest carries precompile input/output/proof/address, executor, block number, tx hash, previous block hash/number/timestamp, proposer signature, error, and success."
+        }
+      ],
+      "equivalence_argument": "The source API is restored under the v2 crate path and backed by the node bridge plus ritual-spc-verification concrete implementation. Any non-exactness is path/ownership split, not missing FSM/runtime behavior.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Mutate each SPC field independently in a fulfilled transaction or settlement context, especially tx_hash, block_number, previous-block fields, input, output, proof, and executor, and assert the destination rejects the block or payload consistently.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed: request field set is restored at the public API and mapped into the concrete verifier request. Core transaction/block/executor/proof binding fields are present."
+    },
+    {
+      "record_id": "file-0111-atom-0006",
+      "file_index": 111,
+      "atom_index": 6,
+      "atoms_total": 10,
+      "source_path": "crates/evm/src/spc.rs",
+      "source_hunk_hint": "@@ -0,0 +124,151 @@",
+      "source_kind": "state_transition",
+      "source_snippet": "pub struct BatchVerificationResult {\n    pub results: Vec<Result<bool, String>>,\n    pub successful_count: usize,\n    pub failed_count: usize,\n    pub total_duration: std::time::Duration,\n}\n\nimpl BatchVerificationResult {\n    pub fn all_valid(&self) -> bool {\n        self.failed_count == 0\n            && self.results.iter().all(|r| r.as_ref().map_or(false, |&valid| valid))\n    }\n\n    pub fn total_count(&self) -> usize {\n        self.results.len()\n    }\n}",
+      "semantic_claim": "Batch verification results record per-request Ok/Err outcomes, success/failure counts, total duration, and define all_valid as true only when failed_count is zero and every per-request result is Ok(true); Err and Ok(false) both make the batch invalid.",
+      "high_risk": false,
+      "risk_tags": [
+        "spc-verification",
+        "verifier-state-machine",
+        "batch-results",
+        "negative-paths",
+        "async-precompile-proof-validation"
+      ],
+      "mapping_status": "renamed_exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/evm/evm/src/spc.rs",
+          "evidence": "Restores the public reth_evm::spc API: SpcVerificationError, SpcVerifier, SpcVerificationRequest, BatchVerificationResult, all_valid, and total_count."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/evm/evm/src/lib.rs",
+          "evidence": "Exports #[cfg(feature = \"std\")] pub mod spc."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/spc.rs",
+          "evidence": "SpcVerifierImpl implements reth_evm::spc::SpcVerifier and converts requests/results to and from the concrete ritual-spc-verification crate."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/verifier.rs",
+          "evidence": "Concrete verifier implements verify_batch, verify_parallel_optimized, get_previous_block_data, ensure_registry_synced, update_registry_from_data, and fail-closed result counting."
+        }
+      ],
+      "equivalence_argument": "The source API is restored under the v2 crate path and backed by the node bridge plus ritual-spc-verification concrete implementation. Any non-exactness is path/ownership split, not missing FSM/runtime behavior.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Build a multi-SPC block with one invalid and one valid proof and assert the destination rejects the block deterministically; separately decide whether aggregate diagnostics are still required for RPC or observability consumers.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed: BatchVerificationResult and all_valid/total_count are restored in reth_evm::spc; concrete batch verifier populates per-request results and success/failure counts."
+    },
+    {
+      "record_id": "file-0111-atom-0007",
+      "file_index": 111,
+      "atom_index": 7,
+      "atoms_total": 10,
+      "source_path": "crates/evm/src/spc.rs",
+      "source_hunk_hint": "@@ -0,0 +90,122 @@",
+      "source_kind": "encoding_rule",
+      "source_snippet": "pub precompile_input: Bytes,\npub output: Bytes,\npub proof: Bytes,\npub precompile_address: Address,\npub executor: Address,\npub block_number: u64,\npub tx_hash: B256,\npub previous_block_hash: B256,\npub previous_block_number: u64,\npub previous_block_timestamp: u64,",
+      "semantic_claim": "SPC verification binds a proof to the precompile input/output, proof bytes, precompile address, executor, block number, transaction hash, and previous-block hash/number/timestamp rather than validating proof bytes in isolation.",
+      "high_risk": false,
+      "risk_tags": [
+        "transaction-identity",
+        "block-number-binding",
+        "proof-validation",
+        "previous-block-context",
+        "executor-correctness"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/evm/evm/src/spc.rs",
+          "evidence": "Restores the public reth_evm::spc API: SpcVerificationError, SpcVerifier, SpcVerificationRequest, BatchVerificationResult, all_valid, and total_count."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/evm/evm/src/lib.rs",
+          "evidence": "Exports #[cfg(feature = \"std\")] pub mod spc."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/spc.rs",
+          "evidence": "SpcVerifierImpl implements reth_evm::spc::SpcVerifier and converts requests/results to and from the concrete ritual-spc-verification crate."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/verifier.rs",
+          "evidence": "Concrete verifier implements verify_batch, verify_parallel_optimized, get_previous_block_data, ensure_registry_synced, update_registry_from_data, and fail-closed result counting."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/types.rs",
+          "evidence": "Concrete SpcVerificationRequest carries precompile input/output/proof/address, executor, block number, tx hash, previous block hash/number/timestamp, proposer signature, error, and success."
+        }
+      ],
+      "equivalence_argument": "The source API is restored under the v2 crate path and backed by the node bridge plus ritual-spc-verification concrete implementation. Any non-exactness is path/ownership split, not missing FSM/runtime behavior.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "For a valid fulfilled transaction, mutate the SPC block_number, tx_hash-derived job id, input, output, previous_block_hash, or precompile_address and assert validation fails for the specific binding rather than passing due to partial matching.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed: concrete verification binds proof validation to input, output, proof, precompile address, executor, tx hash, block number, and previous-block context. No confirmed proof-binding FSM gap."
+    },
+    {
+      "record_id": "file-0111-atom-0008",
+      "file_index": 111,
+      "atom_index": 8,
+      "atoms_total": 10,
+      "source_path": "crates/evm/src/spc.rs",
+      "source_hunk_hint": "@@ -0,0 +24,151 @@",
+      "source_kind": "state_transition",
+      "source_snippet": "pub trait SpcVerifier: Send + Sync { /* batch verification, previous-block data, registry sync/update */ }\n\npub struct SpcVerificationRequest { /* proof and block context fields */ }\n\npub struct BatchVerificationResult { /* per-request results and all_valid */ }",
+      "semantic_claim": "The source file establishes a verifier state machine at the API level: construct context-rich requests, ensure verifier registry/block context is current, run batch verification, and accept the batch only if all requests validate.",
+      "high_risk": false,
+      "risk_tags": [
+        "verifier-state-machine",
+        "spc-verification",
+        "async-precompile-proof-validation",
+        "executor-correctness",
+        "block-verification"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/evm/evm/src/spc.rs",
+          "evidence": "Restores the public reth_evm::spc API: SpcVerificationError, SpcVerifier, SpcVerificationRequest, BatchVerificationResult, all_valid, and total_count."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/evm/evm/src/lib.rs",
+          "evidence": "Exports #[cfg(feature = \"std\")] pub mod spc."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/spc.rs",
+          "evidence": "SpcVerifierImpl implements reth_evm::spc::SpcVerifier and converts requests/results to and from the concrete ritual-spc-verification crate."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/verifier.rs",
+          "evidence": "Concrete verifier implements verify_batch, verify_parallel_optimized, get_previous_block_data, ensure_registry_synced, update_registry_from_data, and fail-closed result counting."
+        }
+      ],
+      "equivalence_argument": "The source API is restored under the v2 crate path and backed by the node bridge plus ritual-spc-verification concrete implementation. Any non-exactness is path/ownership split, not missing FSM/runtime behavior.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Add a verifier-level test that walks the full state machine: no settlement jobs returns Ok, missing matching SPC rejects, short proof rejects, missing/empty executor key rejects, invalid signature rejects, and all valid phase1/delivery SPC calls pass.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed: the verifier API state machine is restored through public request construction, registry/context update, batch verification, and all_valid result semantics; concrete verification supplies runtime behavior."
+    },
+    {
+      "record_id": "file-0111-atom-0009",
+      "file_index": 111,
+      "atom_index": 9,
+      "atoms_total": 10,
+      "source_path": "crates/evm/src/spc.rs",
+      "source_hunk_hint": "@@ -0,0 +124,151 @@ and implied verifier error contract",
+      "source_kind": "error_path",
+      "source_snippet": "pub results: Vec<Result<bool, String>>,\npub failed_count: usize,\n\npub fn all_valid(&self) -> bool {\n    self.failed_count == 0\n        && self.results.iter().all(|r| r.as_ref().map_or(false, |&valid| valid))\n}",
+      "semantic_claim": "Negative verification paths must be fail-closed: explicit Err results and Ok(false) results both make all_valid false, and failed_count must be zero before a batch can be accepted.",
+      "high_risk": false,
+      "risk_tags": [
+        "negative-paths",
+        "proof-validation",
+        "error-path",
+        "block-verification",
+        "spc-verification"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/evm/evm/src/spc.rs",
+          "evidence": "Restores the public reth_evm::spc API: SpcVerificationError, SpcVerifier, SpcVerificationRequest, BatchVerificationResult, all_valid, and total_count."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/evm/evm/src/lib.rs",
+          "evidence": "Exports #[cfg(feature = \"std\")] pub mod spc."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/spc.rs",
+          "evidence": "SpcVerifierImpl implements reth_evm::spc::SpcVerifier and converts requests/results to and from the concrete ritual-spc-verification crate."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/verifier.rs",
+          "evidence": "Concrete verifier implements verify_batch, verify_parallel_optimized, get_previous_block_data, ensure_registry_synced, update_registry_from_data, and fail-closed result counting."
+        }
+      ],
+      "equivalence_argument": "The source API is restored under the v2 crate path and backed by the node bridge plus ritual-spc-verification concrete implementation. Any non-exactness is path/ownership split, not missing FSM/runtime behavior.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Promote the existing SPC constraint cases into v2 verifier-level regression tests, including missing job, missing matching call, short proof, invalid signature, wrong block, wrong input hash, and empty executor key.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed: fail-closed paths are covered structurally by failed_count/result aggregation in the concrete verifier and all_valid returning false for Err/Ok(false)."
+    },
+    {
+      "record_id": "file-0111-atom-0010",
+      "file_index": 111,
+      "atom_index": 10,
+      "atoms_total": 10,
+      "source_path": "crates/evm/src/spc.rs",
+      "source_hunk_hint": "@@ -0,0 +1,151 @@",
+      "source_kind": "test_fixture",
+      "source_snippet": "No #[cfg(test)] module or tests are present in the added spc.rs file.",
+      "semantic_claim": "The new SPC EVM API file has no in-file tests for error formatting, trait-object compatibility, async verifier futures, request field completeness, registry/block-context semantics, BatchVerificationResult::all_valid, or fail-closed negative paths.",
+      "high_risk": false,
+      "risk_tags": [
+        "tests",
+        "missing-tests",
+        "spc-verification",
+        "proof-validation",
+        "error-path",
+        "verifier-builder-parity"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/evm/evm/src/spc.rs",
+          "evidence": "Restores the public reth_evm::spc API: SpcVerificationError, SpcVerifier, SpcVerificationRequest, BatchVerificationResult, all_valid, and total_count."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/evm/evm/src/lib.rs",
+          "evidence": "Exports #[cfg(feature = \"std\")] pub mod spc."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/spc.rs",
+          "evidence": "SpcVerifierImpl implements reth_evm::spc::SpcVerifier and converts requests/results to and from the concrete ritual-spc-verification crate."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/verifier.rs",
+          "evidence": "Concrete verifier implements verify_batch, verify_parallel_optimized, get_previous_block_data, ensure_registry_synced, update_registry_from_data, and fail-closed result counting."
+        }
+      ],
+      "equivalence_argument": "The source API is restored under the v2 crate path and backed by the node bridge plus ritual-spc-verification concrete implementation. Any non-exactness is path/ownership split, not missing FSM/runtime behavior.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Add destination unit tests for verify_spc_with_preloaded_context and verify_spc_calls covering input-hash mismatch, short proof, invalid signature, missing matching SPC, missing job, empty executor public key, and valid phase1/delivery paths.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed: the old source file itself had no in-file tests; destination concrete verifier has batch construction/empty/single/multiple/parallel tests. Remaining test surface is support-only, not a porting gap."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 8,
+  "adversarial_reviews": [
+    {
+      "record_id": "file-0111-atom-0001",
+      "required": true,
+      "status": "completed",
+      "review_record_id": null
+    },
+    {
+      "record_id": "file-0111-atom-0002",
+      "required": true,
+      "status": "completed",
+      "review_record_id": null
+    },
+    {
+      "record_id": "file-0111-atom-0003",
+      "required": true,
+      "status": "completed",
+      "review_record_id": null
+    },
+    {
+      "record_id": "file-0111-atom-0004",
+      "required": true,
+      "status": "completed",
+      "review_record_id": null
+    },
+    {
+      "record_id": "file-0111-atom-0005",
+      "required": true,
+      "status": "completed",
+      "review_record_id": null
+    },
+    {
+      "record_id": "file-0111-atom-0006",
+      "required": true,
+      "status": "completed",
+      "review_record_id": null
+    },
+    {
+      "record_id": "file-0111-atom-0007",
+      "required": true,
+      "status": "completed",
+      "review_record_id": null
+    },
+    {
+      "record_id": "file-0111-atom-0008",
+      "required": true,
+      "status": "completed",
+      "review_record_id": null
+    },
+    {
+      "record_id": "file-0111-atom-0009",
+      "required": true,
+      "status": "completed",
+      "review_record_id": null
+    },
+    {
+      "record_id": "file-0111-atom-0010",
+      "required": true,
+      "status": "completed",
+      "review_record_id": null
+    }
+  ],
+  "summary": "Mechanical review complete. The SPC public EVM API is restored in the v2 port at crates/evm/evm/src/spc.rs: SpcVerificationError, SpcVerifier, SpcVerificationRequest, BatchVerificationResult, all_valid, and total_count are present. The node bridge in crates/ethereum/node/src/spc.rs maps the trait API to ritual-spc-verification, whose concrete verifier implements batch verification, optimized parallel verification, previous-block lookup, registry updates, request field binding, fail-closed result accounting, and basic batch tests. No confirmed FSM/runtime gap remains in this file.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Reviewed against latest port commit 7f8a668d24, which restored reth_evm::spc and the node bridge.",
+    "The old missing statuses were stale: the public API now exists at crates/evm/evm/src/spc.rs.",
+    "Concrete runtime behavior is provided by crates/ethereum/node/src/spc.rs and crates/ritual-spc-verification/src/{types,verifier}.rs."
+  ]
+}

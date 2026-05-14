@@ -1,0 +1,412 @@
+{
+  "record_type": "file",
+  "file_index": 89,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ethereum/payload/src/collector.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "reviewed",
+    "payload",
+    "async-fsm",
+    "sequencing-rights",
+    "reth-port"
+  ],
+  "atoms_total": 9,
+  "atoms": [
+    {
+      "record_id": "file-0089-atom-0001",
+      "file_index": 89,
+      "atom_index": 1,
+      "atoms_total": 9,
+      "source_path": "crates/ethereum/payload/src/collector.rs",
+      "source_hunk_hint": "@@ -0,0 +1,124 @@ lines 14-23",
+      "source_kind": "other",
+      "source_snippet": "pub enum AsyncTxCacheResult {\n    ValidAsync,\n    InvalidAsync,\n    NotAsync,\n}",
+      "semantic_claim": "The collector models async cache lookup as a three-way classification: valid async transactions with commitments, detected-but-invalid async transactions, and non-async transactions.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "async-fsm",
+        "rejection-path",
+        "builder-verifier-parity"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "build_payload",
+            "is_transient_precompile_validation_error",
+            "is_permanently_invalid_precompile_request"
+          ],
+          "snippet": "detected_async_call = async_inspector.async_call_result();\nif detected_async_call.is_some() {\n    CommitChanges::No\n} else {\n    CommitChanges::Yes\n}",
+          "evidence": "The destination has no AsyncTxCacheResult name, but the payload builder splits regular commit, detected async commitment synthesis, transient skip, and permanent invalidation paths."
+        }
+      ],
+      "equivalence_argument": "The destination does not preserve the enum shape. It encodes the same operational states through async inspector detection and validation error branches: detected async calls suppress original commit and build commitment transactions, regular transactions commit directly, transient async validation errors skip, and permanent invalid async requests are marked invalid.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Submit one regular transaction, one valid short async precompile transaction, one transiently unavailable async precompile transaction, and one permanently invalid async request; assert only the valid async path emits a commitment, regular commits normally, transient skips without eviction, and permanent invalid evicts descendants.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed covered. The enum shape is absent, but async inspector and validation branches preserve regular, valid async, transient skip, and permanent invalid paths."
+    },
+    {
+      "record_id": "file-0089-atom-0002",
+      "file_index": 89,
+      "atom_index": 2,
+      "atoms_total": 9,
+      "source_path": "crates/ethereum/payload/src/collector.rs",
+      "source_hunk_hint": "@@ -0,0 +1,124 @@ lines 25-38",
+      "source_kind": "new_field",
+      "source_snippet": "pub struct CollectedBundles<PoolTx: Clone + PoolTransaction + std::fmt::Debug> {\n    pub bundles: Vec<TxBundle<PoolTx>>,\n    pub scheduled_count: usize,\n    pub fulfilled_count: usize,\n    pub delivery_count: usize,\n    pub regular_count: usize,\n}",
+      "semantic_claim": "The collector aggregates payload candidates from scheduled, fulfilled async, delivery settlement, and regular transaction sources into one bundle vector while tracking per-source counts.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "scheduled-transactions",
+        "async-fsm",
+        "execution-ordering",
+        "accounting"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "build_payload"
+          ],
+          "snippet": "let scheduled_obligations = { ... };\nlet fulfilled_async_entries = match pool.get_fulfilled_original_async_commitment_transactions(current_block) { ... };\nlet delivery_ready_async_entries = match pool.get_delivery_ready_original_async_transactions(current_block) { ... };\nlet mut regular_candidates = Vec::new();",
+          "evidence": "The active builder handles the same four source classes, but as explicit phases rather than a CollectedBundles container with counters."
+        }
+      ],
+      "equivalence_argument": "The destination covers the four source classes by executing scheduled obligations, fulfilled async original+settlement pairs, delivery settlements, and then regular pool candidates. The standalone vector and count fields are intentionally not preserved, so source-count observability and any future global bundle-level processing are non-exact.",
+      "test_strategy": "integration_traffic",
+      "negative_test_candidate": "Build a block containing eligible scheduled, fulfilled async, delivery-ready, and regular transactions and assert all expected source classes are considered exactly once without duplicate scheduled inclusion.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed covered for behavior. The active builder aggregates fulfilled async, delivery, and regular candidates into PayloadCandidate and processes scheduled state obligations separately; old counters are absent."
+    },
+    {
+      "record_id": "file-0089-atom-0003",
+      "file_index": 89,
+      "atom_index": 3,
+      "atoms_total": 9,
+      "source_path": "crates/ethereum/payload/src/collector.rs",
+      "source_hunk_hint": "@@ -0,0 +1,124 @@ lines 40-51 and 67-73",
+      "source_kind": "state_transition",
+      "source_snippet": "pub fn new() -> Self {\n    Self {\n        bundles: Vec::new(),\n        scheduled_count: 0,\n        fulfilled_count: 0,\n        delivery_count: 0,\n        regular_count: 0,\n    }\n}\n\nimpl<PoolTx: Clone + PoolTransaction + std::fmt::Debug> Default for CollectedBundles<PoolTx> {\n    fn default() -> Self {\n        Self::new()\n    }\n}",
+      "semantic_claim": "A new or default CollectedBundles starts with no bundles and zeroed per-source counters.",
+      "high_risk": false,
+      "risk_tags": [
+        "payload",
+        "initialization"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [],
+      "equivalence_argument": null,
+      "test_strategy": "not_needed",
+      "negative_test_candidate": "",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed intentionally absent with the removed CollectedBundles wrapper."
+    },
+    {
+      "record_id": "file-0089-atom-0004",
+      "file_index": 89,
+      "atom_index": 4,
+      "atoms_total": 9,
+      "source_path": "crates/ethereum/payload/src/collector.rs",
+      "source_hunk_hint": "@@ -0,0 +1,124 @@ lines 53-56",
+      "source_kind": "other",
+      "source_snippet": "pub fn total(&self) -> usize {\n    self.bundles.len()\n}",
+      "semantic_claim": "CollectedBundles::total reports the number of bundle entries, not the sum of per-source counters.",
+      "high_risk": false,
+      "risk_tags": [
+        "payload",
+        "accounting"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [],
+      "equivalence_argument": null,
+      "test_strategy": "not_needed",
+      "negative_test_candidate": "",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed intentionally absent with the removed CollectedBundles wrapper."
+    },
+    {
+      "record_id": "file-0089-atom-0005",
+      "file_index": 89,
+      "atom_index": 5,
+      "atoms_total": 9,
+      "source_path": "crates/ethereum/payload/src/collector.rs",
+      "source_hunk_hint": "@@ -0,0 +1,124 @@ lines 58-65",
+      "source_kind": "call_ordering",
+      "source_snippet": "pub fn sort_by_tip(&mut self, base_fee: u64) {\n    self.bundles.sort_by(|a, b| {\n        let tip_a = a.effective_tip_per_gas(base_fee).unwrap_or(0);\n        let tip_b = b.effective_tip_per_gas(base_fee).unwrap_or(0);\n        tip_b.cmp(&tip_a)\n    });\n}",
+      "semantic_claim": "The collector globally sorts all collected bundles by descending effective tip per gas and treats missing effective tips as zero.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "fee-accounting",
+        "execution-ordering",
+        "builder-verifier-parity"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "PayloadCandidate",
+            "sort_candidates_by_effective_tip"
+          ],
+          "snippet": "sort_candidates_by_effective_tip(&mut payload_candidates, PayloadCandidate::effective_tip, PayloadCandidate::original_index);",
+          "evidence": "The destination globally sorts the active fulfilled async, delivery, and regular payload candidate vector by descending effective tip and uses original index as a stable tie-breaker."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/sequencing_rights.rs",
+          "symbols": [
+            "sort_candidates_by_effective_tip",
+            "tip_sort_keeps_original_index_order_for_ties"
+          ],
+          "snippet": "candidates.sort_by(|left, right| effective_tip(right).cmp(&effective_tip(left)).then_with(|| original_index(left).cmp(&original_index(right))))",
+          "evidence": "The sorter has unit coverage for descending tip order and stable tie order."
+        }
+      ],
+      "equivalence_argument": "The old CollectedBundles::sort_by_tip function is not preserved, but the destination now applies the same descending-tip ordering to the concrete candidate vector that replaced most collector responsibilities. The mapping is still non-exact because scheduled state obligations are handled before this candidate vector.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Create a block opportunity where a low-tip scheduled or settlement transaction and a higher-tip regular transaction are both eligible; assert whether the destination intentionally preserves phase ordering or should globally maximize tip across bundle sources.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed covered after ba3727354e for payload candidates. sort_candidates_by_effective_tip globally orders fulfilled async, delivery, and regular candidates; scheduled state obligations remain an earlier deterministic phase."
+    },
+    {
+      "record_id": "file-0089-atom-0006",
+      "file_index": 89,
+      "atom_index": 6,
+      "atoms_total": 9,
+      "source_path": "crates/ethereum/payload/src/collector.rs",
+      "source_hunk_hint": "@@ -0,0 +1,124 @@ lines 75-93",
+      "source_kind": "new_field",
+      "source_snippet": "pub struct CollectorConfig {\n    pub base_fee: u64,\n    pub block_number: u64,\n    pub block_gas_limit: u64,\n    pub cumulative_gas_used: u64,\n    pub current_block_size: usize,\n    pub max_block_size: usize,\n    pub coinbase: Address,\n    pub model_registry_contract: Address,\n}",
+      "semantic_claim": "Collector configuration carries fee, block-number, gas-capacity, block-size, coinbase, and model-registry context needed to select and price payload candidates.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "gas-accounting",
+        "size-accounting",
+        "fee-accounting",
+        "async-fees"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "build_payload"
+          ],
+          "snippet": "let block_gas_limit: u64 = builder.evm_mut().block().gas_limit();\nlet base_fee = builder.evm_mut().block().basefee();\nlet current_block = parent_header.number.saturating_add(1);\nlet mut model_cache = ModelCache::default();",
+          "evidence": "The active builder keeps equivalent fee, gas, block-number, size, and async-fee state as local variables and passes fee recipient/model registry context into async settlement helpers."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/wallet.rs",
+          "symbols": [
+            "get_model_registry_address"
+          ],
+          "snippet": "pub fn get_model_registry_address() -> Address {\n    std::env::var(\"MODEL_REGISTRY_CONTRACT_ADDRESS\")\n        .ok()\n        .and_then(|value| value.parse().ok())",
+          "evidence": "The model registry address is resolved inside the async-fee subsystem rather than carried in a CollectorConfig field."
+        }
+      ],
+      "equivalence_argument": "The destination does not preserve a CollectorConfig struct, but the same context is present as builder state, payload attributes, local gas/size counters, and async-fee registry helpers. This is non-exact because field ownership and propagation changed.",
+      "test_strategy": "integration_traffic",
+      "negative_test_candidate": "Run payload construction with non-default fee recipient, constrained gas, constrained Osaka RLP size, and MODEL_REGISTRY_CONTRACT_ADDRESS set to a non-default registry; assert scheduled and async settlement pricing use the intended context.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed covered. CollectorConfig fields are represented by builder state, payload attributes, local gas/size counters, and async-fee/model-registry helpers."
+    },
+    {
+      "record_id": "file-0089-atom-0007",
+      "file_index": 89,
+      "atom_index": 7,
+      "atoms_total": 9,
+      "source_path": "crates/ethereum/payload/src/collector.rs",
+      "source_hunk_hint": "@@ -0,0 +1,124 @@ lines 95-101",
+      "source_kind": "changed_constant",
+      "source_snippet": "pub fn estimate_tx_size(tx: &Recovered<TransactionSigned>) -> usize {\n    tx.size() + 256\n}",
+      "semantic_claim": "The collector estimates transaction block size as in-memory transaction size plus a fixed 256-byte log allowance.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "size-accounting",
+        "rejection-path"
+      ],
+      "mapping_status": "covered_by_upstream",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "build_payload"
+          ],
+          "snippet": "let estimated_block_size_with_tx =\n    block_transactions_rlp_length + tx_rlp_len + withdrawals_rlp_length + 1024;\n\nif is_osaka && estimated_block_size_with_tx > MAX_RLP_BLOCK_SIZE { ... }",
+          "evidence": "The destination uses canonical transaction RLP length plus withdrawals and header overhead for EIP-7934 block-size checks, not the collector's tx.size()+256 helper."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/consensus/common/src/validation.rs",
+          "symbols": [
+            "MAX_RLP_BLOCK_SIZE"
+          ],
+          "snippet": "pub const MAX_RLP_BLOCK_SIZE: usize = 8_388_608;",
+          "evidence": "The size limit is anchored to the upstream consensus RLP block-size constant."
+        }
+      ],
+      "equivalence_argument": "The old fixed log allowance is not retained. Destination behavior is covered by upstream Osaka/EIP-7934 RLP-size accounting, which is the consensus-relevant block-size metric and is applied to scheduled, fulfilled-pair, delivery, and regular paths.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Construct transactions around the Osaka MAX_RLP_BLOCK_SIZE boundary where tx.size()+256 and RLP-length accounting would disagree; assert the destination follows RLP-length consensus accounting and rejects only oversize RLP blocks.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed covered by canonical RLP block-size accounting rather than the old tx.size()+256 heuristic."
+    },
+    {
+      "record_id": "file-0089-atom-0008",
+      "file_index": 89,
+      "atom_index": 8,
+      "atoms_total": 9,
+      "source_path": "crates/ethereum/payload/src/collector.rs",
+      "source_hunk_hint": "@@ -0,0 +1,124 @@ lines 103-106",
+      "source_kind": "changed_branch_condition",
+      "source_snippet": "pub fn can_fit_transaction(tx_size: usize, current_size: usize, max_size: usize) -> bool {\n    current_size + tx_size <= max_size\n}",
+      "semantic_claim": "A transaction fits when adding its size to the current block size is less than or equal to the maximum size; equality is accepted and only strictly greater is rejected.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "size-accounting",
+        "rejection-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "build_payload"
+          ],
+          "snippet": "if is_osaka && estimated_block_size_with_tx > MAX_RLP_BLOCK_SIZE {\n    record_invalid_sender_nonce(&mut invalidated_sender_nonces, &pool_tx, &tx);\n    best_txs.mark_invalid(&pool_tx, &InvalidPoolTransactionError::OversizedData { ... });\n    continue;\n}",
+          "evidence": "The destination rejects only when estimated size is strictly greater than MAX_RLP_BLOCK_SIZE, so equality remains accepted."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc/src/testing.rs",
+          "symbols": [
+            "EthApi::testing"
+          ],
+          "snippet": "if estimated_block_size > MAX_RLP_BLOCK_SIZE {\n    if skip_invalid_transactions { ... continue; }\n    return Err(...);\n}",
+          "evidence": "The RPC testing path uses the same strict-greater rejection boundary."
+        }
+      ],
+      "equivalence_argument": "Although the helper function is absent, the active block-building and RPC testing branches use the same inclusive fit rule by rejecting only sizes greater than the maximum.",
+      "test_strategy": "same_test_both_repos",
+      "negative_test_candidate": "Exercise block-size candidates at max-1, exactly max, and max+1 and assert only max+1 is rejected or skipped.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed covered. Active block-size branches reject only when estimated size is strictly greater than the limit, so equality fits."
+    },
+    {
+      "record_id": "file-0089-atom-0009",
+      "file_index": 89,
+      "atom_index": 9,
+      "atoms_total": 9,
+      "source_path": "crates/ethereum/payload/src/collector.rs",
+      "source_hunk_hint": "@@ -0,0 +1,124 @@ lines 108-124",
+      "source_kind": "test_fixture",
+      "source_snippet": "#[test]\nfn test_collected_bundles_new() {\n    // We can't test with real PoolTx types here, but we can test the basic structure\n}\n\n#[test]\nfn test_can_fit_transaction() {\n    assert!(can_fit_transaction(100, 0, 1000));\n    assert!(can_fit_transaction(100, 900, 1000));\n    assert!(!can_fit_transaction(100, 901, 1000));\n    assert!(!can_fit_transaction(1001, 0, 1000));\n}",
+      "semantic_claim": "The file adds a placeholder constructor test and concrete fit-boundary assertions for under-limit, exact-limit, one-over-limit, and single-transaction-over-limit cases.",
+      "high_risk": false,
+      "risk_tags": [
+        "payload",
+        "test"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc/src/testing.rs",
+          "symbols": [
+            "EthApi::testing"
+          ],
+          "snippet": "if estimated_block_size > MAX_RLP_BLOCK_SIZE {\n    if skip_invalid_transactions { ... continue; }\n    return Err(...);\n}",
+          "evidence": "A runtime size boundary exists, but no exact collector unit test or direct max-1/max/max+1 unit fixture was found."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "same_test_both_repos",
+      "negative_test_candidate": "",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed missing test-only fixture. Production inclusive fit behavior exists, but the old collector unit test is absent."
+    }
+  ],
+  "high_risk_atoms_total": 6,
+  "non_exact_atoms_total": 9,
+  "adversarial_reviews": [
+    {
+      "review_record_id": "review-files-0077-0089-mechanical",
+      "required": false,
+      "status": "completed",
+      "reason": "Mechanical review completed; remaining non-exact atoms are now confirmed covered, confirmed missing, intentionally absent, or support/test/telemetry only."
+    }
+  ],
+  "summary": "Mechanical review complete. The collector abstraction itself is absent, but its behavior is now covered by the active payload loop: async classification, candidate aggregation, cross-source tip sorting, context locals, canonical RLP sizing, and inclusive fit checks. Only counters/accessors and a unit test are absent.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Updated after ba3727354e: payload construction now materializes PayloadCandidate values and sorts them by effective tip before sequencing-rights reordering. Scheduled state obligations still execute in a separate earlier phase. Mechanical review review-files-0077-0089-mechanical completed; all prior needs-review atoms have definitive verdicts."
+}

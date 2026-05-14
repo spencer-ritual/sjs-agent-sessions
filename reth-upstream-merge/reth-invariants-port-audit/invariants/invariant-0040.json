@@ -1,0 +1,121 @@
+{
+  "cluster_key": "scheduler:pool-accounting:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Routine wall-clock cleanup has no Scheduler job eviction path.",
+      "path": "crates/transaction-pool/src/maintain.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "Routine stale_eviction_tick removes queued_transactions older than max_tx_lifetime and async lifecycle entries; raw scheduled txpool admission is dormant.",
+      "symbols": [
+        "MaintainPoolConfig::max_tx_lifetime",
+        "maintain_transaction_pool"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Future scheduled instances come from Scheduler state, not a txpool scheduled job cache.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "compute_obligations/read_active_scheduled_calls derive work from Scheduler contract parent state.",
+      "symbols": [
+        "compute_obligations",
+        "read_active_scheduled_calls"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Surviving Scheduler jobs can produce future instances after routine txpool cleanup.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "Payload builder scans Scheduler state and synthesizes PayloadCandidate::Scheduled for due obligations.",
+      "symbols": [
+        "compute_obligations",
+        "create_scheduled_execution_transaction_from_state",
+        "PayloadCandidate::Scheduled"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Verifier parity also treats Scheduler parent state as source of truth.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "Verifier recomputes scheduled obligations from parent state.",
+      "symbols": [
+        "verify_scheduled_censorship"
+      ]
+    }
+  ],
+  "equivalence_argument": "Routine max_tx_lifetime cleanup cannot delete Scheduler jobs in v2 because scheduled jobs are not owned by txpool; due scheduled transactions are re-derived from Scheduler parent state.",
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/mod.rs",
+    "crates/transaction-pool/src/maintain.rs",
+    "crates/transaction-pool/src/pool/scheduled.rs",
+    "crates/transaction-pool/src/pool/txpool.rs"
+  ],
+  "invariant_id": "cur-ee16d41c03-routine-scheduled-expiry-preserves-scheduler-jobs",
+  "invariant_index": 40,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/maintain.rs",
+      "crates/transaction-pool/src/pool/mod.rs",
+      "crates/transaction-pool/src/pool/scheduled.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ethereum/payload/src/lib.rs"
+    ],
+    "checked_queries": [
+      "max_tx_lifetime|evict_call|SynchronousScheduler|scheduled pool",
+      "remove_scheduled|scheduled_expir|routine.*scheduled"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "max_tx_lifetime",
+      "evict_call",
+      "SynchronousScheduler",
+      "ScheduledPool",
+      "remove_scheduled",
+      "compute_obligations",
+      "PayloadCandidate::Scheduled"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "No scheduled pool file/API exists in audited port; Alloy/revm own primitives/effects, not Scheduler job eviction."
+    ]
+  },
+  "notes": "Mapped structurally in the port.",
+  "rationale": "The later candidates explicitly remove the prior scheduler.evict_call loop from max-lifetime expiry and preserve Scheduler jobs unless chain halt has been detected.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "561415fb149a5d219ca342eba2901f9efc1d7580",
+    "9025328b5218757656b0e228494523d6fa310114"
+  ],
+  "statement": "At current tip, max_tx_lifetime expiry without chain-halt detection removes expired scheduled transaction instances from the pool but leaves the corresponding Scheduler jobs available to produce future eligible transaction instances.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "With no chain halt detected, insert a scheduled transaction whose timestamp exceeds max_tx_lifetime, tick maintenance, and assert the transaction is removed from the scheduled pool but SynchronousScheduler still has the call ID.",
+    "Repeat with chain halt detected and assert the call ID is evicted, proving the distinction between routine age expiry and poison recovery."
+  ],
+  "summary": "Routine scheduled expiry preserves Scheduler jobs structurally by not owning/evicting them in txpool.",
+  "test_or_falsification_candidate": "Age out any stale queued instance, tick maintenance, then build/verify later block and assert compute_obligations still produces Scheduler state call/index.",
+  "title": "Routine scheduled expiry preserves Scheduler jobs",
+  "total_invariants": 1954
+}

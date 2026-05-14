@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/rpc/rpc/src/async_tx_validator.rs"
+  ],
+  "invariant_id": "cur-2cbf9cff7d-async-capability-requirements-follow-precompile-type",
+  "invariant_index": 414,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-precompile-addresses/src/lib.rs",
+      "crates/rpc/rpc/src/async_tx_validator.rs",
+      "crates/ritual-tee-registry-reader/src/types.rs"
+    ],
+    "checked_queries": [
+      "AGENT_CALL_PRECOMPILE",
+      "0x0000000000000000000000000000000000000808",
+      "Agent precompile Llm capability",
+      "unknown precompile skip capability",
+      "expected_capability_tag unknown"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "expected_capability_tag",
+      "AsyncPrecompileCapabilityTag::AutonomousAgent",
+      "validate_executor",
+      "async_metadata",
+      "AGENT_CALL_PRECOMPILE"
+    ],
+    "missing_behavior": "RPC capability requirements do not include an Agent->Llm rule, and unknown detected async precompile addresses are rejected rather than explicitly skipping capability checks.",
+    "related_but_insufficient_code": [
+      "crates/ritual-precompile-addresses/src/lib.rs has no AGENT_CALL_PRECOMPILE/0x0808; sovereign 0x080C and persistent 0x0820 are explicitly mapped to HttpCall capability for downstream parity, not Llm.",
+      "expected_capability_tag(Address::ZERO) returns None at metadata level, but rpc async_metadata returns an error for unknown async precompiles instead of a skip-capability path if such a detected call reaches validation.",
+      "validate_executor enforces metadata.expected_capability_tag for known precompiles and has no special case mapping agent precompiles to Llm."
+    ]
+  },
+  "notes": "HTTP, LLM, ZK, and FHE metadata routing exists, but the invariant-required Agent/unknown cases are missing.",
+  "rationale": "The primary diff codifies the mapping from async precompile address to required TEE registry capability and returns ExecutorWrongCapability when the executor's registered capability does not match. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "33ac6bbf926323bd11d852fbfb42319c7af9fd2b"
+  ],
+  "statement": "RPC executor validation must require HttpCall capability for HTTP and long-running HTTP precompiles, Llm capability for LLM and Agent precompiles, and ZkCall capability for ZK two-phase precompiles, while skipping capability checks for unknown precompile addresses.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Mock latest registry state with executors registered under HttpCall, Llm, and ZkCall, then validate each supported precompile address against matching and non-matching executors and assert only the matching capability passes."
+  ],
+  "summary": "Async RPC capability routing does not match agent/unknown semantics.",
+  "test_or_falsification_candidate": "Submit or directly validate a detected 0x0808 agent async call and an unknown async precompile address; the invariant expects Llm capability for agent and no capability check for unknown, while the current port has no 0x0808 metadata and rejects unknown metadata.",
+  "title": "Async RPC capability requirements follow precompile type",
+  "total_invariants": 1954
+}

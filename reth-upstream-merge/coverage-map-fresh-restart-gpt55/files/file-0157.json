@@ -1,0 +1,72 @@
+{
+  "record_type": "file",
+  "file_index": 157,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/net/network/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "missing",
+  "tags": [
+    "missing",
+    "non-exact",
+    "cargo",
+    "network",
+    "metrics",
+    "observability"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0157-atom-0001",
+      "file_index": 157,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/net/network/Cargo.toml",
+      "source_hunk_hint": "@@ -33,6 +33,7 @@",
+      "source_kind": "dependency",
+      "source_snippet": "reth-consensus.workspace = true\nreth-network-peers = { workspace = true, features = [\"net\"] }\nreth-network-types.workspace = true\nritual-metrics.workspace = true",
+      "semantic_claim": "The old network crate adds a direct `ritual-metrics` workspace dependency, enabling network code to call Ritual-specific P2P transaction observability helpers.",
+      "high_risk": false,
+      "risk_tags": [
+        "observability",
+        "build-dependency",
+        "p2p-transaction-metrics"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/net/network/Cargo.toml",
+          "evidence": "The destination network Cargo.toml depends on `reth-metrics` and `metrics`, but has no `ritual-metrics` dependency; repo-wide exact searches found no `ritual_metrics` import or `log_p2p_tx_*` helper calls in the v2.2.0 port."
+        }
+      ],
+      "equivalence_argument": "The destination retains standard Reth network metrics, but that is not exact coverage for the old Ritual-specific P2P transaction log dependency. This atom is treated as low risk because it is observability/build-support metadata rather than consensus, transaction admission, pool mutation, or verification behavior.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Add a compile or observability regression only if the port intends to preserve old Ritual P2P transaction log hooks; otherwise document the intentional removal when auditing the corresponding network.rs and transactions/mod.rs call sites.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This dependency is paired with later source call sites in network.rs and transactions/mod.rs, which should be audited independently at their file indices."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The network Cargo manifest adds a `ritual-metrics` dependency for old Ritual-specific P2P transaction observability. The v2.2.0 port has no exact dependency or helper-call equivalent; standard reth metrics remain, so the missing atom is recorded as low-risk non-exact observability coverage.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 157: M\tcrates/net/network/Cargo.toml.",
+    "The isolated patch only adds `ritual-metrics.workspace = true` under the network crate's Reth dependencies.",
+    "Source repo searches show old network consumers importing `ritual_metrics` in crates/net/network/src/network.rs and crates/net/network/src/transactions/mod.rs.",
+    "Destination searches in ritual-reth-internal-v2.2.0-port found no `ritual-metrics` dependency in crates/net/network/Cargo.toml and no `ritual_metrics` or `log_p2p_tx_*` usages.",
+    "The destination still has standard `reth-metrics` and `metrics` dependencies, but those do not exactly preserve the old Ritual-specific P2P transaction observability hook."
+  ]
+}

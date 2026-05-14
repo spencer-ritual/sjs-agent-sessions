@@ -1,0 +1,64 @@
+{
+  "cluster_key": "scheduler:payload-building:part-02",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-c6695cdc28-async-simulation-bounded-policy-demotable",
+  "invariant_index": 82,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs"
+    ],
+    "checked_queries": [
+      "AsyncSims|RETH_MAX_ASYNC_SIMS_PER_BLOCK|RETH_ASYNC_SIM_DEADLINE_MS|async_cache|max_async_sims|non-demotable|classification"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "AsyncSims",
+      "async_cache",
+      "RETH_MAX_ASYNC_SIMS_PER_BLOCK",
+      "RETH_ASYNC_SIM_DEADLINE_MS"
+    ],
+    "missing_behavior": "Missing AsyncSims classification, shared scheduled-plus-regular simulation counter, async simulation deadline, and current-cycle async_cache gate.",
+    "related_but_insufficient_code": [
+      "The port detects async calls during normal candidate execution with async_inspector and commit conditions, but no bounded pre-collection simulation pass or cache gate exists."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The latest bounded candidates supersede earlier cap defaults, clamp the async simulation budget to the global payload deadline, and make async simulation non-demotable with strict cache gating.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "89cd52b77012d1080e82094b1678654809fed3d7",
+    "7ebf3d9ed453cb91cb61b5da357d04115ec61ae9",
+    "34384f7adc4af554fb7488b8c838960ee8e1f366",
+    "fc523530cdecbc0d63c5d57cf335f514e03defbc",
+    "79397c2d5a75a122b6676416898b7cb572a26c0c",
+    "48d424a401635451044757a649fcbaa96b54a78f"
+  ],
+  "statement": "Async transaction collection must always run its non-demotable AsyncSims classification work, use one shared scheduled-plus-regular simulation counter capped by RETH_MAX_ASYNC_SIMS_PER_BLOCK with a 150 default, stop starting simulations at the earlier of RETH_ASYNC_SIM_DEADLINE_MS defaulting to 200ms and the global payload build deadline, and skip scheduled transactions whose hash lacks a current-cycle async_cache classification.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Submit more than 150 scheduled-plus-regular async candidates and assert only 150 simulations start before collection stops.",
+    "Set a very low RETH_ASYNC_SIM_DEADLINE_MS and assert no new async simulations start after that deadline while normal policy demotion cannot skip AsyncSims classification.",
+    "Provide a scheduled tx without current-cycle async_cache classification and assert it is skipped."
+  ],
+  "summary": "Bounded non-demotable AsyncSims collection is absent.",
+  "test_or_falsification_candidate": "Search for RETH_MAX_ASYNC_SIMS_PER_BLOCK, RETH_ASYNC_SIM_DEADLINE_MS, and async_cache; current port has no implementation to satisfy the invariant.",
+  "title": "Async simulation is bounded but not policy demotable",
+  "total_invariants": 1954
+}

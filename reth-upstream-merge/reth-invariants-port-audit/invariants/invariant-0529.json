@@ -1,0 +1,53 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "85b41ec83e0009175c328eb0b9a07c92c3008129",
+      "evidence": "FHE payload structure validation decodes fields 17 and 18 as StorageRef ABI tuples rather than raw bytes.",
+      "path": "crates/ritual-precompile-codecs/src/long_running.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let storage_ref_type = StorageRef::abi_param_type();\nlet param_types = vec![\n    ...\n    storage_ref_type.clone(),\n    storage_ref_type,\n];\nethabi::decode(&param_types, data)?;",
+      "symbols": [
+        "validate_fhe_payload_structure",
+        "StorageRef::abi_param_type"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port validates the current 19-field FHE ABI with StorageRef tuple types for encrypted input/output storage fields, so old raw-bytes encodings are not the accepted structure.",
+  "evidence_files": [
+    "crates/ritual-precompile-codecs/src/long_running.rs"
+  ],
+  "invariant_id": "cur-f6143c4df0-storage-fields-storagerefs",
+  "invariant_index": 529,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The local function is structure validation rather than a named from_fhe_abi constructor, but it enforces the same ABI shape.",
+  "rationale": "The primary commit replaces ParamType::Bytes for encrypted_input_storage and encrypted_output_storage with ParamType::Tuple([String, String, String]) and renames the comments to input_storage_ref/output_storage_ref, aligning FHE decoding with the stated StorageRef ABI. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "89812c743f1f01e4c93fbdc37e633f667798d210"
+  ],
+  "statement": "FHE precompile ABI decoding must interpret delivery config fields 17 and 18 as StorageRef tuples of (platform, path, key_ref), not raw bytes blobs, matching validate_fhe_payload_structure and executor/traffic-generator encodings.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Encode an FHE request with fields 17 and 18 as (platform, path, key_ref) tuples and assert from_fhe_abi decodes it successfully; encode the old raw-bytes form and assert decoding fails rather than silently accepting an incompatible payload."
+  ],
+  "summary": "FHE storage fields are decoded as StorageRef tuples.",
+  "test_or_falsification_candidate": "Encode an FHE request with fields 17 and 18 as StorageRef tuples and assert structure validation passes; encode old raw bytes in those fields and assert structure decoding fails.",
+  "title": "FHE storage fields are StorageRefs",
+  "total_invariants": 1954
+}

@@ -1,0 +1,88 @@
+{
+  "cluster_key": "executor delivery:builder-verifier-nonce-10578b5a",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The builder predicate allows no-job, all-settled-or-expired, and fulfillment cases, and skips only non-fulfillment transactions from still-locked senders.",
+      "path": "crates/ritual-async-registry/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let job_count = read_sender_job_count(db, contract, sender)?;\nif job_count == 0 { return Ok(false); }\nlet all_unlocked = is_sender_all_phase1_settled(db, contract, sender, current_block_number)?;\nif all_unlocked { return Ok(false); }\nlet is_fulfillment = job_exists(db, contract, tx_hash)?;\nif is_fulfillment { return Ok(false); }\nOk(true)",
+      "symbols": [
+        "should_skip_sender_locked_tx"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The differential harness directly compares the builder predicate against a translation of verifier nonce-lock phases across the same sender/job snapshot.",
+      "path": "crates/ritual-async-registry/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let builder_skip = should_skip_sender_locked_tx(...);\nlet verifier_reject = verifier_would_reject(...);\nassert_eq!(builder_skip, verifier_reject, \"DIFFERENTIAL FAILURE ...\");",
+      "symbols": [
+        "verifier_would_reject",
+        "assert_builder_verifier_equivalence"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The verifier rejects regular transactions from senders with active unsettled jobs unless the transaction hash itself is an existing fulfillment job, matching the registry predicate tested by the harness.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if job_count > 0 && !unlocked_senders.contains(sender) {\n    locked_tx_hashes.push(*tx.tx_hash());\n}\n...\nif existing_jobs.contains(&tx_hash) { continue; }\nreturn Err(BlockVerificationError::InvalidNonceLock(...));",
+      "symbols": [
+        "verify_nonce_locks"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port keeps the nonce-lock decision rule in a shared registry helper and has an explicit differential harness proving equivalence with the verifier phases for no jobs, settled/expired jobs, fulfillment transactions, non-fulfillment locked senders, and mixed states.",
+  "evidence_files": [
+    "crates/ritual-async-registry/src/lib.rs"
+  ],
+  "invariant_id": "cur-62f1401649-builder-verifier-nonce-lock-decisions-agree",
+  "invariant_index": 184,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-registry/src/lib.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ethereum/payload/src/lib.rs"
+    ],
+    "checked_queries": [
+      "nonce_lock|verify_nonce_locks|sender lock|should_skip_sender_locked_tx|verifier_would_reject|sender_has_unsettled_jobs"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "should_skip_sender_locked_tx",
+      "verifier_would_reject",
+      "assert_builder_verifier_equivalence",
+      "verify_nonce_locks"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The primary commit adds a differential equivalence harness whose comments state the invariant directly and whose cases compare the builder predicate against a direct translation of verifier nonce-lock phases across no jobs, settled jobs, fulfillment transactions, non-fulfillment locked senders, mixed settlement state, and many-job scenarios. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "c967aebd3e4a648c885abe3ac1aba86f4a270772"
+  ],
+  "statement": "For a sender, transaction hash, and AsyncJobTracker state snapshot, `should_skip_sender_locked_tx` must return true exactly when the verifier nonce-lock logic would reject a block containing that transaction from that sender.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Mutate either builder sender-lock logic or verifier nonce-lock logic so one allows a sender with an unsettled non-fulfillment job while the other rejects it, then run the differential harness and assert it fails."
+  ],
+  "summary": "Builder and verifier nonce-lock decisions are covered by the shared predicate and differential harness in the port.",
+  "test_or_falsification_candidate": "Mutate should_skip_sender_locked_tx to allow a non-fulfillment transaction for a sender with an unsettled active job; the registry differential tests should fail against verifier_would_reject.",
+  "title": "Builder and verifier nonce-lock decisions agree",
+  "total_invariants": 1954
+}

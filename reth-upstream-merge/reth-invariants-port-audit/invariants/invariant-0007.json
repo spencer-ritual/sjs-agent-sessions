@@ -1,0 +1,114 @@
+{
+  "cluster_key": "scheduler:empty-lists-remain-2fb0d79c",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Port compact decoding normalizes empty scheduled SPC vectors back to None.",
+      "path": "crates/storage/codecs/src/alloy/transaction/scheduled.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "spc_calls: if tx.spc_calls.is_empty() { None } else { Some(tx.spc_calls) }",
+      "symbols": [
+        "impl Compact for AlloyTxScheduled::from_compact"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Legacy compact decoding applies the same empty-list-to-None normalization.",
+      "path": "crates/storage/codecs/src/alloy/transaction/legacy.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "spc_calls: if tx.spc_calls.is_empty() { None } else { Some(tx.spc_calls) }",
+      "symbols": [
+        "impl Compact for AlloyTxLegacy::from_compact"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "EIP-1559 compact decoding applies the same empty-list-to-None normalization.",
+      "path": "crates/storage/codecs/src/alloy/transaction/eip1559.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "spc_calls: if tx.spc_calls.is_empty() { None } else { Some(tx.spc_calls) }",
+      "symbols": [
+        "impl Compact for AlloyTxEip1559::from_compact"
+      ]
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "169074f08721705fbb99cc9531ea798b61e9f3cc",
+      "evidence": "Alloy consensus encoders omit the SPC field when spc_calls is None.",
+      "path": "crates/consensus/src/transaction/scheduled.rs",
+      "repo": "/home/ritual/repos/ritual-alloy-internal",
+      "snippet": "if let Some(calls) = &self.spc_calls { calls.encode(out); }",
+      "symbols": [
+        "TxScheduled",
+        "RlpEcdsaEncodableTx::rlp_encode_fields"
+      ]
+    }
+  ],
+  "equivalence_argument": "The old primitive path moved to Alloy and port storage codecs. Empty compact vectors normalize to None, and Alloy RLP encoders only emit SPC calls under Some, preserving omission semantics.",
+  "evidence_files": [
+    "crates/ethereum/primitives/src/transaction.rs",
+    "crates/transaction-pool/src/test_utils/mock.rs"
+  ],
+  "invariant_id": "cur-31dac07cae-empty-call-lists-remain-omitted",
+  "invariant_index": 7,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+    "/home/ritual/repos/ritual-alloy-internal"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/primitives/src/transaction.rs",
+      "crates/storage/codecs/src/alloy/transaction/{legacy,eip1559,scheduled}.rs",
+      "crates/consensus/src/transaction/{legacy,eip1559,scheduled}.rs"
+    ],
+    "checked_queries": [
+      "spc_calls: Some(vec![])",
+      "empty vec from disk",
+      "RLP encoding consistency"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "spc_calls",
+      "TxLegacy",
+      "TxEip1559",
+      "TxScheduled",
+      "RlpEcdsaEncodableTx",
+      "from_compact"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "Execution-time pending_spc_calls code does not own consensus transaction omission semantics."
+    ]
+  },
+  "notes": "Mapped across port storage codecs and Alloy consensus encoders.",
+  "rationale": "This cluster has one candidate that states a consensus-visible encoding rule: absence of SPC calls must remain represented as None so the field is omitted rather than encoded as an empty list. Neighboring scheduler codec and pool candidates establish broader scheduled-transaction support, but none directly supersede or refine this optional-field invariant.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "09942d53e1ecc9fcaa4f5861c7fbbfd60aa2e5c7"
+  ],
+  "statement": "Transactions and scheduler test utilities must preserve an absent SPC call list as None, not Some(empty vec), so transactions with no SPC calls continue to omit the field in RLP and retain the same transaction root.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Decode compact legacy, EIP-1559, and scheduled transactions that contain no SPC calls, then assert spc_calls is None and re-encoding preserves the original transaction root.",
+    "Construct transaction-pool mock transactions without SPC calls and assert the generated transaction data stores spc_calls as None rather than Some(vec![])."
+  ],
+  "summary": "Empty SPC call lists remain omitted through port compact normalization and Alloy RLP encoding.",
+  "test_or_falsification_candidate": "Round-trip compact legacy/EIP-1559/scheduled no-SPC transactions and assert spc_calls is None and RLP bytes match the no-SPC baseline.",
+  "title": "Empty SPC call lists remain omitted",
+  "total_invariants": 1954
+}

@@ -1,0 +1,34 @@
+{
+  "record_type": "file",
+  "file_index": 263,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/prune/prune/src/segments/user/storage_history.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "semicolon",
+    "prune",
+    "storage-history"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The storage-history pruning divergence is rustfmt-only noise: semicolons on existing returns and a test predicate line wrap.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 263: M\tcrates/prune/prune/src/segments/user/storage_history.rs.",
+    "The isolated patch only adds semicolons to existing `SegmentOutput` return expressions.",
+    "The test hunk wraps an `&&` predicate without changing operands, ordering, or precedence.",
+    "No storage-history pruning range, limiter, checkpoint, or expected-pruned-block behavior changed."
+  ]
+}

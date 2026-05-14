@@ -1,0 +1,63 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "The current SPC job reader has the required fields for existing jobs but does not skip zero-executor jobs as specified.",
+  "evidence_files": [
+    "crates/ritual-async-registry/src/lib.rs"
+  ],
+  "invariant_id": "cur-8aa44d074c-registry-exposes-context",
+  "invariant_index": 348,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-registry/src/lib.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "crates/ethereum/payload/src/ritual_async.rs"
+    ],
+    "checked_queries": [
+      "read_jobs_for_spc_verification",
+      "jobExecutor is zero",
+      "Missing job should return error for SPC verification",
+      "SpcVerificationJobData"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "read_jobs_for_spc_verification",
+      "SpcVerificationJobData",
+      "job_executor_slot",
+      "executor.is_zero"
+    ],
+    "missing_behavior": "read_jobs_for_spc_verification returns an error for a zero executor slot instead of skipping that requested job id while returning entries for existing jobs.",
+    "related_but_insufficient_code": [
+      "read_jobs_for_settlement skips zero-executor jobs, but read_jobs_for_spc_verification returns Err(\"Job ... not found\") and its test asserts a missing job should return an error."
+    ]
+  },
+  "notes": "Confirmed by the explicit zero-executor branch and test in ritual-async-registry.",
+  "rationale": "The commit adds SpcVerificationJobData and a new read_jobs_for_spc_verification function whose documented purpose is to read the previous-block fields needed for SPC signature verification from AsyncJobTracker storage. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "2576d41c914f77369392d69511b4d8bcc44a9691"
+  ],
+  "statement": "read_jobs_for_spc_verification must return one SpcVerificationJobData entry per existing requested job, populated from AsyncJobTracker storage with commit_block, tx_hash, precompile_address, precompile_input, previous_block_hash, previous_block_number, previous_block_timestamp, and executor_address, while skipping job IDs whose executor slot is zero.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Populate a mock revm Database with AsyncJobTracker storage for two job IDs, one with a nonzero executor and previous-block fields plus dynamic precompile input and one with a zero executor slot; call read_jobs_for_spc_verification and assert only the existing job is returned with every field matching storage."
+  ],
+  "summary": "SPC job-context reads do not skip zero-executor job IDs.",
+  "test_or_falsification_candidate": "Call read_jobs_for_spc_verification with one existing job and one job whose executor slot is zero; the invariant expects one returned entry, but current code errors.",
+  "title": "Registry exposes SPC job context",
+  "total_invariants": 1954
+}

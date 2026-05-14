@@ -1,0 +1,9 @@
+{
+  "record_type": "adversarial_review",
+  "record_id": "review-file-0102-atom-0001",
+  "atom_record_id": "file-0102-atom-0001",
+  "review_result": "pass",
+  "falsification_attempt": "Feature graph check passed for reth-execution-errors --features async-context.",
+  "missed_risks": [],
+  "notes": "The downstream async-context feature re-export is restored on reth-execution-errors."
+}

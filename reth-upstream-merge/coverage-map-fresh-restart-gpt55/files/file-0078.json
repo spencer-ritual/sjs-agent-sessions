@@ -1,0 +1,133 @@
+{
+  "record_type": "file",
+  "file_index": 78,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/ethereum/evm/src/build.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "missing",
+  "tags": [
+    "missing",
+    "reviewed",
+    "telemetry",
+    "payload",
+    "execution",
+    "reth-port"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0078-atom-0001",
+      "file_index": 78,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/ethereum/evm/src/build.rs",
+      "source_hunk_hint": "@@ -88,6 +90,19 @@ and @@ -105,7 +120,7 @@",
+      "source_kind": "state_transition",
+      "source_snippet": "let extra_data = ctx.extra_data.clone().unwrap_or_else(|| self.extra_data.clone()); ... extra_data,",
+      "semantic_claim": "Block assembly uses per-block context extra_data when provided and falls back to the assembler default extra_data otherwise, so dynamic CL extra_data can reach the final block header without breaking the default path.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "execution",
+        "encoding"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/evm/src/build.rs",
+          "symbols": [
+            "EthBlockAssembler::assemble_block"
+          ],
+          "snippet": "extra_data: ctx.extra_data",
+          "evidence": "The destination block assembler writes context extra_data directly into the header. The fallback is structurally shifted to the context construction path because the destination context carries Bytes rather than Option<Bytes>."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/evm/src/lib.rs",
+          "symbols": [
+            "EthEvmConfig::context_for_next_block"
+          ],
+          "snippet": "extra_data: attributes.extra_data",
+          "evidence": "The destination EVM config passes NextBlockEnvAttributes.extra_data into the execution context consumed by the assembler."
+        }
+      ],
+      "equivalence_argument": "The source Option fallback moved upstream; after file-0076 closure, the normal payload path resolves CL/default extra_data before EthBlockExecutionCtx reaches the assembler.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Assemble one block with CL-supplied dynamic extra_data and one with no CL extra_data/default config, then assert the header extra_data equals the requested dynamic bytes and the configured default respectively.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed covered. build.rs writes ctx.extra_data into Header.extra_data, and lib.rs populates ctx.extra_data from both existing block headers and NextBlockEnvAttributes."
+    },
+    {
+      "record_id": "file-0078-atom-0002",
+      "file_index": 78,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/ethereum/evm/src/build.rs",
+      "source_hunk_hint": "@@ -1,6 +1,7 @@, @@ -10,6 +11,7 @@, and @@ -88,6 +90,19 @@",
+      "source_kind": "side_effect",
+      "source_snippet": "if extra_data.len() > MAXIMUM_EXTRA_DATA_SIZE { debug!(extra_data_len = extra_data.len(), block_number = evm_env.block_env.number, is_dynamic = ctx.extra_data.is_some(), \"building block with large extra_data\"); }",
+      "semantic_claim": "Block assembly emits a tracing debug diagnostic when dynamic or default extra_data exceeds the Ethereum maximum, including length, block number, and whether the value was dynamic.",
+      "high_risk": false,
+      "risk_tags": [
+        "telemetry",
+        "payload"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/evm/src/build.rs",
+          "symbols": [
+            "EthBlockAssembler::assemble_block"
+          ],
+          "snippet": "extra_data: ctx.extra_data",
+          "evidence": "The destination assembler has no MAXIMUM_EXTRA_DATA_SIZE import, tracing import, or large-extra_data debug diagnostic."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/evm/Cargo.toml",
+          "symbols": [
+            "dependencies"
+          ],
+          "snippet": "alloy-rpc-types-engine.workspace = true",
+          "evidence": "The destination crate manifest also lacks the tracing dependency needed by this diagnostic."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Assemble a block with extra_data longer than MAXIMUM_EXTRA_DATA_SIZE and assert the debug diagnostic includes extra_data_len, block_number, and dynamic/default provenance.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed missing telemetry only. The oversized-extra_data debug event and MAXIMUM_EXTRA_DATA_SIZE import are absent."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 2,
+  "adversarial_reviews": [
+    {
+      "review_record_id": "review-files-0077-0089-mechanical",
+      "required": false,
+      "status": "completed",
+      "reason": "Mechanical review completed; remaining non-exact atoms are now confirmed covered, confirmed missing, intentionally absent, or support/test/telemetry only."
+    }
+  ],
+  "summary": "Mechanical review complete. Header extra_data propagation is confirmed covered through NextBlockEnvAttributes -> EthBlockExecutionCtx -> Header.extra_data; only the oversized-extra_data debug diagnostic remains confirmed missing.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Queue entry 78 was verified as M\\tcrates/ethereum/evm/src/build.rs; only diff lines 16072-16121 were analyzed for this record. Mechanical review review-files-0077-0089-mechanical completed; all prior needs-review atoms have definitive verdicts."
+}

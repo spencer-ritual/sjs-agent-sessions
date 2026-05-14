@@ -1,0 +1,78 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "SPC block-verified precompiles use registry-backed direct verification; missing or inactive executors return InvalidRequest before the sidecar path, and sidecar routing is only for non-SPC precompiles.",
+      "path": "crates/ritual-spc-verification/src/verifier.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if is_spc_block_verified_precompile(request.precompile_address) {\n    let executor_public_key = { registry.get_executor(&request.executor).filter(|info| info.is_active).map(|info| info.public_key.clone()) };\n    match executor_public_key {\n        Some(public_key) => self.verify_signature_direct(&public_key, request).await?,\n        None => return Err(VerificationError::InvalidRequest(\"Executor not registered\".to_string()))\n    }\n} else { self.client.verify_single(request).await? }",
+      "symbols": [
+        "SpcVerifier::verify_single",
+        "SpcVerifier::verify_signature_direct"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "The current port names the HTTP call precompile as 0x0801 and includes it in the canonical SPC block-verified allowlist used by verify_single.",
+      "path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const HTTP_CALL_PRECOMPILE: Address = address!(\"0x0000000000000000000000000000000000000801\");\n\npub const ALL_SPC_BLOCK_VERIFIED_PRECOMPILE_ADDRESSES: [Address; 11] = [HTTP_CALL_PRECOMPILE, ...];",
+      "symbols": [
+        "HTTP_CALL_PRECOMPILE",
+        "ALL_SPC_BLOCK_VERIFIED_PRECOMPILE_ADDRESSES"
+      ]
+    }
+  ],
+  "equivalence_argument": "The historical HTTP_CALL address is represented by the port canonical HTTP_CALL_PRECOMPILE at 0x0801. For that allowlisted address, active registered executors are verified directly with their registry public key, while inactive or missing executors fail closed with InvalidRequest and do not fall back to sidecar verification.",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-bd321e9406-http-call-verification-uses-registered-active-executors",
+  "invariant_index": 260,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-spc-verification/src/verifier.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs"
+    ],
+    "checked_queries": [
+      "HTTP_CALL_PRECOMPILE direct verification",
+      "Executor not registered InvalidRequest",
+      "sidecar fallback registered executor"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "verify_single",
+      "is_spc_block_verified_precompile",
+      "HTTP_CALL_PRECOMPILE"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in port.",
+  "rationale": "The commit explicitly introduces the HTTP_CALL precompile constant, branches verify_single on that address, checks executor registration and activity before direct verification, and returns InvalidRequest for inactive or missing executors. The commit message frames this as Phase 3 precompile-based routing, not a local refactor. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "dbb10fdf529d4ac9a219c8196f4ade953ef39df4"
+  ],
+  "statement": "For SPC verification requests whose precompile address is 0x0100, verification must use the executor registry path: an active registered executor's public key is used for direct verification, while inactive or unregistered executors cause an InvalidRequest error instead of falling back to sidecar verification.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Construct SpcVerificationRequest values for precompile 0x0100 with an active registered executor, an inactive registered executor, and an unregistered executor; assert the active case calls the direct path and the other two return InvalidRequest without invoking the sidecar client."
+  ],
+  "summary": "HTTP/SPC direct verification uses active registry entries and fails closed for missing executors.",
+  "test_or_falsification_candidate": "Build SPC requests for HTTP_CALL_PRECOMPILE with active, inactive, and absent executors and assert only the active case reaches direct signature verification.",
+  "title": "HTTP_CALL SPC verification uses registered active executors",
+  "total_invariants": 1954
+}

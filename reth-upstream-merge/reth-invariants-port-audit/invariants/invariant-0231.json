@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Missing and deactivated executors read inactive, active queries filter by is_active, and stats derive active/inactive counts from the current registry state.",
+      "path": "crates/ritual-spc-verification/src/types.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn is_executor_active(&self, address: &Address) -> bool {\n    self.executors.get(&normalized_address).map(|info| info.is_active).unwrap_or(false)\n}\n...\npub fn get_active_executors(&self) -> Vec<&ExecutorInfo> {\n    self.executors.values().filter(|info| info.is_active).collect()\n}\n...\nlet active_executors = self.executors.values().filter(|info| info.is_active).count();",
+      "symbols": [
+        "ExecutorRegistry::is_executor_active",
+        "ExecutorRegistry::get_active_executors",
+        "ExecutorRegistry::stats"
+      ]
+    }
+  ],
+  "equivalence_argument": "The registry active-state APIs derive all query and stats results directly from ExecutorInfo.is_active and return false for missing executors.",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/types.rs"
+  ],
+  "invariant_id": "cur-7b230d83d9-registry-active-queries-reflect-executor-state",
+  "invariant_index": 231,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-spc-verification/src/types.rs"
+    ],
+    "checked_queries": [
+      "is_executor_active|get_active_executors|stats|deactivate_executor"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "ExecutorRegistry::is_executor_active",
+      "ExecutorRegistry::get_active_executors",
+      "ExecutorRegistry::stats",
+      "ExecutorInfo::deactivate"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The commit adds explicit activate/deactivate state transitions, active membership filtering, and registry statistics intended to expose the current executor set. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "71f0156e2a83c51d57191e946a8502f679c40308"
+  ],
+  "statement": "ExecutorRegistry active-state APIs must treat missing executors and deactivated executors as inactive, include only active executors in get_active_executors, and report total, active, and inactive counts consistently in stats.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Register two executors, deactivate one, then assert is_executor_active returns true only for the active executor, false for the inactive and an unknown address, get_active_executors returns exactly one entry, and stats reports total 2, active 1, inactive 1."
+  ],
+  "summary": "Registry active queries reflect executor state.",
+  "test_or_falsification_candidate": "Register two executors, deactivate one, and assert active lookup, active list, and stats report one active and one inactive while unknown addresses are inactive.",
+  "title": "Registry active queries reflect executor state",
+  "total_invariants": 1954
+}

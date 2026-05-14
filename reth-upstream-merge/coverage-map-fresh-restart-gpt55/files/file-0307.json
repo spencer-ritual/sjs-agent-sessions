@@ -1,0 +1,88 @@
+{
+  "record_type": "file",
+  "file_index": 307,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-heartbeat-tracker/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "manifest",
+    "heartbeat-tracker",
+    "workspace"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0307-atom-0001",
+      "file_index": 307,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-heartbeat-tracker/Cargo.toml",
+      "source_hunk_hint": "@@ -0,0 +1,13 @@; heartbeat tracker crate manifest",
+      "source_kind": "crate_manifest",
+      "source_snippet": "[package]\nname = \"ritual-heartbeat-tracker\"\nversion = \"0.1.0\"\nedition = \"2021\"\ndescription = \"In-memory heartbeat tracker for agent liveness monitoring\"\n\n[dependencies]\nalloy-primitives = { workspace = true }\nalloy-sol-types = { workspace = true }\ntracing = { workspace = true }\nrevm = { workspace = true }\n\nritual-scheduled-verification = { path = \"../ritual-scheduled-verification\" }",
+      "semantic_claim": "The old divergence adds the `ritual-heartbeat-tracker` crate manifest with dependencies for Alloy primitives/Sol types, tracing, REVM database access, and scheduled-verification storage readers.",
+      "high_risk": false,
+      "risk_tags": [
+        "manifest",
+        "heartbeat-tracker",
+        "workspace-member",
+        "storage-reader-dependency"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-heartbeat-tracker/Cargo.toml",
+          "symbols": [
+            "package:ritual-heartbeat-tracker",
+            "alloy-primitives",
+            "alloy-sol-types",
+            "tracing",
+            "revm",
+            "ritual-scheduled-verification"
+          ],
+          "evidence": "Destination manifest lines 1-13 exactly match source-added diff lines 54398-54410."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "Cargo.toml",
+          "symbols": [
+            "workspace.members",
+            "workspace.dependencies.ritual-heartbeat-tracker"
+          ],
+          "evidence": "Destination workspace includes `crates/ritual-heartbeat-tracker/` and exposes the crate as a workspace dependency used by payload, scheduling, txpool, and RPC surfaces."
+        }
+      ],
+      "equivalence_argument": "The manifest is exact-port preserved and remains available to workspace consumers that depend on heartbeat tracker state.",
+      "test_strategy": "workspace_manifest_and_dependency_resolution",
+      "negative_test_candidate": "Removing the scheduled-verification or REVM dependency should break `sync_from_storage` compilation.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact manifest mapping; no review queue entry required."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The heartbeat tracker manifest is exact-port preserved, keeping the dependency set needed for in-memory agent liveness tracking and storage hydration.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 307: A\tcrates/ritual-heartbeat-tracker/Cargo.toml.",
+    "Source-added hunk spans diff lines 54398-54410 with header `@@ -0,0 +1,13 @@`.",
+    "Destination `crates/ritual-heartbeat-tracker/Cargo.toml` has 13 lines and matches the source-added manifest exactly.",
+    "No review queue entry required because the atom is exact."
+  ]
+}

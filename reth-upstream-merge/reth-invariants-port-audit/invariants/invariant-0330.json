@@ -1,0 +1,97 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The shared crate is the source of fee component formulas and total calculation.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub struct AsyncFees { pub executor_fee: U256, pub commitment_fee: U256, pub inclusion_fee: U256, pub total: U256 }\nimpl AsyncFees { pub fn new(executor_fee: U256, commitment_fee: U256, inclusion_fee: U256) -> Self { let total = executor_fee + commitment_fee + inclusion_fee; Self { executor_fee, commitment_fee, inclusion_fee, total } } }\npub fn calculate_async_fees<DB: revm::Database>(...) -> Result<AsyncFees, String> { ... Ok(AsyncFees::new(executor_fee, commitment_fee, inclusion_fee)) }",
+      "symbols": [
+        "AsyncFees",
+        "calculate_async_fees",
+        "calculate_async_fees_phase2"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Payload settlement creation imports the shared fee formulas for phase 1 and phase 2 settlement amounts.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let fees = calculate_async_fees(db, get_model_registry_address(), contract_job.precompile_address, &metadata.precompile_input, Some(execution_result), model_cache)?;\n...\nlet fees = calculate_async_fees_phase2(contract_job.precompile_address, blocks_polled, callback_delivery_result.len())?;",
+      "symbols": [
+        "prepare_fulfilled_async_settlement",
+        "calculate_async_fees",
+        "calculate_async_fees_phase2"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Block verification recomputes and compares settlement fees through the same shared formulas.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let fees = calculate_async_fees(&mut db, get_model_registry_address(), job.precompile_address, &precompile_input, Some(&spc_output), &mut model_cache)?;\nif settlement.executor_fee != fees.executor_fee || settlement.commitment_fee != fees.commitment_fee || settlement.inclusion_fee != fees.inclusion_fee || settlement.total_amount != fees.total { return Err(...); }",
+      "symbols": [
+        "verify_settlements",
+        "calculate_async_fees",
+        "calculate_async_fees_phase2"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Wallet validation uses the exported shared fee helpers instead of independent local constants.",
+      "path": "crates/ritual-async-fees/src/wallet.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let executor_fee = ... http_executor_fee(input_len, HTTP_CALL_MAX_OUTPUT_BYTES) ...;\nlet commitment_fee = async_commitment_fee(input_len);\nlet inclusion_fee = async_inclusion_fee(input_len, HTTP_CALL_MAX_OUTPUT_BYTES);\nlet total_required_fees = executor_fee + commitment_fee + inclusion_fee + callback_fee;",
+      "symbols": [
+        "verify_wallet_for_commitment",
+        "http_executor_fee",
+        "async_commitment_fee",
+        "async_inclusion_fee"
+      ]
+    }
+  ],
+  "equivalence_argument": "The formulas now live in ritual-async-fees and are consumed by payload settlement creation, block verification, and wallet validation. This preserves builder/verifier/wallet fee parity through one shared module instead of duplicated constants.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-async/src/wallet.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-eed40f60c4-async-fees-shared-formulas",
+  "invariant_index": 330,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to the shared fee crate and its consuming code paths.",
+  "rationale": "The new crate documents itself as the single source of truth for block building, block verification, and wallet validation, and the primary diff removes duplicated fee constants/helpers from payload and wallet code while importing ritual_async_fees into payload, wallet validation, and block verification. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "04a5905e27ef72657de48ca2d5af008eda2350b3"
+  ],
+  "statement": "Payload settlement creation, block verification, and wallet balance validation must calculate async executor, commitment, and inclusion fees through the shared ritual-async-fees formulas rather than maintaining independent local constants.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "For the same async precompile address, input, and output, compare the fees used by wallet validation, settlement creation, and settlement verification; fail if any path diverges from ritual_async_fees::calculate_async_fees or its exported component formulas."
+  ],
+  "summary": "Async fee formulas are shared through ritual-async-fees across payload, verifier, and wallet paths.",
+  "test_or_falsification_candidate": "For one async input/output, compute fees through payload settlement preparation, block verification recomputation, and wallet validation helper paths and assert all component formulas agree with ritual_async_fees exports.",
+  "title": "Async fees use shared formulas",
+  "total_invariants": 1954
+}

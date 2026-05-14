@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Registry insertion and lookup emit diagnostic fields for inserted/lookup address, normalized address, registry size, and keys.",
+      "path": "crates/ritual-spc-verification/src/types.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "tracing::info!(target: \"ritual::spc::registry\", address = ?address, address_hex = ..., \"Inserting executor into registry with key\");\nlet normalized_address = Self::normalize_address(*address);\ntracing::debug!(\n    target: \"ritual::spc::registry\",\n    lookup_address = ?address,\n    normalized_address = ?normalized_address,\n    registry_size = self.executors.len(),\n    registry_keys = ?self.executors.keys().collect::<Vec<_>>(),\n    \"Executor registry lookup\"\n);\nself.executors.get(&normalized_address)",
+      "symbols": [
+        "ExecutorRegistry::register_executor",
+        "ExecutorRegistry::get_executor",
+        "ExecutorRegistry::normalize_address"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The verifier logs lookup and missing-executor context around registry access, complementing the registry key dump.",
+      "path": "crates/ritual-spc-verification/src/verifier.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "tracing::debug!(target: \"ritual::async::verification\", registry_size = registry.get_active_executors().len(), lookup_address = ?request.executor, \"Looking up executor in registry\");\ntracing::error!(target: \"ritual::async::verification\", executor = ?request.executor, registry_size = registry.get_active_executors().len(), \"Executor not found in registry during lookup\");",
+      "symbols": [
+        "SpcVerifier::verify_single"
+      ]
+    }
+  ],
+  "equivalence_argument": "The diagnostic path is split between registry and verifier but together emits lookup address, normalized address, registry size, registry keys, insertion address, and missing-executor context.",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/types.rs",
+    "crates/ritual-spc-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-13d072f93a-executor-registry-lookup-diagnostics-include-registry-context",
+  "invariant_index": 309,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in port SPC verification registry and verifier code.",
+  "rationale": "The commit message says the goal is to debug 'Executor not registered' errors by showing the lookup address and keys in the registry. The primary diff adds tracing fields for insertions, lookups, inactive executors, and missing executors. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "d4eb3b3ba086f4ea1ab013679874955d11510cbc"
+  ],
+  "statement": "When executor lookup diagnostics are enabled, registry insertion and lookup paths must emit trace events that include the executor address being inserted or looked up, the normalized lookup address, registry size, and the registered keys available during lookup.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Install a tracing subscriber that captures ritual::spc::registry and ritual::async::verification events, insert one executor, perform a successful lookup and a missing lookup, and assert the captured events include lookup_address, normalized_address, registry_size, registry_keys, and the missing-executor error log."
+  ],
+  "summary": "Executor registry insertion and lookup diagnostics include address and registry context.",
+  "test_or_falsification_candidate": "Capture tracing for registry insertion, successful lookup, and missing lookup and assert lookup_address, normalized_address, registry_size, registry_keys, and missing-executor context are present.",
+  "title": "Executor registry lookup diagnostics include registry context",
+  "total_invariants": 1954
+}

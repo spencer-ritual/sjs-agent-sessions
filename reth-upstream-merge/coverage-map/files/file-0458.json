@@ -9,10 +9,9 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "mapped",
+  "file_classification": "exact",
   "tags": [
-    "mapped",
-    "encoding"
+    "exact"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -57,7 +56,7 @@
   "high_risk_atoms_total": 0,
   "non_exact_atoms_total": 0,
   "adversarial_reviews": [],
-  "summary": "The downstream passkey-signature codec module export is already present exactly in the v2.2 port.",
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
   "review_required": false,
   "status": "complete",
   "notes": "Only the added `passkey_signature` export atom from the downstream diff was mapped here."

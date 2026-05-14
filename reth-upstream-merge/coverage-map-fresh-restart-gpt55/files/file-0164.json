@@ -1,0 +1,74 @@
+{
+  "record_type": "file",
+  "file_index": 164,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/net/network/src/network.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "missing",
+  "tags": [
+    "missing",
+    "non-exact",
+    "network",
+    "metrics",
+    "observability",
+    "p2p-announcements"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0164-atom-0001",
+      "file_index": 164,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/net/network/src/network.rs",
+      "source_hunk_hint": "@@ -24,6 +24,7 @@; @@ -127,6 +128,18 @@",
+      "source_kind": "other",
+      "source_snippet": "use ritual_metrics;\n\npub fn send_transactions_hashes(&self, peer_id: PeerId, msg: NewPooledTransactionHashes) {\n    match &msg {\n        NewPooledTransactionHashes::Eth66(hashes) => {\n            for hash in hashes.0.iter() {\n                ritual_metrics::tx::log_p2p_tx_announce(hash, &peer_id, \"eth66\");\n            }\n        }\n        NewPooledTransactionHashes::Eth68(hashes) => {\n            for hash in hashes.hashes.iter() {\n                ritual_metrics::tx::log_p2p_tx_announce(hash, &peer_id, \"eth68\");\n            }\n        }\n    }\n    self.send_message(NetworkHandleMessage::SendPooledTransactionHashes { peer_id, msg })\n}",
+      "semantic_claim": "The old NetworkHandle logs each outgoing pooled transaction hash announcement through Ritual metrics before forwarding the Eth66 or Eth68 announcement to the network manager.",
+      "high_risk": false,
+      "risk_tags": [
+        "observability",
+        "p2p-transaction-announcements",
+        "network-handle"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/net/network/src/network.rs",
+          "symbols": [
+            "NetworkHandle::send_transactions_hashes"
+          ],
+          "evidence": "The destination method still sends `NetworkHandleMessage::SendPooledTransactionHashes { peer_id, msg }`, but there is no `ritual_metrics` import and no Eth66/Eth68 iteration or `log_p2p_tx_announce` call before sending."
+        }
+      ],
+      "equivalence_argument": "The destination preserves transaction-hash announcement delivery, but not the old Ritual-specific per-hash announcement logging side effect. This is non-exact low-risk observability coverage rather than propagation or consensus behavior.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "If P2P announcement telemetry remains required, add an observability regression that sends Eth66 and Eth68 pooled transaction hashes through NetworkHandle and asserts the Ritual announcement log hook or replacement metric fires for each hash.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "The separate `is_initially_syncing` hunk is semicolon-only rustfmt noise and is not behavior-bearing."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The old network handle logged each outgoing Eth66/Eth68 pooled transaction hash announcement through `ritual_metrics::tx::log_p2p_tx_announce`; the v2.2.0 port preserves sending the announcement but lacks the Ritual logging side effect. The remaining hunk is semicolon-only sync-state noise.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 164: M\tcrates/net/network/src/network.rs.",
+    "The isolated patch adds `use ritual_metrics` and logs every Eth66 and Eth68 pooled transaction hash before forwarding the unchanged NetworkHandleMessage.",
+    "Destination network.rs has NetworkHandle::send_transactions_hashes but no Ritual metrics import, no Eth66/Eth68 hash iteration, and no `log_p2p_tx_announce` call.",
+    "The `is_initially_syncing` change only adds a semicolon to `return false` and does not affect sync-state behavior."
+  ]
+}

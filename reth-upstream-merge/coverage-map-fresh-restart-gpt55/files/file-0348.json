@@ -1,0 +1,153 @@
+{
+  "record_type": "file",
+  "file_index": 348,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-spc-verification/src/client.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "spc-verification",
+    "client",
+    "sidecar"
+  ],
+  "atoms_total": 3,
+  "atoms": [
+    {
+      "record_id": "file-0348-atom-0001",
+      "file_index": 348,
+      "atom_index": 1,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-spc-verification/src/client.rs",
+      "source_hunk_hint": "@@ -0,0 +1,42 @@; client struct and constructor",
+      "source_kind": "spc_verification_client_constructor",
+      "source_snippet": "pub struct VerificationClient { client: Client, config: VerificationConfig, verification_url: String }\nimpl VerificationClient { pub fn new(config: VerificationConfig) -> VerificationResult<Self> { ... } }",
+      "semantic_claim": "The old divergence adds the SPC verification sidecar HTTP client, configuring reqwest timeout and deriving the verification endpoint as `sidecar_base_port + 1`.",
+      "high_risk": false,
+      "risk_tags": [
+        "http-client",
+        "sidecar-url",
+        "configuration"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/client.rs",
+          "symbols": [
+            "VerificationClient",
+            "VerificationClient::new"
+          ],
+          "evidence": "Destination lines 1-42 exactly match source-added diff lines 73623-73664."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves client construction and endpoint derivation.",
+      "test_strategy": "test_client_creation and test_verification_url_construction",
+      "negative_test_candidate": "A base port of 8000 should produce `http://localhost:8001/verify`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0348-atom-0002",
+      "file_index": 348,
+      "atom_index": 2,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-spc-verification/src/client.rs",
+      "source_hunk_hint": "@@ -0,0 +44,130 @@; retrying verification request path",
+      "source_kind": "spc_verification_client_retry_and_request",
+      "source_snippet": "pub async fn verify_single(&self, request: &SpcVerificationRequest) -> VerificationResult<bool> { ... }\nasync fn send_verification_request(&self, request: &SpcVerificationRequest) -> VerificationResult<bool> { ... }",
+      "semantic_claim": "The old divergence adds retrying sidecar verification, warning on failed attempts, sleeping between retries, POSTing JSON requests, rejecting non-success HTTP statuses, and decoding `VerificationResponse`.",
+      "high_risk": false,
+      "risk_tags": [
+        "retry",
+        "http-post",
+        "sidecar-response",
+        "spc"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/client.rs",
+          "symbols": [
+            "VerificationClient::verify_single",
+            "VerificationClient::send_verification_request"
+          ],
+          "evidence": "Destination lines 44-130 exactly match source-added diff lines 73666-73753."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves retry and request/response behavior.",
+      "test_strategy": "sidecar_client_retry_tests",
+      "negative_test_candidate": "A non-2xx sidecar response should return `VerificationError::HttpError`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0348-atom-0003",
+      "file_index": 348,
+      "atom_index": 3,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-spc-verification/src/client.rs",
+      "source_hunk_hint": "@@ -0,0 +132,180 @@; client tests",
+      "source_kind": "spc_verification_client_tests",
+      "source_snippet": "#[cfg(test)]\nmod tests { fn create_test_request() -> SpcVerificationRequest { ... } #[test] fn test_client_creation() { ... } #[test] fn test_verification_url_construction() { ... } }",
+      "semantic_claim": "The old divergence adds client unit tests for request fixture construction and verification URL derivation.",
+      "high_risk": false,
+      "risk_tags": [
+        "tests",
+        "client",
+        "url-construction"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/client.rs",
+          "symbols": [
+            "test_client_creation",
+            "test_verification_url_construction"
+          ],
+          "evidence": "Destination lines 132-180 exactly match source-added diff lines 73755-73803."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps URL-construction regression coverage.",
+      "test_strategy": "cargo test -p ritual-spc-verification client",
+      "negative_test_candidate": "Changing the verification port offset should fail `test_verification_url_construction`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Test atom only."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The SPC verification sidecar client is exact-port preserved, including endpoint construction, retrying request logic, response decoding, and tests.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 348: A\tcrates/ritual-spc-verification/src/client.rs.",
+    "Source-added hunk spans diff lines 73623-73803 with header `@@ -0,0 +1,180 @@`.",
+    "Destination `crates/ritual-spc-verification/src/client.rs` has 180 lines and matches the source-added content exactly.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

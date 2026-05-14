@@ -72,6 +72,14 @@
     "code": 0
   },
   {
+    "row": 10,
+    "name": "scheduled_onnx_inference",
+    "cmd": "make run-scheduled-onnx ARGS='--agent-count 1 --start-agent-index 5010'",
+    "status": "PASS",
+    "note": "Action completed: 3/3 executions with 0 missed; Action completed: 1/1 successful.",
+    "code": 0
+  },
+  {
     "row": 11,
     "name": "long_running_echo",
     "cmd": "make run-long-running-echo ARGS='--agent-count 1 --start-agent-index 1910'",
@@ -120,6 +128,14 @@
     "code": 0
   },
   {
+    "row": 17,
+    "name": "llm_call_streaming",
+    "cmd": "make run-llm-call-streaming ARGS='--agent-count 1 --start-agent-index 5020 --model mock-model'",
+    "status": "FAIL",
+    "note": "Base LLM call succeeded, but streaming verification timed out connecting to the streaming service; Action completed: 0/1 successful.",
+    "code": 0
+  },
+  {
     "row": 18,
     "name": "x402_http_call",
     "cmd": "make run-x402-http-call ARGS='--agent-count 1 --start-agent-index 1980'",
@@ -133,6 +149,14 @@
     "cmd": "make run-x402-dkms-http-call ARGS='--agent-count 1 --start-agent-index 1990 --dkms-key-index 0 --timeout 90'",
     "status": "PASS",
     "note": "Action completed: 1/1 successful.",
+    "code": 0
+  },
+  {
+    "row": 20,
+    "name": "x402_long_running_echo",
+    "cmd": "make run-x402-long-running-echo ARGS='--agent-count 1 --start-agent-index 5030 --timeout 120'",
+    "status": "PASS",
+    "note": "Phase 1 mined, Phase 2 delivery verified, recipient payment verified, executor/user payments verified; Action completed: 1/1 successful.",
     "code": 0
   },
   {
@@ -165,6 +189,14 @@
     "cmd": "make run-scheduled-zk-two-phase ARGS='--agent-count 1 --start-agent-index 2040 --phase2-timeout 120'",
     "status": "PASS",
     "note": "Action completed: 1/1 successful.",
+    "code": 0
+  },
+  {
+    "row": 25,
+    "name": "sequencing_rights_simple",
+    "cmd": "make run-cli ARGS='sequencing_rights_simple --agent-count 3 --start-agent-index 6040'",
+    "status": "PASS",
+    "note": "Block 129 reported ordering=correct for all three agents; Action completed: 3/3 successful after restoring sequencing-rights payload ordering.",
     "code": 0
   }
 ]

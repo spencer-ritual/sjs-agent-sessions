@@ -1,0 +1,73 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The helper accepts the caller-supplied VerificationConfig and Arc<RwLock<ExecutorRegistry>> and passes both directly into SpcVerifier::new.",
+      "path": "crates/ritual-spc-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn create_verifier_with_config<P>(\n    config: VerificationConfig,\n    executor_registry: std::sync::Arc<std::sync::RwLock<ExecutorRegistry>>,\n    provider: P,\n) -> VerificationResult<SpcVerifier<P>> {\n    SpcVerifier::new(config, executor_registry, provider)\n}",
+      "symbols": [
+        "create_verifier_with_config"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The verifier stores the supplied registry and config; it does not allocate a replacement registry in this constructor path.",
+      "path": "crates/ritual-spc-verification/src/verifier.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn new(config: VerificationConfig, executor_registry: Arc<std::sync::RwLock<ExecutorRegistry>>, provider: P) -> VerificationResult<Self> {\n    let client = VerificationClient::new(config.clone())?;\n    Ok(Self { client, config, executor_registry, provider })\n}",
+      "symbols": [
+        "SpcVerifier::new"
+      ]
+    }
+  ],
+  "equivalence_argument": "The construction contract is direct: create_verifier_with_config forwards the supplied registry Arc to SpcVerifier::new, and SpcVerifier stores that same Arc.",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/lib.rs"
+  ],
+  "invariant_id": "cur-3d8be30731-configured-verifier-uses-caller-registry",
+  "invariant_index": 237,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-spc-verification/src/lib.rs",
+      "crates/ritual-spc-verification/src/verifier.rs"
+    ],
+    "checked_queries": [
+      "create_verifier_with_config|SpcVerifier::new|ExecutorRegistry::new"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "create_verifier_with_config",
+      "SpcVerifier::new"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The helper's signature was changed to require an `Arc<RwLock<ExecutorRegistry>>` and pass it into `SpcVerifier::new`, making the registry part of the crate-root construction contract. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "acc0d7ea0ac94c1ca21d514f0d49d280dc686bf0"
+  ],
+  "statement": "`create_verifier_with_config` constructs an `SpcVerifier` with both the supplied `VerificationConfig` and the supplied shared `ExecutorRegistry`.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Construct a verifier through `create_verifier_with_config(config, registry.clone())`, seed or mutate the shared registry as expected by verifier tests, and assert the verifier observes that registry rather than using an internally created empty registry."
+  ],
+  "summary": "Configured verifier construction uses the caller-provided registry.",
+  "test_or_falsification_candidate": "Construct a verifier through `create_verifier_with_config(config, registry.clone())`, seed or mutate the shared registry as expected by verifier tests, and assert the verifier observes that registry rather than using an internally created empty registry.",
+  "title": "Configured verifier uses caller registry",
+  "total_invariants": 1954
+}

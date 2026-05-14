@@ -1,0 +1,73 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-async-fees/src/constants.rs",
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-3a8aeeff79-agent-fees-work-based-phase",
+  "invariant_index": 390,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-async-fees/src/constants.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs"
+    ],
+    "checked_queries": [
+      "AGENT_ITERATION_FEE_WEI",
+      "AGENT_TOOL_CALL_FEE_WEI",
+      "calculate_agent_fees_phase1",
+      "calculate_async_fees 0808",
+      "calculate_async_fees_phase2 0808",
+      "SOVEREIGN_AGENT_ITERATION_FEE_WEI"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "calculate_async_fees",
+      "calculate_agent_fees_phase2_work",
+      "SOVEREIGN_AGENT_PRECOMPILE",
+      "AGENT_ITERATION_FEE_WEI",
+      "AGENT_TOOL_CALL_FEE_WEI",
+      "AGENT_CALL_PRECOMPILE"
+    ],
+    "missing_behavior": "The exact 0x0808 agent-call fee path is absent: Phase 1 calculate_async_fees does not accept 0x0808, the generic Phase 2 helper rejects it as unsupported, and builder/verifier special-case only SOVEREIGN_AGENT_PRECOMPILE at 0x080C.",
+    "related_but_insufficient_code": [
+      "crates/ritual-async-fees/src/lib.rs implements work-based Phase 2 fees for sovereign-agent delivery metrics.",
+      "crates/ethereum/payload/src/ritual_async.rs and crates/ritual-block-verification/src/lib.rs extract sovereign-agent metrics and call calculate_agent_fees_phase2_work.",
+      "crates/ritual-precompile-addresses/src/lib.rs has no 0x0808 AGENT_CALL_PRECOMPILE metadata."
+    ]
+  },
+  "notes": "Confirmed gap against the exact invariant: related work-based pricing exists, but the specified 0x0808 agent-call fee path is missing.",
+  "rationale": "The diff adds agent pricing constants and functions, routes Phase 1 calculate_async_fees for 0x0808 to calculate_agent_fees_phase1, makes calculate_async_fees_phase2 reject 0x0808, and adds builder/verifier paths that extract iterations/tool_calls from delivery results and call calculate_agent_fees_phase2_work. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "a5be1396136caf79405755ec98e2d9ceb131f730"
+  ],
+  "statement": "Agent-call Phase 1 fees must use a constant executor settlement fee plus normal async commitment and inclusion fees, while Agent-call Phase 2 fees must be computed from actual delivered work as iterations * AGENT_ITERATION_FEE_WEI plus tool_calls * AGENT_TOOL_CALL_FEE_WEI with zero commitment and inclusion fees; generic polling-based Phase 2 pricing must reject 0x0808.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "For a 0x0808 Phase 1 commitment, assert calculate_async_fees returns the configured agent Phase 1 executor fee plus commitment/inclusion fees; for Phase 2, encode a delivery result with known iterations and tool_calls and assert both payload builder and block verifier expect exactly iterations*AGENT_ITERATION_FEE_WEI + tool_calls*AGENT_TOOL_CALL_FEE_WEI and reject malformed metrics or calls to calculate_async_fees_phase2 with 0x0808."
+  ],
+  "summary": "Work-based agent fee logic exists only for the renamed sovereign-agent path, not 0x0808.",
+  "test_or_falsification_candidate": "Call calculate_async_fees for precompile 0x0808 and expect agent Phase 1 fees; current code returns unsupported. Also verify payload/verifier only special-case 0x080C.",
+  "title": "Agent fees are work-based in Phase 2",
+  "total_invariants": 1954
+}

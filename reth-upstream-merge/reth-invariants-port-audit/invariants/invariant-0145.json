@@ -1,0 +1,75 @@
+{
+  "cluster_key": "executor delivery:async-fulfillment-only-daac5520",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Result submission first proves the original hash is tracked and still AwaitingExecution; only after those checks does fulfill_result mutate state and result/proof metadata.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let metadata = inner.transactions.get_mut(&submission.original_tx_hash).ok_or(AsyncPoolError::TransactionNotFound)?;\nif metadata.state != AsyncState::AwaitingExecution { return Err(AsyncPoolError::InvalidState(metadata.state.clone())); }\n...\nSelf::fulfill_result(metadata, submission.execution_result, submission.execution_proof);\n...\nmetadata.state = AsyncState::Fulfilled;\nmetadata.execution_result = Some(execution_result);\nmetadata.execution_proof = Some(execution_proof);",
+      "symbols": [
+        "AsyncPool::submit_result_with_context",
+        "AsyncPool::fulfill_result"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The pool-level API routes fulfillment through the guarded async pool transition rather than writing metadata directly.",
+      "path": "crates/transaction-pool/src/pool/mod.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn submit_async_result(&self, submission: AsyncResultSubmission) -> Result<(), AsyncPoolError> {\n    self.async_pool.submit_result_with_context(submission)\n}",
+      "symbols": [
+        "Pool::submit_async_result"
+      ]
+    }
+  ],
+  "equivalence_argument": "The old fulfill_transaction invariant is represented in the v2.2 port by submit_async_result/submit_result_with_context. The renamed API preserves the terminal behavior: missing originals return TransactionNotFound, non-awaiting entries return InvalidState before mutation, and only awaiting entries are advanced to Fulfilled with result/proof data.",
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/async_exec.rs"
+  ],
+  "invariant_id": "cur-897f70c554-async-fulfillment-only-updates-awaiting",
+  "invariant_index": 145,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/transaction-pool/src/pool/mod.rs"
+    ],
+    "checked_queries": [
+      "fulfill_transaction|submit_result_with_context|TransactionNotFound|InvalidState|AwaitingExecution"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "AsyncPool::submit_result_with_context",
+      "AsyncPool::fulfill_result",
+      "Pool::submit_async_result"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped; the implementation uses the renamed context-validating submission path.",
+  "rationale": "The primary diff introduces explicit update error variants and implements fulfill_transaction by looking up metadata, checking AwaitingExecution, and returning precise errors before mutating state. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: The method is crate-private and no external caller is included in the primary diff, so the exact error enum shape could still be scaffolding for later async services.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "a4b25926b42d1f2937d80553eabb3d00f246a595"
+  ],
+  "statement": "fulfill_transaction should succeed only for transactions present in the async pool whose state is AwaitingExecution; missing transactions return TransactionNotFound and transactions in any other state return InvalidState without overwriting metadata.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call fulfill_transaction on a missing hash and on a present transaction already marked Fulfilled, asserting TransactionNotFound and InvalidState respectively and that the transaction metadata remains unchanged."
+  ],
+  "summary": "Async result submission only mutates tracked AwaitingExecution entries.",
+  "test_or_falsification_candidate": "Submit an async result for an unknown original hash and for an already fulfilled hash, and assert TransactionNotFound/InvalidState with unchanged metadata.",
+  "title": "Async fulfillment only updates awaiting transactions",
+  "total_invariants": 1954
+}

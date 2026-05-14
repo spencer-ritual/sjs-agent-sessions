@@ -9,14 +9,11 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "mapped",
+  "file_classification": "structural_equivalent",
   "tags": [
-    "mapped",
-    "verifier",
-    "negative-path",
     "high-risk",
     "non-exact",
-    "reth-port"
+    "structural_equivalent"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -57,7 +54,7 @@
         "status": "pass",
         "review_record_id": "review-file-0301-atom-0001"
       },
-      "review_required": false,
+      "review_required": true,
       "notes": "First-pass review found the verifier negative-path classification surface in the v2.2 destination crate.",
       "required_change": null
     }
@@ -67,8 +64,8 @@
   "adversarial_reviews": [
     "coverage-map/reviews/review-file-0301-atom-0001.json"
   ],
-  "summary": "Block-verification error classification is preserved in the v2.2 port with refactored grouped verifier variants.",
-  "review_required": false,
-  "status": "complete",
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": true,
+  "status": "needs_review",
   "notes": "Reclassified from missing after locating the v2.2 verifier error and classification surface."
 }

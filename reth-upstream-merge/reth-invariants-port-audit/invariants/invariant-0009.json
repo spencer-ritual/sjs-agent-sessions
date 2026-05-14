@@ -1,0 +1,95 @@
+{
+  "cluster_key": "scheduler:executed-overflow-indices-037e7f63",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "is_executed uses the primary bitmap for 0-255 and adjusted overflow bucket/bit arithmetic for indices >=256.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if index < 256 { ... } else { let adjusted_index = index - 256; let bucket = adjusted_index / 256; let bit_position = adjusted_index % 256; let slot = executed_bitmap_overflow_slot(call_id, bucket); ... }",
+      "symbols": [
+        "is_executed"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Regression test covers overflow bucket boundaries and primary non-pollution.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "assert!(is_executed(..., 256)); assert!(is_executed(..., 257)); assert!(is_executed(..., 511)); assert!(is_executed(..., 512));",
+      "symbols": [
+        "test_is_executed_overflow_bitmap"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Overflow slot derivation is keyed by callId and adjusted bucket.",
+      "path": "crates/ritual-scheduled-verification/src/slots.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "key_data[24..32].copy_from_slice(&call_id.to_be_bytes()); key_data[56..64].copy_from_slice(&bucket.to_be_bytes());",
+      "symbols": [
+        "executed_bitmap_overflow_slot"
+      ]
+    }
+  ],
+  "equivalence_argument": "Exact mapping: primary indices use raw bit positions; overflow indices subtract 256 before bucket and bit-position calculation.",
+  "evidence_files": [
+    "crates/ritual-scheduled-verification/src/lib.rs"
+  ],
+  "invariant_id": "cur-21b7c5ed1f-executed-bitmap-overflow-indices-adjusted-buckets",
+  "invariant_index": 9,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-verification/src/slots.rs"
+    ],
+    "checked_queries": [
+      "is_executed|adjusted_index|overflow.*bitmap",
+      "adjusted_index = index - 256|test_is_executed_overflow_bitmap"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "is_executed",
+      "adjusted_index",
+      "executed_bitmap_overflow_slot",
+      "SCHEDULER_EXECUTED_OVERFLOW_SLOT"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped directly in scheduled verification.",
+  "rationale": "The cluster contains a single high-confidence candidate backed by an end-to-end test of boundary indices around the primary and overflow bitmap split. Neighbor candidates describe scheduler state tracking and transaction plumbing but do not directly refine or supersede this verification-specific bitmap invariant.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "851b5150035e92c3fbfc9a543fdb9049acfc1e3a"
+  ],
+  "statement": "For scheduled execution verification, is_executed must evaluate indices 0 through 255 against the primary bitmap, and indices greater than or equal to 256 against overflow bitmaps using adjusted_index = index - 256, bucket = adjusted_index / 256, and bit_position = adjusted_index % 256, without letting overflow bits mark primary indices executed.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Seed overflow bucket 0 bits 0, 1, and 255 plus overflow bucket 1 bit 0, then assert is_executed is true for indices 256, 257, 511, and 512 and false for 258 and 513.",
+    "Leave the primary bitmap unset while seeding overflow bits, then assert is_executed remains false for primary indices 0 and 255.",
+    "Seed primary bitmap bits independently and assert they do not affect overflow indices 256 and above."
+  ],
+  "summary": "Executed bitmap overflow indices use adjusted buckets in the port.",
+  "test_or_falsification_candidate": "Existing overflow bitmap test would fail if adjusted_index subtraction, bucket, bit position, or primary/overflow split regressed.",
+  "title": "Executed bitmap overflow indices use adjusted buckets",
+  "total_invariants": 1954
+}

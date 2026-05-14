@@ -1,0 +1,62 @@
+{
+  "cluster_key": "scheduler:payload-building:part-03",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-36c8699cd3-build-policy-demote-optional-payload-work",
+  "invariant_index": 56,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs"
+    ],
+    "checked_queries": [
+      "BuildPolicyState|WorkClass|Obligations|demot",
+      "policy|should_skip|should_break"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "BuildPolicyState",
+      "WorkClass",
+      "Obligations",
+      "demotion",
+      "should_break",
+      "should_skip"
+    ],
+    "missing_behavior": "Missing optional-work demotion behavior: no WorkClass::Obligations skip with empty obligation set and no unified execution break policy.",
+    "related_but_insufficient_code": [
+      "The only demotion references in the port are normal txpool promotion/demotion comments and metrics structs; payload builder has no BuildPolicyState or WorkClass gates."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The later obligation-specific candidate refines the broader policy-demotion behavior without replacing the rest of the optional-work demotion model.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "5ad70164dfa1653ebe9691fa762e7aaf4e4e9572",
+    "720628a6b2a5701e2a63aeef33b2071c8d937c67"
+  ],
+  "statement": "BuildPolicyState may demote optional payload work: obligation computation is bypassed with an empty obligation set when WorkClass::Obligations is skipped, and unified execution can stop when policy says the relevant work class should break.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Configure BuildPolicyState to skip WorkClass::Obligations with due obligations in parent state and assert no obligation scan or obligation-derived transactions occur.",
+    "Configure a policy break for the unified execution work class and assert the unified loop stops at the demoted index instead of processing all entries."
+  ],
+  "summary": "Build-policy optional work demotion is absent.",
+  "test_or_falsification_candidate": "Configure a policy to skip obligations with due parent-state obligations; current payload builder has no policy object to bypass obligation scanning.",
+  "title": "Build policy can demote optional payload work",
+  "total_invariants": 1954
+}

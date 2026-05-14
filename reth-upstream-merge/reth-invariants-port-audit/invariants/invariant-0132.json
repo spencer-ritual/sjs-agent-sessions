@@ -1,0 +1,62 @@
+{
+  "cluster_key": "scheduler:canonical",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/scheduling/src/canonical.rs",
+    "crates/transaction-pool/src/maintain.rs"
+  ],
+  "invariant_id": "cur-5167b41507-canonical-scheduled-firing-requires-real-stored-origin-hashes",
+  "invariant_index": 132,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-scheduled-block-building/src/lib.rs",
+      "crates/scheduling/src/canonical.rs"
+    ],
+    "checked_queries": [
+      "read_origin_hash|origin_hash|B256::ZERO|skip.*origin|missing.*origin|Call::origin_hash"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "read_origin_hash",
+      "create_scheduled_execution_transaction_from_state"
+    ],
+    "missing_behavior": "Missing skip-on-missing origin hash behavior. The port attaches an origin hash from Scheduler storage, but read_origin_hash falls back to B256::ZERO on storage read failure, so transaction creation is not skipped when origin hash is missing/unreadable.",
+    "related_but_insufficient_code": [
+      "create_scheduled_execution_transaction_from_state reads origin_hash and passes it into TxScheduled construction."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The July 2025 candidates introduced default-zero fallbacks, but the January 2026 candidates explicitly supersede that behavior with skip-on-missing semantics and use of Call::origin_hash.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "79f460b21a6c54e08cedcfa3b1c408fff07ffdee",
+    "ddf2b1f69f36610d9f4241cf2019e04b23437abd",
+    "c29414bd74e2df4b49afe50171ba5d749d8e90a4",
+    "a455e54427b05457c921fa6c23d782ec3bea44e1",
+    "c5d10136f32c6c71fd898a08c0ccb81ef25fffed",
+    "1455d42b7c593315e4d3f26944cb14ec65ef728f"
+  ],
+  "statement": "Canonical scheduling must attach the stored origin hash to each fired scheduled transaction and skip transaction creation when the origin hash is missing or unreadable; the earlier B256::default fallback is obsolete.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Make originHash storage unreadable/missing for an otherwise due call and assert no scheduled transaction is created; current helper would use B256::ZERO."
+  ],
+  "summary": "Stored origin hash is attached, but missing/unreadable origin hash does not skip firing.",
+  "test_or_falsification_candidate": "Origin-hash missing/unreadable scheduled firing test.",
+  "title": "Canonical scheduled firing requires real stored origin hashes",
+  "total_invariants": 1954
+}

@@ -1,0 +1,61 @@
+{
+  "cluster_key": "executor delivery:error-deliveries-have-c8e73aa1",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping was found: DA_ERROR_PHASE2_FEE_WEI and its coverage assertions are absent from the audited repos.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/constants.rs"
+  ],
+  "invariant_id": "cur-67b8ed9708-error-deliveries-have-covered-constant",
+  "invariant_index": 208,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/constants.rs",
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "DA_ERROR_PHASE2_FEE_WEI|500_000_000_000|calculate_da_error_fees_phase2|delivery_has_error|hasError"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "DA_ERROR_PHASE2_FEE_WEI",
+      "calculate_da_error_fees_phase2",
+      "delivery_has_error"
+    ],
+    "missing_behavior": "Missing deterministic 500,000,000,000 wei DA error Phase 2 fee constant and assertions that it is covered by all relevant Phase 1 fees.",
+    "related_but_insufficient_code": [
+      "The audited port constants define FEE_PER_POLL_BLOCK_WEI and settlement offsets but no DA_ERROR_PHASE2_FEE_WEI.",
+      "No compile-time or unit assertions compare a 500,000,000,000 wei error fee against image/audio/video/FHE Phase 1 escrow floors in audited repos.",
+      "The only DA error constant hits are in a non-audited legacy checkout, not in the requested repo set."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The merge keeps DA_ERROR_PHASE2_FEE_WEI and compile-time assertions that bound it by image/audio/video Phase 1 settlement fees, with comments stating it lets DA error deliveries settle instead of being skipped. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "f4eb5f66c2d2e789f4299b8cadd6f7f08b599ada"
+  ],
+  "statement": "Multimodal and FHE Phase 2 delivery results that carry hasError=true for DA/storage failures must use the deterministic DA_ERROR_PHASE2_FEE_WEI value of 500,000,000,000 wei, and that constant must not exceed the minimum Phase 1 settlement fees for image, audio, video, or FHE-backed delivery.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create multimodal and FHE Phase 2 delivery results with hasError=true due to DA upload failure and assert builder and verifier settle them using 500,000,000,000 wei, and add compile-time or unit checks that the constant remains <= every relevant Phase 1 escrow floor."
+  ],
+  "summary": "DA error covered-constant fee support is absent from the audited repos.",
+  "test_or_falsification_candidate": "Add a unit check for DA_ERROR_PHASE2_FEE_WEI <= image/audio/video/FHE Phase 1 fees; it cannot be written against current audited code because the constant is absent.",
+  "title": "DA error deliveries have covered constant fee",
+  "total_invariants": 1954
+}

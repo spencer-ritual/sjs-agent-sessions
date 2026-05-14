@@ -1,0 +1,310 @@
+{
+  "record_type": "file",
+  "file_index": 285,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-async-fees/src/wallet.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "async-fees",
+    "wallet-verification",
+    "sender-extraction",
+    "commitment-fees"
+  ],
+  "atoms_total": 5,
+  "atoms": [
+    {
+      "record_id": "file-0285-atom-0001",
+      "file_index": 285,
+      "atom_index": 1,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-async-fees/src/wallet.rs",
+      "source_hunk_hint": "@@ -0,0 +1,540 @@; wallet/model-registry addresses and RitualWallet storage reads",
+      "source_kind": "async_wallet_storage_lookup",
+      "source_snippet": "pub fn get_ritual_wallet_address() -> Address { ... }\n\npub fn get_model_registry_address() -> Address { ... }\n\nfn read_wallet_balance<DB: revm::Database>(...) -> Result<U256, String> { ... }\n\nfn read_wallet_lock_until<DB: revm::Database>(...) -> Result<U256, String> { ... }",
+      "semantic_claim": "The old divergence centralizes wallet and model-registry address selection plus direct RitualWallet storage reads. Wallet balance uses mapping slot 0, lock-until uses mapping slot 1, both compute Solidity mapping keys as keccak256(left-padded user address || slot), and the balance path explicitly loads the wallet account before storage access to satisfy revm database requirements.",
+      "high_risk": false,
+      "risk_tags": [
+        "wallet-storage",
+        "solidity-mapping-slot",
+        "consensus-state-read"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/wallet.rs",
+          "symbols": [
+            "get_ritual_wallet_address",
+            "get_model_registry_address",
+            "read_wallet_balance",
+            "read_wallet_lock_until",
+            "BALANCE_MAPPING_SLOT",
+            "LOCK_MAPPING_SLOT"
+          ],
+          "evidence": "The source-added file is a 540-line new file in the diff (`@@ -0,0 +1,540 @@`, diff lines 41694-42239). The destination `wallet.rs` is also 540 lines and preserves this address/default and storage-key logic line-for-line in the complete file read."
+        }
+      ],
+      "equivalence_argument": "The destination uses the same environment variable names, default contract addresses, mapping slots, left-padding layout, storage-key hashing, and revm account-load behavior, so wallet state lookup semantics are preserved exactly.",
+      "test_strategy": "complete_source_diff_to_destination_text_match_plus_usage_read",
+      "negative_test_candidate": "Changing the lock mapping slot from 1 to 0, or omitting the user-address left padding before hashing, would make verifier wallet reads diverge from the on-chain RitualWallet mapping layout.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers only the address and storage-read helpers in `wallet.rs`."
+    },
+    {
+      "record_id": "file-0285-atom-0002",
+      "file_index": 285,
+      "atom_index": 2,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-async-fees/src/wallet.rs",
+      "source_hunk_hint": "@@ -0,0 +1,540 @@; executor fee selection inside verify_wallet_for_commitment",
+      "source_kind": "async_wallet_executor_fee_selection",
+      "source_snippet": "let executor_fee = if precompile_address == LLM_CALL_PRECOMPILE { ... }\n    else if precompile_address == HTTP_CALL_PRECOMPILE { http_executor_fee(input_len, HTTP_CALL_MAX_OUTPUT_BYTES) }\n    else if precompile_address == LONG_RUNNING_HTTP_PRECOMPILE { http_executor_fee(input_len, HTTP_CALL_MAX_OUTPUT_BYTES) }\n    else if precompile_address == SOVEREIGN_AGENT_PRECOMPILE { agent_escrow_lockup(...) }\n    else if precompile_address == ZK_TWO_PHASE_PRECOMPILE { U256::from(ZK_PROOF_GENERATION_FEE_WEI) }\n    else if precompile_address == IMAGE_CALL_PRECOMPILE { ... }\n    else if precompile_address == AUDIO_CALL_PRECOMPILE { ... }\n    else if precompile_address == VIDEO_CALL_PRECOMPILE { ... }\n    else if precompile_address == FHE_PRECOMPILE { fhe_escrow_lockup() }\n    else if precompile_address == DKMS_KEY_PRECOMPILE { dkms_escrow_lockup(input_len) }\n    else if precompile_address == PERSISTENT_AGENT_PRECOMPILE { persistent_agent_escrow_lockup(input_len) }\n    else { return Err(format!(\"Unknown precompile address for wallet verification: {:?}\", precompile_address)); };",
+      "semantic_claim": "The old divergence makes wallet verification compute the executor escrow using the same per-precompile rules as the builder. LLM and multimodal requests must extract a model and read registry pricing without fallback; HTTP and long-running HTTP use HTTP byte pricing; agent, ZK, FHE, DKMS, and persistent-agent calls use their dedicated escrow helpers or fixed proof/spawn fee rules; unknown precompile addresses reject explicitly.",
+      "high_risk": false,
+      "risk_tags": [
+        "wallet-escrow",
+        "precompile-pricing",
+        "model-registry",
+        "builder-verifier-parity"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/wallet.rs",
+          "symbols": [
+            "verify_wallet_for_commitment",
+            "extract_model_from_llm_input",
+            "llm_executor_deposit_estimate_for_model",
+            "extract_model_from_multimodal_input",
+            "read_model_from_db",
+            "image_escrow_lockup",
+            "audio_escrow_lockup",
+            "video_escrow_lockup",
+            "fhe_escrow_lockup",
+            "dkms_escrow_lockup",
+            "persistent_agent_escrow_lockup"
+          ],
+          "evidence": "The complete destination `wallet.rs` preserves the same executor-fee decision tree from the source-added file, including the registry load/error paths for LLM, image, audio, and video, the exact fixed/helper-based branches for ZK/FHE/DKMS/persistent-agent, and the explicit unknown-precompile error."
+        }
+      ],
+      "equivalence_argument": "Because the decision tree and helper calls are textually identical, each supported precompile requires the same wallet escrow amount in the destination as in the source divergence, and malformed or unknown requests fail at the same points.",
+      "test_strategy": "complete_source_diff_to_destination_text_match_plus_bounded_usage_read",
+      "negative_test_candidate": "A multimodal request whose model is absent from ModelRegistry should reject wallet verification instead of falling back to a generic HTTP fee; accepting it would under-escrow the async job.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers executor fee selection only; callback-cost and final balance/lock checks are separate atoms."
+    },
+    {
+      "record_id": "file-0285-atom-0003",
+      "file_index": 285,
+      "atom_index": 3,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-async-fees/src/wallet.rs",
+      "source_hunk_hint": "@@ -0,0 +1,540 @@; validator fees and Phase 2 callback-cost escrow",
+      "source_kind": "async_wallet_phase2_callback_costs",
+      "source_snippet": "let commitment_fee = async_commitment_fee(input_len);\nlet inclusion_fee = async_inclusion_fee(input_len, HTTP_CALL_MAX_OUTPUT_BYTES);\n\nlet phase2_callback_cost = if precompile_address == LONG_RUNNING_HTTP_PRECOMPILE { DeliveryConfig::from_abi(precompile_input)? ... }\n    else if precompile_address == IMAGE_CALL_PRECOMPILE { DeliveryConfig::from_abi(precompile_input)? ... }\n    else if precompile_address == AUDIO_CALL_PRECOMPILE { DeliveryConfig::from_abi(precompile_input)? ... }\n    else if precompile_address == VIDEO_CALL_PRECOMPILE { DeliveryConfig::from_abi(precompile_input)? ... }\n    else if precompile_address == ZK_TWO_PHASE_PRECOMPILE { DeliveryConfig::from_zk_abi(precompile_input)? ... }\n    else if precompile_address == SOVEREIGN_AGENT_PRECOMPILE { DeliveryConfig::from_sovereign_agent_abi(precompile_input)? ... }\n    else if precompile_address == FHE_PRECOMPILE { DeliveryConfig::from_fhe_abi(precompile_input)? ... }\n    else if precompile_address == PERSISTENT_AGENT_PRECOMPILE { DeliveryConfig::from_persistent_agent_abi(precompile_input)? ... }\n    else if is_two_phase_precompile(precompile_address) { return Err(...); }\n    else { U256::ZERO };",
+      "semantic_claim": "The old divergence adds validator fee components and escrows Phase 2 callback delivery costs for every supported two-phase precompile. Callback cost is gas_limit * max_fee_per_gas + value after ABI-specific DeliveryConfig decoding, malformed delivery config rejects wallet verification, and any recognized but unhandled two-phase precompile rejects rather than silently omitting callback escrow.",
+      "high_risk": false,
+      "risk_tags": [
+        "phase2-callback-cost",
+        "delivery-config-decoding",
+        "two-phase-precompile",
+        "wallet-escrow"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/wallet.rs",
+          "symbols": [
+            "verify_wallet_for_commitment",
+            "DeliveryConfig::from_abi",
+            "DeliveryConfig::from_zk_abi",
+            "DeliveryConfig::from_sovereign_agent_abi",
+            "DeliveryConfig::from_fhe_abi",
+            "DeliveryConfig::from_persistent_agent_abi",
+            "is_two_phase_precompile"
+          ],
+          "evidence": "The destination exact-matches the source callback-cost branch set and arithmetic, including shared `from_abi` dispatch for long-running HTTP/image/audio/video, specialized decoders for ZK/agent/FHE/persistent-agent, and the unhandled two-phase rejection guard."
+        }
+      ],
+      "equivalence_argument": "The same decoder selection, arithmetic, zero-cost fallback for non-two-phase calls, and rejection path for unhandled two-phase calls preserve callback escrow behavior exactly.",
+      "test_strategy": "complete_source_diff_to_destination_text_match_plus_usage_read",
+      "negative_test_candidate": "A malformed persistent-agent DeliveryConfig should fail wallet verification; returning zero callback cost would allow commitments that cannot afford the Phase 2 settlement callback.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers the commitment/inclusion fee calls and Phase 2 callback-cost escrow inside `verify_wallet_for_commitment`."
+    },
+    {
+      "record_id": "file-0285-atom-0004",
+      "file_index": 285,
+      "atom_index": 4,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-async-fees/src/wallet.rs",
+      "source_hunk_hint": "@@ -0,0 +1,540 @@; total fee and lock-duration validation",
+      "source_kind": "async_wallet_balance_and_lock_validation",
+      "source_snippet": "let total_required_fees = executor_fee + commitment_fee + inclusion_fee + phase2_callback_cost;\nlet required_lock_until = commit_block + ttl;\n\nif balance < total_required_fees { return Err(format!(\"Insufficient wallet balance: {} < required {} (user: {:?})\", ...)); }\n\nif lock_until < U256::from(required_lock_until) { return Err(format!(\"Insufficient lock duration: {} < required {} (commit_block {} + ttl {}, user: {:?})\", ...)); }\n\nOk(())",
+      "semantic_claim": "The old divergence makes commitment wallet validation require both enough locked balance for executor, validator, and callback costs, and a lock duration extending through commit_block + ttl. Insufficient balance and insufficient lock duration are distinct rejection paths; success only returns after both checks pass.",
+      "high_risk": false,
+      "risk_tags": [
+        "wallet-balance",
+        "lock-duration",
+        "commitment-ttl",
+        "block-verification"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/wallet.rs",
+          "symbols": [
+            "verify_wallet_for_commitment"
+          ],
+          "evidence": "The destination exact-matches the source total fee sum, required lock calculation, insufficient-balance rejection, insufficient-lock rejection, success debug log, and final `Ok(())`."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "wallet",
+            "verify_wallet_for_commitment"
+          ],
+          "evidence": "The destination crate root declares `pub mod wallet;` and re-exports `verify_wallet_for_commitment`, preserving the shared public entry point."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "verify_wallet_for_commitment",
+            "extract_commitment_sender"
+          ],
+          "evidence": "Block verification decodes the original transaction, extracts the economically responsible sender, skips only heartbeat commitments, wraps parent-block state, and calls `ritual_async_fees::verify_wallet_for_commitment` before accepting the async commitment."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async/src/wallet.rs",
+          "symbols": [
+            "check_user_wallet_balance_with_provider",
+            "ritual_async_fees::wallet::verify_wallet_for_commitment"
+          ],
+          "evidence": "The builder-side wallet wrapper delegates to the centralized verifier using parent+1 as the commit block, preserving builder/verifier fee logic parity."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc/src/async_tx_validator.rs",
+          "symbols": [
+            "validate_wallet_for_async",
+            "verify_wallet_for_commitment"
+          ],
+          "evidence": "RPC async transaction validation imports the same wallet verifier and calls it through `validate_wallet_for_async`, preserving early validation parity with builder and verifier behavior."
+        }
+      ],
+      "equivalence_argument": "The exact file match preserves the validation arithmetic and errors, while the destination usage sites route block verification, builder-side checks, and RPC validation through the same shared function.",
+      "test_strategy": "complete_source_diff_to_destination_text_match_plus_bounded_usage_search",
+      "negative_test_candidate": "A user with enough balance but `lock_until == commit_block + ttl - 1` should be rejected; accepting it would allow an async commitment whose funds can unlock before the job TTL expires.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers final balance/lock validation and bounded call-site preservation."
+    },
+    {
+      "record_id": "file-0285-atom-0005",
+      "file_index": 285,
+      "atom_index": 5,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-async-fees/src/wallet.rs",
+      "source_hunk_hint": "@@ -0,0 +1,540 @@; extract_commitment_sender OriginalTransaction handling",
+      "source_kind": "async_commitment_sender_extraction",
+      "source_snippet": "pub fn extract_commitment_sender(original_tx: &OriginalTransaction) -> Result<Address, String> {\n    match original_tx {\n        OriginalTransaction::Scheduled(signed) => Ok(signed.tx().caller),\n        OriginalTransaction::Legacy(signed) => { ... recover_signer() ... }\n        OriginalTransaction::Eip1559(signed) => { ... recover_signer() ... }\n        OriginalTransaction::Passkey(signed) => { ... recover_signer() ... }\n        OriginalTransaction::AsyncSettlement(signed) => Ok(signed.tx().user_address),\n    }\n}",
+      "semantic_claim": "The old divergence adds a shared sender extractor for async commitments. Scheduled transactions attribute economic responsibility to the scheduled caller rather than SYSTEM_SENDER, legacy/EIP-1559/passkey transactions recover the signer from the signature, and async-settlement transactions use `user_address` because settlement transactions carry dummy signatures.",
+      "high_risk": false,
+      "risk_tags": [
+        "sender-extraction",
+        "scheduled-transactions",
+        "async-settlement",
+        "duplicate-sender-check"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/wallet.rs",
+          "symbols": [
+            "extract_commitment_sender",
+            "OriginalTransaction::Scheduled",
+            "OriginalTransaction::Legacy",
+            "OriginalTransaction::Eip1559",
+            "OriginalTransaction::Passkey",
+            "OriginalTransaction::AsyncSettlement"
+          ],
+          "evidence": "The destination exact-matches the source sender extractor over all five `OriginalTransaction` variants and preserves the per-variant error strings for signature recovery failures."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "extract_commitment_sender"
+          ],
+          "evidence": "The destination crate root re-exports `extract_commitment_sender` from `wallet`."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "extract_commitment_sender",
+            "seen_senders"
+          ],
+          "evidence": "Block verification calls `extract_commitment_sender` after decoding `origin_tx_rlp`, then uses the returned economically responsible sender for same-block duplicate-sender rejection and wallet verification."
+        }
+      ],
+      "equivalence_argument": "The destination keeps the same variant mapping and call-site usage, so scheduled, signed, passkey, and async-settlement commitments are attributed to the same economic sender as in the source divergence.",
+      "test_strategy": "complete_source_diff_to_destination_text_match_plus_bounded_usage_search",
+      "negative_test_candidate": "Two scheduled commitments created by the same original caller should collide in the duplicate-sender check even though their transaction sender is SYSTEM_SENDER; using `OriginalTransaction::sender()` would miss that collision.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers only sender extraction and its bounded verifier usage."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The async fee wallet verifier is exact-port preserved across RitualWallet storage reads, per-precompile executor escrow calculation, validator and Phase 2 callback cost inclusion, final balance/lock validation, sender extraction, and bounded builder/verifier/RPC usage evidence.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as name-status line 285: A\tcrates/ritual-async-fees/src/wallet.rs.",
+    "Source diff for file-0285 starts at line 41694 with `@@ -0,0 +1,540 @@` and the wallet file body ends at line 42239, before the next file header at line 42240; the async-registry manifest header is later at line 42565 and was not audited in this record.",
+    "The destination `crates/ritual-async-fees/src/wallet.rs` contains 540 lines matching the complete source-added wallet body read from the diff.",
+    "Bounded usage evidence confirmed `verify_wallet_for_commitment` and `extract_commitment_sender` are re-exported from `ritual-async-fees`, block verification uses them for parent-state wallet validation and duplicate-sender attribution, builder wallet validation delegates to the shared verifier, and RPC async validation calls the same verifier.",
+    "No review queue entry was required because every audited wallet behavior is preserved exactly."
+  ]
+}

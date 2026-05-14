@@ -1,0 +1,55 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "Nodebuilder reads all registry executors, converts them to the SPC verifier tuple shape, updates the in-memory registry, and does so before the transaction loop; read/update errors abort block execution.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "self.update_executor_registry_from_block(block)?;\n...\nlet executors = read_all_executors(&mut self.db, contract)?;\nlet executor_tuples = executors.into_iter().map(|e| (e.payment_address, e.tee_address, e.tee_type, e.public_key, e.workload_id, e.capability as u8)).collect();\nspc_verifier.update_registry_from_data(executor_tuples, block.number())?;\n...\nfor tx in block.transactions_recovered() { ... strategy.execute_transaction(tx)?; }",
+      "symbols": [
+        "RitualBlockExecutor::update_executor_registry_from_block",
+        "RitualBlockExecutor::execute_one"
+      ]
+    }
+  ],
+  "equivalence_argument": "The split architecture places Ritual block execution in nodebuilder; registry refresh is phase 1 and must complete before phase 3 transaction processing starts.",
+  "evidence_files": [
+    "crates/node/src/executor.rs"
+  ],
+  "invariant_id": "cur-b83fdf1467-block-execution-refreshes-executor-registry-before",
+  "invariant_index": 344,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in nodebuilder, which owns the Ritual-specific block executor.",
+  "rationale": "The new executor explicitly performs a registry update phase before strategy setup in both execute_one and execute_one_with_state_hook, reading the registry from on-chain state and passing executor tuples to the SPC verifier. The merged executor explicitly performs `update_executor_registry_from_block` as Phase 1 of block execution, sourcing the registry contract from env/default address and feeding decoded executor data into the shared SPC verifier before transaction execution begins. Collapsed 2 closely related historical candidate statements into the latest effective formulation.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "7e16c872fe94f5ffdd3f4ba315413db9b91b0ad1",
+    "9b1fec346dd01830f08a1b6313a09fcf334bc923"
+  ],
+  "statement": "Before executing a block's transactions, the Ritual block executor should read all executor records from the configured executor registry contract, convert them into `(payment_address, tee_address, tee_type, public_key, workload_id, capability)` tuples, and update the in-memory SPC verifier registry at the current block number.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Use a block-state fixture with two registered executors and a mock SPC verifier. Execute a block and assert update_registry_from_data is called before any transaction execution with both executors' payment address, TEE address, TEE type, public key, workload id, capability, and the block number. Also make the registry reader fail and assert block execution returns a BlockExecutionError.",
+    "Run block execution with a mock database containing executor registry state and a mock SPC verifier; assert `read_all_executors` output is passed to `update_registry_from_data` with the block number before any transaction is executed, and assert a registry-read or update error aborts block execution."
+  ],
+  "summary": "Nodebuilder refreshes the SPC verifier registry before block transactions run.",
+  "test_or_falsification_candidate": "Use a mock registry DB and SPC verifier, execute a block, and assert update_registry_from_data runs before the first execute_transaction and failures abort execution.",
+  "title": "Block execution refreshes the SPC executor registry before transactions run",
+  "total_invariants": 1954
+}

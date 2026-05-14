@@ -1,0 +1,74 @@
+{
+  "record_type": "file",
+  "file_index": 343,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-spc-signature/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "structural-equivalent",
+    "spc-signature",
+    "manifest",
+    "workspace-wiring"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0343-atom-0001",
+      "file_index": 343,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-spc-signature/Cargo.toml",
+      "source_hunk_hint": "@@ -0,0 +1,16 @@; SPC signature manifest",
+      "source_kind": "manifest",
+      "source_snippet": "[package]\nname = \"ritual-spc-signature\"\nversion = \"0.1.0\"\nedition = \"2021\"\ndescription = \"Pure cryptographic signature verification for SPC calls (no reth dependencies)\"\n...\n[dependencies]\nsecp256k1 = { version = \"0.29\", features = [\"recovery\", \"global-context\"] }\nserde_json = { workspace = true }\nhex = \"0.4\"\nalloy-primitives = { workspace = true }\nritual-precompile-addresses.workspace = true\ntracing = { workspace = true }",
+      "semantic_claim": "The old divergence adds the dependency-light SPC signature crate manifest for pure cryptographic proof verification with Alloy primitive types, secp256k1 recovery support, JSON payload construction, canonical precompile addresses, and tracing.",
+      "high_risk": false,
+      "risk_tags": [
+        "manifest",
+        "crypto-dependencies",
+        "workspace-normalization"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-signature/Cargo.toml",
+          "symbols": [
+            "package ritual-spc-signature",
+            "dependencies"
+          ],
+          "evidence": "Destination preserves the same crate name, description, canonical address dependency, Alloy primitive dependency, secp256k1 recovery dependency, serde_json, and tracing; it normalizes package version/edition/rust-version/lints to workspace values and uses workspace dependency forms."
+        }
+      ],
+      "equivalence_argument": "The destination manifest keeps the same crate boundary and dependency capabilities while adapting the source manifest to the v2.2.0 workspace metadata/dependency conventions. The old standalone `hex` dependency is covered through `alloy_primitives::hex` in the destination library.",
+      "test_strategy": "cargo check -p ritual-spc-signature",
+      "negative_test_candidate": "Remove secp256k1 recovery support and confirm `RecoverableSignature` parsing no longer compiles.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Non-exact only for manifest normalization and dependency source forms."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The SPC signature crate manifest is structurally equivalent in the v2.2.0 port, with workspace-normalized metadata and dependencies.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 343: A\tcrates/ritual-spc-signature/Cargo.toml.",
+    "Source-added hunk spans diff lines 69321-69336 with header `@@ -0,0 +1,16 @@`.",
+    "Destination `crates/ritual-spc-signature/Cargo.toml` preserves the semantic dependency set but is not byte-for-byte exact due to workspace normalization.",
+    "No review queue entry required because the non-exactness is low-risk manifest normalization."
+  ]
+}

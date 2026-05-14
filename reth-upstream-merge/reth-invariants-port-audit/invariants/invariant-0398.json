@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "The canonical metadata marks 0x0807/FHE as TwoPhase and includes it in the two-phase address list.",
+      "path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "AsyncPrecompileMetadata { address: FHE_PRECOMPILE, capability_tag: AsyncPrecompileCapabilityTag::Fhe, settlement: AsyncPrecompileSettlement::TwoPhase, ... }\n...\npub const ALL_TWO_PHASE_PRECOMPILE_ADDRESSES: [Address; 8] = [LONG_RUNNING_HTTP_PRECOMPILE, ZK_TWO_PHASE_PRECOMPILE, FHE_PRECOMPILE, ...];",
+      "symbols": [
+        "FHE_PRECOMPILE",
+        "ALL_TWO_PHASE_PRECOMPILE_ADDRESSES",
+        "is_two_phase_precompile"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "Async pool lifecycle delegates Phase 2 classification to the metadata and has FHE-specific deadline ABI-slot handling.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn requires_phase2_delivery(&self) -> bool {\n    is_two_phase_precompile(self.precompile_address)\n}\n...\nif precompile_address == FHE_PRECOMPILE { 10 }",
+      "symbols": [
+        "AsyncTxMetadata::requires_phase2_delivery",
+        "phase2_deadline_offset"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port implements FHE Phase 2 requirement through central async-precompile metadata rather than an AsyncTxMeta::is_fhe helper; the pool observes the same behavior by treating every metadata TwoPhase precompile, including 0x0807, as requiring delivery.",
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/async_pool.rs"
+  ],
+  "invariant_id": "cur-59a3b972aa-requires-phase-delivery",
+  "invariant_index": 398,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped through central precompile metadata and transaction-pool lifecycle checks.",
+  "rationale": "The commit adds the FHE precompile address constant, an `is_fhe` predicate, and includes it in `requires_phase2_delivery`. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "86900ac883d37cf5bec4e60985ea195c17d7ab1a"
+  ],
+  "statement": "Async transaction metadata for precompile address `0x0807` must be recognized as FHE and must require Phase 2 delivery alongside long-running HTTP, ZK, and agent-call precompiles.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create `AsyncTxMeta` with `precompile_address` set to `0x0807` and assert `is_fhe()` and `requires_phase2_delivery()` both return true; assert a non-two-phase precompile still returns false."
+  ],
+  "summary": "FHE is classified as a two-phase delivery precompile.",
+  "test_or_falsification_candidate": "Construct AsyncTxMetadata with precompile_address 0x0807 and assert requires_phase2_delivery() is true and the FHE Phase 2 deadline slot is read from field 10.",
+  "title": "FHE requires Phase 2 delivery",
+  "total_invariants": 1954
+}

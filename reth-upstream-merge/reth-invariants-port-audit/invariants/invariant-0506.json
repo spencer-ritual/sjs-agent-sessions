@@ -1,0 +1,67 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: part of the concept exists through address-specific offsets, but the invariant names CLI/autonomous decoder coverage that is absent locally.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-d569e9b7ca-precompile-specific-delivery-config-decoders-used",
+  "invariant_index": 506,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs",
+      "crates/ritual-precompile-codecs/src/validation.rs"
+    ],
+    "checked_queries": [
+      "from_zk_abi from_cli_agent_abi from_autonomous_agent_abi from_fhe_abi",
+      "CLI_AGENT_PRECOMPILE delivery config decoder",
+      "AUTONOMOUS_AGENT_PRECOMPILE delivery config decoder"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "decode_delivery_config",
+      "decode_delivery_config_at",
+      "ZK_TWO_PHASE_PRECOMPILE",
+      "FHE_PRECOMPILE",
+      "SOVEREIGN_AGENT_PRECOMPILE",
+      "PERSISTENT_AGENT_PRECOMPILE",
+      "CLI_AGENT_PRECOMPILE",
+      "AUTONOMOUS_AGENT_PRECOMPILE"
+    ],
+    "missing_behavior": "The port has precompile-specific delivery config offsets for ZK, FHE, sovereign, and persistent agents, but no CLI-agent or autonomous-agent delivery config decoder symbols or branches are present in the audited repo set.",
+    "related_but_insufficient_code": [
+      "crates/ethereum/payload/src/ritual_async.rs decode_delivery_config selects field offsets for current two-phase precompiles.",
+      "crates/ritual-precompile-addresses/src/lib.rs defines SOVEREIGN_AGENT_PRECOMPILE and PERSISTENT_AGENT_PRECOMPILE but no CLI_AGENT_PRECOMPILE or AUTONOMOUS_AGENT_PRECOMPILE symbol.",
+      "No from_cli_agent_abi or from_autonomous_agent_abi implementation was found locally."
+    ]
+  },
+  "notes": "This records the local port shape rather than treating missing precompile names as not applicable.",
+  "rationale": "The combined diff chooses DeliveryConfig::from_zk_abi, from_cli_agent_abi, from_autonomous_agent_abi, and from_fhe_abi based on contract_job.precompile_address before using the generic decoder. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "b068a7439cf527ab2397f46075412d35508a4c18"
+  ],
+  "statement": "Phase 2 settlement creation must decode delivery configuration with the precompile-specific ABI for ZK, CLI agent, autonomous agent, and FHE precompiles, falling back to the generic delivery config only for other supported precompiles.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "For ZK, CLI agent, autonomous agent, and FHE inputs with distinct delivery-config field positions, assert create_delivery_settlement_transaction calls the matching decoder and rejects when that precompile's ABI layout is malformed."
+  ],
+  "summary": "CLI/autonomous delivery config decoders are absent.",
+  "test_or_falsification_candidate": "Encode CLI-agent and autonomous-agent Phase 2 inputs with distinct delivery-config locations and assert settlement creation uses the matching decoder; no such branches exist locally.",
+  "title": "Precompile-specific delivery config decoders are used",
+  "total_invariants": 1954
+}

@@ -1,0 +1,79 @@
+{
+  "record_type": "file",
+  "file_index": 312,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-metrics/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "ritual-metrics",
+    "crate-root",
+    "observability"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0312-atom-0001",
+      "file_index": 312,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-metrics/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,20 @@; metrics crate root and log targets",
+      "source_kind": "crate_root_modules_and_log_targets",
+      "source_snippet": "//! Ritual Metrics - Standardized instrumentation for Ritual logging\n\npub mod targets {\n    pub const BLOCK_LIFECYCLE: &str = \"ritual::block::lifecycle\";\n    pub const TX_LIFECYCLE: &str = \"ritual::tx::lifecycle\";\n    pub const SCHEDULING: &str = \"ritual::scheduling\";\n}\n\npub mod tx;\npub mod block;\npub mod scheduling;",
+      "semantic_claim": "The old divergence adds the Ritual metrics crate root, defining stable tracing targets for block lifecycle, transaction lifecycle, and scheduling logs, and exposes the `tx`, `block`, and `scheduling` instrumentation modules.",
+      "high_risk": false,
+      "risk_tags": [
+        "crate-root",
+        "observability",
+        "tracing-targets",
+        "module-exports"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-metrics/src/lib.rs",
+          "symbols": [
+            "targets::BLOCK_LIFECYCLE",
+            "targets::TX_LIFECYCLE",
+            "targets::SCHEDULING",
+            "tx",
+            "block",
+            "scheduling"
+          ],
+          "evidence": "Destination lines 1-20 exactly match source-added diff lines 55553-55572."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the public module surface and tracing target strings unchanged.",
+      "test_strategy": "metrics_crate_root_compile_and_target_tests",
+      "negative_test_candidate": "Changing any target string should make downstream structured log filters miss that metrics category.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The Ritual metrics crate root is exact-port preserved, including tracing target constants and module exports for transaction, block, and scheduling instrumentation.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 312: A\tcrates/ritual-metrics/src/lib.rs.",
+    "Source-added hunk spans diff lines 55553-55572 with header `@@ -0,0 +1,20 @@`; the next diff starts at line 55573.",
+    "Destination `crates/ritual-metrics/src/lib.rs` has 20 lines and matches the source-added content exactly.",
+    "No review queue entry required because the atom is exact."
+  ]
+}

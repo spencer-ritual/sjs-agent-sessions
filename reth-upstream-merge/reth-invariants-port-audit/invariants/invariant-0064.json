@@ -1,0 +1,66 @@
+{
+  "cluster_key": "scheduler:payload-building:part-03",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-scheduled-block-building/src/lib.rs"
+  ],
+  "invariant_id": "cur-d72383a35d-combined-async-simulation-preserves-ordered-post-filtering",
+  "invariant_index": 64,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs"
+    ],
+    "checked_queries": [
+      "combined parallel|post-filter|scheduled candidates before regular",
+      "active-job|prune pool-sourced"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "combined parallel pass",
+      "scheduled before regular post-filter",
+      "active-job pruning",
+      "decide_active_job_augmentation",
+      "job_exists_and_active"
+    ],
+    "missing_behavior": "Missing combined parallel async simulation and ordered sequential post-filtering across scheduled and regular candidates, including proceed-on-storage-error and pool-only stale pruning semantics.",
+    "related_but_insufficient_code": [
+      "Synchronized scheduled obligation active-job skip exists for synthesized obligations, but no combined parallel scheduled+regular simulation pass or ordered side-effecting post-filter path was found."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The combined simulation candidate establishes deterministic sequential post-filtering after parallel simulation, and the active-job merge refines that gate with active-job skip, storage-error, and pruning semantics.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "230b5c21c0ce3566a07228bcc8974e7703d7b382",
+    "301c46155f5726465ca35e08b7f4fb5ed63fe990",
+    "301c46155f5726465ca35e08b7f4fb5ed63fe990",
+    "8af5317430a438f8ad136cf28348a882c613daac"
+  ],
+  "statement": "Scheduled and regular async candidates are simulated in a combined parallel pass, but side-effecting post-filter logic runs sequentially in input order with scheduled candidates before regular candidates; augmentation skips synthesized obligations whose hash has an active AsyncJobTracker job for the building block, proceeds on storage-check errors so the post-filter remains final, and prunes only pool-sourced stale transactions.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Use scheduled and regular async candidates with the same sender and assert both are simulated in the combined pass, then the scheduled candidate is accepted first and the regular candidate is rejected by sequential sender dedup.",
+    "Unit-test active-job augmentation for Ok(true), Ok(false), and Err, asserting active jobs skip, inactive jobs proceed, and storage errors proceed to the consensus-authoritative post-filter.",
+    "Create active pool-sourced and augmented candidates and assert all active candidates are skipped but only pool-sourced hashes are pruned."
+  ],
+  "summary": "Combined async simulation ordered post-filter behavior is absent.",
+  "test_or_falsification_candidate": "Provide scheduled and regular async candidates with same sender; current port has no combined parallel pass then ordered post-filter phase to test.",
+  "title": "Combined async simulation preserves ordered post-filtering",
+  "total_invariants": 1954
+}

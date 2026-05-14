@@ -1,0 +1,82 @@
+{
+  "cluster_key": "precompile pricing:addresses:part-01",
+  "confidence": "high",
+  "destinations": [
+    {
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "files": [
+        "crates/precompiles/src/lib.rs",
+        "crates/precompiles/src/test_nondeterministic.rs"
+      ],
+      "evidence": "The precompile provider now declares the test_nondeterministic module, conditionally exposes address 0x0804 in Mercury precompiles when RITUAL_ENABLE_TEST_NONDETERMINISTIC_PRECOMPILE is enabled, and has an observable context-aware dispatch branch."
+    }
+  ],
+  "equivalence_argument": "Mapped in the nodebuilder precompile provider: the nondeterministic test precompile remains absent by default, is present in the Mercury precompile set only when the environment gate is enabled, and the provider emits dispatch diagnostics before invoking the context-aware handler.",
+  "evidence_files": [
+    "crates/precompiles/src/test_nondeterministic.rs",
+    "crates/precompiles/src/lib.rs"
+  ],
+  "invariant_id": "cur-3321435815-nondeterministic-test-precompile-observable",
+  "invariant_index": 177,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "ritual-reth-nodebuilder-internal/crates/precompiles/src/test_nondeterministic.rs",
+      "ritual-reth-nodebuilder-internal/crates/precompiles/src/lib.rs",
+      "ritual-reth-nodebuilder-internal/bin/src/main.rs",
+      "ritual-reth-internal-v2.2.0-port",
+      "ritual-revm-internal/crates/handler/src/precompile_provider.rs"
+    ],
+    "checked_queries": [
+      "test_nondeterministic|TEST_NONDETERMINISTIC|Non-deterministic|nondeterministic|debug!",
+      "RITUAL_ENABLE_TEST_NONDETERMINISTIC_PRECOMPILE|TEST_NONDETERMINISTIC_ADDRESS|mercury_precompiles",
+      "0x0000000000000000000000000000000000000804|test_nondeterministic"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "TEST_NONDETERMINISTIC_ADDRESS",
+      "is_test_nondeterministic_enabled",
+      "test_nondeterministic_precompile",
+      "RITUAL_ENABLE_TEST_NONDETERMINISTIC_PRECOMPILE",
+      "mercury_precompiles"
+    ],
+    "missing_behavior": "",
+    "related_but_insufficient_code": [
+      "The original audit observed the helper but no provider registration. Local nodebuilder code now wires the helper into Mercury precompiles behind the environment gate."
+    ]
+  },
+  "notes": "Resolved in ritual-reth-nodebuilder-internal.",
+  "rationale": "The implementation-level gate, provider registration, repeated merge invariant, and observability candidate all describe the same test-only precompile behavior.",
+  "record_type": "invariant_mapping",
+  "section": "Precompile Pricing",
+  "source_commits": [
+    "952c8989418e471d049bd151d194916727e7f261",
+    "94cbde68e9a7ffb38a2b1fd28d88974ab737855e",
+    "94cbde68e9a7ffb38a2b1fd28d88974ab737855e",
+    "fa7fd96a107493de441833e2ec6c90d0ae3c4f4e"
+  ],
+  "statement": "The nondeterministic test precompile at 0x0000000000000000000000000000000000000804 is absent from Mercury precompiles by default, is registered only when RITUAL_ENABLE_TEST_NONDETERMINISTIC_PRECOMPILE is set to 1 or true, and emits call diagnostics when dispatched.",
+  "status": "current",
+  "subsystem": "precompile pricing",
+  "suggested_falsification_tests": [
+    "Unset RITUAL_ENABLE_TEST_NONDETERMINISTIC_PRECOMPILE and call test_nondeterministic_precompile with ample gas; assert it returns an error. Then set the variable to 1 and true and assert the gate allows execution.",
+    "Construct Mercury precompiles with the test flag unset and assert `TEST_NONDETERMINISTIC_ADDRESS` is not present; repeat with the flag set to an enabled value and assert the address is present and dispatches to `test_nondeterministic_precompile`.",
+    "Enable tracing, call the precompile provider with `TEST_NONDETERMINISTIC_ADDRESS`, and assert a debug record includes the test precompile address and input byte length before the provider dispatches.",
+    "Construct Mercury precompiles with the env var unset and assert address `0x804` is absent; repeat with `RITUAL_ENABLE_TEST_NONDETERMINISTIC_PRECOMPILE=true` and assert it is present."
+  ],
+  "summary": "The nondeterministic test precompile is opt-in and mapped in the nodebuilder provider.",
+  "test_or_falsification_candidate": "Set RITUAL_ENABLE_TEST_NONDETERMINISTIC_PRECOMPILE=true and instantiate mercury_precompiles; the mapped provider exposes 0x0804 and dispatches with diagnostics.",
+  "title": "Nondeterministic test precompile is opt-in and observable",
+  "total_invariants": 1954
+}

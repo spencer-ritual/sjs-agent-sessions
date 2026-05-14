@@ -1,0 +1,54 @@
+{
+  "cluster_key": "executor delivery:agent-escrow-uses-eb8a5c4b",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-async-fees/src/wallet.rs"
+  ],
+  "invariant_id": "cur-8a5490d454-agent-escrow-uses-specific-limits",
+  "invariant_index": 140,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/wallet.rs"
+    ],
+    "checked_queries": [
+      "CLI_AGENT_PRECOMPILE|CLI_AGENT_MAX_ITERATIONS|CLI_AGENT_MAX_TOOL_CALLS|SOVEREIGN_AGENT_PRECOMPILE|SOVEREIGN_AGENT_MAX_ITERATIONS|SOVEREIGN_AGENT_MAX_TOOL_CALLS|agent_escrow_lockup"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "CLI_AGENT_PRECOMPILE",
+      "CLI_AGENT_MAX_ITERATIONS",
+      "CLI_AGENT_MAX_TOOL_CALLS",
+      "SOVEREIGN_AGENT_PRECOMPILE",
+      "agent_escrow_lockup"
+    ],
+    "missing_behavior": "Missing CLI-agent-specific escrow pricing. wallet.rs prices SOVEREIGN_AGENT_PRECOMPILE with SOVEREIGN_AGENT_MAX_ITERATIONS and SOVEREIGN_AGENT_MAX_TOOL_CALLS plus persistent-agent handling, but no CLI_AGENT_PRECOMPILE branch or CLI_AGENT_MAX constants were found.",
+    "related_but_insufficient_code": [
+      "SOVEREIGN_AGENT_PRECOMPILE escrow pricing exists.",
+      "Persistent-agent wallet fee handling exists.",
+      "Neither path prices CLI_AGENT_PRECOMPILE with CLI-specific iteration and tool-call limits."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The commit separates standard agent and CLI agent pricing branches so CLI agent escrow uses its higher tool-call limit instead of being under-collateralized by the standard agent constants. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "792f7a6a4746fdea70e4bf40caa107722272759d"
+  ],
+  "statement": "Wallet fee verification must price AGENT_CALL_PRECOMPILE with AGENT_MAX_ITERATIONS and AGENT_MAX_TOOL_CALLS, but must price CLI_AGENT_PRECOMPILE with CLI_AGENT_MAX_ITERATIONS and CLI_AGENT_MAX_TOOL_CALLS.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Run wallet fee verification for 0x0808 and 0x080C with the same input and assert the executor fee equals agent_escrow_lockup(AGENT_MAX_ITERATIONS, AGENT_MAX_TOOL_CALLS) for 0x0808 and agent_escrow_lockup(CLI_AGENT_MAX_ITERATIONS, CLI_AGENT_MAX_TOOL_CALLS) for 0x080C."
+  ],
+  "summary": "CLI-agent-specific escrow pricing is absent.",
+  "test_or_falsification_candidate": "Wallet fee verification tests for standard agent versus CLI agent precompiles.",
+  "title": "CLI agent escrow uses CLI-specific limits",
+  "total_invariants": 1954
+}

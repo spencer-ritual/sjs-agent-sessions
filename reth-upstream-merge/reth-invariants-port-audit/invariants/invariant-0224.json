@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The compact mirror contains executor_address, to_compact copies it from AlloyTxAsyncCommitment, and from_compact restores it into the decoded transaction.",
+      "path": "crates/storage/codecs/src/alloy/transaction/async_commitment.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub(crate) struct TxAsyncCommitment {\n    ...\n    executor_address: Address,\n    commitment_validator: Address,\n    ...\n}\n...\nexecutor_address: self.executor_address,\n...\nexecutor_address: tx.executor_address,",
+      "symbols": [
+        "Compact for AlloyTxAsyncCommitment",
+        "TxAsyncCommitment"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port storage codec uses the renamed TxAsyncCommitment compact mirror rather than asyncexec.rs, and it preserves executor_address in both encode and decode directions.",
+  "evidence_files": [
+    "crates/storage/codecs/src/alloy/transaction/asyncexec.rs",
+    "implementations/executor-assignment/2-async-system-transaction-executor-field.md"
+  ],
+  "invariant_id": "cur-c18f1db549-compact-codec-round-trips-asyncexec-executor-address",
+  "invariant_index": 224,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/storage/codecs/src/alloy/transaction/async_commitment.rs",
+      "crates/storage/codecs/src/alloy/transaction/mod.rs"
+    ],
+    "checked_queries": [
+      "async_commitment|executor_address|to_compact|from_compact|asyncexec"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "Compact for AlloyTxAsyncCommitment",
+      "executor_address",
+      "to_compact",
+      "from_compact"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped; file and type names changed from AsyncExec to AsyncCommitment in the port.",
+  "rationale": "The compact mirror struct gained executor_address, to_compact copies self.executor_address into storage, and from_compact restores tx.executor_address; the plan explicitly calls for storage/codecs to maintain a 1:1 mapping with the alloy TxAsyncExec. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "9d01d85bdc573892adbbc900d32bc2a0048b1a86"
+  ],
+  "statement": "Compact serialization and deserialization of an Alloy TxAsyncExec must preserve executor_address alongside the other AsyncExec fields.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create an Alloy TxAsyncExec with a unique executor_address, compact it with to_compact, decode it with from_compact, and assert that the decoded transaction's executor_address equals the original address."
+  ],
+  "summary": "Compact storage round-trips async commitment executor_address.",
+  "test_or_falsification_candidate": "Round-trip an Alloy TxAsyncCommitment with a unique executor_address through Compact::to_compact/from_compact and assert the address is unchanged.",
+  "title": "Compact codec round-trips AsyncExec executor address",
+  "total_invariants": 1954
+}

@@ -1,0 +1,67 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "910f91cf4b627222a8222f3976af0db517075458",
+      "evidence": "The DKMS request codec decodes the eight ordered fields and offers efficient executor/TTL extraction through the shared ExecutorRequest base fields.",
+      "path": "crates/ritual-precompile-codecs/src/dkms_key.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let param_types = vec![\n    ParamType::Address,\n    ParamType::Array(Box::new(ParamType::Bytes)),\n    ParamType::Uint(256),\n    ParamType::Array(Box::new(ParamType::Bytes)),\n    ParamType::Bytes,\n    ParamType::Address,\n    ParamType::Uint(256),\n    ParamType::Uint(8),\n];\nif tokens.len() != 8 { return Err(...); }\nexecutor: address_token(&tokens[0], \"executor\")?,\nttl: u64_token(&tokens[2], \"ttl\")?,\nowner: address_token(&tokens[5], \"owner\")?,\nkey_index: u64_token(&tokens[6], \"key_index\")?,\nkey_format: u8_token(&tokens[7], \"key_format\")?,\n\npub fn extract_executor_and_ttl(data: &[u8]) -> Result<(Address, u64), CodecError> {\n    let (executor, _, ttl, _, _) = crate::ExecutorRequest::decode_base_fields(data)?;\n    Ok((executor, ttl))\n}",
+      "symbols": [
+        "DkmsKeyRequest::from_abi",
+        "DkmsKeyRequest::extract_executor_and_ttl"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "910f91cf4b627222a8222f3976af0db517075458",
+      "evidence": "Detector/RPC validation paths consume the DKMS codec and enforce the decoded base fields before DKMS-specific owner validation.",
+      "path": "crates/ritual-precompile-codecs/src/validation.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "DKMS_KEY_PRECOMPILE => {\n    let request = DkmsKeyRequest::from_abi(input).map_err(decode_error(\"DkmsKeyRequest\"))?;\n    (request.executor, request.ttl)\n}\n...\nlet request = DkmsKeyRequest::from_abi(input).map_err(decode_error(\"DkmsKeyRequest\"))?;\nvalidate_executor_base_fields(request.executor, request.ttl, &request.encrypted_secrets, &request.user_public_key, max_ttl)?;\nif request.owner.is_zero() {\n    return Err(PayloadValidationError::OwnerZeroAddress);\n}",
+      "symbols": [
+        "try_decode_precompile_data",
+        "validate_dkms_key_payload"
+      ]
+    }
+  ],
+  "equivalence_argument": "The DKMS ABI is the current eight-field base-plus-DKMS shape: executor/encrypted_secrets/ttl/secret_signature/user_public_key/owner/key_index/key_format, with width checks and shared-base executor/TTL extraction.",
+  "evidence_files": [
+    "crates/ritual-precompile-codecs/src/dkms_key.rs",
+    "crates/ritual-async/src/detector.rs",
+    "crates/ritual-async/src/validation.rs"
+  ],
+  "invariant_id": "cur-407f633180-dkms-requests-include-executorrequest-base",
+  "invariant_index": 473,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This is the current DKMS behavior and supersedes the older five-field no-secrets record.",
+  "rationale": "The primary diff replaces the old five-field DKMS ABI with the shared executor precompile base plus DKMS fields and updates async detector/validation paths to extract executor and TTL through DkmsKeyRequest::extract_executor_and_ttl. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "3b2db445fca5b687e59d2c63a70d5cd031718c18"
+  ],
+  "statement": "DkmsKeyRequest ABI decoding and encoding must use eight fields in order: executor, encrypted_secrets, ttl, secret_signature, user_public_key, owner, key_index, key_format; ttl and key_index must fit in u64, key_format must fit in u8, and efficient executor/ttl extraction must decode the shared ExecutorRequest base fields.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Encode a DKMS key request with non-empty base ExecutorRequest arrays and DKMS owner/key fields, assert from_abi round-trips all eight fields and extract_executor_and_ttl returns the same executor and ttl; assert oversized ttl/key_index or key_format fail instead of truncating."
+  ],
+  "summary": "DKMS key requests include the shared ExecutorRequest base.",
+  "test_or_falsification_candidate": "Encode a DKMS key request with non-empty base ExecutorRequest arrays and DKMS owner/key fields, assert from_abi round-trips all eight fields and extract_executor_and_ttl returns the same executor and ttl; assert oversized ttl/key_index or key_format fail instead of truncating.",
+  "title": "DKMS key requests include ExecutorRequest base",
+  "total_invariants": 1954
+}

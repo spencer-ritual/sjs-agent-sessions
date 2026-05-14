@@ -1,0 +1,67 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "No mapped implementation was found; the generic port builder still builds the EVM before the pool, while nodebuilder only defines a pool-aware method that the audited builder trait/path does not call.",
+  "evidence_files": [
+    "crates/node/builder/src/components/builder.rs",
+    "crates/node/builder/src/components/execute.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-e2283b96b7-block-verifier-receives-pool",
+  "invariant_index": 276,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/node/builder/src/components/builder.rs",
+      "crates/node/builder/src/components/execute.rs",
+      "crates/node/src/executor.rs",
+      "crates/node/src/lib.rs"
+    ],
+    "checked_queries": [
+      "build_evm_with_pool build_pool order",
+      "ExecutorBuilder trait pool-aware EVM construction",
+      "BlockVerifier receives transaction pool",
+      "transaction pool before EVM construction"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "ComponentsBuilder::build_components",
+      "ExecutorBuilder::build_evm",
+      "RitualExecutorBuilder::build_evm_with_pool",
+      "BlockVerifier::new_with_evm_classification",
+      "TransactionPoolExt"
+    ],
+    "missing_behavior": "The audited port does not build the transaction pool before EVM construction or invoke a pool-aware executor builder from the component construction path.",
+    "related_but_insufficient_code": [
+      "crates/node/src/executor.rs defines build_evm_with_pool and constructs BlockVerifier from pool.clone(), but the active reth node builder trait in crates/node/builder/src/components/execute.rs exposes only build_evm.",
+      "crates/node/builder/src/components/builder.rs calls executor_builder.build_evm(context) before pool_builder.build_pool(...), so pool-aware construction is not wired into the component build order."
+    ]
+  },
+  "notes": "Confirmed gap: the concrete builder order contradicts the invariant, even though nodebuilder contains an unused pool-aware construction method.",
+  "rationale": "The diff changes builder order so pool is built first and passed to build_evm_with_pool, while the new BlockVerifier stores a transaction pool and probes async pool access. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "0c779a4712623025d72e069eaa6ada0c85d78fe7"
+  ],
+  "statement": "Node building constructs the transaction pool before EVM construction and uses build_evm_with_pool so the EVM/executor setup can create block verification with access to the same transaction pool.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Use an ExecutorBuilder implementation that records the pool passed to build_evm_with_pool and assert it is the same pool used by the network and payload builder; then assert BlockVerifier can call get_async_transaction_by_hash on that pool."
+  ],
+  "summary": "Pool-aware EVM construction is defined but not wired into node component build order.",
+  "test_or_falsification_candidate": "Instantiate RitualNode components and assert the component builder calls a pool-aware executor construction path; current code should fail because build_evm runs before build_pool.",
+  "title": "Block verifier receives transaction pool",
+  "total_invariants": 1954
+}

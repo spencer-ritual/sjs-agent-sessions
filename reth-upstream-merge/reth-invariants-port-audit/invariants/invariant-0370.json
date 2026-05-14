@@ -1,0 +1,64 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Encrypted LLM output is decoded as a tuple whose second bytes field contains pricing data; empty pricing data is an error.",
+      "path": "crates/ritual-async-fees/src/llm.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if is_encrypted_output {\n    match try_decode_encrypted(data) { Ok(metrics) => return Ok(metrics), Err(err) => { ... } }\n}\n...\nfn try_decode_encrypted(data: &[u8]) -> Result<LlmPricingMetrics, String> {\n    let pricing_offset = read_abi_offset(data, 1)?;\n    let pricing_bytes = read_abi_bytes(data, pricing_offset)?;\n    if pricing_bytes.is_empty() { return Err(\"Encrypted response has empty pricing data\".to_string()); }\n    let (model, prompt_tokens, completion_tokens) = decode_pricing_data(pricing_bytes)?;\n}",
+      "symbols": [
+        "decode_llm_response",
+        "try_decode_encrypted"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "The pricing data itself is decoded as model, prompt token count, and completion token count, and invalid ABI data returns Err.",
+      "path": "crates/ritual-async-fees/src/llm.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn decode_pricing_data(data: &[u8]) -> Result<(Option<String>, f64, f64), String> {\n    if data.len() < 3 * 32 { return Err(\"pricing data too short\".to_string()); }\n    let model_offset = read_abi_offset(data, 0)?;\n    let prompt_tokens = read_u256_as_f64(read_abi_word(data, 1)?)?;\n    let completion_tokens = read_u256_as_f64(read_abi_word(data, 2)?)?;\n    let model = non_empty_string(read_abi_string(data, model_offset)?);\n}",
+      "symbols": [
+        "decode_pricing_data"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port has an explicit encrypted-output branch that requires non-empty pricingData and decodes the exact pricing tuple before computing fees.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/llm.rs"
+  ],
+  "invariant_id": "cur-2f30e6a3d0-encrypted-outputs-carry-separate-pricing-data",
+  "invariant_index": 370,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to the port LLM pricing decoder.",
+  "rationale": "The LLM decoder now has an explicit encrypted branch that extracts pricing bytes from ABI word 1 and refuses empty or undecodable pricing data before computing fees. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "7f14acaf54fc712a1de6191a623f01c02f97e87e"
+  ],
+  "statement": "When encrypted-output mode is enabled for an LLM response, the executor output must decode as `(bytes encryptedData, bytes pricingData)`, where pricingData encodes `(string model, uint256 prompt_tokens, uint256 completion_tokens)`; empty or invalid pricingData must make LLM fee computation fail.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Encode an encrypted LLM output with opaque encryptedData and pricingData containing model and token counts, then assert compute_llm_executor_fee succeeds and uses those metrics. Repeat with empty pricingData or malformed pricingData and assert fee computation returns an error."
+  ],
+  "summary": "Encrypted LLM outputs carry separate pricingData that must decode to model and token counts.",
+  "test_or_falsification_candidate": "Encode encryptedData with valid pricingData and assert fee computation succeeds; repeat with empty or malformed pricingData and assert Err.",
+  "title": "Encrypted LLM outputs carry separate pricing data",
+  "total_invariants": 1954
+}

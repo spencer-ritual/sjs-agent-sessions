@@ -1,0 +1,99 @@
+{
+  "cluster_key": "scheduler:heartbeat-target-nonzero-6d097f20",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Classifier returns true only for a nonzero configured heartbeat target matching the tx target.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn is_heartbeat_tx(to: Option<Address>) -> bool { let hb_addr = get_heartbeat_address(); hb_addr != Address::ZERO && to == Some(hb_addr) }",
+      "symbols": [
+        "get_heartbeat_address",
+        "is_heartbeat_tx"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Verifier routes heartbeat-specific validation through the shared classifier.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if is_heartbeat_tx(scheduled.to) { validate_heartbeat_scheduled_tx_structure(...); continue; }",
+      "symbols": [
+        "is_heartbeat_tx",
+        "validate_scheduled_transactions"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Payload builder uses the same nonzero heartbeat classifier.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if !is_heartbeat_tx(scheduled.tx().to) { ... }",
+      "symbols": [
+        "is_heartbeat_tx"
+      ]
+    }
+  ],
+  "equivalence_argument": "Exact mapping: shared helper requires nonzero heartbeat config before matching targets, and builder/verifier paths consume it.",
+  "evidence_files": [
+    "crates/ritual-scheduled-verification/src/lib.rs"
+  ],
+  "invariant_id": "cur-228028948f-heartbeat-classification-requires-nonzero-configured-target",
+  "invariant_index": 10,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ethereum/payload/src/lib.rs"
+    ],
+    "checked_queries": [
+      "is_heartbeat_tx",
+      "AGENT_HEARTBEAT_ADDRESS|get_heartbeat_address|Address::ZERO"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "is_heartbeat_tx",
+      "get_heartbeat_address",
+      "AGENT_HEARTBEAT_ADDRESS",
+      "Address::ZERO"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "Node config/monitoring code may propagate or read AGENT_HEARTBEAT_ADDRESS, but does not classify scheduled transactions."
+    ]
+  },
+  "notes": "Mapped directly in shared scheduled verification helper.",
+  "rationale": "The candidate states that the shared helper explicitly rejects zero or absent heartbeat targets and is used by both builder and verifier paths, making this a current effective classification invariant rather than merely a refactor detail.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "bb8efe7317a72eab3e88fb71cc07b7d57ff2f0c9"
+  ],
+  "statement": "A scheduled transaction must be treated as a heartbeat only when the configured heartbeat contract address exists, is not the zero address, and equals the transaction's target address; absent or zero heartbeat configuration must make the heartbeat predicate false.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Set the heartbeat address to a nonzero value and assert only scheduled transactions targeting that address return true from is_heartbeat_tx.",
+    "Set the configured heartbeat address to zero or pass no configured heartbeat address and assert is_heartbeat_tx returns false even when the transaction target is zero."
+  ],
+  "summary": "Heartbeat classification requires a nonzero configured target in the port.",
+  "test_or_falsification_candidate": "Set AGENT_HEARTBEAT_ADDRESS to zero and assert is_heartbeat_tx(Some(Address::ZERO)) is false; set nonzero and assert only matching target is true.",
+  "title": "Heartbeat classification requires a nonzero configured target",
+  "total_invariants": 1954
+}

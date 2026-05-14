@@ -1,0 +1,63 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping was found: Ritual add-ons retain a scheduler address but explicitly delegate scheduling initialization elsewhere and do not create or spawn ScheduledTxService.",
+  "evidence_files": [
+    "crates/node/src/addons.rs",
+    "crates/scheduling/src/service.rs"
+  ],
+  "invariant_id": "cur-b9d049ee8d-start-scheduling-service",
+  "invariant_index": 214,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/node/src/addons.rs",
+      "crates/scheduling/src/service.rs",
+      "crates/scheduling/src/lib.rs"
+    ],
+    "checked_queries": [
+      "ScheduledTxService|ScheduledTxService::new|scheduler_address|launch_add_ons|task_executor|scheduling"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "ScheduledTxService",
+      "ScheduledTxService::new",
+      "scheduler_address",
+      "launch_add_ons",
+      "task_executor"
+    ],
+    "missing_behavior": "Missing creation of ScheduledTxService with node provider, pool, and configured scheduler address, and missing task executor spawn of service.start().",
+    "related_but_insufficient_code": [
+      "ritual-reth-nodebuilder-internal/crates/node/src/addons.rs reads/logs scheduler_address but comments that scheduler initialization is handled by another binary.",
+      "launch_add_ons handles optional debug consensus and then delegates to self.inner.launch_add_ons(ctx) without constructing or spawning a ScheduledTxService.",
+      "No ScheduledTxService symbol exists in the audited nodebuilder, port, or ritual-node-internal checkouts; ScheduledTxService matches only the non-audited legacy checkout."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "launch_add_ons now obtains provider, pool, and task executor, constructs ScheduledTxService::new(provider, pool, scheduler_address), and spawns scheduled_tx_service.start(). The service constructor was simplified to those three runtime dependencies. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "0f2656daf372fa4752c954cc6a566dea81afeaaf"
+  ],
+  "statement": "When Ritual add-ons launch, they must create ScheduledTxService with the node provider, transaction pool, and configured Scheduler address, then spawn it on the node task executor.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Launch node add-ons with a test task executor and pool/provider mocks, and assert ScheduledTxService::start is spawned with the configured Scheduler address."
+  ],
+  "summary": "Ritual add-ons do not start the scheduling service in the audited repo set.",
+  "test_or_falsification_candidate": "Launch RitualAddOns with a recording task executor; current audited nodebuilder code should not spawn ScheduledTxService::start.",
+  "title": "Add-ons start scheduling service",
+  "total_invariants": 1954
+}

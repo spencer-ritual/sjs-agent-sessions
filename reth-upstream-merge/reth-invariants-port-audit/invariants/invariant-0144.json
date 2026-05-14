@@ -1,0 +1,112 @@
+{
+  "cluster_key": "executor delivery:async-fulfillment-metadata-aa18bb81",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Canonical async commitment system transactions establish the stored pool metadata: the block number becomes commit_block and the async commitment supplies the precompile address/input before the original is moved into async lifecycle tracking.",
+      "path": "crates/transaction-pool/src/pool/mod.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let commit_block = new_tip.number();\n...\nlet Some(async_commitment_signed) = tx_signed.as_async_commitment() else { continue };\n...\nself.async_pool.add_committed_async_tx(..., async_commitment.precompile_address, async_commitment.precompile_input.clone(), commit_block, contract_expiry_block)",
+      "symbols": [
+        "Pool::process_async_commitment_transactions",
+        "AsyncPool::add_committed_async_tx"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Result submission for fulfilled async entries rejects missing proofs and mismatched precompile address, input, block number, or executor before storing execution_result and execution_proof on the canonical metadata.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if submission.execution_proof.is_empty() { return Err(AsyncPoolError::MissingProof); }\n...\nif submission.block_number != metadata.commit_block { return Err(AsyncPoolError::BlockNumberMismatch { ... }); }\n...\nSelf::fulfill_result(metadata, submission.execution_result, submission.execution_proof);",
+      "symbols": [
+        "AsyncPool::submit_result_with_context",
+        "AsyncPool::fulfill_result"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Fulfilled settlement preparation requires execution_result and non-empty execution_proof, checks the pool metadata against AsyncJobTracker/SPC job state, and annotates the replayed original transaction with an SpcCall containing the precompile address, original input, execution result, proof, and contract commit block.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let execution_result = metadata.execution_result.as_ref().ok_or_else(...)?;\nlet execution_proof = metadata.execution_proof.as_ref().filter(|proof| !proof.is_empty()).ok_or_else(...)?;\n...\nlet spc_call = SpcCall::new(contract_job.precompile_address, metadata.precompile_input.clone(), execution_result.clone(), execution_proof.clone(), contract_job.commit_block);\nlet original_tx = annotate_fulfilled_original_transaction(original_tx, commitment_hash, settlement_hash, spc_call)?;",
+      "symbols": [
+        "prepare_fulfilled_async_settlement",
+        "annotate_fulfilled_original_transaction"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The fulfilled async payload candidate installs AsyncCallMetadata with the pool transaction hash, precompile address, original input, commit block, execution result, and execution proof before executing prepared.original_tx; settlement execution happens only after that replay.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let mut async_context = AsyncContextFactory::building_context(tx_hash);\n...\nasync_context.set_async_metadata(AsyncCallMetadata::new(tx_hash, metadata.precompile_address, metadata.precompile_input.clone(), metadata.commit_block, Some(execution_result), metadata.execution_proof.clone()));\n*builder.evm_mut().ctx_mut().async_context_mut() = async_context;\nlet original_execution_result = builder.execute_transaction_with_result_closure(prepared.original_tx.clone(), ...);\n...\nmatch execute_async_settlement(&mut builder, prepared.settlement_tx, ...)",
+      "symbols": [
+        "PayloadCandidate::FulfilledAsync",
+        "AsyncContextFactory::building_context",
+        "AsyncCallMetadata::new",
+        "execute_async_settlement"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port under the v2.2.0 async settlement architecture. The old AsyncExec-system-transaction wording is represented by canonical async commitment metadata plus AsyncJobTracker/SPC checks: the canonical system transaction establishes precompile address/input and commit_block, result submission can only fulfill matching metadata with a proof, settlement preparation cross-checks that metadata against contract state and annotates the original transaction, and the payload builder installs the fulfilled async metadata before replaying the original transaction.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-e8aeac2d46-async-fulfillment-metadata-comes-system",
+  "invariant_index": 144,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/transaction-pool/src/pool/mod.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs"
+    ],
+    "checked_queries": [
+      "PayloadCandidate::FulfilledAsync|AsyncContextFactory|AsyncCallMetadata::new|execute_async_settlement",
+      "prepare_fulfilled_async_settlement|annotate_fulfilled_original_transaction|SpcCall::new",
+      "process_async_commitment_transactions|add_committed_async_tx|submit_result_with_context",
+      "TxAsyncExec|AsyncExec|system_tx|extract_fulfilled_async_metadata"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "PayloadCandidate::FulfilledAsync",
+      "AsyncContextFactory::building_context",
+      "AsyncCallMetadata::new",
+      "execute_async_settlement",
+      "prepare_fulfilled_async_settlement",
+      "annotate_fulfilled_original_transaction",
+      "Pool::process_async_commitment_transactions",
+      "AsyncPool::submit_result_with_context"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The commit subject explicitly says async execution should use metadata from the system transaction, and the hunk extracts async_exec from metadata.system_tx, uses async_exec.commit_block in extract_fulfilled_async_metadata, and includes both execution_result and execution_proof before execution. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: The particular helper name and context storage mechanism are internal; a different implementation could satisfy the same behavior if the precompile still observes the same fulfilled metadata before async execution.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "c6dc678a06c8f0ecbba28997adfc21e321487e59"
+  ],
+  "statement": "When building an async execution transaction with an available execution result, the async execution context must set fulfilled async metadata using the pool transaction hash, precompile address, original input, commit_block from the AsyncExec system transaction, execution result, and execution proof before executing the transaction.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Build an async payload where metadata.system_tx is an AsyncExec transaction with a known commit_block, input, execution_result, execution_proof, and precompile address. Execute the building path with async-context enabled and assert that the async precompile/context observes fulfilled metadata containing that commit_block and proof before execution; the test should fail if the code derives commit_block from older pool metadata, omits the proof, or waits until after execution to populate metadata."
+  ],
+  "summary": "Fulfilled async payload replay installs validated metadata before executing the original transaction.",
+  "test_or_falsification_candidate": "Payload-builder fulfilled async replay test asserting AsyncCallMetadata is populated before original execution.",
+  "title": "Async fulfillment metadata comes from system transaction",
+  "total_invariants": 1954
+}

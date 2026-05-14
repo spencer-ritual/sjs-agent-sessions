@@ -1,0 +1,76 @@
+{
+  "record_type": "file",
+  "file_index": 199,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/node/core/src/args/log.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "missing",
+  "tags": [
+    "missing",
+    "non-exact",
+    "node-core",
+    "logging",
+    "observability",
+    "ritual-router"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0199-atom-0001",
+      "file_index": 199,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/node/core/src/args/log.rs",
+      "source_hunk_hint": "@@ -4,7 +4,7 @@; @@ -91,10 +91,46 @@",
+      "source_kind": "observability",
+      "source_snippet": "use reth_tracing::{\n    tracing_subscriber::filter::Directive, FileInfo, FileWorkerGuard, LayerInfo, LogFormat,\n    RethTracer, RitualRouter, Tracer,\n};\n\nfn init_ritual_tracing(&self, filter: &str) -> eyre::Result<Option<FileWorkerGuard>> {\n    let router = RitualRouter::new(\n        vec![\"ritual::tx::lifecycle\", \"ritual::block::lifecycle\", \"ritual::scheduling\"],\n        filter,\n    );\n    let lifecycle_guard = router.init()?;\n    if self.log_file_max_files > 0 {\n        let info = self.file_info();\n        let file = self.layer(self.log_file_format, self.log_file_filter.clone(), false);\n        let mut file_tracer = RethTracer::new();\n        file_tracer = file_tracer.with_file(file, info);\n        return file_tracer.init();\n    }\n    Ok(lifecycle_guard)\n}\n\npub fn init_tracing(&self) -> eyre::Result<Option<FileWorkerGuard>> {\n    let filter = &self.log_stdout_filter;\n    if filter.contains(\"ritual::\") {\n        return self.init_ritual_tracing(filter);\n    }\n    let mut tracer = RethTracer::new();\n    /* standard tracing setup */\n}",
+      "semantic_claim": "The old logging args route any `ritual::` stdout filter through a RitualRouter that gives selected Ritual lifecycle namespaces specialized JSON formatting, while preserving optional file logging through a separate RethTracer.",
+      "high_risk": false,
+      "risk_tags": [
+        "observability",
+        "logging",
+        "ritual-lifecycle",
+        "json-formatting"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/node/core/src/args/log.rs",
+          "symbols": [
+            "LogArgs::init_tracing",
+            "LogArgs::init_tracing_with_layers"
+          ],
+          "evidence": "The destination initializes standard RethTracer layers and optional reload support; exact searches found no `RitualRouter`, `init_ritual_tracing`, or Ritual lifecycle namespace routing."
+        }
+      ],
+      "equivalence_argument": "The destination preserves standard stdout/file/journald/profiling logging, but it does not preserve specialized Ritual lifecycle JSON routing for `ritual::` targets. This is observability-only and does not change consensus, transaction admission, verification, or payload construction behavior.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "If Ritual lifecycle JSON logs remain required, add a CLI/logging regression that starts tracing with `--log.stdout.filter ritual::tx::lifecycle=trace` and asserts RitualRouter-style formatting or an intentional replacement.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Low risk because this is specialized observability formatting; standard tracing remains available in the destination."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The old log args used `RitualRouter` for specialized JSON formatting of Ritual lifecycle namespaces when `ritual::` targets were enabled. The v2.2.0 port has standard RethTracer/layer logging but no exact RitualRouter path, so this low-risk observability atom is missing.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 199: M\tcrates/node/core/src/args/log.rs.",
+    "The isolated patch imports `RitualRouter`, adds `init_ritual_tracing`, and routes `init_tracing` to it when the stdout filter contains `ritual::`.",
+    "Destination log.rs has `init_tracing` and `init_tracing_with_layers` built on standard RethTracer layers, but no RitualRouter or Ritual lifecycle namespace routing.",
+    "No consensus, execution, pool, verifier, or payload behavior is affected by this file hunk."
+  ]
+}

@@ -1,0 +1,116 @@
+{
+  "record_type": "file",
+  "file_index": 279,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-async-fees/src/http.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "async-fees",
+    "http-fees",
+    "executor-fees",
+    "tests"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0279-atom-0001",
+      "file_index": 279,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/ritual-async-fees/src/http.rs",
+      "source_hunk_hint": "@@ -0,0 +1,44 @@",
+      "source_kind": "http_executor_fee_base_and_input_component",
+      "source_snippet": "pub fn http_executor_fee(input_len: usize, output_len: usize) -> U256 {\n    let input_component =\n        U256::from(HTTP_EXECUTOR_FEE_PER_INPUT_BYTE_WEI) * U256::from(input_len as u64);\n    let output_component =\n        U256::from(HTTP_EXECUTOR_FEE_PER_OUTPUT_BYTE_WEI) * U256::from(output_len as u64);\n    U256::from(HTTP_EXECUTOR_BASE_FEE_WEI) + input_component + output_component\n}\n\n#[test]\nfn test_http_executor_fee_zero_output() {\n    let fee = http_executor_fee(256, 0);\n    let expected_base = U256::from(HTTP_EXECUTOR_BASE_FEE_WEI);\n    let expected_input = U256::from(HTTP_EXECUTOR_FEE_PER_INPUT_BYTE_WEI) * U256::from(256);\n    assert_eq!(fee, expected_base + expected_input);\n}",
+      "semantic_claim": "The old divergence adds an HTTP executor fee helper that always includes `HTTP_EXECUTOR_BASE_FEE_WEI` and an input-byte component computed as `HTTP_EXECUTOR_FEE_PER_INPUT_BYTE_WEI * input_len`, with lengths converted through `usize as u64` into `U256`. The zero-output regression asserts that `output_len == 0` produces exactly base fee plus input fee.",
+      "high_risk": false,
+      "risk_tags": [
+        "http-executor-fee",
+        "input-byte-pricing",
+        "base-fee",
+        "u256-arithmetic"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/http.rs",
+          "symbols": [
+            "http_executor_fee",
+            "test_http_executor_fee_zero_output"
+          ],
+          "evidence": "Destination `http.rs` preserves the same module docs, constants import, `U256` import, `http_executor_fee` signature, base-fee addition, input-byte multiplication, `usize as u64` conversion, and zero-output unit assertion."
+        }
+      ],
+      "equivalence_argument": "The destination implementation and zero-output test are textually identical to the source addition, so all input lengths with zero output produce the same `U256` fee.",
+      "test_strategy": "unit_regression",
+      "negative_test_candidate": "Call `http_executor_fee(256, 0)` and assert the output is exactly `HTTP_EXECUTOR_BASE_FEE_WEI + 256 * HTTP_EXECUTOR_FEE_PER_INPUT_BYTE_WEI`, with no output-byte component included.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers only the base/input component and zero-output behavior introduced in `crates/ritual-async-fees/src/http.rs`."
+    },
+    {
+      "record_id": "file-0279-atom-0002",
+      "file_index": 279,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/ritual-async-fees/src/http.rs",
+      "source_hunk_hint": "@@ -0,0 +1,44 @@",
+      "source_kind": "http_executor_fee_output_component",
+      "source_snippet": "pub fn http_executor_fee(input_len: usize, output_len: usize) -> U256 {\n    let input_component =\n        U256::from(HTTP_EXECUTOR_FEE_PER_INPUT_BYTE_WEI) * U256::from(input_len as u64);\n    let output_component =\n        U256::from(HTTP_EXECUTOR_FEE_PER_OUTPUT_BYTE_WEI) * U256::from(output_len as u64);\n    U256::from(HTTP_EXECUTOR_BASE_FEE_WEI) + input_component + output_component\n}\n\n#[test]\nfn test_http_executor_fee_with_output() {\n    let fee = http_executor_fee(256, 1024);\n    assert!(fee > U256::from(HTTP_EXECUTOR_BASE_FEE_WEI));\n}",
+      "semantic_claim": "The old divergence adds output-byte pricing to HTTP executor fees: `output_len` is converted through `usize as u64` into `U256`, multiplied by `HTTP_EXECUTOR_FEE_PER_OUTPUT_BYTE_WEI`, and added to the base and input components. The nonzero-output regression checks that a representative HTTP request/response pair charges above the base fee.",
+      "high_risk": false,
+      "risk_tags": [
+        "http-executor-fee",
+        "output-byte-pricing",
+        "response-size-accounting",
+        "u256-arithmetic"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/http.rs",
+          "symbols": [
+            "http_executor_fee",
+            "test_http_executor_fee_with_output"
+          ],
+          "evidence": "Destination `http.rs` preserves the same output-byte multiplication, additive formula, and nonzero-output unit test asserting the fee exceeds the base fee."
+        }
+      ],
+      "equivalence_argument": "The destination output component and additive return expression are textually identical to the source addition, so response-size-dependent HTTP executor fee behavior is preserved exactly.",
+      "test_strategy": "unit_regression",
+      "negative_test_candidate": "Call `http_executor_fee(256, 1024)` and assert the result includes the `1024 * HTTP_EXECUTOR_FEE_PER_OUTPUT_BYTE_WEI` component rather than only the base and input fee.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers only the output-size component and nonzero-output behavior introduced in `crates/ritual-async-fees/src/http.rs`."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The async fees HTTP executor fee helper module is exact-port preserved in the destination.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 279: A\tcrates/ritual-async-fees/src/http.rs.",
+    "Source diff for file-0279 starts at the `http.rs` diff header and ends before the `src/lib.rs` diff header.",
+    "Destination `crates/ritual-async-fees/src/http.rs` preserves the added 44-line module exactly, including the HTTP executor fee formula and both unit tests.",
+    "A destination usage search confirmed `http_executor_fee` consumers exist, but this record maps only the `http.rs` implementation and tests; `crates/ritual-async-fees/src/lib.rs` remains unaudited for file-0280."
+  ]
+}

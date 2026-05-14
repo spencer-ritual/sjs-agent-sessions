@@ -1,0 +1,69 @@
+{
+  "cluster_key": "scheduler:locks-observability",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/scheduling/src/singleton.rs",
+    "crates/scheduling/src/lib.rs"
+  ],
+  "invariant_id": "cur-c0b9273ca4-synchronousscheduler-singleton-initialized-once",
+  "invariant_index": 25,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/scheduling/src/singleton.rs",
+      "crates/scheduling/src/lib.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs",
+      "ritual-reth-nodebuilder-internal/crates/node/src/addons.rs"
+    ],
+    "checked_queries": [
+      "SynchronousScheduler",
+      "SCHEDULER_INSTANCE|initialize|instance|already initialized",
+      "ritual-scheduling|scheduler_address|get_scheduler_address"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "SynchronousScheduler",
+      "SynchronousScheduler::initialize",
+      "SynchronousScheduler::instance",
+      "SCHEDULER_INSTANCE",
+      "SchedulerContract",
+      "SchedulerServiceState",
+      "ScheduledTxService",
+      "get_scheduler_address"
+    ],
+    "missing_behavior": "No audited repo implements SynchronousScheduler one-time singleton initialization with instance() failing before initialize(), a single successful initialize(address), and repeated initialize returning already-initialized.",
+    "related_but_insufficient_code": [
+      "The port has stateless get_scheduler_address and per-add-on scheduler_address configuration, plus payload-time Scheduler storage scanning, but no OnceLock-backed scheduler singleton lifecycle."
+    ]
+  },
+  "notes": "Confirmed gap for old scheduling service lifecycle invariant.",
+  "rationale": "The nodebuilder singleton candidate states the intended one-time global scheduler API, and the later internal fix makes initialize() and instance() share the same OnceLock-backed instance.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "4866ac03d2ef138927d696cf8bffcdb8c5d4de7e",
+    "de50d7bdec3acac937d6b42706c02de48215d7ea"
+  ],
+  "statement": "SynchronousScheduler must be initialized at most once with a scheduler contract address, and after successful initialization SynchronousScheduler::instance() must return that same initialized scheduler; access before initialization must fail and repeated initialization must return an error.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "In an isolated process, assert instance() fails before initialization, initialize(address) succeeds once, instance() returns a scheduler with that address, and a second initialize(address) returns the already-initialized error."
+  ],
+  "summary": "SynchronousScheduler singleton initialization is not preserved.",
+  "test_or_falsification_candidate": "API parity test for SynchronousScheduler::instance before/after initialize cannot be expressed because the type/surface is absent.",
+  "title": "SynchronousScheduler singleton is initialized once",
+  "total_invariants": 1954
+}

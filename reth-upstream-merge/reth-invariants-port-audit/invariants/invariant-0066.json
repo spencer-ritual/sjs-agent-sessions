@@ -1,0 +1,67 @@
+{
+  "cluster_key": "scheduler:pool-accounting:part-01",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-scheduled-block-building/src/lib.rs",
+    "crates/transaction-pool/src/traits.rs",
+    "crates/transaction-pool/src/pool/mod.rs"
+  ],
+  "invariant_id": "cur-3015bfcbed-payload-builder-filters-scheduled-pool-before-execution",
+  "invariant_index": 66,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs",
+      "crates/transaction-pool/src/traits.rs",
+      "crates/transaction-pool/src/pool/mod.rs"
+    ],
+    "checked_queries": [
+      "scheduled pool|filter_scheduled_transactions|valid_transactions",
+      "verify_scheduled_transactions_full_with_predicate_evaluator|pooled scheduled"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "filter_scheduled_transactions",
+      "verify_scheduled_transactions_full_with_predicate_evaluator",
+      "scheduled pool",
+      "best_txs",
+      "included_scheduled_indices"
+    ],
+    "missing_behavior": "Missing the required scheduled-pool source and filter path; only normal-pool scheduled candidates are filtered inline.",
+    "related_but_insufficient_code": [
+      "The builder does verify pooled scheduled transactions from best_txs before execution and skips failures, but it does not source from a dedicated scheduled pool."
+    ]
+  },
+  "notes": "Confirmed gap despite related inline pooled scheduled verification.",
+  "rationale": "Early payload building pulled block-keyed scheduled transactions before normal best transactions, then later consumed the scheduled subpool contents. Bounded newer context indicates current payload building filters scheduled pool transactions before execution and applies async sender de-duplication.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "134c5870c3e070516ff191318d7c3d57e7d8d5b1",
+    "a4ef6c1670c642ed70b957fc82a0f8ee7adc8950"
+  ],
+  "statement": "Payload building must source candidate scheduled transactions from the scheduled pool, pass them through the scheduled block-building filter, and execute only filtered valid scheduled transactions while respecting async commitment de-duplication across scheduled and regular pools.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Populate the scheduled pool with valid and invalid scheduled transactions, run the payload builder's scheduled filtering path, and assert only valid_transactions returned by the scheduled block-building filter are executed.",
+    "Provide scheduled and regular async transactions for the same economically responsible sender and assert payload construction includes at most one valid async commitment for that sender."
+  ],
+  "summary": "Scheduled-pool pre-execution filtering is absent as specified.",
+  "test_or_falsification_candidate": "Populate dedicated scheduled pool with valid/invalid scheduled txs; current port has no scheduled pool source to feed the filter.",
+  "title": "Payload builder filters scheduled-pool transactions before execution",
+  "total_invariants": 1954
+}

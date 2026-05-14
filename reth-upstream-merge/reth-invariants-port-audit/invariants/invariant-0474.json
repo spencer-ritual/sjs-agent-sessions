@@ -1,0 +1,64 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "910f91cf4b627222a8222f3976af0db517075458",
+      "evidence": "DKMS validation rejects zero owner after base executor/TTL validation.",
+      "path": "crates/ritual-precompile-codecs/src/validation.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let request = DkmsKeyRequest::from_abi(input).map_err(decode_error(\"DkmsKeyRequest\"))?;\nvalidate_executor_base_fields(request.executor, request.ttl, &request.encrypted_secrets, &request.user_public_key, max_ttl)?;\nif request.owner.is_zero() {\n    return Err(PayloadValidationError::OwnerZeroAddress);\n}",
+      "symbols": [
+        "validate_dkms_key_payload",
+        "PayloadValidationError::OwnerZeroAddress"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "910f91cf4b627222a8222f3976af0db517075458",
+      "evidence": "The codec decodes owner as an explicit DKMS field before validation checks it.",
+      "path": "crates/ritual-precompile-codecs/src/dkms_key.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "owner: address_token(&tokens[5], \"owner\")?,\nkey_index: u64_token(&tokens[6], \"key_index\")?,\nkey_format: u8_token(&tokens[7], \"key_format\")?,",
+      "symbols": [
+        "DkmsKeyRequest::from_abi"
+      ]
+    }
+  ],
+  "equivalence_argument": "The validation path decodes owner from the DKMS ABI and fails closed with OwnerZeroAddress while preserving existing executor and TTL checks.",
+  "evidence_files": [
+    "crates/ritual-async/src/validation.rs"
+  ],
+  "invariant_id": "cur-c688503557-dkms-payload-requires-owner",
+  "invariant_index": 474,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This maps directly to the current validation.rs DKMS branch.",
+  "rationale": "The validation diff updates the DKMS validation comment and adds an explicit Address::ZERO owner check returning InvalidRequest before the existing TTL checks. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "3b2db445fca5b687e59d2c63a70d5cd031718c18"
+  ],
+  "statement": "DKMS key payload validation must reject requests whose owner address is zero, in addition to rejecting zero executor address, zero TTL, and TTL above the configured maximum.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Build DKMS request calldata with owner set to zero and otherwise valid fields, assert validate_dkms_key_payload returns InvalidRequest; change owner to nonzero and assert the request passes the owner check while TTL/executor validation still behaves as before."
+  ],
+  "summary": "DKMS payload validation rejects zero owner.",
+  "test_or_falsification_candidate": "Build DKMS request calldata with owner set to zero and otherwise valid fields, assert validate_dkms_key_payload returns InvalidRequest; change owner to nonzero and assert the request passes the owner check while TTL/executor validation still behaves as before.",
+  "title": "DKMS payload requires owner",
+  "total_invariants": 1954
+}

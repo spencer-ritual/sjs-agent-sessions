@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "The consensus block verification pipeline invokes SPC verification against the parent state after settlement verification.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "verify_settlements(block, parent_state)?;\nverify_spc_calls(block, parent_state)?;",
+      "symbols": [
+        "verify_short_async_block_with_simulators",
+        "verify_spc_calls"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "SPC verification reads AsyncJobTracker job data and TEE executor keys from parent state and rejects missing jobs, missing keys, and invalid signatures.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let mut db = StateProviderDatabase::new(parent_state);\nlet jobs = ritual_async_registry::read_jobs_for_spc_verification(&mut db, None, &settlement_job_ids)?;\n...\nlet executor = read_expected_executor(&mut db, job.executor_address, metadata, \"SPC\")?;\n...\nif !valid { return Err(BlockVerificationError::InvalidSpc(...)); }",
+      "symbols": [
+        "verify_spc_calls"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port verifier binds SPC calls to parent-state AsyncJobTracker fields and TEE registry executor data, with explicit rejection on missing data, block/input mismatch, short proof, signature error, or invalid signature.",
+  "evidence_files": [
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/ritual-async-registry/src/lib.rs"
+  ],
+  "invariant_id": "cur-08c8579440-consensus-verification-uses-parent-contract-state",
+  "invariant_index": 360,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to verify_spc_calls in the port block-verification crate.",
+  "rationale": "The primary diff adds read_jobs_for_spc_verification for AsyncJobTracker storage reads and implements verify_spc_calls to use parent state, read jobs and executor keys, enforce commit-block equality, and return errors for missing data or failed signatures. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "19bd287f1e4c369f324043e1a1f11a1025f39fdf"
+  ],
+  "statement": "During block verification, fulfilled HTTP/LLM SPC calls must be verified by reading the corresponding AsyncJobTracker job data and ExecutorRegistry public keys from the parent block state, and any missing job, missing executor key, commit-block mismatch, or invalid signature must reject the block.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Build a block containing a fulfilled HTTP/LLM SPC call and run block verification against parent state variants: missing job, missing executor key, mismatched job commitBlock, invalid proof, and valid proof; assert all invalid variants return BlockVerificationError and only the valid variant succeeds."
+  ],
+  "summary": "Consensus SPC verification uses parent-state job and executor registry data and rejects invalid variants.",
+  "test_or_falsification_candidate": "Vary parent state for a fulfilled SPC settlement across missing job, missing executor, mismatched commit block/input, short proof, invalid proof, and valid proof; assert only the valid case succeeds.",
+  "title": "Consensus SPC verification uses parent contract state",
+  "total_invariants": 1954
+}

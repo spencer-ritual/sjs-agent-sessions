@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "No ExecutorRegistryService implementation exists locally to fetch receipts and detect TeeDA logs.",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/service.rs"
+  ],
+  "invariant_id": "cur-f2d9727ec8-teeda-logs-detected-block-receipts",
+  "invariant_index": 252,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-spc-verification/src/service.rs",
+      "crates/ritual-spc-verification/src/lib.rs",
+      "crates/storage/provider/src/providers",
+      "crates/rpc/rpc/src/eth/filter.rs"
+    ],
+    "checked_queries": [
+      "ExecutorRegistryService",
+      "receipts_by_block TeeDA",
+      "teeda_contract_address",
+      "TeeDA logs",
+      "process canonical block executor events"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "ExecutorRegistryService",
+      "receipts_by_block",
+      "teeda_contract_address",
+      "TeeDA"
+    ],
+    "missing_behavior": "ExecutorRegistryService does not fetch block receipts or identify TeeDA-address logs.",
+    "related_but_insufficient_code": [
+      "Provider receipt APIs such as receipts_by_block exist in storage and RPC code, but they are generic receipt accessors.",
+      "No audited repo contains ExecutorRegistryService or service.rs, and no code iterates block receipts for logs matching a TeeDA contract address to update executor registry state."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The primary diff adds ReceiptProvider to the service bound, fetches receipts_by_block by block hash, iterates receipts/logs, and logs when a log address matches teeda_contract_address. The commit subject calls this Phase 1 block processing and TeeDA contract detection. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "4a4ee71825b2276532664ba8694d847a366b8f58"
+  ],
+  "statement": "When processing a canonical block for executor events, ExecutorRegistryService must fetch receipts for the block hash, iterate every receipt log, and identify logs whose address equals the configured TeeDA contract address.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Provide a mock provider with receipts containing logs from the TeeDA address and other addresses, process a block, and assert the service queries receipts for that block hash and emits detection only for TeeDA-address logs; also assert missing receipts and provider errors are handled without panic."
+  ],
+  "summary": "TeeDA receipt-log detection service is absent.",
+  "test_or_falsification_candidate": "Provide a mock provider with TeeDA and non-TeeDA receipt logs and assert ExecutorRegistryService detects only TeeDA logs; the service type is absent.",
+  "title": "TeeDA logs are detected from block receipts",
+  "total_invariants": 1954
+}

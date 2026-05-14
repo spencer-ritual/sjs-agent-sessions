@@ -1,0 +1,67 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "The public fee surface exports only the model-specific LLM deposit helper, not the removed default estimate helper.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub use llm::{\n    compute_llm_executor_fee, extract_model_from_llm_input, has_encrypted_output,\n    llm_executor_deposit_estimate_for_model, LlmModelConfig, LlmPricingMetrics,\n};",
+      "symbols": [
+        "compute_llm_executor_fee",
+        "llm_executor_deposit_estimate_for_model"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "LLM pricing fails when output/model/registry model information is missing instead of falling back to hardcoded model parameters.",
+      "path": "crates/ritual-async-fees/src/llm.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "None => return Err(\"Missing LLM executor output\".to_string()),\n...\nlet model_name = model.ok_or_else(|| \"LLM response did not include a model\".to_string())?;\nlet info = read_model_from_db_cached(db, contract, model_name, cache)?\n    .ok_or_else(|| format!(\"Model '{model_name}' not in LLM registry\"))?;",
+      "symbols": [
+        "compute_llm_executor_fee",
+        "resolve_llm_model_config"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port has no exported default LLM executor estimate path; runtime fee calculation and wallet deposit both require model-specific registry data, with explicit errors for missing output or model information.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/constants.rs",
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ritual-async-fees/src/llm.rs"
+  ],
+  "invariant_id": "cur-c24f066d19-pricing-default-fallback-estimate",
+  "invariant_index": 477,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Local searches found the model-specific helper and no LLM_DEFAULT fallback constants or default estimate function.",
+  "rationale": "The commit body says fallback pricing patterns are removed and pricing errors must be surfaced; the diff removes LLM_DEFAULT_PARAMS_B, LLM_DEFAULT_SEQ_LEN, and the deprecated llm_executor_deposit_estimate export/function. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "8aa848f34c3f6d6543a3731eb6a436cf361e287d"
+  ],
+  "statement": "Async fee calculation no longer exposes or uses a default LLM executor deposit estimate based on hardcoded fallback model parameters; callers must use model-specific LLM pricing via llm_executor_deposit_estimate_for_model.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Attempt to price an LLM call without extracting a model or without registry model info and assert the builder/verifier receives an error rather than silently using hardcoded default parameter and sequence-length pricing."
+  ],
+  "summary": "LLM pricing uses model-specific registry data without a default fallback estimate.",
+  "test_or_falsification_candidate": "Attempt to price an LLM call without extracting a model or without registry model info and assert the builder/verifier receives an error rather than silently using hardcoded default parameter and sequence-length pricing.",
+  "title": "LLM pricing has no default fallback estimate",
+  "total_invariants": 1954
+}

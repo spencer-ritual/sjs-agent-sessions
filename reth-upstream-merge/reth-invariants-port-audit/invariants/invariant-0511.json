@@ -1,0 +1,93 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The precompile fails without context, fails under 100 gas, and fails when context metadata lacks tx_hash.",
+      "path": "crates/precompiles/src/tx_hash.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "pub fn tx_hash_precompile(_input: &Bytes, _gas_limit: u64) -> PrecompileResult {\n    Err(PrecompileError::Other(\"TX_HASH precompile requires execution context\".to_string()))\n}\n...\nif gas_limit < TX_HASH_GAS { return Err(PrecompileError::OutOfGas); }\nlet tx_hash = async_context.and_then(|ctx| ctx.async_context().metadata().tx_hash).ok_or_else(...)?;",
+      "symbols": [
+        "tx_hash_precompile",
+        "tx_hash_precompile_with_context",
+        "TX_HASH_GAS"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The node executor populates async context tx_hash only when transaction metadata supplies one.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "if let Some(hash) = tx.tx_hash {\n    if self.inner.data.ctx.async_context().metadata().tx_hash.is_none() {\n        self.inner.data.ctx.async_context_mut().set_tx_hash(hash);\n    }\n}",
+      "symbols": [
+        "transact_raw"
+      ]
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "f4f4f2c7cbf201bd9f3fb6fe7b9cdd18c6aecdec",
+      "evidence": "Recovered transaction conversion supplies signed transaction hashes for normal transaction execution paths.",
+      "path": "crates/evm/src/tx.rs",
+      "repo": "/home/ritual/repos/ritual-alloy-evm-internal",
+      "snippet": "fn with_tx_hash(mut env: TxEnv, tx_hash: alloy_primitives::B256) -> TxEnv {\n    env.tx_hash = Some(tx_hash);\n    env\n}\n...\nwith_tx_hash(Self::from_recovered_tx(tx.tx(), sender), *tx.hash())",
+      "symbols": [
+        "with_tx_hash",
+        "FromRecoveredTx"
+      ]
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "c7845a2265d1245116728116e7418f636ef3b8af",
+      "evidence": "The revm async context stores tx_hash metadata consumed by the precompile.",
+      "path": "crates/context/src/async_context.rs",
+      "repo": "/home/ritual/repos/ritual-revm-internal",
+      "snippet": "pub fn building_context(tx_hash: B256) -> AsyncCommitmentutionContext {\n    let mut context = AsyncCommitmentutionContext::with_mode(ExecutionMode::Building);\n    context.set_tx_hash(tx_hash);\n    context\n}",
+      "symbols": [
+        "AsyncContextFactory::building_context",
+        "AsyncContextFactory::verification_context"
+      ]
+    }
+  ],
+  "equivalence_argument": "The TX_HASH behavior is owned by nodebuilder plus EVM/revm dependencies: signed transaction conversion carries tx_hash into TxEnv, the executor installs it into async context, and the precompile rejects absent context, absent metadata, and gas below 100.",
+  "evidence_files": [
+    "crates/precompiles/src/tx_hash.rs",
+    "crates/precompiles/src/lib.rs",
+    "crates/node/src/executor.rs"
+  ],
+  "invariant_id": "cur-139ba73958-hash-fails-without-context",
+  "invariant_index": 511,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+    "/home/ritual/repos/ritual-alloy-evm-internal",
+    "/home/ritual/repos/ritual-revm-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This maps to dependency repos because the precompile implementation lives outside the port workspace.",
+  "rationale": "The fallback precompile returns an error without context, the context-aware implementation checks gas_limit and requires metadata().tx_hash, and system calls explicitly set tx_hash to None. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "10340d8d224b676a50381665cefba62cba6c7cbf"
+  ],
+  "statement": "The TX_HASH precompile must fail when called without execution context, without tx_hash metadata, or with less than 100 gas.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call tx_hash_precompile directly and assert it errors; call tx_hash_precompile_with_context with gas 99 and assert OutOfGas; call it with context metadata lacking tx_hash and assert it errors rather than returning zeros."
+  ],
+  "summary": "TX_HASH fails without context, tx_hash metadata, or enough gas.",
+  "test_or_falsification_candidate": "Call tx_hash_precompile directly, with gas 99, and with context lacking tx_hash; assert errors, then call with tx_hash metadata and gas 100 and assert the hash bytes are returned.",
+  "title": "TX_HASH fails without context or gas",
+  "total_invariants": 1954
+}

@@ -1,0 +1,67 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping was found: the nodebuilder binary currently launches EthereumNode with a custom executor instead of RitualNode.",
+  "evidence_files": [
+    "bin/src/main.rs",
+    "crates/ritual-node/src/lib.rs",
+    "crates/ritual-node/src/addons.rs",
+    "bin/Cargo.toml",
+    "crates/ritual-node/Cargo.toml"
+  ],
+  "invariant_id": "cur-1bd05853c6-binary-launches-ritualnode-wrapper",
+  "invariant_index": 210,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "bin/src/main.rs",
+      "crates/node/src/lib.rs",
+      "crates/node/src/addons.rs"
+    ],
+    "checked_queries": [
+      "with_types::<RitualNode>|RitualNode::default|with_types::<EthereumNode>|EthereumNode::components\\(\\)\\.executor",
+      "ValidationApi|Flashbots|RitualAddOns"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "RitualNode",
+      "EthereumNode",
+      "with_types::<EthereumNode>",
+      "with_types::<RitualNode>",
+      "ValidationApi"
+    ],
+    "missing_behavior": "Missing binary launch path that instantiates RitualNode rather than EthereumNode and exposes the wrapper add-ons as the node runtime.",
+    "related_but_insufficient_code": [
+      "ritual-reth-nodebuilder-internal/bin/src/main.rs calls EthereumNode::components().executor(RitualMercuryExecutorBuilder::default()) and with_types::<EthereumNode>().",
+      "crates/node/src/lib.rs defines RitualNode, but the binary path does not instantiate it.",
+      "The binary uses EthereumAddOns with an engine validator, not RitualAddOns/ValidationApi from the RitualNode wrapper."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The primary diff switches main.rs from EthereumNode::default() to RitualNode::default(), introduces ritual-node-core, and implements wrapper builders that delegate to Ethereum defaults plus RitualAddOns that merges ValidationApi into the Flashbots RPC module. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "40aefdab74a3c69c38965763ded18442783db06f"
+  ],
+  "statement": "The ritual-reth binary should instantiate RitualNode rather than EthereumNode directly; the initial RitualNode implementation should use the default Ethereum pool, payload builder, network, executor, consensus, and engine validator components while exposing the validation API through the configured Flashbots RPC module.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Start the binary and assert it constructs RitualNode components, still uses the Ethereum default pool/payload/network/executor/consensus behavior, and exposes the validation RPC module when the Flashbots module is configured."
+  ],
+  "summary": "The ritual-reth binary does not launch the RitualNode wrapper.",
+  "test_or_falsification_candidate": "Start or compile the binary launch path and assert its NodeBuilder type is RitualNode; current code selects EthereumNode instead.",
+  "title": "Ritual binary launches RitualNode wrapper",
+  "total_invariants": 1954
+}

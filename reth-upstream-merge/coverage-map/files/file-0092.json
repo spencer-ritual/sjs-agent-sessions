@@ -11,20 +11,20 @@
   },
   "file_classification": "mapped",
   "tags": [
-    "mapped",
-    "payload",
+    "blocked",
     "high-risk",
-    "non-exact",
+    "intentionally_absent",
     "needs-review",
-    "reth-port"
+    "non-exact",
+    "structural_equivalent"
   ],
-  "atoms_total": 1,
+  "atoms_total": 50,
   "atoms": [
     {
       "record_id": "file-0092-atom-0001",
       "file_index": 92,
       "atom_index": 1,
-      "atoms_total": 1,
+      "atoms_total": 50,
       "source_path": "crates/ethereum/payload/src/lib.rs",
       "source_hunk_hint": "@@ -11,0 +12,5 @@",
       "source_kind": "other",
@@ -57,13 +57,2697 @@
       "review_required": true,
       "notes": "The destination keeps the module at the same relative path with overlapping symbols ['new'].",
       "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor."
+    },
+    {
+      "record_id": "file-0092-atom-0002",
+      "file_index": 92,
+      "atom_index": 2,
+      "atoms_total": 50,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "@@ -194,132 +1255,5106 @@ where",
+      "source_kind": "encoding_rule",
+      "source_snippet": "    const SCHED_CAP: usize = 32;\n    const REG_CAP: usize = 32;\n\n    #[test]\n    fn fix_for_current_incident_regular_gets_at_least_its_cap() {\n        // 100 augmented sovereign-agent obligations, 51 user txs in pool: regular must\n        // not be starved. Should hit reg_cap; scheduled gets the remainder under total_cap.\n        let (s, r) = allocate_async_sim_slots(100, 51, TOTAL, SCHED_CAP, REG_CAP);\n        assert_eq!(r, REG_CAP, \"regular got starved by augmented obligations\");\n        assert_eq!(s, TOTAL - REG_CAP);\n        assert!(s + r <= TOTAL);\n    }\n\n    #[test]\n    fn lots_of_scheduled_no_regular_uses_full_total_for_scheduled() {\n        // No regular candidates \u2192 scheduled gets t\n---\n        assert!(s + r <= TOTAL);\n    }\n\n    #[test]\n    fn lots_of_scheduled_no_regular_uses_full_total_for_scheduled() {\n        // No regular candidates \u2192 scheduled gets the full ceiling.\n        let (s, r) = allocate_async_sim_slots(100, 0, TOTAL, SCHED_CAP, REG_CAP);\n        assert_eq!(r, 0);\n        assert_eq!(s, TOTAL);\n    }\n\n    #[test]\n    fn lots_of_regular_no_scheduled_uses_full_total_for_regular() {\n        // No scheduled candidates \u2192 regular gets the full ceiling.\n        let (s, r) = allocate_async_sim_slots(0, 100, TOTAL, SCHED_CAP, REG_CAP);\n        assert_eq!(s, 0);\n        assert_eq!(r, TOTAL);\n    }\n\n    #[test]\n    fn both_under_their_caps_no_truncation() {\n        let (\n---\n        assert_eq!(s, TOTAL);\n    }\n\n    #[test]\n    fn lots_of_regular_no_scheduled_uses_full_total_for_regular() {\n        // No scheduled candidates \u2192 regular gets the full ceiling.\n        let (s, r) = allocate_async_sim_slots(0, 100, TOTAL, SCHED_CAP, REG_CAP);\n        assert_eq!(s, 0);\n        assert_eq!(r, TOTAL);\n    }\n\n    #[test]\n    fn both_under_their_caps_no_truncation() {\n        let (s, r) = allocate_async_sim_slots(5, 5, TOTAL, SCHED_CAP, REG_CAP);\n        assert_eq!(s, 5);\n        assert_eq!(r, 5);\n    }\n\n    #[test]\n    fn both_at_cap_truncates_scheduled_first() {\n        // Both caps fit but sum exceeds total. Regular wins (this is the bug-fix policy).\n        let (s, r) =",
+      "semantic_claim": "Payload async simulation slot allocation preserves regular-lane anti-starvation, total-cap clamping, zero-cap disabling, and leftover redistribution across scheduled and regular candidates.",
+      "high_risk": true,
+      "risk_tags": [
+        "scheduled",
+        "payload",
+        "txpool",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: fix_for_current_incident_regular_gets_at_least_its_cap, lots_of_scheduled_no_regular_uses_full_total_for_scheduled, lots_of_regular_no_scheduled_uses_full_total_for_regular, both_under_their_caps_no_truncation, both_at_cap_truncates_scheduled_first, empty_pool, category_caps_above_total_are_clamped, zero_regular_cap_disables_regular_lane, ...",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0002"
+      },
+      "review_required": false,
+      "notes": "Payload deadline/cap/observability claim is broad and not all parts are active in this v2 slice; split into concrete runtime atoms before restoration.",
+      "test_derived": true,
+      "source_test_names": [
+        "fix_for_current_incident_regular_gets_at_least_its_cap",
+        "lots_of_scheduled_no_regular_uses_full_total_for_scheduled",
+        "lots_of_regular_no_scheduled_uses_full_total_for_regular",
+        "both_under_their_caps_no_truncation",
+        "both_at_cap_truncates_scheduled_first",
+        "empty_pool",
+        "category_caps_above_total_are_clamped",
+        "zero_regular_cap_disables_regular_lane",
+        "zero_scheduled_cap_disables_scheduled_lane",
+        "leftover_after_regular_fills_into_scheduled",
+        "leftover_after_scheduled_cap_fills_into_regular",
+        "under_total_cap_with_unmet_demand_only_regular",
+        "neither_category_exceeds_caps_or_total"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0092-atom-0007",
+        "test-file-0092-atom-0008",
+        "test-file-0092-atom-0009",
+        "test-file-0092-atom-0010",
+        "test-file-0092-atom-0011",
+        "test-file-0092-atom-0012",
+        "test-file-0092-atom-0013",
+        "test-file-0092-atom-0014",
+        "test-file-0092-atom-0015",
+        "test-file-0092-atom-0016",
+        "test-file-0092-atom-0017",
+        "test-file-0092-atom-0018",
+        "test-file-0092-atom-0019"
+      ],
+      "required_change": null,
+      "needs_atomization": false
+    },
+    {
+      "record_id": "file-0092-atom-0003",
+      "file_index": 92,
+      "atom_index": 3,
+      "atoms_total": 50,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "@@ -194,132 +1255,5106 @@ where",
+      "source_kind": "encoding_rule",
+      "source_snippet": "        Bytes::from(proof)\n    }\n\n    #[test]\n    fn test_verify_spc_valid_signature_passes() {\n        let (sk, pk) = test_keypair();\n        let input = Bytes::from(vec![0x01, 0x02, 0x03]);\n        let output = Bytes::from(vec![0x04, 0x05, 0x06]);\n        let tx_hash = B256::from([0xAA; 32]);\n\n        let job = make_job(&input, tx_hash);\n        let proof = sign_payload(&sk, &job, &input, &output);\n        let pubkey = &pk.serialize_uncompressed()[1..];\n\n        let result =\n            verify_spc_with_preloaded_context(tx_hash, &input, &output, &proof, &job, pubkey);\n        assert!(result.is_ok(), \"Valid SPC signature should pass: {:?}\", result);\n    }\n\n    #[test]\n    fn test_verify_spc\n---\n        assert!(result.is_ok(), \"Valid SPC signature should pass: {:?}\", result);\n    }\n\n    #[test]\n    fn test_verify_spc_wrong_output_fails() {\n        let (sk, pk) = test_keypair();\n        let input = Bytes::from(vec![0x01, 0x02, 0x03]);\n        let output = Bytes::from(vec![0x04, 0x05, 0x06]);\n        let tx_hash = B256::from([0xAA; 32]);\n\n        let job = make_job(&input, tx_hash);\n        let proof = sign_payload(&sk, &job, &input, &output);\n        let pubkey = &pk.serialize_uncompressed()[1..];\n\n        let tampered_output = Bytes::from(vec![0xFF, 0xFF, 0xFF]);\n        let result = verify_spc_with_preloaded_context(\n            tx_hash,\n            &input,\n            &tampered_ou\n---\n        );\n    }\n\n    #[test]\n    fn test_verify_spc_wrong_input_hash_fails() {\n        let (sk, pk) = test_keypair();\n        let input = Bytes::from(vec![0x01, 0x02, 0x03]);\n        let output = Bytes::from(vec![0x04, 0x05, 0x06]);\n        let tx_hash = B256::from([0xAA; 32]);\n\n        let job = make_job(&input, tx_hash);\n        let proof = sign_payload(&sk, &job, &input, &output);\n        let pubkey = &pk.serialize_uncompressed()[1..];\n\n        let wrong_input = Bytes::from(vec![0xFF, 0xEE, 0xDD]);\n        let result =\n            verify_spc_with_preloaded_context(tx_hash, &wrong_input, &output, &proof, &job, pubkey);\n        assert!(result.is_err(), \"Mismatched input hash should fail\");",
+      "semantic_claim": "SPC verification accepts valid preloaded-context signatures and rejects wrong outputs, mismatched input hashes, or empty executor keys.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "payload",
+        "encoding",
+        "verifier",
+        "negative-path",
+        "executor-selection"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "default_ethereum_payload",
+            "ritual async/scheduled phases"
+          ],
+          "snippet": "scheduled obligations, async commitments, fulfilled async settlements, delivery readiness, and regular transactions are handled in the unified v2.2 payload builder",
+          "evidence": "The old collector/bundle/unified_builder split is collapsed into the current payload builder; active behavior is present in one module and verified by focused scheduled/async checks."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/lib.rs",
+          "symbols": [
+            "try_decode_precompile_data",
+            "validate_async_payload"
+          ],
+          "snippet": "canonical async precompile decoding and validation surface",
+          "evidence": "The old ritual-async validation API moved into ritual-precompile-codecs and is consumed by RPC, payload, and verifier paths."
+        }
+      ],
+      "equivalence_argument": "Active payload async/scheduled/verifier behavior is preserved in the unified v2.2 payload builder plus verifier hooks.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_verify_spc_valid_signature_passes, test_verify_spc_wrong_output_fails, test_verify_spc_wrong_input_hash_fails, test_verify_spc_empty_executor_key_fails.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to current payload builder/verifier structure.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_verify_spc_valid_signature_passes",
+        "test_verify_spc_wrong_output_fails",
+        "test_verify_spc_wrong_input_hash_fails",
+        "test_verify_spc_empty_executor_key_fails"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0092-atom-0003",
+        "test-file-0092-atom-0004",
+        "test-file-0092-atom-0005",
+        "test-file-0092-atom-0006"
+      ]
+    },
+    {
+      "record_id": "file-0092-atom-0004",
+      "file_index": 92,
+      "atom_index": 4,
+      "atoms_total": 50,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 10: Fees, Registries, And Product Economics",
+      "source_kind": "error_path",
+      "source_snippet": "Feature-preservation claims: Preserve strict fee behavior: shared async fee crate and no fallback on HTTP/LLM/pricing failures (`#146`), model-registry pricing and fail-closed builder/verifier/wallet reads (`#252`)",
+      "semantic_claim": "Preserve strict fee behavior: shared async fee crate and no fallback on HTTP/LLM/pricing failures (`#146`), model-registry pricing and fail-closed builder/verifier/wallet reads (`#252`).",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "payload",
+        "verifier",
+        "fees",
+        "executor-selection",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Preserve strict fee behavior: shared async fee crate and no fallback on HTTP/LLM/pricing failures (`#146`), model-registry pricing and fail-closed builder/verifier/wallet reads (`#252`).",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0004"
+      },
+      "review_required": false,
+      "notes": "Broad payload preservation claim needs concrete atomization before it can justify code restoration.",
+      "feature_derived": true,
+      "feature_sections": [
+        10
+      ],
+      "source_feature_ids": [
+        "feature-raw-0116"
+      ],
+      "source_feature_claims": [
+        "Preserve strict fee behavior: shared async fee crate and no fallback on HTTP/LLM/pricing failures (`#146`), model-registry pricing and fail-closed builder/verifier/wallet reads (`#252`)"
+      ],
+      "required_change": null,
+      "needs_atomization": false
+    },
+    {
+      "record_id": "file-0092-atom-0005",
+      "file_index": 92,
+      "atom_index": 5,
+      "atoms_total": 50,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 11: Observability And Agent Guardrails",
+      "source_kind": "state_transition",
+      "source_snippet": "Feature-preservation claims: Preserve early metrics: verification-end fields, payload/verification phase metrics, scheduler event visibility (`3393e7a3`, `#97`) | Preserve structured block telemetry: block/tx phase logs, per-tx payload execution logs, payload attempt IDs/kinds, empty-payload fallback tracing, node/basic payload integration (`#325`, `#329`)",
+      "semantic_claim": "Feature section 11 (Observability And Agent Guardrails) preserves observability: Preserve early metrics: verification-end fields, payload/verification phase metrics, scheduler event visibility (`3393e7a3`, `#97`); Preserve structured block telemetry: block/tx phase logs, per-tx payload execution logs, payload attempt IDs/kinds, empty-payload fallback tracing, node/basic payload integration (`#325`, `#329`).",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "scheduled",
+        "payload",
+        "verifier",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Feature section 11 (Observability And Agent Guardrails) preserves observability: Preserve early metrics: verification-end fields, payload/verification phase metrics, scheduler event visibility (`3393e7a3`, `#97`); Preserve structured block telemetry: block/tx phase logs, per-tx payload execution logs, payload attempt IDs/kinds, empty-payload fallback tracing, node/basic payload integration (`#325`, `#329`).",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0005"
+      },
+      "review_required": false,
+      "notes": "Observability/metrics preservation claim is broad and not a live consensus/RPC/FSM requirement. It needs atomization into concrete shipped operator APIs before restoration.",
+      "feature_derived": true,
+      "feature_sections": [
+        11
+      ],
+      "source_feature_ids": [
+        "feature-raw-0128",
+        "feature-raw-0129"
+      ],
+      "source_feature_claims": [
+        "Preserve early metrics: verification-end fields, payload/verification phase metrics, scheduler event visibility (`3393e7a3`, `#97`)",
+        "Preserve structured block telemetry: block/tx phase logs, per-tx payload execution logs, payload attempt IDs/kinds, empty-payload fallback tracing, node/basic payload integration (`#325`, `#329`)"
+      ],
+      "required_change": null,
+      "needs_atomization": false
+    },
+    {
+      "record_id": "file-0092-atom-0006",
+      "file_index": 92,
+      "atom_index": 6,
+      "atoms_total": 50,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 2: Async Precompile Detection And Validation",
+      "source_kind": "error_path",
+      "source_snippet": "Feature-preservation claims: Builder/verifier simulate against parent block state for deterministic async detection. | Port authority model: RPC provides early feedback (`#204`, `#231`, `#307`), while builder/verifier re-simulate async origin txs and hard-fail invalid commitments (`#145`)",
+      "semantic_claim": "Feature section 2 (Async Precompile Detection And Validation) preserves parent state detection: Builder/verifier simulate against parent block state for deterministic async detection; Port authority model: RPC provides early feedback (`#204`, `#231`, `#307`), while builder/verifier re-simulate async origin txs and hard-fail invalid commitments (`#145`).",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "payload",
+        "verifier",
+        "precompile",
+        "rpc",
+        "encoding",
+        "fees",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Feature section 2 (Async Precompile Detection And Validation) preserves parent state detection: Builder/verifier simulate against parent block state for deterministic async detection; Port authority model: RPC provides early feedback (`#204`, `#231`, `#307`), while builder/verifier re-simulate async origin txs and hard-fail invalid commitments (`#145`).",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0006"
+      },
+      "review_required": false,
+      "notes": "Broad payload preservation claim needs concrete atomization before it can justify code restoration.",
+      "feature_derived": true,
+      "feature_sections": [
+        2
+      ],
+      "source_feature_ids": [
+        "feature-raw-0011",
+        "feature-raw-0016"
+      ],
+      "source_feature_claims": [
+        "Builder/verifier simulate against parent block state for deterministic async detection.",
+        "Port authority model: RPC provides early feedback (`#204`, `#231`, `#307`), while builder/verifier re-simulate async origin txs and hard-fail invalid commitments (`#145`)"
+      ],
+      "required_change": null,
+      "needs_atomization": false
+    },
+    {
+      "record_id": "file-0092-atom-0007",
+      "file_index": 92,
+      "atom_index": 7,
+      "atoms_total": 50,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 2: Async Precompile Detection And Validation",
+      "source_kind": "error_path",
+      "source_snippet": "Feature-preservation claims: Shared payload validation rejects bad TTL, oversized inputs, malformed ECIES/user keys, bad URLs/models/messages, invalid two-phase deadlines, and unsupported agent types. | Preserve validation hardening: centralized invalid-payload errors (`#231`)",
+      "semantic_claim": "Feature section 2 (Async Precompile Detection And Validation) preserves payload validation: Shared payload validation rejects bad TTL, oversized inputs, malformed ECIES/user keys, bad URLs/models/messages, invalid two-phase deadlines, and unsupported agent types; Preserve validation hardening: centralized invalid-payload errors (`#231`).",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "payload",
+        "precompile",
+        "consensus-constant",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Feature section 2 (Async Precompile Detection And Validation) preserves payload validation: Shared payload validation rejects bad TTL, oversized inputs, malformed ECIES/user keys, bad URLs/models/messages, invalid two-phase deadlines, and unsupported agent types; Preserve validation hardening: centralized invalid-payload errors (`#231`).",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0007"
+      },
+      "review_required": false,
+      "notes": "Broad payload preservation claim needs concrete atomization before it can justify code restoration.",
+      "feature_derived": true,
+      "feature_sections": [
+        2
+      ],
+      "source_feature_ids": [
+        "feature-raw-0013",
+        "feature-raw-0019"
+      ],
+      "source_feature_claims": [
+        "Shared payload validation rejects bad TTL, oversized inputs, malformed ECIES/user keys, bad URLs/models/messages, invalid two-phase deadlines, and unsupported agent types.",
+        "Preserve validation hardening: centralized invalid-payload errors (`#231`)"
+      ],
+      "required_change": null,
+      "needs_atomization": false
+    },
+    {
+      "record_id": "file-0092-atom-0008",
+      "file_index": 92,
+      "atom_index": 8,
+      "atoms_total": 50,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 2: Async Precompile Detection And Validation",
+      "source_kind": "other",
+      "source_snippet": "Concrete invariant: executor capability equality gate in ritual_async (payload) ties precompile address to registry enum.",
+      "semantic_claim": "TEE registry alignment: for each live async job enabled in the v2.2 FSM, builder/verifier resolve the executor via `read_executor` / `Capability` and enforce `executor.capability == registry_capability_for_precompile(precompile_address)` from `ritual-precompile-addresses` metadata; this live gate must match traffic-gen executor selection and node CAPABILITIES. Multimodal/FHE capability metadata is covered by file-0316 atoms, but their Phase 2 delivery is not green until pricing/model-registry parity is ported.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "payload",
+        "verifier",
+        "precompile",
+        "executor-selection"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "registry_capability_for_precompile",
+            "expected_capability",
+            "read_executor"
+          ],
+          "snippet": "if executor.capability != expected_capability { return Err(...)",
+          "evidence": "Payload/async path compares TEE-registered executor capability to metadata-derived expectation per precompile."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-addresses/src/lib.rs",
+          "symbols": [
+            "ALL_ASYNC_PRECOMPILE_METADATA",
+            "expected_capability_tag"
+          ],
+          "snippet": "capability_tag per precompile address",
+          "evidence": "Canonical expected capability tag for each precompile; cross-repo proof in verify_async_precompile_cross_repo.py."
+        },
+        {
+          "repo": "/home/ritual/repos/sjs-agent-sessions/reth-upstream-merge",
+          "path": "coverage-map/verify_async_precompile_cross_repo.py",
+          "symbols": [
+            "main"
+          ],
+          "snippet": "STATIC_VERIFIER",
+          "evidence": "Static check binds Reth metadata to traffic-gen Capability strings and docker.py wiring."
+        }
+      ],
+      "equivalence_argument": "Executor capability gating is implemented in ritual_async and sourced from ritual-precompile-addresses for live enabled async jobs; cross-repo drift is caught by verify_async_precompile_cross_repo.py and file-0316 contract atoms. This atom no longer claims that all registered two-phase precompiles have complete runtime delivery parity.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "python3 coverage-map/verify_async_precompile_cross_repo.py; cargo test -p reth-ethereum-payload-builder --locked ritual_async",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Resolved from first-principles pass: this atom is live for HTTP/LLM/DKMS/long-HTTP/ZK/sovereign/persistent. FHE and multimodal capability tags are statically checked cross-repo, but delivery is fail-closed and tracked as unresolved runtime parity, not implied by this green atom.",
+      "feature_derived": true,
+      "feature_sections": [
+        2
+      ],
+      "source_feature_ids": [
+        "feature-raw-0014"
+      ],
+      "source_feature_claims": [
+        "TEE registry, model registry, and wallet lock checks must stay aligned with builder/verifier assumptions."
+      ],
+      "required_change": null,
+      "needs_atomization": false
+    },
+    {
+      "record_id": "file-0092-atom-0009",
+      "file_index": 92,
+      "atom_index": 9,
+      "atoms_total": 50,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 2: Async Precompile Detection And Validation",
+      "source_kind": "other",
+      "source_snippet": "Feature-preservation claims: Preserve validation hardening: async input/calldata caps and builder/verifier obligation consistency (`#292`)",
+      "semantic_claim": "Preserve validation hardening: async input/calldata caps and builder/verifier obligation consistency (`#292`).",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "scheduled",
+        "payload",
+        "verifier",
+        "precompile"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Preserve validation hardening: async input/calldata caps and builder/verifier obligation consistency (`#292`).",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0009"
+      },
+      "review_required": false,
+      "notes": "Broad payload preservation claim needs concrete atomization before it can justify code restoration.",
+      "feature_derived": true,
+      "feature_sections": [
+        2
+      ],
+      "source_feature_ids": [
+        "feature-raw-0021"
+      ],
+      "source_feature_claims": [
+        "Preserve validation hardening: async input/calldata caps and builder/verifier obligation consistency (`#292`)"
+      ],
+      "required_change": null,
+      "needs_atomization": false
+    },
+    {
+      "record_id": "file-0092-atom-0010",
+      "file_index": 92,
+      "atom_index": 10,
+      "atoms_total": 50,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 3: EVM Context, Precompiles, And SPC",
+      "source_kind": "other",
+      "source_snippet": "Feature-preservation claims: Pool manager / EVM integration remains available to nodebuilder and payload code.",
+      "semantic_claim": "Pool manager / EVM integration remains available to nodebuilder and payload code.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "payload",
+        "txpool",
+        "precompile"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Pool manager / EVM integration remains available to nodebuilder and payload code.",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0010"
+      },
+      "review_required": false,
+      "notes": "Broad payload preservation claim needs concrete atomization before it can justify code restoration.",
+      "feature_derived": true,
+      "feature_sections": [
+        3
+      ],
+      "source_feature_ids": [
+        "feature-raw-0027"
+      ],
+      "source_feature_claims": [
+        "Pool manager / EVM integration remains available to nodebuilder and payload code."
+      ],
+      "required_change": null,
+      "needs_atomization": false
+    },
+    {
+      "record_id": "file-0092-atom-0011",
+      "file_index": 92,
+      "atom_index": 11,
+      "atoms_total": 50,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 4: Txpool Async And Scheduled Lifecycle",
+      "source_kind": "error_path",
+      "source_snippet": "Feature-preservation claims: Preserve duplicate/nonce behavior: active AsyncJobTracker duplicates block builder/verifier commitments and prune stale pool entries (`#260`, `#268`)",
+      "semantic_claim": "Preserve duplicate/nonce behavior: active AsyncJobTracker duplicates block builder/verifier commitments and prune stale pool entries (`#260`, `#268`).",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "scheduled",
+        "payload",
+        "verifier",
+        "txpool",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Preserve duplicate/nonce behavior: active AsyncJobTracker duplicates block builder/verifier commitments and prune stale pool entries (`#260`, `#268`).",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0011"
+      },
+      "review_required": false,
+      "notes": "Broad payload preservation claim needs concrete atomization before it can justify code restoration.",
+      "feature_derived": true,
+      "feature_sections": [
+        4
+      ],
+      "source_feature_ids": [
+        "feature-raw-0048"
+      ],
+      "source_feature_claims": [
+        "Preserve duplicate/nonce behavior: active AsyncJobTracker duplicates block builder/verifier commitments and prune stale pool entries (`#260`, `#268`)"
+      ],
+      "required_change": null,
+      "needs_atomization": false
+    },
+    {
+      "record_id": "file-0092-atom-0012",
+      "file_index": 92,
+      "atom_index": 12,
+      "atoms_total": 50,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 6: Payload Building",
+      "source_kind": "call_ordering",
+      "source_snippet": "Feature-preservation claims: Async detection and commitment insertion. | Preserve DoS policy: build deadline default `300ms`, deadline guards, obligation/fulfilled/delivery caps, total/per-category async sim caps, regular-priority allocation, tx-count cap, local work-class demotion, near-deadline epsilon, optional-class short-circuit, and cap observations (`#292`, `#332`, `#330`, `#354`)",
+      "semantic_claim": "Feature section 6 (Payload Building) preserves payload construction: Async detection and commitment insertion; Preserve DoS policy: build deadline default `300ms`, deadline guards, obligation/fulfilled/delivery caps, total/per-category async sim caps, regular-priority allocation, tx-count cap, local work-class demotion, near-deadline epsilon, optional-class short-circuit, and cap observations (`#292`, `#332`, `#330`, `#354`).",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "payload",
+        "scheduled"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Feature section 6 (Payload Building) preserves payload construction: Async detection and commitment insertion; Preserve DoS policy: build deadline default `300ms`, deadline guards, obligation/fulfilled/delivery caps, total/per-category async sim caps, regular-priority allocation, tx-count cap, local work-class demotion, near-deadline epsilon, optional-class short-circuit, and cap observations (`#292`, `#332`, `#330`, `#354`).",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0012"
+      },
+      "review_required": false,
+      "notes": "Broad payload preservation claim needs concrete atomization before it can justify code restoration.",
+      "feature_derived": true,
+      "feature_sections": [
+        6
+      ],
+      "source_feature_ids": [
+        "feature-raw-0064",
+        "feature-raw-0074"
+      ],
+      "source_feature_claims": [
+        "Async detection and commitment insertion.",
+        "Preserve DoS policy: build deadline default `300ms`, deadline guards, obligation/fulfilled/delivery caps, total/per-category async sim caps, regular-priority allocation, tx-count cap, local work-class demotion, near-deadline epsilon, optional-class short-circuit, and cap observations (`#292`, `#332`, `#330`, `#354`)"
+      ],
+      "required_change": null,
+      "needs_atomization": false
+    },
+    {
+      "record_id": "file-0092-atom-0013",
+      "file_index": 92,
+      "atom_index": 13,
+      "atoms_total": 50,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 6: Payload Building",
+      "source_kind": "state_transition",
+      "source_snippet": "Feature-preservation claims: Fulfilled async settlement and delivery settlement inclusion.",
+      "semantic_claim": "Fulfilled async settlement and delivery settlement inclusion.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "payload",
+        "consensus-constant"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "get_fulfilled_original_async_commitment_transactions",
+            "prepare_fulfilled_async_settlement",
+            "get_delivery_ready_original_async_transactions",
+            "prepare_delivery_settlement_transaction"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "payload builder includes both fulfilled Phase 1 settlement entries and delivery-ready Phase 2 entries"
+        }
+      ],
+      "equivalence_argument": "Fulfilled async settlement and delivery settlement inclusion are preserved as separate payload-builder loops over pool-provided fulfilled and delivery-ready entries.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Fulfilled async settlement and delivery settlement inclusion.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Active payload behavior mapped.",
+      "feature_derived": true,
+      "feature_sections": [
+        6
+      ],
+      "source_feature_ids": [
+        "feature-raw-0065"
+      ],
+      "source_feature_claims": [
+        "Fulfilled async settlement and delivery settlement inclusion."
+      ],
+      "required_change": null,
+      "human_question": null
+    },
+    {
+      "record_id": "file-0092-atom-0014",
+      "file_index": 92,
+      "atom_index": 14,
+      "atoms_total": 50,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 6: Payload Building",
+      "source_kind": "error_path",
+      "source_snippet": "Feature-preservation claims: Preserve active-job and Phase 2 behavior: parent-state duplicate active-job checks (`#260`, `#268`), build-time SPC reverification and metadata refresh (`#273`), Phase 2 delivery settlements and nested delivery (`#270`), atomic original+settlement size/gas precheck (`#304`) | Preserve trace-facing payload metadata: payload attempt IDs/kinds, empty-payload fallback tracing, demotion capture, primary included tx count (`#329`, `#336`)",
+      "semantic_claim": "Feature section 6 (Payload Building) preserves runtime fields hashing: Preserve active-job and Phase 2 behavior: parent-state duplicate active-job checks (`#260`, `#268`), build-time SPC reverification and metadata refresh (`#273`), Phase 2 delivery settlements and nested delivery (`#270`), atomic original+settlement size/gas precheck (`#304`); Preserve trace-facing payload metadata: payload attempt IDs/kinds, empty-payload fallback tracing, demotion capture, primary included tx count (`#329`, `#336`).",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "payload",
+        "verifier",
+        "gas",
+        "consensus-constant",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Feature section 6 (Payload Building) preserves runtime fields hashing: Preserve active-job and Phase 2 behavior: parent-state duplicate active-job checks (`#260`, `#268`), build-time SPC reverification and metadata refresh (`#273`), Phase 2 delivery settlements and nested delivery (`#270`), atomic original+settlement size/gas precheck (`#304`); Preserve trace-facing payload metadata: payload attempt IDs/kinds, empty-payload fallback tracing, demotion capture, primary included tx count (`#329`, `#336`).",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0014"
+      },
+      "review_required": false,
+      "notes": "Observability/metrics preservation claim is broad and not a live consensus/RPC/FSM requirement. It needs atomization into concrete shipped operator APIs before restoration.",
+      "feature_derived": true,
+      "feature_sections": [
+        6
+      ],
+      "source_feature_ids": [
+        "feature-raw-0073",
+        "feature-raw-0075"
+      ],
+      "source_feature_claims": [
+        "Preserve active-job and Phase 2 behavior: parent-state duplicate active-job checks (`#260`, `#268`), build-time SPC reverification and metadata refresh (`#273`), Phase 2 delivery settlements and nested delivery (`#270`), atomic original+settlement size/gas precheck (`#304`)",
+        "Preserve trace-facing payload metadata: payload attempt IDs/kinds, empty-payload fallback tracing, demotion capture, primary included tx count (`#329`, `#336`)"
+      ],
+      "required_change": null,
+      "needs_atomization": false
+    },
+    {
+      "record_id": "file-0092-atom-0015",
+      "file_index": 92,
+      "atom_index": 15,
+      "atoms_total": 50,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 6: Payload Building",
+      "source_kind": "other",
+      "source_snippet": "Feature-preservation claims: Preserve: Avoid verifier-only obligation deadline logic that can diverge from builder membership (`#299`)",
+      "semantic_claim": "Preserve: Avoid verifier-only obligation deadline logic that can diverge from builder membership (`#299`).",
+      "high_risk": true,
+      "risk_tags": [
+        "scheduled",
+        "payload",
+        "verifier"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Preserve: Avoid verifier-only obligation deadline logic that can diverge from builder membership (`#299`).",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0015"
+      },
+      "review_required": false,
+      "notes": "Broad payload preservation claim needs concrete atomization before it can justify code restoration.",
+      "feature_derived": true,
+      "feature_sections": [
+        6
+      ],
+      "source_feature_ids": [
+        "feature-raw-0076"
+      ],
+      "source_feature_claims": [
+        "Preserve: Avoid verifier-only obligation deadline logic that can diverge from builder membership (`#299`)"
+      ],
+      "human_question": "Verify whether this absence/negative-preservation invariant is upheld in the v2.2 port and record evidence.",
+      "required_change": null,
+      "needs_atomization": false
+    },
+    {
+      "record_id": "file-0092-atom-0016",
+      "file_index": 92,
+      "atom_index": 16,
+      "atoms_total": 50,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 7: Block Verification And Consensus Gates",
+      "source_kind": "error_path",
+      "source_snippet": "Feature-preservation claims: Preserve parity with builder: per-block async sender uniqueness and wallet locks (`#202`), shared per-block `ModelCache` (`#205`), optimized nonce-lock checks and same-block duplicate rejection (`#207`)",
+      "semantic_claim": "Preserve parity with builder: per-block async sender uniqueness and wallet locks (`#202`), shared per-block `ModelCache` (`#205`), optimized nonce-lock checks and same-block duplicate rejection (`#207`).",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "payload",
+        "verifier",
+        "executor-selection",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Preserve parity with builder: per-block async sender uniqueness and wallet locks (`#202`), shared per-block `ModelCache` (`#205`), optimized nonce-lock checks and same-block duplicate rejection (`#207`).",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0016"
+      },
+      "review_required": false,
+      "notes": "Broad payload preservation claim needs concrete atomization before it can justify code restoration.",
+      "feature_derived": true,
+      "feature_sections": [
+        7
+      ],
+      "source_feature_ids": [
+        "feature-raw-0086"
+      ],
+      "source_feature_claims": [
+        "Preserve parity with builder: per-block async sender uniqueness and wallet locks (`#202`), shared per-block `ModelCache` (`#205`), optimized nonce-lock checks and same-block duplicate rejection (`#207`)"
+      ],
+      "required_change": null,
+      "needs_atomization": false
+    },
+    {
+      "record_id": "file-0092-atom-0017",
+      "file_index": 92,
+      "atom_index": 17,
+      "atoms_total": 50,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 7: Block Verification And Consensus Gates",
+      "source_kind": "other",
+      "source_snippet": "Feature-preservation claims: Builder-produced blocks must replay under verifier rules.",
+      "semantic_claim": "Builder-produced blocks must replay under verifier rules.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "verifier"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Builder-produced blocks must replay under verifier rules.",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0017"
+      },
+      "review_required": false,
+      "notes": "Broad payload preservation claim needs concrete atomization before it can justify code restoration.",
+      "feature_derived": true,
+      "feature_sections": [
+        7
+      ],
+      "source_feature_ids": [
+        "feature-raw-0083"
+      ],
+      "source_feature_claims": [
+        "Builder-produced blocks must replay under verifier rules."
+      ],
+      "required_change": null,
+      "needs_atomization": false
+    },
+    {
+      "record_id": "file-0092-atom-0018",
+      "file_index": 92,
+      "atom_index": 18,
+      "atoms_total": 50,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 8: RPC And Operator Surfaces",
+      "source_kind": "error_path",
+      "source_snippet": "Feature-preservation claims: Error messages should stay descriptive for invalid async payloads and mismatched canonical context.",
+      "semantic_claim": "Error messages should stay descriptive for invalid async payloads and mismatched canonical context.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "payload",
+        "rpc",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Error messages should stay descriptive for invalid async payloads and mismatched canonical context.",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0018"
+      },
+      "review_required": false,
+      "notes": "Broad payload preservation claim needs concrete atomization before it can justify code restoration.",
+      "feature_derived": true,
+      "feature_sections": [
+        8
+      ],
+      "source_feature_ids": [
+        "feature-raw-0093"
+      ],
+      "source_feature_claims": [
+        "Error messages should stay descriptive for invalid async payloads and mismatched canonical context."
+      ],
+      "required_change": null,
+      "needs_atomization": false
+    },
+    {
+      "record_id": "file-0092-atom-0019",
+      "file_index": 92,
+      "atom_index": 19,
+      "atoms_total": 50,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 8: RPC And Operator Surfaces",
+      "source_kind": "error_path",
+      "source_snippet": "Feature-preservation claims: Preserve RPC async validation behavior: precompile consumer decoding, executor capability/registration, ECIES/user keys, supported sovereign agent types `0/4/5/6`, Phase 2 offset bounds, rich invalid-payload errors (`#204`, `#231`, `#307`)",
+      "semantic_claim": "Preserve RPC async validation behavior: precompile consumer decoding, executor capability/registration, ECIES/user keys, supported sovereign agent types `0/4/5/6`, Phase 2 offset bounds, rich invalid-payload errors (`#204`, `#231`, `#307`).",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "payload",
+        "rpc",
+        "precompile",
+        "executor-selection",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Preserve RPC async validation behavior: precompile consumer decoding, executor capability/registration, ECIES/user keys, supported sovereign agent types `0/4/5/6`, Phase 2 offset bounds, rich invalid-payload errors (`#204`, `#231`, `#307`).",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0019"
+      },
+      "review_required": false,
+      "notes": "Broad payload preservation claim needs concrete atomization before it can justify code restoration.",
+      "feature_derived": true,
+      "feature_sections": [
+        8
+      ],
+      "source_feature_ids": [
+        "feature-raw-0096"
+      ],
+      "source_feature_claims": [
+        "Preserve RPC async validation behavior: precompile consumer decoding, executor capability/registration, ECIES/user keys, supported sovereign agent types `0/4/5/6`, Phase 2 offset bounds, rich invalid-payload errors (`#204`, `#231`, `#307`)"
+      ],
+      "required_change": null,
+      "needs_atomization": false
+    },
+    {
+      "record_id": "file-0092-atom-0020",
+      "file_index": 92,
+      "atom_index": 20,
+      "atoms_total": 50,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 9: Chainspec, Genesis, And Config",
+      "source_kind": "other",
+      "source_snippet": "Feature-preservation claims: Preserve: Preserve eager-payload wait-with-empty-fallback behavior only if still operationally required (`#243`)",
+      "semantic_claim": "Preserve: Preserve eager-payload wait-with-empty-fallback behavior only if still operationally required (`#243`).",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "consensus-constant",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/payload.rs",
+          "symbols": [
+            "EthereumPayloadBuilder::build_payload_builder"
+          ],
+          "snippet": "EthereumBuilderConfig::new().with_gas_limit(gas_limit).with_await_payload_on_missing(false).with_max_blobs_per_block(...).with_extra_data(...)",
+          "evidence": "The node wiring now restores the downstream missing-payload fallback by selecting RaceEmptyPayload through the existing payload-builder toggle."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "EthereumPayloadBuilder::on_missing_payload"
+          ],
+          "snippet": "await_payload_on_missing=false returns MissingPayloadBehaviour::RaceEmptyPayload",
+          "evidence": "The runtime behavior is preserved through the existing v2.2 payload-builder state machine."
+        }
+      ],
+      "equivalence_argument": "Missing-payload resolution now races an empty payload instead of waiting for the in-progress job when no payload is available.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Preserve: Preserve eager-payload wait-with-empty-fallback behavior only if still operationally required (`#243`).",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Fixed in the v2.2 port during the feature-ordered pass; focused crate checks passed.",
+      "feature_derived": true,
+      "feature_sections": [
+        9
+      ],
+      "source_feature_ids": [
+        "feature-raw-0107"
+      ],
+      "source_feature_claims": [
+        "Preserve: Preserve eager-payload wait-with-empty-fallback behavior only if still operationally required (`#243`)"
+      ],
+      "needs_atomization": true
+    },
+    {
+      "record_id": "file-0092-atom-0021",
+      "file_index": 92,
+      "atom_index": 21,
+      "atoms_total": 50,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 9: Chainspec, Genesis, And Config",
+      "source_kind": "call_ordering",
+      "source_snippet": "Feature-preservation claims: Preserve payload deadline/sync policy: default `300ms`, obligation caps, async sim caps, builder/verifier policy boundary (`#282`, `#292`, `#332`), transient ONNX unavailability as retryable/`SYNCING` with bounded retry before unwind/escalation (`#298`, `#301`)",
+      "semantic_claim": "Preserve payload deadline/sync policy: default `300ms`, obligation caps, async sim caps, builder/verifier policy boundary (`#282`, `#292`, `#332`), transient ONNX unavailability as retryable/`SYNCING` with bounded retry before unwind/escalation (`#298`, `#301`).",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "scheduled",
+        "payload",
+        "verifier",
+        "consensus-constant"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Preserve payload deadline/sync policy: default `300ms`, obligation caps, async sim caps, builder/verifier policy boundary (`#282`, `#292`, `#332`), transient ONNX unavailability as retryable/`SYNCING` with bounded retry before unwind/escalation (`#298`, `#301`).",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0021"
+      },
+      "review_required": false,
+      "notes": "Broad payload preservation claim needs concrete atomization before it can justify code restoration.",
+      "feature_derived": true,
+      "feature_sections": [
+        9
+      ],
+      "source_feature_ids": [
+        "feature-raw-0109"
+      ],
+      "source_feature_claims": [
+        "Preserve payload deadline/sync policy: default `300ms`, obligation caps, async sim caps, builder/verifier policy boundary (`#282`, `#292`, `#332`), transient ONNX unavailability as retryable/`SYNCING` with bounded retry before unwind/escalation (`#298`, `#301`)"
+      ],
+      "required_change": null,
+      "needs_atomization": false
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 92,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "crates/ethereum/payload/src/lib.rs:430-451",
+      "source_kind": "state_transition",
+      "source_snippet": "const DEFAULT_MAX_REGULAR_ASYNC_SIMS_PER_BLOCK: usize = 32;\n\n#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]\nenum WorkClass {\n    // TODO(ritual): split into hard vs soft classes once validity constraints are enabled.\n    // Heartbeat/obligations should become non-demotable hard classes.\n    Heartbeat,\n    Obligations,\n    AsyncSims,\n    AsyncCommitments,\n    FulfilledAsync,\n    Delivery,\n    SequencingRights,\n    Regular,\n    Diagnostics,\n}\n\n#[derive(Debug, Clone, Copy, PartialEq, Eq)]\nenum ClassMode {\n    Active,\n    Optional,\n}",
+      "semantic_claim": "Payload building classifies heartbeat, obligations, async simulations, commitments, fulfilled async, delivery, sequencing rights, regular transactions, and diagnostics under one deadline and demotion policy.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "async-fsm",
+        "scheduled",
+        "negative-path"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [],
+      "equivalence_argument": null,
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope.",
+      "test_strategy": "flow_equivalence_regression",
+      "negative_test_candidate": "Replay the smallest Builder Obligation Compatibility, Scheduled Execution Trace scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "Builder Obligation Compatibility",
+        "Scheduled Execution Trace"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0040"
+      ],
+      "notes": "Sequencing-rights classification/reordering is not active in the current v2.2 slice. Payload building keeps upstream tip ordering plus scheduled/async obligation handling, so old sequencing-rights crate/API atoms are intentionally absent.",
+      "atom_index": 22,
+      "record_id": "file-0092-atom-0022",
+      "atoms_total": 50
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 92,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "crates/ethereum/payload/src/lib.rs:1297-1318",
+      "source_kind": "state_transition",
+      "source_snippet": "        }\n    }\n\n    // Phase 0b: Heartbeat checkAndRevive() \u2014 only when expired agents exist.\n    // On cold start/restart, hydrate tracker memory from heartbeat contract storage.\n    // This preserves revival checks even when node state is restored from snapshot\n    // and no historical heartbeat events are replayed locally.\n    {\n        if !build_policy.should_skip(WorkClass::Heartbeat) {\n            let hb_addr = ritual_scheduled_verification::get_heartbeat_address();\n            if hb_addr != Address::ZERO {\n                if build_policy.should_skip(WorkClass::Heartbeat) {\n                    debug!(\n                        target: \"ritual::heartbeat\",\n                        \"Skipping heartbeat expiration scan due to policy short-circuit\"\n                    );\n                } else {\n                    let building_block = parent_header.number + 1;\n                    let tracker_needs_hydration = {\n                        let tracker = ritual_heartbeat_tracker::HeartbeatTracker::instance()\n                            .read()\n                            .unwrap_or_else(|e| e.into_inner());",
+      "semantic_claim": "Heartbeat revival runs as a payload-builder phase that hydrates tracker state from contract storage on cold start and only injects checkAndRevive work when expired agents exist.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "scheduled",
+        "async-fsm"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [],
+      "equivalence_argument": null,
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope.",
+      "test_strategy": "flow_equivalence_regression",
+      "negative_test_candidate": "Replay the smallest Persistent Agent Heartbeat And Revival Trace scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "Persistent Agent Heartbeat And Revival Trace"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0041"
+      ],
+      "notes": "Heartbeat revival payload injection is not active in the v2.2 scheduled/async slice; the live scheduled FSM is based on Scheduler obligations, not heartbeat revival lanes.",
+      "atom_index": 23,
+      "record_id": "file-0092-atom-0023",
+      "atoms_total": 50
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 92,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "crates/ethereum/payload/src/lib.rs:1440-1461",
+      "source_kind": "state_transition",
+      "source_snippet": "            })\n            .collect();\n\n        let scheduler = ritual_scheduling::SynchronousScheduler::instance();\n        let pool_synced = scheduler.last_synced_block() >= parent_header.number;\n        let force_contract_scan =\n            std::env::var(\"RITUAL_FORCE_CONTRACT_SCAN\").map(|v| v != \"0\").unwrap_or(true);\n\n        // Compute obligations (C1-C10) and filter by C11 predicates.\n        // Default: use pool in-memory state when synced, fall back to contract scan.\n        // RITUAL_FORCE_CONTRACT_SCAN=1: always scan contract storage every block.\n        let ts_augmentation_start = ritual_metrics::tx::current_timestamp_micros();\n        let filtered_obligations = if build_policy.should_skip(WorkClass::Obligations) {\n            debug!(\n                target: \"payload_builder::policy\",\n                \"Skipping obligation computation due to policy demotion\"\n            );\n            Vec::new()\n        } else {\n            let ob_state_db = StateProviderDatabase::new(&state_provider);\n            let mut ob_db =\n                State::builder().with_database(ob_state_db).with_bundle_update().build();",
+      "semantic_claim": "Payload building hydrates scheduled state from the synchronous scheduler or forced contract scan before computing obligations against parent state and the global build deadline.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "scheduled",
+        "consensus-constant"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [],
+      "equivalence_argument": null,
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope.",
+      "test_strategy": "flow_equivalence_regression",
+      "negative_test_candidate": "Replay the smallest Scheduled Execution Trace scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "Scheduled Execution Trace"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0042"
+      ],
+      "notes": "Ritual metrics/tracing router surfaces are intentionally not part of the current runtime-critical v2.2 slice; no live consensus/FSM behavior depends on them.",
+      "atom_index": 24,
+      "record_id": "file-0092-atom-0024",
+      "atoms_total": 50
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 92,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "crates/ethereum/payload/src/lib.rs:1742-1763",
+      "source_kind": "state_transition",
+      "source_snippet": "                async_collection_metrics.combined_post_filter_regular_count,\n            )),\n        );\n        debug!(target: \"ritual::async\", async_tx_count = detected_async_transactions.len(), \"Collected async transactions at start of block building\");\n        if detected_async_transactions.is_empty() {\n            debug!(target: \"ritual::async\", \"WARNING: No async transactions detected despite async detection logs - check wallet balance, TTL, or transaction pool type\");\n        } else {\n            for (orig_hash, async_result) in &detected_async_transactions {\n                debug!(target: \"ritual::async\", orig_tx_hash = ?orig_hash, commitment_tx_hash = ?async_result.commitment_tx.hash(), \"Prepared async commitment transaction for execution\");\n            }\n        }\n\n        // Phase 2: Async System Transaction Execution\n        let ts_async_system_start = ritual_metrics::tx::current_timestamp_micros();\n        debug!(target: \"ritual::async\", commitment_count = detected_async_transactions.len(), \"Starting Phase 2: Executing async commitment transactions\");\n        if !build_policy.should_skip(WorkClass::AsyncCommitments) {\n            for (idx, (orig_hash, async_result)) in detected_async_transactions.iter().enumerate() {\n                if build_policy.should_break_loop(WorkClass::AsyncCommitments, idx) {\n                    debug!(\n                        target: \"payload_builder::policy\",\n                        loop_index = idx,\n                        \"Breaking async commitments loop due to policy demotion\"",
+      "semantic_claim": "Payload building collects async candidates at the start of block building and records collection stats, deadline fallback, scheduled candidate count, simulated count, accepted count, and skipped-due-to-deadline count.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "async-fsm",
+        "txpool",
+        "negative-path"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [],
+      "equivalence_argument": null,
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope.",
+      "test_strategy": "flow_equivalence_regression",
+      "negative_test_candidate": "Replay the smallest Short-Running Async SPC Trace, Builder Obligation Compatibility scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "Short-Running Async SPC Trace",
+        "Builder Obligation Compatibility"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0043"
+      ],
+      "notes": "Ritual metrics/tracing router surfaces are intentionally not part of the current runtime-critical v2.2 slice; no live consensus/FSM behavior depends on them.",
+      "atom_index": 25,
+      "record_id": "file-0092-atom-0025",
+      "atoms_total": 50
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 92,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "crates/ethereum/payload/src/lib.rs:2278-2299",
+      "source_kind": "state_transition",
+      "source_snippet": "            }\n        }\n\n        // Phase B: Collect Fulfilled Async Transactions\n        // Deadline guard: skip Phase B if build deadline already exceeded.\n        // Fulfilled async settlements can be picked up in the next block.\n        let async_commitment_txs_with_metadata = if build_policy\n            .should_skip(WorkClass::FulfilledAsync)\n        {\n            Vec::new()\n        } else if std::time::Instant::now() > global_deadline {\n            warn!(\n                target: \"ritual::async_pool::payload_builder\",\n                elapsed_ms = build_start.elapsed().as_millis(),\n                deadline_ms = builder_config.build_deadline.as_millis(),\n                \"Skipping Phase B (fulfilled async collection) \u2014 build deadline exceeded\"\n            );\n            Vec::new()\n        } else {\n            // Get fulfilled async-exec transactions with metadata converted from their original user\n            // transactions. This ensures we execute the original user transactions rather than system\n            // async-exec transactions.",
+      "semantic_claim": "Fulfilled async collection is skipped when the global deadline has passed and capped by RETH_MAX_FULFILLED_ASYNC_PER_BLOCK, allowing settlements to roll to later blocks instead of overrunning payload construction.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "async-fsm",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "required_change": null,
+      "test_strategy": "flow_equivalence_regression",
+      "negative_test_candidate": "Replay the smallest Short-Running Async SPC Trace, Builder Obligation Compatibility scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0026"
+      },
+      "review_required": false,
+      "flow_titles": [
+        "Short-Running Async SPC Trace",
+        "Builder Obligation Compatibility"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0044"
+      ],
+      "notes": "Payload deadline/cap/observability claim is broad and not all parts are active in this v2 slice; split into concrete runtime atoms before restoration.",
+      "atom_index": 26,
+      "record_id": "file-0092-atom-0026",
+      "atoms_total": 50,
+      "needs_atomization": false
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 92,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "crates/ethereum/payload/src/lib.rs:2337-2358",
+      "source_kind": "state_transition",
+      "source_snippet": "        let async_commitment_tx_count = async_commitment_txs_with_metadata.len();\n        debug!(target: \"ritual::async_pool::payload_builder\", async_commitment_count = async_commitment_tx_count, \"processing original async-exec transactions for block\");\n\n        // Batch-read SPC verification data for all fulfilled async transactions up front.\n        // This avoids creating a new StateProviderDatabase per transaction inside the loop.\n        #[cfg(feature = \"async-context\")]\n        let (spc_jobs_map, spc_executor_keys_map) = {\n            use ritual_async_registry::read_jobs_for_spc_verification;\n\n            let all_tx_hashes: Vec<B256> = async_commitment_txs_with_metadata\n                .iter()\n                .map(|(pool_tx, _)| *pool_tx.hash())\n                .collect();\n\n            let mut db = reth_revm::database::StateProviderDatabase::new(&state_provider);\n\n            let jobs_map = match read_jobs_for_spc_verification(&mut db, None, &all_tx_hashes) {\n                Ok(jobs) => jobs,\n                Err(err) => {\n                    warn!(target: \"ritual::async_pool::payload_builder\",\n                        error = %err,\n                        \"Batch SPC job read failed \u2014 falling back to per-tx verification\"",
+      "semantic_claim": "Fulfilled async processing batch-reads SPC verification data before per-transaction processing and falls back to per-tx verification only if the batch read fails.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "async-fsm",
+        "verifier"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "default_ethereum_payload",
+            "ritual async/scheduled phases"
+          ],
+          "snippet": "scheduled obligations, async commitments, fulfilled async settlements, delivery readiness, and regular transactions are handled in the unified v2.2 payload builder",
+          "evidence": "The old collector/bundle/unified_builder split is collapsed into the current payload builder; active behavior is present in one module and verified by focused scheduled/async checks."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/lib.rs",
+          "symbols": [
+            "try_decode_precompile_data",
+            "validate_async_payload"
+          ],
+          "snippet": "canonical async precompile decoding and validation surface",
+          "evidence": "The old ritual-async validation API moved into ritual-precompile-codecs and is consumed by RPC, payload, and verifier paths."
+        }
+      ],
+      "equivalence_argument": "Active payload async/scheduled/verifier behavior is preserved in the unified v2.2 payload builder plus verifier hooks.",
+      "test_strategy": "flow_equivalence_regression",
+      "negative_test_candidate": "Replay the smallest Short-Running Async SPC Trace, Executor And Operator Surface Compatibility scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "Short-Running Async SPC Trace",
+        "Executor And Operator Surface Compatibility"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0045"
+      ],
+      "notes": "Mapped to current payload builder/verifier structure.",
+      "atom_index": 27,
+      "record_id": "file-0092-atom-0027",
+      "atoms_total": 50
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 92,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "crates/ethereum/payload/src/lib.rs:2882-2903",
+      "source_kind": "state_transition",
+      "source_snippet": "            delivery_ready_txs\n        };\n\n        debug!(target: \"ritual::async_delivery::payload_builder\", count = delivery_ready_txs.len(), \"collecting Phase 2 delivery transactions\");\n\n        for (idx, (pool_tx, metadata)) in delivery_ready_txs.into_iter().enumerate() {\n            if build_policy.should_break_loop(WorkClass::Delivery, idx) {\n                debug!(\n                    target: \"payload_builder::policy\",\n                    loop_index = idx,\n                    \"Breaking delivery collection loop due to policy demotion\"\n                );\n                break;\n            }\n            let orig_tx_hash = *pool_tx.hash();\n            let job_id: B256 = orig_tx_hash.into();\n\n            // DEBUG: Log the job_id being used for Phase 2 lookup\n            debug!(target: \"ritual::async_delivery::payload_builder\",\n                tx_hash = ?orig_tx_hash,\n                job_id = ?job_id,\n                precompile = ?metadata.precompile_address,",
+      "semantic_claim": "Phase 2 delivery collection reads each delivery-ready job from AsyncJobTracker, defers jobs whose Phase 1 is not settled, and skips missing on-chain jobs instead of trusting pool state alone.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "async-fsm",
+        "verifier",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "get_delivery_ready_original_async_transactions",
+            "prepare_delivery_settlement_transaction"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "builder gathers delivery-ready pool entries and skips entries whose preparation fails"
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "prepare_delivery_settlement_transaction"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "checks AsyncJobTracker phase1-settled state"
+        }
+      ],
+      "equivalence_argument": "Phase 2 delivery collection is preserved by combining pool delivery-ready entries with contract-state checks that skip non-settled or missing jobs.",
+      "required_change": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Replay the smallest Long-Running Two-Phase Trace scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "Long-Running Two-Phase Trace"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0046"
+      ],
+      "notes": "Mapped to builder loop plus preparation guard.",
+      "atom_index": 28,
+      "record_id": "file-0092-atom-0028",
+      "atoms_total": 50,
+      "human_question": null
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 92,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "crates/ethereum/payload/src/lib.rs:2967-2988",
+      "source_kind": "error_path",
+      "source_snippet": "                    tx_hash = %orig_tx_hash,\n                    pool_input_hash = %metadata_input_hash,\n                    contract_input_hash = %contract_job.input_hash,\n                    \"Skipping Phase 2 delivery: pool precompile input hash does not match contract\"\n                );\n                continue;\n            }\n            if metadata.commit_block != contract_job.commit_block {\n                warn!(\n                    target: \"ritual::async_delivery::payload_builder\",\n                    tx_hash = %orig_tx_hash,\n                    pool_commit_block = metadata.commit_block,\n                    contract_commit_block = contract_job.commit_block,\n                    \"Skipping Phase 2 delivery: pool commit_block does not match contract\"\n                );\n                continue;\n            }\n            if metadata.precompile_address != contract_job.precompile_address {\n                warn!(\n                    target: \"ritual::async_delivery::payload_builder\",\n                    tx_hash = %orig_tx_hash,\n                    pool_precompile = %metadata.precompile_address,",
+      "semantic_claim": "Phase 2 delivery settlement checks pool metadata against contract state for precompile input hash, commit block, and precompile address before constructing a delivery transaction.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "async-fsm",
+        "verifier",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "prepare_delivery_settlement_transaction"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "validates pool metadata against contract precompile, commit block, input size/hash, and origin RLP"
+        }
+      ],
+      "equivalence_argument": "Delivery-settlement builder preserves pool-vs-contract checks for precompile address, commit block, input size, input hash, and origin tx RLP hash.",
+      "required_change": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Replay the smallest Long-Running Two-Phase Trace scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "Long-Running Two-Phase Trace"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0047"
+      ],
+      "notes": "Active guard behavior preserved.",
+      "atom_index": 29,
+      "record_id": "file-0092-atom-0029",
+      "atoms_total": 50,
+      "human_question": null
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 92,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "crates/ethereum/payload/src/lib.rs:2992-3013",
+      "source_kind": "error_path",
+      "source_snippet": "                continue;\n            }\n\n            // CONSENSUS CRITICAL: Check Phase 2 settlement expiry using contract's expiryBlock\n            // This MUST match the verifier's check - both use contract as source of truth\n            // For Phase 2: expiryBlock = max(commit_block + ttl, phase2Deadline)\n            // The contract extends expiry when markPhase1Settled() is called\n            if block_number > contract_job.expiry_block {\n                warn!(target: \"ritual::async_delivery::payload_builder\",\n                    tx_hash = ?orig_tx_hash,\n                    expiry_block = contract_job.expiry_block,\n                    current_block = block_number,\n                    blocks_past_expiry = block_number - contract_job.expiry_block,\n                    \"Skipping expired Phase 2 delivery - verifier would reject\"\n                );\n                continue;\n            }\n\n            // Create Phase 2 settlement transaction\n            // CONSENSUS CRITICAL: Pass contract_job for commit_block and precompile_address\n            // Perf: pass shared_state to avoid 2 additional State::builder() calls inside\n            let delivery_settlement = match create_delivery_settlement_transaction(",
+      "semantic_claim": "Phase 2 delivery expiry uses the contract expiry block, computed as max commit block plus TTL or Phase 2 deadline, so proposer-side inclusion cannot diverge from verifier-side contract checks.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "async-fsm",
+        "consensus-constant",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/async_pool.rs",
+          "symbols": [
+            "delivery_ready_entries",
+            "mark_awaiting_delivery"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "pool uses and updates contract_expiry_block"
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "prepare_delivery_settlement_transaction"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "payload checks current_block against contract expiry_block"
+        }
+      ],
+      "equivalence_argument": "Phase 2 delivery expiry is preserved by pool-side eligibility and payload-side contract expiry validation.",
+      "required_change": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Replay the smallest Long-Running Two-Phase Trace scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "Long-Running Two-Phase Trace"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0048"
+      ],
+      "notes": "Builder and pool use contract-derived expiry boundaries.",
+      "atom_index": 30,
+      "record_id": "file-0092-atom-0030",
+      "atoms_total": 50,
+      "human_question": null
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 92,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "crates/ethereum/payload/src/lib.rs:1-19",
+      "source_kind": "state_transition",
+      "source_snippet": "//! A basic Ethereum payload builder implementation.\n\n#![doc(\n    html_logo_url = \"https://raw.githubusercontent.com/paradigmxyz/reth/main/assets/reth-docs.png\",\n    html_favicon_url = \"https://avatars0.githubusercontent.com/u/97369466?s=256\",\n    issue_tracker_base_url = \"https://github.com/paradigmxyz/reth/issues/\"\n)]\n#![cfg_attr(not(test), warn(unused_crate_dependencies))]\n#![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg))]\n#![allow(clippy::useless_let_if_seq)]\n\npub mod bundle;\npub mod collector;\npub mod execution;\npub mod unified_builder;\npub mod unified_execution;\npub mod validator;\n\n// Re-export key types for unified building",
+      "semantic_claim": "Phase 2 delivery settlement construction verifies a delivery result exists, packs ZK result and proof together for ZK jobs, extracts the TEE address from the Phase 1 commitment, and creates the system settlement from contract job data.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "async-fsm",
+        "verifier",
+        "encoding"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "prepare_delivery_settlement_transaction"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "requires delivery result/proof, validates SPC context, packs ZK result+proof, and creates system settlement"
+        }
+      ],
+      "equivalence_argument": "Phase 2 delivery construction is preserved for active HTTP/ZK paths.",
+      "required_change": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Replay the smallest Long-Running Two-Phase Trace, zk_two_phase scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "Long-Running Two-Phase Trace",
+        "zk_two_phase"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0049"
+      ],
+      "notes": "Active payload behavior preserved.",
+      "atom_index": 31,
+      "record_id": "file-0092-atom-0031",
+      "atoms_total": 50,
+      "human_question": null
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 92,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "crates/ethereum/payload/src/lib.rs:5340-5361",
+      "source_kind": "state_transition",
+      "source_snippet": "            tx_hash = %orig_tx_hash,\n            iterations = iterations,\n            tool_calls = tool_calls,\n            \"Agent/Sovereign Agent Phase 2 pricing: work-based fee calculation\"\n        );\n\n        calculate_agent_fees_phase2_work(iterations, tool_calls)\n    } else if contract_job.precompile_address == IMAGE_CALL_PRECOMPILE {\n        // DA error short-circuit: if hasError=true, settle with constant fee\n        if delivery_has_error(metadata.delivery_result.as_ref()) {\n            tracing::warn!(\n                target: \"ritual::async_delivery::payload_builder::image\",\n                tx_hash = %orig_tx_hash,\n                \"Image Phase 2 delivery has error flag; settling with constant DA error fee\"\n            );\n            calculate_da_error_fees_phase2()\n        } else {\n            // Image calls: Per-pixel pricing\n            // Extract width and height from delivery result\n            let (width, height) = extract_image_dimensions_from_delivery(\n                metadata.delivery_result.as_ref(),\n            )",
+      "semantic_claim": "Phase 2 delivery pricing branches by precompile: sovereign agents charge work-based fees, media and FHE charge result-derived fees or DA-error fees, persistent agents charge spawn fees, and HTTP/ZK use block-based pricing.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "fees",
+        "async-fsm",
+        "precompile"
+      ],
+      "mapping_status": "blocked",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "calculate_agent_fees_phase2_work",
+            "calculate_async_fees_phase2"
+          ],
+          "snippet": "sovereign/persistent/HTTP/ZK pricing is present; media/FHE old result-derived pricing is not ported",
+          "evidence": "Current code supports long-HTTP, ZK, sovereign work-metric pricing, and persistent spawn fees; it does not implement old image/audio/video model-specific result pricing or FHE output-size pricing."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "is_supported_two_phase_precompile"
+          ],
+          "snippet": "supported set excludes IMAGE/AUDIO/VIDEO/FHE",
+          "evidence": "Payload/verifier fail-close unported media/FHE delivery families rather than accepting generic shared pricing."
+        }
+      ],
+      "equivalence_argument": null,
+      "required_change": "Split and port old multimodal/FHE Phase 2 pricing before marking this broad pricing branch atom green. Keep current fail-closed guards for unported families.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Replay the smallest Long-Running Two-Phase Trace, Product Economics Compatibility, Multimodal Precompile Trace scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "flow_titles": [
+        "Long-Running Two-Phase Trace",
+        "Product Economics Compatibility",
+        "Multimodal Precompile Trace"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0050"
+      ],
+      "notes": "Re-audited from first principles: previous dirty atom falsely claimed all registered two-phase precompiles were enabled through shared pricing. That would miss media/FHE old-FSM pricing differences. Supported-family pricing is covered by narrower atoms; this broad media/FHE-inclusive atom remains blocked.",
+      "atom_index": 32,
+      "record_id": "file-0092-atom-0032",
+      "atoms_total": 50,
+      "human_question": null
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 92,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "crates/ethereum/payload/src/lib.rs:5238-5259",
+      "source_kind": "encoding_rule",
+      "source_snippet": "/// Create Phase 2 delivery settlement transaction for long-running tasks\n/// This is called after polling completes for 0x0805 precompile transactions\n///\n/// Phase 2 settlement calls AsyncDelivery.deliver() for proper callback gas accounting.\n///\n/// Accepts a shared `&mut DB` to avoid constructing new State per operation.\nfn create_delivery_settlement_transaction<\n    PoolTx: reth_transaction_pool::PoolTransaction,\n    DB: revm::Database,\n>(\n    shared_db: &mut DB,\n    model_registry_contract: Address,\n    orig_tx_hash: &B256,\n    metadata: &reth_transaction_pool::pool::async_pool::AsyncTxMeta<PoolTx>,\n    contract_job: &ritual_async_registry::SettlementData,\n    base_fee: Option<u64>,\n    block_number: u64,\n) -> Result<(alloy_primitives::TxHash, Recovered<TransactionSigned>), String>\nwhere\n    DB::Error: std::fmt::Display,\n{\n    use alloy_consensus::{transaction::ASYNC_SETTLEMENT_SYSTEM_SENDER, TxAsyncSettlement};",
+      "semantic_claim": "Phase 2 delivery settlement encodes an AsyncDelivery.deliver call and pays only the executor fee, with validator fees set to zero because Phase 1 already paid validators.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "async-fsm",
+        "fees",
+        "encoding"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "prepare_delivery_settlement_transaction"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "encodes DELIVER_SELECTOR and creates TxAsyncSettlement with validator fees set to zero"
+        }
+      ],
+      "equivalence_argument": "Phase 2 delivery settlement calldata and fee assignment are preserved for the active delivery path.",
+      "required_change": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Replay the smallest Long-Running Two-Phase Trace scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "Long-Running Two-Phase Trace"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0051"
+      ],
+      "notes": "Validator fees are zero in Phase 2 because Phase 1 already paid validators.",
+      "atom_index": 33,
+      "record_id": "file-0092-atom-0033",
+      "atoms_total": 50,
+      "human_question": null
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 92,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "crates/ethereum/payload/src/lib.rs:2730-2751",
+      "source_kind": "state_transition",
+      "source_snippet": "                                    target: \"ritual::async::payload_builder\",\n                                    tx_hash = ?pool_tx.hash(),\n                                    injected_count = tx_passkey.spc_calls.as_ref().map(|v| v.len()).unwrap_or(0),\n                                    \"Injected SPC calls into Passkey transaction\"\n                                );\n                            }\n                            reth_ethereum_primitives::Transaction::AsyncSettlement(\n                                ref mut tx_settlement,\n                            ) => {\n                                tx_settlement.spc_calls = Some(spc_calls_to_inject.clone());\n                                tracing::debug!(\n                                    target: \"ritual::async::payload_builder\",\n                                    tx_hash = ?pool_tx.hash(),\n                                    injected_count = tx_settlement.spc_calls.as_ref().map(|v| v.len()).unwrap_or(0),\n                                    delivery_spc_count = tx_settlement.delivery_spc_calls.as_ref().map(|v| v.len()).unwrap_or(0),\n                                    \"Injected SPC calls into AsyncSettlement transaction (nested async from delivery)\"\n                                );\n                            }\n                            _ => {\n                                // Other transaction types don't support SPC calls\n                            }\n                        }",
+      "semantic_claim": "Payload building injects SPC call data into passkey transactions when replaying fulfilled async outputs so passkey/P-256 transactions can carry the same settlement context as normal async transactions.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "encoding",
+        "async-fsm"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "default_ethereum_payload",
+            "ritual async/scheduled phases"
+          ],
+          "snippet": "scheduled obligations, async commitments, fulfilled async settlements, delivery readiness, and regular transactions are handled in the unified v2.2 payload builder",
+          "evidence": "The old collector/bundle/unified_builder split is collapsed into the current payload builder; active behavior is present in one module and verified by focused scheduled/async checks."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/lib.rs",
+          "symbols": [
+            "try_decode_precompile_data",
+            "validate_async_payload"
+          ],
+          "snippet": "canonical async precompile decoding and validation surface",
+          "evidence": "The old ritual-async validation API moved into ritual-precompile-codecs and is consumed by RPC, payload, and verifier paths."
+        }
+      ],
+      "equivalence_argument": "Active payload async/scheduled/verifier behavior is preserved in the unified v2.2 payload builder plus verifier hooks.",
+      "test_strategy": "flow_equivalence_regression",
+      "negative_test_candidate": "Replay the smallest Passkey / P-256 Trace, Short-Running Async SPC Trace scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "Passkey / P-256 Trace",
+        "Short-Running Async SPC Trace"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0052"
+      ],
+      "notes": "Mapped to current payload builder/verifier structure.",
+      "atom_index": 34,
+      "record_id": "file-0092-atom-0034",
+      "atoms_total": 50
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 92,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "crates/ethereum/payload/src/lib.rs:3299-3320",
+      "source_kind": "call_ordering",
+      "source_snippet": "        );\n\n        // =========================================================================\n        // Phase E: Tip-Maximizing Sort + Sequencing Rights\n        // =========================================================================\n        let ts_sort_start = ritual_metrics::tx::current_timestamp_micros();\n        unified_collection.sort_by_tip();\n\n        // Deadline guard: skip sequencing rights EVM simulation if build deadline exceeded.\n        // sort_by_tip() is O(n log n) and cheap \u2014 always run it.\n        // apply_sequencing_rights() is expensive (parallel EVM simulations) \u2014 skip if over budget.\n        if build_policy.should_skip(WorkClass::SequencingRights) {\n            debug!(\n                target: \"payload_builder::policy\",\n                entries = unified_collection.len(),\n                \"Skipping sequencing rights reordering due to policy demotion\"\n            );\n        } else if std::time::Instant::now() > global_deadline {\n            build_policy.demote_class(WorkClass::SequencingRights, \"build deadline exceeded\");\n            warn!(\n                target: \"ritual::sequencing_rights\",\n                elapsed_ms = build_start.elapsed().as_millis(),",
+      "semantic_claim": "Payload sorting applies tip-maximizing ordering together with sequencing-rights policy and can demote sequencing-rights work when the build deadline is exceeded.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "executor-selection",
+        "negative-path"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [],
+      "equivalence_argument": null,
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope.",
+      "test_strategy": "flow_equivalence_regression",
+      "negative_test_candidate": "Replay the smallest sequencing_rights_simple, Builder Obligation Compatibility scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "sequencing_rights_simple",
+        "Builder Obligation Compatibility"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0053"
+      ],
+      "notes": "Ritual metrics/tracing router surfaces are intentionally not part of the current runtime-critical v2.2 slice; no live consensus/FSM behavior depends on them.",
+      "atom_index": 35,
+      "record_id": "file-0092-atom-0035",
+      "atoms_total": 50
+    },
+    {
+      "record_type": "pr_preservation_derived_atom",
+      "pr_preservation_derived": true,
+      "pr_preservation_grounded": true,
+      "file_index": 92,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "crates/ethereum/payload/src/lib.rs:2310-2330",
+      "source_kind": "consensus_constant",
+      "source_snippet": "\n        // Cap fulfilled async transactions to prevent unbounded backlog from consuming\n        // block building budget. Each entry involves contract state reads + SPC signature\n        // verification. If commitments outpace settlements, the backlog grows unboundedly.\n        let max_fulfilled_async: usize = std::env::var(\"RETH_MAX_FULFILLED_ASYNC_PER_BLOCK\")\n            .ok()\n            .and_then(|s| s.parse().ok())\n            .unwrap_or(64);\n        let async_commitment_total = async_commitment_txs_with_metadata.len();\n        let async_commitment_txs_with_metadata = if async_commitment_total > max_fulfilled_async {\n            warn!(\n                target: \"ritual::async_pool::payload_builder\",\n                total = async_commitment_total,\n                cap = max_fulfilled_async,\n                \"Capping fulfilled async transactions to RETH_MAX_FULFILLED_ASYNC_PER_BLOCK\"\n            );\n            build_policy.observe_cap_hit(\n                WorkClass::FulfilledAsync,\n                async_commitment_total,\n                max_fulfilled_async,\n                \"RETH_MAX_FULFILLED_ASYNC_PER_BLOCK\",",
+      "semantic_claim": "PR preservation `#83` `etherscan-investigation` keeps live downstream behavior: commitment/settlement flow.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "encoding",
+        "payload",
+        "precompile",
+        "txpool",
+        "verifier"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "required_change": null,
+      "test_strategy": "pr_diff_equivalence_regression",
+      "negative_test_candidate": "Replay or unit-test the smallest downstream scenario introduced by #83 that exercises `commitment/settlement flow` and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0036"
+      },
+      "review_required": false,
+      "source_prs": [
+        {
+          "key": "#83",
+          "slug": "etherscan-investigation",
+          "merge_commit": "6069fcf2f345b5ae35151cd3bf2278681e79374f"
+        }
+      ],
+      "source_pr_claims": [
+        "commitment/settlement flow"
+      ],
+      "source_flow_ids": [
+        "pr-raw-0008"
+      ],
+      "notes": "Broad payload preservation claim needs concrete atomization before it can justify code restoration.",
+      "atom_index": 36,
+      "record_id": "file-0092-atom-0036",
+      "atoms_total": 50,
+      "needs_atomization": false
+    },
+    {
+      "record_type": "pr_preservation_derived_atom",
+      "pr_preservation_derived": true,
+      "pr_preservation_grounded": true,
+      "file_index": 92,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "crates/ethereum/payload/src/lib.rs:1776-1796",
+      "source_kind": "state_transition",
+      "source_snippet": "                debug!(target: \"ritual::async\", orig_tx_hash = ?orig_hash, commitment_tx_hash = ?async_result.commitment_tx.hash(), \"executing async system transaction\");\n                // Update commitment transaction with correct previous block data before execution\n                // CONSENSUS CRITICAL: Skip transaction if block context lookup fails\n                let updated_commitment_tx = match update_commitment_tx_with_simulation_context(\n                    &async_result.commitment_tx,\n                    &client,\n                    parent_header.number,\n                ) {\n                    Ok(tx) => tx,\n                    Err(err) => {\n                        error!(target: \"ritual::async\",\n                            orig_tx_hash = ?orig_hash,\n                            error = %err,\n                            \"Failed to update commitment context - skipping async transaction\"\n                        );\n                        continue;\n                    }\n                };\n\n                // Check block size limit for async commitment transaction (including log estimation)\n                let commitment_tx_size = estimate_total_tx_size(&updated_commitment_tx);",
+      "semantic_claim": "PR preservation `#93` `executor-rs` keeps live downstream behavior: parent/simulation context rewriting.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "precompile",
+        "txpool",
+        "verifier"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "required_change": null,
+      "test_strategy": "pr_diff_equivalence_regression",
+      "negative_test_candidate": "Replay or unit-test the smallest downstream scenario introduced by #93 that exercises `parent/simulation context rewriting` and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0037"
+      },
+      "review_required": false,
+      "source_prs": [
+        {
+          "key": "#93",
+          "slug": "executor-rs",
+          "merge_commit": "ed503ac7d3761f20ca4ef30a97cfba8201a80c6f"
+        }
+      ],
+      "source_pr_claims": [
+        "parent/simulation context rewriting"
+      ],
+      "source_flow_ids": [
+        "pr-raw-0014"
+      ],
+      "notes": "Broad payload preservation claim needs concrete atomization before it can justify code restoration.",
+      "atom_index": 37,
+      "record_id": "file-0092-atom-0037",
+      "atoms_total": 50,
+      "needs_atomization": false
+    },
+    {
+      "record_type": "pr_preservation_derived_atom",
+      "pr_preservation_derived": true,
+      "pr_preservation_grounded": true,
+      "file_index": 92,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "crates/ethereum/payload/src/lib.rs:3065-3085",
+      "source_kind": "encoding_rule",
+      "source_snippet": "                    // Fall through to execute delivery normally (no nested async)\n                } else {\n                    // Wallet check passed \u2014 defer delivery for nested async processing.\n                    // The delivery settlement becomes the origin TX of a new commitment.\n                    // Execute the commitment TX inline (same pattern as Phase 2).\n                    info!(\n                        target: \"ritual::async_delivery::payload_builder\",\n                        tx_hash = %orig_tx_hash,\n                        delivery_hash = %_settlement_hash,\n                        user = ?contract_job.sender,\n                        \"Delivery callback triggered nested async \u2014 executing commitment, deferring delivery\"\n                    );\n\n                    // Update commitment TX with correct previous block context\n                    let updated_commitment_tx = match update_commitment_tx_with_simulation_context(\n                        &nested_async.commitment_tx,\n                        &client,\n                        parent_header.number,\n                    ) {\n                        Ok(tx) => tx,\n                        Err(err) => {",
+      "semantic_claim": "PR preservation `#93` `executor-rs` keeps live downstream behavior: settlement origin hashing.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "encoding",
+        "payload",
+        "precompile",
+        "txpool",
+        "verifier"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "prepare_fulfilled_async_settlement",
+            "prepare_delivery_settlement_transaction"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "uses original tx hash as job id and validates commitment origin_tx"
+        }
+      ],
+      "equivalence_argument": "Settlement origin hashing is preserved by using original tx hash as job id and checking commitment origin_tx in both settlement phases.",
+      "required_change": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Replay or unit-test the smallest downstream scenario introduced by #93 that exercises `settlement origin hashing` and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "source_prs": [
+        {
+          "key": "#93",
+          "slug": "executor-rs",
+          "merge_commit": "ed503ac7d3761f20ca4ef30a97cfba8201a80c6f"
+        }
+      ],
+      "source_pr_claims": [
+        "settlement origin hashing"
+      ],
+      "source_flow_ids": [
+        "pr-raw-0015"
+      ],
+      "notes": "Mapped to active payload preparation.",
+      "atom_index": 38,
+      "record_id": "file-0092-atom-0038",
+      "atoms_total": 50,
+      "human_question": null
+    },
+    {
+      "record_type": "pr_preservation_derived_atom",
+      "pr_preservation_derived": true,
+      "pr_preservation_grounded": true,
+      "file_index": 92,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "crates/ethereum/payload/src/lib.rs:3471-3491",
+      "source_kind": "state_transition",
+      "source_snippet": "                        // somehow fires during building, skip the tx rather than abort.\n                        #[cfg(feature = \"async-context\")]\n                        Err(BlockExecutionError::Validation(\n                            BlockValidationError::OnnxModelUnavailableForVerification { .. },\n                        )) => {\n                            warn!(target: \"payload_builder\",\n                                tx_hash = ?tx.hash(),\n                                \"Unexpected OnnxModelUnavailableForVerification during building, skipping\"\n                            );\n                            continue;\n                        }\n                        // NOTE: This catch-all covers any BlockValidationError variant not\n                        // explicitly matched above. If new variants are added to\n                        // BlockValidationError in ritual-alloy-evm-internal, they will be\n                        // silently skipped here. Add explicit arms for any new variant that\n                        // should abort building or evict from pool.\n                        #[cfg(feature = \"async-context\")]\n                        Err(BlockExecutionError::Validation(err)) => {\n                            warn!(target: \"payload_builder\",\n                                tx_hash = ?tx.hash(),\n                                error = %err,",
+      "semantic_claim": "PR preservation `#122` `scheduling-eviction` keeps live downstream behavior: verification mode for all txs during block verification.",
+      "high_risk": true,
+      "risk_tags": [
+        "precompile",
+        "scheduled",
+        "txpool",
+        "verifier"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "required_change": null,
+      "test_strategy": "pr_diff_equivalence_regression",
+      "negative_test_candidate": "Replay or unit-test the smallest downstream scenario introduced by #122 that exercises `verification mode for all txs during block verification` and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0039"
+      },
+      "review_required": false,
+      "source_prs": [
+        {
+          "key": "#122",
+          "slug": "scheduling-eviction",
+          "merge_commit": "9025328b5218757656b0e228494523d6fa310114"
+        }
+      ],
+      "source_pr_claims": [
+        "verification mode for all txs during block verification"
+      ],
+      "source_flow_ids": [
+        "pr-raw-0034"
+      ],
+      "notes": "Broad payload preservation claim needs concrete atomization before it can justify code restoration.",
+      "atom_index": 39,
+      "record_id": "file-0092-atom-0039",
+      "atoms_total": 50,
+      "needs_atomization": false
+    },
+    {
+      "record_type": "pr_preservation_derived_atom",
+      "pr_preservation_derived": true,
+      "pr_preservation_grounded": true,
+      "file_index": 92,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "crates/ethereum/payload/src/lib.rs:397-417",
+      "source_kind": "call_ordering",
+      "source_snippet": "};\nuse ritual_async_inspector::max_ttl_blocks;\nuse ritual_async_registry;\n// Sequencing rights reordering for contract-defined transaction ordering\nuse ritual_sequencing_rights::reorder_block;\nuse std::{\n    collections::{HashMap, HashSet},\n    sync::{Arc, OnceLock},\n    time::{Duration, Instant},\n};\nuse tracing::{debug, error, info, trace, warn};\n\nconst DEFAULT_PAYLOAD_SEAL_EPSILON_MS: u64 = 25;\nconst DEFAULT_POLICY_LOOP_CHECK_INTERVAL: usize = 16;\nconst DEFAULT_REVIVAL_SKIP_PCT: u64 = 80;\nconst DEFAULT_REVIVAL_SKIP_MIN_COUNT: usize = 1;\nconst DEFAULT_MAX_REVIVAL_SIMS_WHEN_STALLED: usize = 2;\n\n/// Hard ceiling on combined Phase-1 async simulations per block (`RETH_MAX_ASYNC_SIMS_PER_BLOCK`).\nconst DEFAULT_MAX_ASYNC_SIMS_PER_BLOCK: usize = 50;\n/// Soft per-category cap for scheduled async sims (`RETH_MAX_SCHEDULED_ASYNC_SIMS_PER_BLOCK`).",
+      "semantic_claim": "PR preservation `#230` `jungle-ass` keeps live downstream behavior: sequencing-rights classification/reordering plus verifier checks.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "verifier"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "required_change": null,
+      "test_strategy": "pr_diff_equivalence_regression",
+      "negative_test_candidate": "Replay or unit-test the smallest downstream scenario introduced by #230 that exercises `sequencing-rights classification/reordering plus verifier checks` and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0040"
+      },
+      "review_required": false,
+      "source_prs": [
+        {
+          "key": "#230",
+          "slug": "jungle-ass",
+          "merge_commit": "d8ce28a47c715ff3f39ce3e10327ab730f1b04d0"
+        }
+      ],
+      "source_pr_claims": [
+        "sequencing-rights classification/reordering plus verifier checks"
+      ],
+      "source_flow_ids": [
+        "pr-raw-0069"
+      ],
+      "notes": "Observability/metrics preservation claim is broad and not a live consensus/RPC/FSM requirement. It needs atomization into concrete shipped operator APIs before restoration.",
+      "atom_index": 40,
+      "record_id": "file-0092-atom-0040",
+      "atoms_total": 50,
+      "needs_atomization": false
+    },
+    {
+      "record_type": "pr_preservation_derived_atom",
+      "pr_preservation_derived": true,
+      "pr_preservation_grounded": true,
+      "file_index": 92,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "crates/ethereum/payload/src/lib.rs:414-434",
+      "source_kind": "state_transition",
+      "source_snippet": "\n/// Hard ceiling on combined Phase-1 async simulations per block (`RETH_MAX_ASYNC_SIMS_PER_BLOCK`).\nconst DEFAULT_MAX_ASYNC_SIMS_PER_BLOCK: usize = 50;\n/// Soft per-category cap for scheduled async sims (`RETH_MAX_SCHEDULED_ASYNC_SIMS_PER_BLOCK`).\n///\n/// Per-category caps are **soft floors, not hard ceilings**: when the other lane has\n/// unmet demand, leftover budget within `RETH_MAX_ASYNC_SIMS_PER_BLOCK` overflows into\n/// this lane. To truly disable scheduled-lane sims, set this to `0`.\n///\n/// Note: if `RETH_MAX_SCHEDULED_ASYNC_SIMS_PER_BLOCK + RETH_MAX_REGULAR_ASYNC_SIMS_PER_BLOCK`\n/// exceeds `RETH_MAX_ASYNC_SIMS_PER_BLOCK`, scheduled is truncated first (regular wins).\n/// `validate_async_sim_caps_once()` warns at startup if this configuration would silently\n/// zero a lane.\nconst DEFAULT_MAX_SCHEDULED_ASYNC_SIMS_PER_BLOCK: usize = 32;\n/// Soft per-category cap for regular pool async sims (`RETH_MAX_REGULAR_ASYNC_SIMS_PER_BLOCK`).\n/// Same overflow semantics as the scheduled cap; set to `0` to disable the regular lane.\nconst DEFAULT_MAX_REGULAR_ASYNC_SIMS_PER_BLOCK: usize = 32;\n\n#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]\nenum WorkClass {\n    // TODO(ritual): split into hard vs soft classes once validity constraints are enabled.",
+      "semantic_claim": "PR preservation `#231` `rpc-async-feedback` keeps live downstream behavior: parity across scheduled/sequencing/async paths.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "rpc",
+        "scheduled"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "required_change": null,
+      "test_strategy": "pr_diff_equivalence_regression",
+      "negative_test_candidate": "Replay or unit-test the smallest downstream scenario introduced by #231 that exercises `parity across scheduled/sequencing/async paths` and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0041"
+      },
+      "review_required": false,
+      "source_prs": [
+        {
+          "key": "#231",
+          "slug": "rpc-async-feedback",
+          "merge_commit": "7084b9e331ab9b4ed7b74587d71d6051ab20c5d4"
+        }
+      ],
+      "source_pr_claims": [
+        "parity across scheduled/sequencing/async paths"
+      ],
+      "source_flow_ids": [
+        "pr-raw-0072"
+      ],
+      "notes": "Broad payload preservation claim needs concrete atomization before it can justify code restoration.",
+      "atom_index": 41,
+      "record_id": "file-0092-atom-0041",
+      "atoms_total": 50,
+      "needs_atomization": false
+    },
+    {
+      "record_type": "pr_preservation_derived_atom",
+      "pr_preservation_derived": true,
+      "pr_preservation_grounded": true,
+      "file_index": 92,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "crates/ethereum/payload/src/lib.rs:4215-4235",
+      "source_kind": "error_path",
+      "source_snippet": "/// * `coinbase` - The block proposer's coinbase address (from suggested_fee_recipient)\n///\n/// # Errors\n/// Returns `PayloadBuilderError` if parent state cannot be accessed for job existence checks.\n/// This is consensus-critical - we must be able to check for duplicate jobs.\n/// One-shot startup validation of the per-category async-sim caps.\n///\n/// Warns once per process if the configured caps would silently zero a lane (the\n/// \"misconfig cliff\": when `scheduled_cap >= total_cap` and `regular_cap > 0`,\n/// the allocator's overflow rule forces scheduled to 0). Subsequent calls are no-ops.\nfn validate_async_sim_caps_once() {\n    use std::sync::OnceLock;\n    static WARNED: OnceLock<()> = OnceLock::new();\n    if WARNED.set(()).is_err() {\n        return;\n    }\n\n    let total: usize = std::env::var(\"RETH_MAX_ASYNC_SIMS_PER_BLOCK\")\n        .ok()\n        .and_then(|s| s.parse().ok())\n        .unwrap_or(DEFAULT_MAX_ASYNC_SIMS_PER_BLOCK);",
+      "semantic_claim": "PR preservation `#260` `single-node` keeps live downstream behavior: parent-state AsyncJobTracker duplicate checks in builder/verifier.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "negative-path",
+        "payload",
+        "txpool",
+        "verifier"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "required_change": null,
+      "test_strategy": "pr_diff_equivalence_regression",
+      "negative_test_candidate": "Replay or unit-test the smallest downstream scenario introduced by #260 that exercises `parent-state AsyncJobTracker duplicate checks in builder/verifier` and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0042"
+      },
+      "review_required": false,
+      "source_prs": [
+        {
+          "key": "#260",
+          "slug": "single-node",
+          "merge_commit": "871cd771d400fd532492b6d69d02e200cc37ce2c"
+        }
+      ],
+      "source_pr_claims": [
+        "parent-state AsyncJobTracker duplicate checks in builder/verifier"
+      ],
+      "source_flow_ids": [
+        "pr-raw-0090"
+      ],
+      "notes": "Broad payload preservation claim needs concrete atomization before it can justify code restoration.",
+      "atom_index": 42,
+      "record_id": "file-0092-atom-0042",
+      "atoms_total": 50,
+      "needs_atomization": false
+    },
+    {
+      "record_type": "pr_preservation_derived_atom",
+      "pr_preservation_derived": true,
+      "pr_preservation_grounded": true,
+      "file_index": 92,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "crates/ethereum/payload/src/lib.rs:2741-2761",
+      "source_kind": "encoding_rule",
+      "source_snippet": "                                    target: \"ritual::async::payload_builder\",\n                                    tx_hash = ?pool_tx.hash(),\n                                    injected_count = tx_settlement.spc_calls.as_ref().map(|v| v.len()).unwrap_or(0),\n                                    delivery_spc_count = tx_settlement.delivery_spc_calls.as_ref().map(|v| v.len()).unwrap_or(0),\n                                    \"Injected SPC calls into AsyncSettlement transaction (nested async from delivery)\"\n                                );\n                            }\n                            _ => {\n                                // Other transaction types don't support SPC calls\n                            }\n                        }\n                    }\n\n                    // Create new TransactionSigned with modified transaction (now with SPC calls)\n                    let tx_for_execution =\n                        reth_ethereum_primitives::TransactionSigned::new_with_signature(\n                            modified_transaction,\n                            tx.full_signature().clone(),\n                            *tx.hash(),\n                        )\n                        .with_signer(tx.signer());",
+      "semantic_claim": "PR preservation `#270` `second-phase-valconstraint` keeps live downstream behavior: `delivery_spc_calls` in receipts/codecs.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "encoding",
+        "payload",
+        "rpc",
+        "verifier"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "required_change": null,
+      "test_strategy": "pr_diff_equivalence_regression",
+      "negative_test_candidate": "Replay or unit-test the smallest downstream scenario introduced by #270 that exercises ``delivery_spc_calls` in receipts/codecs` and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0043"
+      },
+      "review_required": false,
+      "source_prs": [
+        {
+          "key": "#270",
+          "slug": "second-phase-valconstraint",
+          "merge_commit": "dd9b6b73b3cfd06f3b1c0eb24aef88624780081a"
+        }
+      ],
+      "source_pr_claims": [
+        "`delivery_spc_calls` in receipts/codecs"
+      ],
+      "source_flow_ids": [
+        "pr-raw-0107"
+      ],
+      "notes": "Broad payload preservation claim needs concrete atomization before it can justify code restoration.",
+      "atom_index": 43,
+      "record_id": "file-0092-atom-0043",
+      "atoms_total": 50,
+      "needs_atomization": false
+    },
+    {
+      "record_type": "pr_preservation_derived_atom",
+      "pr_preservation_derived": true,
+      "pr_preservation_grounded": true,
+      "file_index": 92,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "crates/ethereum/payload/src/lib.rs:2967-2987",
+      "source_kind": "state_transition",
+      "source_snippet": "                    tx_hash = %orig_tx_hash,\n                    pool_input_hash = %metadata_input_hash,\n                    contract_input_hash = %contract_job.input_hash,\n                    \"Skipping Phase 2 delivery: pool precompile input hash does not match contract\"\n                );\n                continue;\n            }\n            if metadata.commit_block != contract_job.commit_block {\n                warn!(\n                    target: \"ritual::async_delivery::payload_builder\",\n                    tx_hash = %orig_tx_hash,\n                    pool_commit_block = metadata.commit_block,\n                    contract_commit_block = contract_job.commit_block,\n                    \"Skipping Phase 2 delivery: pool commit_block does not match contract\"\n                );\n                continue;\n            }\n            if metadata.precompile_address != contract_job.precompile_address {\n                warn!(\n                    target: \"ritual::async_delivery::payload_builder\",\n                    tx_hash = %orig_tx_hash,",
+      "semantic_claim": "PR preservation `#270` `second-phase-valconstraint` keeps live downstream behavior: contract-derived delivery verification.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "encoding",
+        "payload",
+        "rpc",
+        "verifier"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "prepare_delivery_settlement_transaction"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "re-reads contract job/SPC state and verifies delivery proof"
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_async_settlement",
+            "validate_spc_calls"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "verifier validates delivery settlements and delivery_spc_calls"
+        }
+      ],
+      "equivalence_argument": "Contract-derived delivery verification is preserved in both builder and verifier paths.",
+      "required_change": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Replay or unit-test the smallest downstream scenario introduced by #270 that exercises `contract-derived delivery verification` and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "source_prs": [
+        {
+          "key": "#270",
+          "slug": "second-phase-valconstraint",
+          "merge_commit": "dd9b6b73b3cfd06f3b1c0eb24aef88624780081a"
+        }
+      ],
+      "source_pr_claims": [
+        "contract-derived delivery verification"
+      ],
+      "source_flow_ids": [
+        "pr-raw-0109"
+      ],
+      "notes": "Active Phase 2 delivery is not trusted from pool state alone.",
+      "atom_index": 44,
+      "record_id": "file-0092-atom-0044",
+      "atoms_total": 50,
+      "human_question": null
+    },
+    {
+      "record_type": "pr_preservation_derived_atom",
+      "pr_preservation_derived": true,
+      "pr_preservation_grounded": true,
+      "file_index": 92,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "crates/ethereum/payload/src/lib.rs:1240-1260",
+      "source_kind": "consensus_constant",
+      "source_snippet": "    ));\n    let mut total_fees = U256::ZERO;\n\n    // Global build deadline -- used by ALL phases to prevent unbounded computation.\n    let build_start = std::time::Instant::now();\n    let global_deadline = build_start + builder_config.build_deadline;\n    let mut build_policy = BuildPolicyState::from_env(global_deadline);\n\n    builder.apply_pre_execution_changes().map_err(|err| {\n        warn!(target: \"payload_builder\", %err, \"failed to apply pre-execution changes\");\n        PayloadBuilderError::Internal(err.into())\n    })?;\n\n    let mut block_blob_count = 0;\n    let blob_params = chain_spec.blob_params_at_timestamp(attributes.timestamp);\n    let max_blob_count =\n        blob_params.as_ref().map(|params| params.max_blob_count).unwrap_or_default();\n\n    let ts_heartbeat_phase_start = ritual_metrics::tx::current_timestamp_micros();\n    let mut heartbeat_check_tx_count = 0usize;\n",
+      "semantic_claim": "PR preservation `#292` `sadpaths-halt-protection` keeps live downstream behavior: DoS bounds: build deadline default.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "negative-path",
+        "payload",
+        "txpool",
+        "verifier"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "required_change": null,
+      "test_strategy": "pr_diff_equivalence_regression",
+      "negative_test_candidate": "Replay or unit-test the smallest downstream scenario introduced by #292 that exercises `DoS bounds: build deadline default` and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0045"
+      },
+      "review_required": false,
+      "source_prs": [
+        {
+          "key": "#292",
+          "slug": "sadpaths-halt-protection",
+          "merge_commit": "8663a6b1a411f398908cc36ad99451e77b4f5aa1"
+        }
+      ],
+      "source_pr_claims": [
+        "DoS bounds: build deadline default"
+      ],
+      "source_flow_ids": [
+        "pr-raw-0131"
+      ],
+      "notes": "Observability/metrics preservation claim is broad and not a live consensus/RPC/FSM requirement. It needs atomization into concrete shipped operator APIs before restoration.",
+      "atom_index": 45,
+      "record_id": "file-0092-atom-0045",
+      "atoms_total": 50,
+      "needs_atomization": false
+    },
+    {
+      "record_type": "pr_preservation_derived_atom",
+      "pr_preservation_derived": true,
+      "pr_preservation_grounded": true,
+      "file_index": 92,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "crates/ethereum/payload/src/lib.rs:3461-3481",
+      "source_kind": "error_path",
+      "source_snippet": "                            best_txs.mark_invalid(\n                                &pool_tx,\n                                InvalidPoolTransactionError::Consensus(\n                                    InvalidTransactionError::PrecompileRequestPermanentlyInvalid,\n                                ),\n                            );\n                            continue;\n                        }\n                        // OnnxModelUnavailableForVerification is only set in verification mode,\n                        // never during building. Handled here as a defensive fallback \u2014 if it\n                        // somehow fires during building, skip the tx rather than abort.\n                        #[cfg(feature = \"async-context\")]\n                        Err(BlockExecutionError::Validation(\n                            BlockValidationError::OnnxModelUnavailableForVerification { .. },\n                        )) => {\n                            warn!(target: \"payload_builder\",\n                                tx_hash = ?tx.hash(),\n                                \"Unexpected OnnxModelUnavailableForVerification during building, skipping\"\n                            );\n                            continue;\n                        }",
+      "semantic_claim": "PR preservation `#298` `fix-onnx-building-verification-divergence` keeps live downstream behavior: permanent invalid precompile requests remain evictable.",
+      "high_risk": true,
+      "risk_tags": [
+        "negative-path",
+        "precompile"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "required_change": null,
+      "test_strategy": "pr_diff_equivalence_regression",
+      "negative_test_candidate": "Replay or unit-test the smallest downstream scenario introduced by #298 that exercises `permanent invalid precompile requests remain evictable` and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0046"
+      },
+      "review_required": false,
+      "source_prs": [
+        {
+          "key": "#298",
+          "slug": "fix-onnx-building-verification-divergence",
+          "merge_commit": "5c9e7e1842ee1fcea74db679738eed9b905909fd"
+        }
+      ],
+      "source_pr_claims": [
+        "permanent invalid precompile requests remain evictable"
+      ],
+      "source_flow_ids": [
+        "pr-raw-0136"
+      ],
+      "notes": "Broad payload preservation claim needs concrete atomization before it can justify code restoration.",
+      "atom_index": 46,
+      "record_id": "file-0092-atom-0046",
+      "atoms_total": 50,
+      "needs_atomization": false
+    },
+    {
+      "record_type": "pr_preservation_derived_atom",
+      "pr_preservation_derived": true,
+      "pr_preservation_grounded": true,
+      "file_index": 92,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "crates/ethereum/payload/src/lib.rs:3808-3828",
+      "source_kind": "error_path",
+      "source_snippet": "                                target: \"ritual::async_settlement::payload_builder\",\n                                tx_hash = ?tx_hash,\n                                error = ?err,\n                                \"Atomicity violation prevented: settlement execution failed after original execution\"\n                            );\n                            return Err(PayloadBuilderError::evm(err));\n                        }\n                    }\n                    executed_count += 1;\n                }\n\n                unified_execution::PreparedBundle::DeliverySettlement {\n                    origin_tx_hash,\n                    settlement_tx,\n                    ..\n                } => {\n                    let origin_tx_hash_str = origin_tx_hash.to_string();\n                    let settlement_tx_hash_str = settlement_tx.hash().to_string();\n\n                    // Set up async context so the delivery callback can detect async calls\n                    // during execution (even though we've already simulated \u2014 this ensures",
+      "semantic_claim": "PR preservation `#304` `async-atomicity-pair-precheck-dev` keeps live downstream behavior: fail-fast if settlement cannot execute after original.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "negative-path",
+        "payload",
+        "verifier"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "required_change": null,
+      "test_strategy": "pr_diff_equivalence_regression",
+      "negative_test_candidate": "Replay or unit-test the smallest downstream scenario introduced by #304 that exercises `fail-fast if settlement cannot execute after original` and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0047"
+      },
+      "review_required": false,
+      "source_prs": [
+        {
+          "key": "#304",
+          "slug": "async-atomicity-pair-precheck-dev",
+          "merge_commit": "dd27967d2def7037faf22f86b59ca1fbdbdef002"
+        }
+      ],
+      "source_pr_claims": [
+        "fail-fast if settlement cannot execute after original"
+      ],
+      "source_flow_ids": [
+        "pr-raw-0140"
+      ],
+      "notes": "Broad payload preservation claim needs concrete atomization before it can justify code restoration.",
+      "atom_index": 47,
+      "record_id": "file-0092-atom-0047",
+      "atoms_total": 50,
+      "needs_atomization": false
+    },
+    {
+      "record_type": "pr_preservation_derived_atom",
+      "pr_preservation_derived": true,
+      "pr_preservation_grounded": true,
+      "file_index": 92,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "crates/ethereum/payload/src/lib.rs:167-187",
+      "source_kind": "consensus_constant",
+      "source_snippet": "/// This replaced the older `scheduled_event_not_found_error_chain` helper\n/// which string-matched for the literal \"ScheduledEventNotFound\" marker.\n/// That marker originated in `ritual-alloy-evm-internal`'s\n/// `GasExtractionError::ScheduledEventNotFound`, which was removed in\n/// <https://github.com/ritual-net/ritual-alloy-evm-internal/pull/54>\n/// as part of a liveness-preserving refactor: the gas-extraction sad paths\n/// now resolve to a 0 gas contribution with a structured log instead of\n/// propagating an error. The marker therefore no longer appears in any\n/// error chain the recorder would see. We filter by transaction type at the\n/// call site (see `maybe_record_scheduled_incident`) so the recorder still\n/// captures *other* scheduled-TX execution errors that do bubble up (e.g.\n/// `InvalidTx`, pool-level errors, DB errors) \u2014 operators keep a populated\n/// `ritual_getScheduledIncidents` surface for those.\nfn block_execution_error_chain(err: &BlockExecutionError) -> Vec<String> {\n    let mut chain = vec![err.to_string()];\n\n    if let BlockExecutionError::Internal(internal) = err {\n        match internal {\n            InternalBlockExecutionError::EVM { error, .. } => {\n                chain.extend(collect_error_chain_messages(error.as_ref()))\n            }",
+      "semantic_claim": "PR preservation `#351` `scheduled-gas-extraction-recorder-realign` keeps live downstream behavior: broader scheduled incident capture after gas-extraction sad paths became structured 0-gas logs.",
+      "high_risk": true,
+      "risk_tags": [
+        "encoding",
+        "gas",
+        "scheduled"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ethereum/payload/src/lib.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/ethereum/payload/src/lib.rs` maps to v2.2 `crates/ethereum/payload/src/lib.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "required_change": null,
+      "test_strategy": "pr_diff_equivalence_regression",
+      "negative_test_candidate": "Replay or unit-test the smallest downstream scenario introduced by #351 that exercises `broader scheduled incident capture after gas-extraction sad paths became structured 0-gas logs` and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0092-atom-0048"
+      },
+      "review_required": false,
+      "source_prs": [
+        {
+          "key": "#351",
+          "slug": "scheduled-gas-extraction-recorder-realign",
+          "merge_commit": "3eda2e3a9cbaf308f7e8c7273e756aa0bd988059"
+        }
+      ],
+      "source_pr_claims": [
+        "broader scheduled incident capture after gas-extraction sad paths became structured 0-gas logs"
+      ],
+      "source_flow_ids": [
+        "pr-raw-0201"
+      ],
+      "notes": "Broad payload preservation claim needs concrete atomization before it can justify code restoration.",
+      "atom_index": 48,
+      "record_id": "file-0092-atom-0048",
+      "atoms_total": 50,
+      "needs_atomization": false
+    },
+    {
+      "record_id": "file-0092-atom-0049",
+      "file_index": 92,
+      "atom_index": 49,
+      "atoms_total": 50,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "split from file-0092-atom-0008: model registry / ModelCache",
+      "source_kind": "other",
+      "source_snippet": "prepare_fulfilled_async_settlement and related paths use ritual_async_fees::get_model_registry_address, ModelCache",
+      "semantic_claim": "Model registry alignment: live settlement/pricing paths read model-registry-backed pricing through `get_model_registry_address` and per-block `ModelCache` where old FSM pricing requires model data (LLM today). Multimodal model-registry pricing remains unresolved because v2.2 does not yet port old image/audio/video Phase 2 model-specific pricing.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "payload",
+        "verifier",
+        "fees"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "prepare_fulfilled_async_settlement",
+            "get_model_registry_address",
+            "ModelCache"
+          ],
+          "snippet": "model_cache parameter + get_model_registry_address()",
+          "evidence": "Fulfilled async settlement takes ModelCache and queries model registry address from ritual_async_fees."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "ModelCache",
+            "model_cache"
+          ],
+          "snippet": "let mut model_cache = ModelCache::default();",
+          "evidence": "Per-block model cache constructed in default payload builder path."
+        }
+      ],
+      "equivalence_argument": "ModelCache threading and get_model_registry_address usage are present for live LLM/short settlement pricing. The previous broad model-registry claim is narrowed: image/audio/video model-specific Phase 2 pricing is not considered green and must be ported before enabling those delivery families.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "cargo test -p reth-ethereum-payload-builder --locked",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "First-principles audit found old media Phase 2 pricing depends on model-registry fields that the current v2 reader still zeroes/omits. Do not use this atom to justify enabling image/audio/video delivery."
+    },
+    {
+      "record_id": "file-0092-atom-0050",
+      "file_index": 92,
+      "atom_index": 50,
+      "atoms_total": 50,
+      "source_path": "crates/ethereum/payload/src/lib.rs",
+      "source_hunk_hint": "split from file-0092-atom-0008: wallet locks / verify_wallet_for_commitment",
+      "source_kind": "other",
+      "source_snippet": "ritual_async_fees::verify_wallet_for_commitment used in commitment/settlement validation",
+      "semantic_claim": "Wallet lock alignment: async commitment validation calls `verify_wallet_for_commitment` so live two-phase families include old-FSM executor/escrow assumptions, including sovereign worst-case iteration/tool-call escrow and Phase 2 callback gas/value cost for long-HTTP, ZK, sovereign, and persistent agent jobs.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "payload",
+        "verifier",
+        "fees"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "verify_wallet_for_commitment"
+          ],
+          "snippet": "verify_wallet_for_commitment",
+          "evidence": "Async payload path imports and invokes wallet verification for commitments."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/wallet.rs",
+          "symbols": [
+            "verify_wallet_for_commitment",
+            "delivery_callback_cost",
+            "agent_escrow_lockup"
+          ],
+          "snippet": "verify_wallet_for_commitment includes callback cost and sovereign max work escrow",
+          "evidence": "Wallet verification now decodes Phase 2 callback gas/value for enabled two-phase precompiles and uses sovereign max iteration/tool-call escrow instead of generic phase-1-only fees."
+        }
+      ],
+      "equivalence_argument": "Wallet verification is wired through payload/verifier commitment checks and now preserves the old supported-family fee/lock shape for long-HTTP, ZK, sovereign, and persistent two-phase jobs. Media/FHE wallet/model parity remains blocked with their delivery runtime parity.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "cargo test -p ritual-async-fees --locked; cargo test -p reth-ethereum-payload-builder --locked ritual_async",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Narrowed to live supported families. This atom should fail review if sovereign uses generic two-phase phase-1 escrow or if callback gas/value is omitted from two-phase wallet lock requirements."
     }
   ],
-  "high_risk_atoms_total": 1,
-  "non_exact_atoms_total": 1,
+  "high_risk_atoms_total": 50,
+  "non_exact_atoms_total": 50,
   "adversarial_reviews": [],
-  "summary": "The downstream file maps to destination code but needs review because the destination implementation was refactored or moved.",
+  "summary": "First-principles async pass narrowed broad payload atoms and blocked media/FHE-inclusive Phase 2 pricing until old result/model pricing is ported.",
   "review_required": true,
   "status": "needs_review",
-  "notes": "The destination keeps the module at the same relative path with overlapping symbols ['new']."
+  "notes": "First-principles async pass: active long-HTTP/ZK/sovereign/persistent delivery paths mapped; multimodal/FHE runtime delivery remains blocked until old model/FHE pricing and result decoding are ported. Existing broad structural-equivalent claims were narrowed to live supported families."
 }

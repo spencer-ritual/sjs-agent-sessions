@@ -1,0 +1,80 @@
+{
+  "cluster_key": "executor delivery:autonomous-agent-delivery-bcb4315e",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The v2 port represents the 0x0820 agent precompile as PERSISTENT_AGENT_PRECOMPILE and decodes its delivery callback fields from ABI head fields 6-11, not the long-running HTTP field-8 layout.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "SOVEREIGN_AGENT_PRECOMPILE | PERSISTENT_AGENT_PRECOMPILE => {\n    decode_delivery_config_at(input, 6)\n}",
+      "symbols": [
+        "decode_delivery_config",
+        "decode_delivery_config_at",
+        "PERSISTENT_AGENT_PRECOMPILE"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The request codec validates and decodes the current 0x0820 agent ABI rather than reusing LongRunningHTTPCallRequest.",
+      "path": "crates/ritual-precompile-codecs/src/validation.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "PERSISTENT_AGENT_PRECOMPILE => {\n    let request = PersistentAgentRequest::from_abi(input)\n        .map_err(decode_error(\"PersistentAgentRequest\"))?;\n    (request.executor, request.ttl)\n}",
+      "symbols": [
+        "PersistentAgentRequest::from_abi",
+        "validate_persistent_agent_payload"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped under the current port naming: the invariant's autonomous-agent 0x0820 behavior corresponds to PERSISTENT_AGENT_PRECOMPILE locally, and Phase 2 settlement creation uses the 0x0820 agent ABI delivery field offset 6 instead of the long-running HTTP offset 8.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-precompile-codecs/src/autonomous_agent.rs",
+    "crates/ritual-precompile-codecs/src/lib.rs",
+    "crates/ritual-precompile-codecs/src/long_running.rs"
+  ],
+  "invariant_id": "cur-6ecef3d65f-autonomous-agent-delivery-config-decodes",
+  "invariant_index": 166,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-precompile-codecs/src/validation.rs"
+    ],
+    "checked_queries": [
+      "PERSISTENT_AGENT_PRECOMPILE|decode_delivery_config_at|PersistentAgentRequest::from_abi|LONG_RUNNING_HTTP_PRECOMPILE"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "decode_delivery_config",
+      "decode_delivery_config_at",
+      "PersistentAgentRequest::from_abi"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped; local code names the 0x0820 surface Persistent Agent, but the delivery-config offset matches the invariant behavior.",
+  "rationale": "The payload builder detects the autonomous agent precompile and calls DeliveryConfig::from_autonomous_agent_abi, with the commit body documenting autonomous-agent delivery config extraction. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: DeliveryConfig parsing is an ABI boundary detail, and the specific consumer callback contract may evolve.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "03acca5a98b24e03b7af76fc184def68a805c299"
+  ],
+  "statement": "Phase 2 settlement creation for Autonomous Agent decodes DeliveryConfig from the autonomous agent input format, where delivery configuration begins at fields 6-11, rather than using the default long-running HTTP delivery layout.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Encode an AutonomousAgentRequest with a distinctive delivery target, selector, gas limit, fee fields, and value at fields 6-11. Assert create_delivery_settlement_transaction decodes exactly those values and fails when the autonomous-agent delivery config section is malformed."
+  ],
+  "summary": "0x0820 agent delivery config is decoded from ABI fields 6-11 in the port.",
+  "test_or_falsification_candidate": "Encode a 0x0820 Persistent/Autonomous Agent request with delivery fields at 6-11 and assert prepare_delivery_settlement_transaction uses those callback values; moving them to long-running HTTP fields should fail or decode different values.",
+  "title": "Autonomous Agent delivery config decodes from its ABI",
+  "total_invariants": 1954
+}

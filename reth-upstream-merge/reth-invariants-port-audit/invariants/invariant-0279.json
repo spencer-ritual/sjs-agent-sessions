@@ -1,0 +1,69 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "The audited verifier validates async settlement fields, but it does not implement the invariant contract of looking up original async execution metadata in the async pool and requiring all three fees to equal fixed 0.01 ETH.",
+  "evidence_files": [
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/ritual-block-verification/src/error.rs",
+    "crates/transaction-pool/src/pool/async_exec.rs"
+  ],
+  "invariant_id": "cur-9a1c0fb822-async-settlements-match-pool-metadata-fixed-fees",
+  "invariant_index": 279,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ritual-block-verification/src/error.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/transaction-pool/src/pool/mod.rs",
+      "crates/node/src/executor.rs"
+    ],
+    "checked_queries": [
+      "async settlements match pool metadata fixed fees",
+      "get_async_transaction_by_hash settlement executor commitment validator",
+      "0.01 ETH executor commitment inclusion fee",
+      "InvalidSettlementPayment expected_executor_fee"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "verify_settlements",
+      "calculate_async_fees",
+      "AsyncCommitmentNotFoundInPool",
+      "InvalidSettlementPayment",
+      "get_async_transaction_by_hash",
+      "BlockVerifier"
+    ],
+    "missing_behavior": "No audited implementation finds the original async execution metadata in the async pool for each settlement or enforces executor_fee, commitment_fee, and inclusion_fee as fixed 0.01 ETH values.",
+    "related_but_insufficient_code": [
+      "crates/ritual-block-verification/src/lib.rs verifies settlement executor/validators against AsyncJobTracker and registry state, then compares fees against calculate_async_fees / calculate_async_fees_phase2.",
+      "crates/ritual-block-verification/src/error.rs still declares legacy fixed-fee/pool error variants, but the active verifier path does not perform pool metadata lookup or fixed 0.01 ETH checks."
+    ]
+  },
+  "notes": "Confirmed gap against the Atlas invariant; current v2 verifier uses tracker/registry/dynamic-fee semantics instead.",
+  "rationale": "The primary diff adds a settlement verification loop, pool lookup by async_tx_hash, expected address extraction from the system async-exec transaction, fixed expected fee constants, and InvalidSettlementPayment errors. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "37ddf0ea67a50cc4144c1a27e776a9c2b61ca200"
+  ],
+  "statement": "For each async settlement transaction in a block, block verification should find the original async execution metadata in the async pool, require settlement executor and commitment validator addresses to match the system async-exec transaction, and require executor, commitment, and inclusion fees to each equal 0.01 ETH.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create a block containing an async settlement and async pool metadata for the origin transaction. Assert verification passes with matching executor/commitment validator and three 0.01 ETH fees, and fails if any address or fee differs or the origin async transaction is absent from the pool."
+  ],
+  "summary": "Async settlement verification no longer enforces pool metadata plus fixed 0.01 ETH fees.",
+  "test_or_falsification_candidate": "Create a settlement with AsyncJobTracker-compatible dynamic fees that differ from 0.01 ETH; the current verifier follows calculated fees rather than rejecting solely because the three fees are not fixed 0.01 ETH.",
+  "title": "Async settlements match pool metadata and fixed fees",
+  "total_invariants": 1954
+}

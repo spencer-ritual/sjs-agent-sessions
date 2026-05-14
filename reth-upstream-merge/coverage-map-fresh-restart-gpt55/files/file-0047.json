@@ -1,0 +1,55 @@
+{
+  "record_type": "file",
+  "file_index": 47,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/consensus/common/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "missing",
+  "tags": [
+    "missing",
+    "non-exact",
+    "needs-review",
+    "verifier",
+    "reth-port"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0047-atom-0001",
+      "file_index": 47,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/consensus/common/Cargo.toml",
+      "source_hunk_hint": "@@ -19,6 +19,7 @@ reth-consensus.workspace = true",
+      "source_kind": "side_effect",
+      "source_snippet": "tracing.workspace = true",
+      "semantic_claim": "The consensus-common crate declares a tracing dependency so validation.rs can emit debug/error logs around transaction-root validation under the ritual::async target.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "missing",
+      "destinations": [],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Capture tracing output while triggering validate_body_against_header with a transaction-root mismatch; the downstream patch expects ritual::async validation logs, while the current port has no tracing dependency or events in this crate.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Destination spot-check found no tracing.workspace entry in crates/consensus/common/Cargo.toml and no matching transaction-root validation logs in the port."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The downstream tracing dependency for consensus validation observability is absent from the v2.2.0 port.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "Dependency-only but behavior-bearing because it supports the validation logging atoms in file-0048."
+}

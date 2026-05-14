@@ -1,0 +1,211 @@
+{
+  "record_type": "file",
+  "file_index": 326,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-precompile-codecs/src/sovereign_agent.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "precompile-codecs",
+    "sovereign-agent",
+    "storage-ref"
+  ],
+  "atoms_total": 4,
+  "atoms": [
+    {
+      "record_id": "file-0326-atom-0001",
+      "file_index": 326,
+      "atom_index": 1,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-precompile-codecs/src/sovereign_agent.rs",
+      "source_hunk_hint": "@@ -0,0 +1,80 @@; Sovereign Agent enum and validation request shape",
+      "source_kind": "sovereign_agent_request_shape",
+      "source_snippet": "pub enum SovereignAgentType { ClaudeCode = 0, Codex = 1, Aider = 2, MCP = 3, OpenClaw = 4, Crush = 5, ZeroClaw = 6 }\n\npub struct SovereignAgentRequest { pub executor: Address, pub ttl: u64, pub user_public_key: Bytes, pub poll_interval_blocks: u64, pub max_poll_block: u64, pub task_id_marker: String, pub sovereign_agent_type: SovereignAgentType, pub prompt: String, pub encrypted_secrets: Bytes, pub convo_history: StorageRef, pub output: StorageRef, pub skills: Vec<StorageRef>, pub system_prompt: StorageRef, pub model: String, pub tools: Vec<String>, pub max_turns: u16, pub max_tokens: u32, pub rpc_urls: String }",
+      "semantic_claim": "The old divergence adds the Sovereign Agent validation codec shape, including the seven-value agent type enum, simplified base executor fields, polling config, prompt/secrets, StorageRef conversation/output/skills/system prompt fields, model/tools limits, and RPC URLs.",
+      "high_risk": false,
+      "risk_tags": [
+        "sovereign-agent",
+        "abi-layout",
+        "storage-ref",
+        "rpc-urls",
+        "agent-type"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/sovereign_agent.rs",
+          "symbols": [
+            "SovereignAgentType",
+            "TryFrom<u16> for SovereignAgentType",
+            "SovereignAgentRequest"
+          ],
+          "evidence": "Destination lines 1-80 exactly match source-added diff lines 60500-60579."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the agent type discriminants, enum validation, and retained request fields unchanged.",
+      "test_strategy": "sovereign_agent_shape_and_enum_tests",
+      "negative_test_candidate": "A `sovereign_agent_type` value one past `ZeroClaw` should fail enum conversion.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0326-atom-0002",
+      "file_index": 326,
+      "atom_index": 2,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-precompile-codecs/src/sovereign_agent.rs",
+      "source_hunk_hint": "@@ -0,0 +82,329 @@; 23-field Sovereign Agent ABI decoder",
+      "source_kind": "sovereign_agent_full_abi_decoder",
+      "source_snippet": "pub fn from_abi(data: &[u8]) -> Result<Self, CodecError> {\n    // decode simplified base fields, polling, delivery-head fields, agent type,\n    // prompt/secrets, StorageRefs, skills, model/tools, max_turns, max_tokens, rpc_urls\n}",
+      "semantic_claim": "The old divergence adds a strict 23-field Sovereign Agent ABI decoder for RPC validation, reading simplified base fields, polling config, delivery-head slots needed to align offsets, agent type, prompt, encrypted secrets, StorageRef tuples/arrays, model, tool names, turn/token limits, and `rpc_urls` with overflow and type checks.",
+      "high_risk": false,
+      "risk_tags": [
+        "sovereign-agent",
+        "abi-decoding",
+        "storage-ref",
+        "skills",
+        "rpc-urls",
+        "validation"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/sovereign_agent.rs",
+          "symbols": [
+            "SovereignAgentRequest::from_abi"
+          ],
+          "evidence": "Destination lines 82-329 exactly match source-added diff lines 60581-60828."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async/src/validation.rs",
+          "symbols": [
+            "SovereignAgentRequest"
+          ],
+          "evidence": "Async payload validation decodes Sovereign Agent payloads through this request type."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves Sovereign Agent ABI field offsets, StorageRef decoding, RPC URL requirement, and validation error behavior.",
+      "test_strategy": "sovereign_agent_full_decode_tests",
+      "negative_test_candidate": "A payload with malformed StorageRef skills array elements should return `CodecError::FieldExtractionFailed` rather than partially decoding.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0326-atom-0003",
+      "file_index": 326,
+      "atom_index": 3,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-precompile-codecs/src/sovereign_agent.rs",
+      "source_hunk_hint": "@@ -0,0 +331,543 @@; Sovereign Agent codec tests",
+      "source_kind": "sovereign_agent_codec_tests",
+      "source_snippet": "#[cfg(test)]\nmod tests {\n    #[test] fn test_valid_sovereign_agent_request() { ... }\n    #[test] fn test_valid_sovereign_agent_request_with_rpc_urls() { ... }\n    #[test] fn test_22_field_payload_rejected() { ... }\n    #[test] fn test_sovereign_agent_type_crush_roundtrip() { ... }\n    #[test] fn test_sovereign_agent_type_zeroclaw_roundtrip() { ... }\n    #[test] fn test_sovereign_agent_type_invalid_boundary() { ... }\n    #[test] fn test_empty_prompt() { ... }\n    #[test] fn test_malformed_abi() { ... }\n}",
+      "semantic_claim": "The old divergence adds Sovereign Agent tests covering valid request decode, RPC URL retention, defensive handling of 22-field legacy payloads, Crush/ZeroClaw enum roundtrips, invalid enum boundary rejection, empty prompt preservation, and malformed ABI failure.",
+      "high_risk": false,
+      "risk_tags": [
+        "tests",
+        "sovereign-agent",
+        "rpc-urls",
+        "agent-type",
+        "abi-decoding"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/sovereign_agent.rs",
+          "symbols": [
+            "test_valid_sovereign_agent_request",
+            "test_valid_sovereign_agent_request_with_rpc_urls",
+            "test_22_field_payload_rejected",
+            "test_sovereign_agent_type_crush_roundtrip",
+            "test_sovereign_agent_type_zeroclaw_roundtrip",
+            "test_sovereign_agent_type_invalid_boundary",
+            "test_empty_prompt",
+            "test_malformed_abi"
+          ],
+          "evidence": "Destination lines 331-543 exactly match source-added diff lines 60830-61042."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the Sovereign Agent regression coverage embedded in the source file.",
+      "test_strategy": "cargo test -p ritual-precompile-codecs sovereign_agent",
+      "negative_test_candidate": "A 23-field payload with `rpc_urls` set should preserve that JSON string in the decoded request.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Test atom only."
+    },
+    {
+      "record_id": "file-0326-atom-0004",
+      "file_index": 326,
+      "atom_index": 4,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-precompile-codecs/src/sovereign_agent.rs",
+      "source_hunk_hint": "whole-file cross-cutting behavior; validation-only decoder boundary",
+      "source_kind": "sovereign_agent_validation_boundary",
+      "source_snippet": "//! This is a minimal decoder focused on validation - it extracts only the fields needed\n//! for RPC-level validation, not full request processing.",
+      "semantic_claim": "The old divergence intentionally defines `SovereignAgentRequest` as a validation-only decoder rather than a full executor-processing representation, preserving only fields required for RPC validation and downstream admission checks.",
+      "high_risk": false,
+      "risk_tags": [
+        "validation-boundary",
+        "sovereign-agent",
+        "rpc-validation"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/sovereign_agent.rs",
+          "symbols": [
+            "SovereignAgentRequest"
+          ],
+          "evidence": "Destination documentation and struct fields exactly preserve the source-added validation-only boundary."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the intended minimal validation boundary without adding executor-only fields to the Reth-side codec.",
+      "test_strategy": "sovereign_agent_validation_boundary_tests",
+      "negative_test_candidate": "Validation should not depend on executor-only processing fields outside the preserved 23-field ABI decode surface.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Cross-cutting exact behavior note."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The Sovereign Agent precompile codec is exact-port preserved, including the validation request shape, agent type enum, strict 23-field ABI decoder, StorageRef and RPC URL handling, validation-boundary documentation, and unit tests.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 326: A\tcrates/ritual-precompile-codecs/src/sovereign_agent.rs.",
+    "Source-added hunk spans diff lines 60500-61042 with header `@@ -0,0 +1,543 @@`; the next diff starts at line 61043.",
+    "Destination `crates/ritual-precompile-codecs/src/sovereign_agent.rs` has 543 lines and matches the source-added content exactly.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

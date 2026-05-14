@@ -9,13 +9,11 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "mapped",
+  "file_classification": "structural_equivalent",
   "tags": [
-    "mapped",
-    "txpool",
     "high-risk",
     "non-exact",
-    "reth-port"
+    "structural_equivalent"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -66,7 +64,7 @@
         "status": "pass",
         "review_record_id": "review-file-0536-atom-0001"
       },
-      "review_required": false,
+      "review_required": true,
       "notes": "Old Scheduled and AsyncCommitment SubPool variants were part of the superseded direct-subpool design. The active v2.2 design keeps async commitments as canonical lifecycle metadata and treats scheduled transactions through payload/verifier state-derived obligations.",
       "human_question": null,
       "required_change": null
@@ -77,8 +75,8 @@
   "adversarial_reviews": [
     "coverage-map/reviews/review-file-0536-atom-0001.json"
   ],
-  "summary": "The current pool keeps upstream pending/basefee/blob/queued subpools and moves Ritual async/scheduled behavior out of SubPool variants into async lifecycle metadata and payload/verifier scheduled execution.",
-  "review_required": false,
-  "status": "complete",
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": true,
+  "status": "needs_review",
   "notes": "Old Scheduled and AsyncCommitment SubPool variants were part of the superseded direct-subpool design. The active v2.2 design keeps async commitments as canonical lifecycle metadata and treats scheduled transactions through payload/verifier state-derived obligations."
 }

@@ -1,0 +1,76 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The provider stores the shared verifier trait object and clones the Arc into each RitualBlockExecutor it creates.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "pub fn new(strategy_factory: F, spc_verifier: Option<Arc<dyn SpcVerifierTrait<Error = reth_evm::spc::SpcVerificationError>>>, verifier: Option<Arc<dyn BlockVerifierTrait>>) -> Self {\n    Self { strategy_factory, spc_verifier, verifier }\n}\n...\nspc_verifier: self.spc_verifier.clone(),",
+      "symbols": [
+        "RitualBlockExecutorProvider::new",
+        "BlockExecutorProvider::executor"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The block executor uses the shared verifier during block execution to update the in-memory registry from on-chain executor state.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "if let Some(ref spc_verifier) = self.spc_verifier {\n    spc_verifier\n        .update_registry_from_data(executor_tuples, block.number())\n        .map_err(|e| BlockExecutionError::msg(format!(\"Registry update: {}\", e)))?;\n}",
+      "symbols": [
+        "RitualBlockExecutor::update_executor_registry_from_block"
+      ]
+    }
+  ],
+  "equivalence_argument": "The dependency provider carries an Arc<dyn SpcVerifier> from builder construction into concrete block executors, and block execution uses that shared object rather than creating a local verifier.",
+  "evidence_files": [
+    "crates/node/src/executor.rs"
+  ],
+  "invariant_id": "cur-7911c0739a-block-executor-uses-shared-verifier",
+  "invariant_index": 247,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/node/src/executor.rs"
+    ],
+    "checked_queries": [
+      "spc_verifier: self.spc_verifier.clone",
+      "update_registry_from_data",
+      "RitualBlockExecutorProvider::new"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+    ],
+    "checked_symbols": [
+      "RitualBlockExecutorProvider",
+      "RitualBlockExecutor",
+      "update_registry_from_data"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in dependency.",
+  "rationale": "The primary commit imports SpcVerifierImpl, clones ctx.spc_verifier(), wraps it, and replaces BasicBlockExecutorProvider::new with new_with_spc(..., Some(spc_verifier)), explicitly connecting the shared verifier to execution. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "04192bd6e90fa76495638f0f84ca012edd7cbff2"
+  ],
+  "statement": "When RitualExecutorBuilder creates its block executor provider, the provider must be constructed with an SPC verifier derived from BuilderContext rather than with no SPC verifier.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Instantiate RitualExecutorBuilder with a BuilderContext carrying a test SPC verifier, create the executor provider, execute or simulate a block path that requires SPC verification, and assert that the shared verifier is invoked; the test should fail if BasicBlockExecutorProvider is created without Some(spc_verifier)."
+  ],
+  "summary": "The dependency block executor receives and uses the shared SPC verifier.",
+  "test_or_falsification_candidate": "Instantiate RitualExecutorBuilder with a BuilderContext carrying a test SPC verifier, create the executor provider, execute or simulate a block path that requires SPC verification, and assert that the shared verifier is invoked; the test should fail if BasicBlockExecutorProvider is created without Some(spc_verifier).",
+  "title": "Block executor uses shared SPC verifier",
+  "total_invariants": 1954
+}

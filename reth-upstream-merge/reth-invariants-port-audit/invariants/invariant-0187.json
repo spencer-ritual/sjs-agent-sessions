@@ -1,0 +1,77 @@
+{
+  "cluster_key": "executor delivery:calls-inject-across-40339a77",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The annotation helper injects nested SPC calls into Legacy, EIP-1559, Scheduled, Passkey, and AsyncSettlement variants while preserving the original signature/hash parts.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "match tx.into_inner() {\n    TransactionSigned::Legacy(signed) => { ... tx.spc_calls = Some(spc_calls.clone()); ... }\n    TransactionSigned::Eip1559(signed) => { ... tx.spc_calls = Some(spc_calls.clone()); ... }\n    TransactionSigned::Scheduled(signed) => { ... scheduled_spc_calls.extend(spc_calls.clone()); ... }\n    TransactionSigned::Passkey(signed) => { ... tx.spc_calls = Some(spc_calls.clone()); ... }\n    TransactionSigned::AsyncSettlement(signed) => { ... tx.spc_calls = Some(spc_calls); ... }\n}",
+      "symbols": [
+        "annotate_fulfilled_original_transaction"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The helper rebuilds the signed transaction from the existing full signature/hash and wraps it with the original signer, preserving passkey and ECDSA recovery identity.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let signer = tx.signer();\n...\nTransactionSigned::Passkey(Signed::new_unchecked(tx, signature, hash))\n...\nOk(Recovered::new_unchecked(tx, signer))",
+      "symbols": [
+        "Recovered::new_unchecked",
+        "Signed::new_unchecked"
+      ]
+    }
+  ],
+  "equivalence_argument": "Nested async delivery annotation is centralized in one helper that mutates only runtime SPC metadata and keeps the original signature, hash, and signer. Scheduled transactions extend any existing SPC calls, while the other supported variants install the nested call list directly.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-d25875fc67-calls-inject-across-supported-variants",
+  "invariant_index": 187,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/ritual_async.rs"
+    ],
+    "checked_queries": [
+      "annotate_fulfilled_original_transaction|TransactionSigned::Legacy|Passkey|AsyncSettlement|spc_calls"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "annotate_fulfilled_original_transaction",
+      "TransactionSigned::Legacy",
+      "TransactionSigned::Eip1559",
+      "TransactionSigned::Scheduled",
+      "TransactionSigned::Passkey",
+      "TransactionSigned::AsyncSettlement"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The primary merge hunk expands SPC call injection from a narrower AsyncSettlement-specific path into explicit matches for Legacy, Eip1559, Scheduled, Passkey, and AsyncSettlement, then recreates TransactionSigned with new_with_signature and with_signer. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "720628a6b2a5701e2a63aeef33b2071c8d937c67"
+  ],
+  "statement": "When nested async delivery produces SPC calls, payload building must inject those SPC calls into supported transaction variants including Legacy, EIP-1559, Scheduled, Passkey, and AsyncSettlement, and must rebuild the signed transaction with the original full signature and signer.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "For each supported transaction variant, simulate nested async delivery that yields SPC calls and assert the executed transaction carries those SPC calls. For Passkey specifically, assert signature recovery still succeeds because the full signature was preserved."
+  ],
+  "summary": "SPC call injection is mapped to the port annotation helper for all supported variants.",
+  "test_or_falsification_candidate": "For each supported variant, pass a transaction through annotate_fulfilled_original_transaction and assert spc_calls are present while tx_hash/signature recovery and signer remain unchanged; for Scheduled, assert existing SPC calls are extended rather than overwritten.",
+  "title": "SPC calls inject across supported tx variants",
+  "total_invariants": 1954
+}

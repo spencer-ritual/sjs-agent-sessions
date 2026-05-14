@@ -1,0 +1,71 @@
+{
+  "cluster_key": "scheduler:pool-accounting:part-01",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/scheduling/src/contract.rs",
+    "crates/scheduling/src/types.rs",
+    "crates/scheduling/src/singleton.rs"
+  ],
+  "invariant_id": "cur-602c4265cc-scheduler-state-removes-only-terminal-explicitly-evicted-calls",
+  "invariant_index": 68,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/scheduling/src/contract.rs",
+      "crates/scheduling/src/types.rs",
+      "crates/scheduling/src/singleton.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "SynchronousScheduler|evict_call|ExecutionFailed|SkippedInsufficientFunds|SkippedTTLExpired",
+      "Cancel|Complete|Expire|scheduler state cleanup"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "SynchronousScheduler",
+      "evict_call",
+      "ExecutionFailed",
+      "SkippedInsufficientFunds",
+      "SkippedTTLExpired",
+      "Cancel",
+      "Complete",
+      "Expire",
+      "scheduler state cleanup"
+    ],
+    "missing_behavior": "Missing Scheduler state cleanup semantics that remove calls and auxiliary indexes only for terminal/explicit eviction events and retain retryable failures/skips.",
+    "related_but_insufficient_code": [
+      "Current scheduled verification reads Scheduler parent storage; there is no in-memory scheduler state cleanup/event classifier."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The packet repeatedly requires scheduler call cleanup to remove call records and auxiliary indexes. A newer bounded neighbor narrows the terminal set so execution failures and skip events retain calls for retry, superseding the earlier removal of insufficient-funds and TTL-expired skips.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "cdb2c59d9e13550797ade6dede1c3d0ef1dedc4b",
+    "f03ebf5164b5728c28bbfe6e94678a4de50cc450"
+  ],
+  "statement": "Scheduler state cleanup must remove a call and all auxiliary indexes for cancellation, completion, expiration, and explicit eviction, while retaining calls for execution failures and retryable skip events so they can be selected again.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Populate scheduler state with a call in calls, execution_counts, origin_tx_hashes, and frequency_index, process Cancel, Complete, and Expire events, and assert all stores remove the call.",
+    "Process ExecutionFailed, insufficient-funds skip, and TTL-expired skip events for tracked calls and assert the calls remain eligible for retry according to the current event classifier.",
+    "Call SynchronousScheduler::evict_call for an existing and a missing call id and assert the existing call is removed while the missing id is a no-op."
+  ],
+  "summary": "Scheduler state terminal-only cleanup behavior is absent.",
+  "test_or_falsification_candidate": "Process terminal and non-terminal Scheduler events against scheduler state; current port has no event-state processor.",
+  "title": "Scheduler state removes only terminal or explicitly evicted calls",
+  "total_invariants": 1954
+}

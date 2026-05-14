@@ -1,0 +1,54 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "970542d1b36413978b3179faeb582ddec3dfc136",
+      "evidence": "Image, audio, and video payloads are explicitly routed to base ExecutorRequest decoding and executor/TTL validation, with no modality-specific fields required for static admission.",
+      "path": "crates/ritual-precompile-codecs/src/validation.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "IMAGE_CALL_PRECOMPILE | AUDIO_CALL_PRECOMPILE | VIDEO_CALL_PRECOMPILE => {\n    validate_executor_request_payload(input, max_ttl)\n}\n...\nfn validate_executor_request_payload(input: &[u8], max_ttl: u64) -> Result<(), PayloadValidationError> {\n    let (executor, secrets, ttl, _, key) =\n        ExecutorRequest::decode_base_fields(input).map_err(decode_error(\"ExecutorRequest\"))?;\n    validate_executor_base_fields(executor, ttl, &secrets, &key, max_ttl)\n}\n...\nfn validate_executor_and_ttl_bounds(executor: Address, ttl: u64, max_ttl: u64) -> Result<(), PayloadValidationError> {\n    if executor.is_zero() { return Err(PayloadValidationError::ExecutorZeroAddress); }\n    if ttl == 0 { return Err(PayloadValidationError::TtlZero); }\n    if ttl > max_ttl { return Err(PayloadValidationError::TtlExceeded { ttl, max: max_ttl }); }\n    Ok(())\n}",
+      "symbols": [
+        "validate_async_payload",
+        "validate_executor_request_payload",
+        "validate_executor_and_ttl_bounds"
+      ]
+    }
+  ],
+  "equivalence_argument": "Multimodal payload validation decodes only the base executor request fields and applies the same zero-executor and TTL bounds as other executor requests; malformed base ABI data fails decode.",
+  "evidence_files": [
+    "crates/ritual-async/src/validation.rs"
+  ],
+  "invariant_id": "cur-6473880b73-multimodal-payloads-base-executor-validation",
+  "invariant_index": 453,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The v2 port does not add width/duration/model checks in static payload validation; those belong to later fee/settlement paths.",
+  "rationale": "The new validators for 0x0818, 0x0819, and 0x081A all implement the same base executor/TTL validation, matching the commit message's missing RPC validation fix. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "badad554d3056cef139a0f78859e7448dbfe6d6f"
+  ],
+  "statement": "validate_image_call_payload, validate_audio_call_payload, and validate_video_call_payload must decode the base ExecutorRequest fields and reject decode failures, zero executor addresses, ttl 0, and ttl values greater than MAX_TTL_BLOCKS; otherwise they must accept the payload without modality-specific extra fields.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "For each of image, audio, and video payload validators, pass a valid base ExecutorRequest and assert Ok; then pass malformed bytes, executor zero, ttl zero, and ttl MAX_TTL_BLOCKS+1 and assert DecodeFailed with the modality label, ExecutorZeroAddress, TTLZero, and TTLExceeded respectively."
+  ],
+  "summary": "Multimodal payloads use base executor validation.",
+  "test_or_falsification_candidate": "For each of image, audio, and video payload validators, pass a valid base ExecutorRequest and assert Ok; then pass malformed bytes, executor zero, ttl zero, and ttl MAX_TTL_BLOCKS+1 and assert DecodeFailed with the modality label, ExecutorZeroAddress, TTLZero, and TTLExceeded respectively.",
+  "title": "Multimodal payloads use base executor validation",
+  "total_invariants": 1954
+}

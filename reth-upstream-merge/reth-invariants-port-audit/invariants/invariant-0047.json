@@ -1,0 +1,69 @@
+{
+  "cluster_key": "scheduler:pool-accounting:part-02",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-scheduled-block-building/src/lib.rs"
+  ],
+  "invariant_id": "cur-c4d7cbec77-scheduled-builder-filtering-remains-deterministic-around-parallel-simulation",
+  "invariant_index": 47,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs"
+    ],
+    "checked_queries": [
+      "parallel|max_async|simulation|revival|rayon|join_all",
+      "filter_scheduled_transactions|filter_scheduled_for_block_building_full",
+      "max-simulation|revival lane"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "filter_scheduled_transactions",
+      "filter_scheduled_for_block_building_full",
+      "parallel simulation",
+      "max_async_sims",
+      "revival lane filtering",
+      "rayon",
+      "join_all",
+      "FuturesUnordered"
+    ],
+    "missing_behavior": "Missing deterministic parallel-simulation pipeline for scheduled async candidates: no hash-deduped parallel simulation batch, revival-lane filtering before the global cap, max-simulation limiting, or sequential post-simulation async-cache insertion path was found.",
+    "related_but_insufficient_code": [
+      "The port does perform sequential parent-state scheduled obligation filtering and active-job skipping before execution.",
+      "No audited payload-building path implements the described bounded parallel scheduled async simulation phase, max-simulation limiting, or post-parallel sequential insertion/cache update phase."
+    ]
+  },
+  "notes": "Confirmed gap for the full invariant.",
+  "rationale": "The current builder path combines scheduled constraint filtering, bounded parallel simulation, deterministic sequential post-simulation filtering, and revival lane selection before the global simulation cap.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "6f30cb4cd9119e4db222e6488b1ef9cb8c5daa25",
+    "fc523530cdecbc0d63c5d57cf335f514e03defbc",
+    "c4021229485c7e745edd9b011c796c0c558fc2b0"
+  ],
+  "statement": "At current tip, payload building must run scheduled pool transactions through scheduled block-building constraints before execution; scheduled async candidates may be simulated in parallel only after hash deduplication, revival lane filtering, and max-simulation limiting, while sender deduplication, active-job checks, wallet and TTL validation, async-cache updates, and detected-transaction insertion remain sequential after simulation.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Place one scheduled transaction that violates scheduled constraints and one that passes in the pool, build a payload, and assert only the valid transaction reaches scheduled execution.",
+    "Provide duplicate scheduled candidates, unselected revival candidates, same-sender candidates, an active-job duplicate, an insufficient-wallet candidate, an over-TTL candidate, and a valid candidate; assert final results match sequential filter semantics and only eligible candidates are returned after parallel simulation."
+  ],
+  "summary": "Scheduled builder filtering is only partially present; the deterministic parallel-simulation policy is absent.",
+  "test_or_falsification_candidate": "Provide duplicate scheduled candidates, unselected revival candidates, same-sender candidates, and cap overflow; current port has no parallel scheduled async simulation batch to enforce the specified ordering.",
+  "title": "Scheduled builder filtering remains deterministic around parallel simulation",
+  "total_invariants": 1954
+}

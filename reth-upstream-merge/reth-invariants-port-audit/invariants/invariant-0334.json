@@ -1,0 +1,77 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The AsyncJobTracker reader exposes the tracked executor and commitment validator for each settlement job.",
+      "path": "crates/ritual-async-registry/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub struct SettlementData {\n    pub executor_address: Address,\n    pub commitment_validator: Address,\n    ...\n}\n...\nlet commitment_validator = Address::from_slice(&commit_val_bytes.to_be_bytes::<32>()[12..]);\nresults.insert(*job_id, SettlementData { executor_address: executor, commitment_validator, ... });",
+      "symbols": [
+        "SettlementData",
+        "read_jobs_for_settlement"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Phase 1 settlement verification requires the settlement payment address and commitment validator to match the tracked job/registry data.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let executor = read_expected_executor(&mut db, job.executor_address, metadata, \"phase1 settlement\")?;\nif settlement.executor_address != executor.payment_address { return Err(BlockVerificationError::InvalidAsyncSettlement(format!(\"executor payment mismatch ...\"))); }\nif settlement.commitment_validator != job.commitment_validator { return Err(BlockVerificationError::InvalidAsyncSettlement(format!(\"commitment validator mismatch ...\"))); }",
+      "symbols": [
+        "verify_settlements",
+        "read_expected_executor"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Delivery settlement verification also checks the settlement executor payment address against the tracked executor registry record.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let executor = read_expected_executor(&mut db, job.executor_address, metadata, \"delivery settlement\")?;\nif settlement.executor_address != executor.payment_address { return Err(BlockVerificationError::InvalidAsyncSettlement(format!(\"delivery executor payment mismatch ...\"))); }",
+      "symbols": [
+        "verify_settlements"
+      ]
+    }
+  ],
+  "equivalence_argument": "The tracker stores TEE executor identity while settlement transactions carry payment address. The verifier bridges those by reading the tracker job, resolving the expected executor from registry state, and rejecting any settlement whose executor payment address or commitment validator does not match the tracker-derived values.",
+  "evidence_files": [
+    "crates/ritual-async-registry/src/lib.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-e7cbc67fd0-settlement-parties-match-tracker",
+  "invariant_index": 334,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to AsyncJobTracker settlement reads and verifier mismatch checks.",
+  "rationale": "The registry reader extracts executor and commitment validator from AsyncJobTracker storage, the verifier reads those jobs from parent state before settlement execution, and mismatches now return IncorrectExecutorAddress or IncorrectCommitmentVerifierAddress. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "5722ce3971d6ac0ced0d76726271a7acddc07944"
+  ],
+  "statement": "For each settlement, the verifier must read the corresponding AsyncJobTracker job from parent block state and require the settlement executor_address and commitment_validator to match the job's executor_address and commitment_validator.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Populate parent AsyncJobTracker state with a job whose executor and commitment validator differ from the submitted settlement, verify the block, and assert verification fails with the specific address mismatch; repeat with matching addresses and assert this constraint passes."
+  ],
+  "summary": "Settlement executor and commitment-validator fields are checked against AsyncJobTracker-derived job data.",
+  "test_or_falsification_candidate": "Populate parent AsyncJobTracker state with one executor and commitment validator, submit a settlement with a different payment executor or validator, and assert block verification rejects it.",
+  "title": "Settlement parties match tracker job",
+  "total_invariants": 1954
+}

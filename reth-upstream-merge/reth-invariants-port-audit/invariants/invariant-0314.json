@@ -1,0 +1,70 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The LLM fee constants define alpha 0.25, beta 2.5, gamma 0.75, delta 2.0, epsilon 0.001, base setup gas 500, and executor gas price 1 gwei.",
+      "path": "crates/ritual-async-fees/src/constants.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const LLM_EXECUTOR_GAS_PRICE_WEI: u128 = 1_000_000_000;\npub const LLM_ALPHA: f64 = 0.25;\npub const LLM_BETA: f64 = 2.5;\npub const LLM_GAMMA: f64 = 0.75;\npub const LLM_DELTA: f64 = 2.0;\npub const LLM_EPSILON: f64 = 0.001;\npub const LLM_BASE_SETUP_GAS: f64 = 500.0;",
+      "symbols": [
+        "LLM_EXECUTOR_GAS_PRICE_WEI",
+        "LLM_ALPHA",
+        "LLM_BETA",
+        "LLM_GAMMA",
+        "LLM_DELTA",
+        "LLM_EPSILON",
+        "LLM_BASE_SETUP_GAS"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "llm_compute_gas applies the normalized coefficients to prompt/completion tokens, sequence length, model params, theta, and long-context penalties; compute_llm_executor_fee multiplies the gas by the 1 gwei executor gas price baseline and rounds into U256.",
+      "path": "crates/ritual-async-fees/src/llm.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let token_component = LLM_ALPHA * params_b * (prompt + LLM_BETA * completion);\nlet memory_component = LLM_GAMMA * seq_len * sqrt_b;\nlet linear_penalty = LLM_DELTA * delta_2k * sqrt_b;\nlet quadratic_penalty = LLM_EPSILON * delta_4k.powi(2) * sqrt_b;\nLLM_BASE_SETUP_GAS + config.theta * (token_component + memory_component) + linear_penalty + quadratic_penalty",
+      "symbols": [
+        "llm_compute_gas",
+        "compute_llm_executor_fee"
+      ]
+    }
+  ],
+  "equivalence_argument": "The coefficients and formula are implemented in the shared ritual-async-fees LLM module. The fee path decodes LLM metrics, resolves registry model parameters, computes gas from the normalized coefficient set, and multiplies by the 1 gwei executor gas price.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-0f76508e94-executor-fees-normalized-model-size-sequence-length-coefficients",
+  "invariant_index": 314,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in ritual-async-fees constants and LLM gas formula.",
+  "rationale": "The primary diff changes only the LLM pricing constants that feed the existing LLM gas formula, indicating the intended behavior is recalibrated executor-fee pricing rather than a mechanical refactor. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "3d43c72b0d28c72a8f663039a5a56bb184c63229"
+  ],
+  "statement": "LLM precompile executor inclusion fees should be computed from decoded LLM token metrics using the normalized coefficient set `alpha=0.25`, `beta=2.5`, `gamma=0.75`, `delta=2.0`, `epsilon=0.001`, and `base_setup_gas=500`, then multiplied by the 1 gwei executor gas price baseline.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Construct decoded LLM metrics for a registry-backed model with known prompt/completion token counts, run the LLM pricing path, and assert the gas component equals `500 + theta * (0.25 * params_b * (prompt + 2.5 * completion) + 0.75 * seq_len * sqrt(params_b)) + 2.0 * max(seq_len - 2000, 0) * sqrt(params_b) + 0.001 * max(seq_len - 4000, 0)^2 * sqrt(params_b)`, then assert the final fee is that gas value times 1 gwei rounded into `U256`."
+  ],
+  "summary": "LLM executor fees use the normalized coefficient set and 1 gwei gas price baseline.",
+  "test_or_falsification_candidate": "Seed a registry-backed model and decoded prompt/completion metrics, then assert compute_llm_executor_fee equals llm_compute_gas with the normalized coefficients times 1 gwei rounded into U256.",
+  "title": "LLM executor fees use normalized model-size and sequence-length coefficients",
+  "total_invariants": 1954
+}

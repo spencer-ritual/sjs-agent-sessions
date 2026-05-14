@@ -1,0 +1,65 @@
+{
+  "cluster_key": "scheduler:pool-accounting:part-02",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-709c49673e-duplicate-async-jobs-prune-stale-pool",
+  "invariant_index": 48,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs",
+      "crates/transaction-pool/src/pool/mod.rs"
+    ],
+    "checked_queries": [
+      "job_exists_and_active|active job|SkipActiveJob",
+      "InvalidAsync|prune_original|remove_transactions|mark_invalid",
+      "duplicate async jobs prune stale pool"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "job_exists_and_active",
+      "decide_active_job_augmentation",
+      "SkipActiveJob",
+      "InvalidAsync",
+      "prune_original_transaction_by_hash",
+      "remove_transactions",
+      "mark_invalid"
+    ],
+    "missing_behavior": "Missing self-healing behavior: active duplicate scheduled or regular async jobs are not both cached as InvalidAsync and pruned from the transaction pool by original transaction hash.",
+    "related_but_insufficient_code": [
+      "For synthesized scheduled obligations the builder checks job_exists_and_active and continues on SkipActiveJob, but it does not mark any async detection cache entry invalid or prune a transaction-pool original hash.",
+      "The normal payload builder marks invalid for gas/size/permanent invalidity cases, not for active AsyncJobTracker duplicate jobs."
+    ]
+  },
+  "notes": "Confirmed gap; active-job skip exists but prune/cache side effects do not.",
+  "rationale": "The payload builder self-healing behavior applies to both scheduled and regular async duplicates when AsyncJobTracker already has a job for the transaction.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "040df578223450f2af468bbb6774a8d679385c6f"
+  ],
+  "statement": "At current tip, when payload building detects that a scheduled or regular async transaction already has a job in AsyncJobTracker, it must skip the transaction, mark it invalid in the async detection cache, and prune the original transaction hash from the transaction pool.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Mock job_exists to return true for one scheduled async transaction and one regular async transaction, run payload building, and assert each transaction is skipped, cached as InvalidAsync, and passed to prune_original_transaction_by_hash exactly once."
+  ],
+  "summary": "Duplicate async-job pruning of stale pool transactions is absent.",
+  "test_or_falsification_candidate": "Mock job_exists_and_active=true for scheduled and regular async candidates and assert each is skipped, cached InvalidAsync, and removed from txpool; current scheduled path only skips.",
+  "title": "Duplicate async jobs prune stale pool transactions",
+  "total_invariants": 1954
+}

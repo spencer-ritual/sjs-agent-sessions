@@ -1,0 +1,74 @@
+{
+  "record_type": "file",
+  "file_index": 236,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/payload/builder/src/service.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "review-closed",
+    "payload-builder",
+    "engine-api",
+    "resolve",
+    "wait-for-pending"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0236-atom-0001",
+      "file_index": 236,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/payload/builder/src/service.rs",
+      "source_hunk_hint": "@@ -56,11 +56,14 @@",
+      "source_kind": "payload_resolution_behavior",
+      "source_snippet": "/// Note: Uses `WaitForPending` to block until at least one payload build completes,\n/// enabling eager payload fetching without fixed delays on the consensus side.\npub async fn resolve(\n    &self,\n    id: PayloadId,\n) -> Option<Result<T::BuiltPayload, PayloadBuilderError>> {\n    self.resolve_kind(id, PayloadKind::WaitForPending).await\n}",
+      "semantic_claim": "The old payload store changes default payload resolution from `PayloadKind::Earliest` to `PayloadKind::WaitForPending`, so callers of `resolve()` wait for an in-progress build to complete instead of immediately racing/resolving the earliest available payload.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload-builder",
+        "engine-api",
+        "forkchoice",
+        "empty-payload"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/payload/builder/src/service.rs",
+          "symbols": [
+            "PayloadStore::resolve"
+          ],
+          "evidence": "Current `PayloadStore::resolve` documents WaitForPending and calls `self.resolve_kind(id, PayloadKind::WaitForPending).await`."
+        }
+      ],
+      "equivalence_argument": "The current port exactly preserves the old default resolve behavior: `PayloadStore::resolve()` uses `WaitForPending` rather than `Earliest`.",
+      "test_strategy": "behavior_regression",
+      "negative_test_candidate": "Create an in-progress payload job and assert `PayloadStore::resolve` resolves through `PayloadKind::WaitForPending`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Stale record fixed after current-code recheck; the source behavior is now present."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "Stale finding resolved: `PayloadStore::resolve()` now defaults to `PayloadKind::WaitForPending`, matching the old downstream behavior.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Current code in `crates/payload/builder/src/service.rs` documents WaitForPending and calls `resolve_kind(id, PayloadKind::WaitForPending)`.",
+    "No payload resolution FSM gap remains for this file."
+  ]
+}

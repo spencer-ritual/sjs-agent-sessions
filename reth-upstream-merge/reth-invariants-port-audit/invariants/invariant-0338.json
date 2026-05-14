@@ -1,0 +1,54 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "The SPC verifier imports the shared ritual_spc_signature implementation and both direct verification paths delegate to it with the complete executor/job/context argument set.",
+      "path": "crates/ritual-spc-verification/src/verifier.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let is_valid = verify_signature_core_impl(public_key, request.block_number, request.tx_hash, request.precompile_address, &request.precompile_input, &request.output, request.previous_block_hash, request.previous_block_number, request.previous_block_timestamp, request.error.as_deref().unwrap_or(\"\"), &request.proof).map_err(|e| VerificationError::InvalidRequest(e))?;\n...\npub fn verify_signature_core(...) -> VerificationResult<bool> { verify_signature_core_impl(...).map_err(|e| VerificationError::InvalidRequest(e)) }",
+      "symbols": [
+        "verify_signature_direct_sync",
+        "verify_signature_core"
+      ]
+    }
+  ],
+  "equivalence_argument": "The local verifier no longer reconstructs or verifies signatures independently; shared-core false or error results are returned as SPC verification failure paths.",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/verifier.rs",
+    "crates/ritual-spc-verification/Cargo.toml"
+  ],
+  "invariant_id": "cur-252dd3d37f-signatures-shared-verifier",
+  "invariant_index": 338,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to ritual-spc-verification in the port.",
+  "rationale": "The primary diff removes the local secp256k1/json reconstruction implementation, imports ritual_spc_signature::verify_signature_core, and exposes a local wrapper that delegates all cryptographic verification to the shared crate. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "766b0b1f6367f1899109c20a94163e857cb3ede7"
+  ],
+  "statement": "SPC direct signature verification must call the shared ritual_spc_signature::verify_signature_core with the executor public key, block number, transaction hash, precompile address, precompile input, output, previous block metadata, error string, and proof; invalid shared-core results must cause SPC verification failure.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create SPC verification requests with a valid proof, a too-short proof, and a proof signed over altered output; assert verify_signature_direct_sync and the public verify_signature_core wrapper agree with ritual_spc_signature::verify_signature_core for all cases."
+  ],
+  "summary": "SPC direct verification delegates to the shared signature verifier.",
+  "test_or_falsification_candidate": "Compare verify_signature_direct_sync and ritual_spc_signature::verify_signature_core on valid, short-proof, and altered-output fixtures and assert matching outcomes.",
+  "title": "SPC signatures use shared verifier",
+  "total_invariants": 1954
+}

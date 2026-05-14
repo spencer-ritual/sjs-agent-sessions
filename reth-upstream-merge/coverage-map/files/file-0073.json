@@ -9,10 +9,10 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "mapped",
+  "file_classification": "covered_by_upstream",
   "tags": [
-    "mapped",
-    "size-asserts"
+    "covered_by_upstream",
+    "non-exact"
   ],
   "atoms_total": 3,
   "atoms": [
@@ -128,7 +128,7 @@
   "high_risk_atoms_total": 0,
   "non_exact_atoms_total": 3,
   "adversarial_reviews": [],
-  "summary": "The downstream file relaxes exact 56-byte size assumptions for two error types, and the v2.2.0 port already covers that intent with 64-byte max-size assertions.",
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
   "review_required": false,
   "status": "complete",
   "notes": "Destination evidence was found directly in the ported `crates/errors/src/error.rs`; no implementation change is needed for this file."

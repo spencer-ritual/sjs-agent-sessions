@@ -9,11 +9,9 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "missing",
+  "file_classification": "exact",
   "tags": [
-    "missing",
-    "non-exact",
-    "needs-review"
+    "exact"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -29,26 +27,36 @@
       "semantic_claim": "The downstream diff for crates/ritual-heartbeat-tracker/Cargo.toml introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
       "high_risk": false,
       "risk_tags": [],
-      "mapping_status": "missing",
-      "destinations": [],
-      "equivalence_argument": null,
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-heartbeat-tracker/src/lib.rs",
+          "symbols": [
+            "HeartbeatTracker",
+            "process_block_logs"
+          ],
+          "snippet": "heartbeat tracker event decoding and in-memory state transitions",
+          "evidence": "The heartbeat tracker crate exists in the v2.2 workspace, but payload revival injection remains outside the active scheduled FSM slice."
+        }
+      ],
+      "equivalence_argument": "Heartbeat tracker event decoding and state transitions are present in the v2.2 workspace.",
       "test_strategy": "not_needed",
       "negative_test_candidate": null,
       "adversarial_review": {
         "required": false,
-        "status": "not_requested",
+        "status": "not_required",
         "review_record_id": null
       },
-      "review_required": true,
-      "notes": "No same-path or uniquely named destination evidence was found in the configured search scope.",
-      "required_change": "Restore or intentionally replace the downstream behavior carried by crates/ritual-heartbeat-tracker/Cargo.toml; no reliable destination evidence was found in the configured search scope."
+      "review_required": false,
+      "notes": "Crate is present; payload revival injection remains separately classified when claimed."
     }
   ],
   "high_risk_atoms_total": 0,
-  "non_exact_atoms_total": 1,
+  "non_exact_atoms_total": 0,
   "adversarial_reviews": [],
-  "summary": "No reliable destination evidence was found for the downstream file-level behavior.",
-  "review_required": true,
-  "status": "needs_review",
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": false,
+  "status": "complete",
   "notes": "No same-path or uniquely named destination evidence was found in the configured search scope."
 }

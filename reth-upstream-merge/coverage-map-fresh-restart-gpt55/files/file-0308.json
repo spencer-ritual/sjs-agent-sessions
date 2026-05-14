@@ -1,0 +1,135 @@
+{
+  "record_type": "file",
+  "file_index": 308,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-heartbeat-tracker/src/events.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "heartbeat-tracker",
+    "events",
+    "abi-decoding"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0308-atom-0001",
+      "file_index": 308,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/ritual-heartbeat-tracker/src/events.rs",
+      "source_hunk_hint": "@@ -0,0 +1,25 @@; heartbeat event topic helpers",
+      "source_kind": "heartbeat_event_topic_helpers",
+      "source_snippet": "pub fn agent_registered_topic() -> B256 { keccak256(\"AgentRegistered(address,address,address,uint64)\") }\npub fn heartbeat_topic() -> B256 { keccak256(\"Heartbeat(address,uint64,string,address)\") }\npub fn agent_failed_topic() -> B256 { keccak256(\"AgentFailed(address,uint64,uint64)\") }\npub fn agent_removed_topic() -> B256 { keccak256(\"AgentRemoved(address,string)\") }\npub fn revival_initiated_topic() -> B256 { keccak256(\"RevivalInitiated(address,string,address,uint64)\") }\npub fn agent_revived_topic() -> B256 { keccak256(\"AgentRevived(address,string)\") }",
+      "semantic_claim": "The old divergence adds canonical topic-hash helpers for all heartbeat contract events consumed by the in-memory tracker: registration, heartbeat, failure, removal, revival initiation, and revival completion.",
+      "high_risk": false,
+      "risk_tags": [
+        "event-topics",
+        "heartbeat-contract",
+        "keccak",
+        "log-processing"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-heartbeat-tracker/src/events.rs",
+          "symbols": [
+            "agent_registered_topic",
+            "heartbeat_topic",
+            "agent_failed_topic",
+            "agent_removed_topic",
+            "revival_initiated_topic",
+            "agent_revived_topic"
+          ],
+          "evidence": "Destination lines 1-25 exactly match source-added diff lines 54417-54441."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-heartbeat-tracker/src/lib.rs",
+          "symbols": [
+            "HeartbeatTracker::process_block_logs"
+          ],
+          "evidence": "`process_block_logs` uses these topic helpers to route heartbeat contract logs."
+        }
+      ],
+      "equivalence_argument": "Exact topic-hash preservation keeps log classification aligned with the source heartbeat contract ABI.",
+      "test_strategy": "heartbeat_event_topic_tests",
+      "negative_test_candidate": "Changing an event signature string should prevent `process_block_logs` from recognizing that event type.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0308-atom-0002",
+      "file_index": 308,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/ritual-heartbeat-tracker/src/events.rs",
+      "source_hunk_hint": "@@ -0,0 +27,38 @@; topic address and uint64 decoders",
+      "source_kind": "heartbeat_event_decode_helpers",
+      "source_snippet": "pub fn decode_address_from_topic(topic: &B256) -> Address {\n    Address::from_slice(&topic.as_slice()[12..])\n}\n\npub fn decode_uint64_from_bytes(data: &[u8], offset: usize) -> u64 {\n    if data.len() < offset + 32 { return 0; }\n    let mut bytes = [0u8; 8];\n    bytes.copy_from_slice(&data[offset + 24..offset + 32]);\n    u64::from_be_bytes(bytes)\n}",
+      "semantic_claim": "The old divergence adds small ABI decoding helpers for indexed address topics and 32-byte ABI words carrying trailing big-endian uint64 values, returning zero for truncated data.",
+      "high_risk": false,
+      "risk_tags": [
+        "abi-decoding",
+        "event-topics",
+        "uint64",
+        "bounds-check"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-heartbeat-tracker/src/events.rs",
+          "symbols": [
+            "decode_address_from_topic",
+            "decode_uint64_from_bytes"
+          ],
+          "evidence": "Destination lines 27-38 exactly match source-added diff lines 54443-54454."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-heartbeat-tracker/src/lib.rs",
+          "symbols": [
+            "HeartbeatTracker::process_block_logs"
+          ],
+          "evidence": "`process_block_logs` uses the decoders for agent, owner, timeout, and cooldown fields."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps event field extraction and truncated-data fallback behavior unchanged.",
+      "test_strategy": "heartbeat_event_decode_tests",
+      "negative_test_candidate": "A log data buffer shorter than `offset + 32` should decode its uint64 field as zero rather than panic.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "Heartbeat tracker event helpers are exact-port preserved, including heartbeat contract event topics and small ABI decoders used by log processing.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 308: A\tcrates/ritual-heartbeat-tracker/src/events.rs.",
+    "Source-added hunk spans diff lines 54417-54454 with header `@@ -0,0 +1,38 @@`.",
+    "Destination `crates/ritual-heartbeat-tracker/src/events.rs` has 38 lines and matches the source-added file exactly.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

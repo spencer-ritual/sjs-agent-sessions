@@ -1,0 +1,69 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-async/src/validation.rs",
+    "crates/ritual-async/src/lib.rs",
+    "crates/rpc/rpc/src/eth/helpers/transaction.rs"
+  ],
+  "invariant_id": "cur-9fcaa16e58-shared-async-payload-rules-gate-builder",
+  "invariant_index": 448,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-precompile-codecs/src/validation.rs",
+      "crates/rpc/rpc/src/async_tx_validator.rs",
+      "crates/rpc/rpc/src/eth/helpers/transaction.rs",
+      "crates/ethereum/payload/src/ritual_async.rs"
+    ],
+    "checked_queries": [
+      "validate_target_block",
+      "target block range [current - max_lookback, current]",
+      "max_lookback",
+      "MAX_ASYNC_INPUT_SIZE 1 MiB",
+      "MAX_ASYNC_INPUT_SIZE: usize = 10 * 1024"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "validate_async_payload",
+      "validate_target_block",
+      "MAX_ASYNC_INPUT_SIZE",
+      "MAX_SHORT_ASYNC_TTL_BLOCKS",
+      "validate_rpc_async_admission"
+    ],
+    "missing_behavior": "Shared async validation lacks target-block extraction/range enforcement and uses a 10 KiB MAX_ASYNC_INPUT_SIZE rather than the stated 1 MiB rule.",
+    "related_but_insufficient_code": [
+      "validate_async_payload enforces precompile-specific payload and executor/TTL bounds, but only with MAX_ASYNC_INPUT_SIZE = 10 * 1024 in the port.",
+      "validate_rpc_async_admission does not extract or range-check a target block from the first ABI parameter.",
+      "Builder validation calls the shared payload validator, but no audited path implements the target-block lookback rule stated by the invariant."
+    ]
+  },
+  "notes": "The shared validator rejects malformed payload fields, but the invariant-required target-block lookback rule is absent.",
+  "rationale": "The commit adds ritual_async::validation, re-exports it for shared use, and calls validate_target_block, validate_async_payload, and extract_executor_and_ttl from RPC validation after simulation detects an async call. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "7084b9e331ab9b4ed7b74587d71d6051ab20c5d4"
+  ],
+  "statement": "Shared async validation must enforce target block extraction from the first ABI parameter, target block range [current - max_lookback, current], maximum async input size of 1 MiB, nonzero executor, ttl in [1, MAX_TTL_BLOCKS], and precompile-specific payload constraints for HTTP URLs, LLM model/messages, long-running HTTP URLs, and Agent prompt.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "For each supported async precompile, submit malformed RPC payloads covering future/too-old target block, oversized input, zero executor, ttl 0, ttl above MAX_TTL_BLOCKS, invalid URL scheme, empty LLM model/messages, and empty Agent prompt; assert RPC rejects them and the shared validator returns matching errors."
+  ],
+  "summary": "Shared async payload rules are missing target-block and size-bound parity.",
+  "test_or_falsification_candidate": "For each supported async precompile, submit malformed RPC payloads covering future/too-old target block, oversized input, zero executor, ttl 0, ttl above MAX_TTL_BLOCKS, invalid URL scheme, empty LLM model/messages, and empty Agent prompt; assert RPC rejects them and the shared validator returns matching errors.",
+  "title": "Shared async payload rules gate RPC and builder",
+  "total_invariants": 1954
+}

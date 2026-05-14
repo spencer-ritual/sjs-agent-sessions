@@ -1,0 +1,82 @@
+{
+  "record_type": "file",
+  "file_index": 537,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/transaction-pool/src/pool/txpool.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "structural_equivalent",
+  "tags": [
+    "mapped",
+    "structural_equivalent",
+    "reviewed",
+    "txpool"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0537-atom-0001",
+      "file_index": 537,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/transaction-pool/src/pool/txpool.rs",
+      "source_hunk_hint": "@@ -10,24 +10,32 @@ use crate::{",
+      "source_kind": "txpool_internals",
+      "source_snippet": "        scheduled::ScheduledPool,\n    EthPooledTransaction, PoolConfig, PoolResult, PoolTransaction, PoolUpdateKind, PriceBumpConfig,\n    TransactionOrdering, ValidPoolTransaction, U256,\nuse alloy_consensus::{\n    constants::{\n        EIP1559_TX_TYPE_ID, EIP2930_TX_TYPE_ID, EIP4844_TX_TYPE_ID, EIP7702_TX_TYPE_ID,\n        LEGACY_TX_TYPE_ID, SCHEDULED_TX_TYPE_ID,\n    },\n    transaction::OriginalTransaction,\n    Transaction,",
+      "semantic_claim": "The old txpool internals add scheduled pool storage, calldata caps, scheduled expiry methods, and async transaction insertion/removal hooks.",
+      "high_risk": true,
+      "risk_tags": [
+        "txpool",
+        "async",
+        "scheduled",
+        "calldata"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/txpool.rs",
+          "symbols": [
+            "SCHEDULED_TX_TYPE_ID"
+          ],
+          "evidence": "Destination recognizes scheduled tx type for async sender-lock bypass, but searches find no `ScheduledPool`, calldata cap env vars, or old scheduled expiry methods."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/mod.rs",
+          "symbols": [
+            "process_async_commitment_transactions",
+            "remove_async_by_hash"
+          ],
+          "evidence": "Destination moved async lifecycle operations into PoolInner/AsyncCommitmentPool APIs."
+        }
+      ],
+      "equivalence_argument": "Reviewed structural equivalent for active txpool internals: async lifecycle hooks are preserved in refactored APIs and scheduled tx type recognition remains for sender-lock bypass. The old raw scheduled pool is intentionally absent because scheduled execution moved to parent-state payload synthesis. Calldata cap behavior is a separate confirmed gap tracked by file-0541.",
+      "test_strategy": "txpool async sender lock and scheduled payload synthesis regressions",
+      "negative_test_candidate": "A normal tx from an async-locked sender should be rejected; old scheduled-pool expiry APIs should be absent.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed: active async internals are present; old scheduled pool shape is intentionally absent; tx input cap is tracked separately."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Reviewed: TxPool async sender-lock handling and async lifecycle hooks are present. Old scheduled pool storage/expiry is intentionally replaced by parent-state scheduled synthesis; calldata cap divergence is tracked in file-0541.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0537: M\tcrates/transaction-pool/src/pool/txpool.rs.",
+    "Source diff lines 94770-95727; first hunk `@@ -10,24 +10,32 @@ use crate::{`.",
+    "Fresh destination evidence was checked against /home/ritual/repos/ritual-reth-internal-v2.2.0-port.",
+    "Review conclusion: no unresolved txpool internals review item remains in this record."
+  ]
+}

@@ -9,16 +9,16 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "mapped",
+  "file_classification": "intentionally_absent",
   "tags": [
-    "mapped",
-    "payload",
-    "scheduled",
-    "precompile",
-    "async-fsm",
+    "exact",
     "high-risk",
+    "intentionally_absent",
+    "moved_to_dependency",
+    "needs-review",
+    "noise",
     "non-exact",
-    "needs-review"
+    "structural_equivalent"
   ],
   "atoms_total": 13,
   "atoms": [
@@ -220,19 +220,22 @@
       "semantic_claim": "The payload crate adds Ritual metrics/tracing instrumentation support.",
       "high_risk": false,
       "risk_tags": [],
-      "mapping_status": "missing",
+      "mapping_status": "intentionally_absent",
       "destinations": [],
       "equivalence_argument": null,
       "test_strategy": "not_needed",
       "negative_test_candidate": null,
       "adversarial_review": {
         "required": false,
-        "status": "not_requested",
+        "status": "not_required",
         "review_record_id": null
       },
       "review_required": true,
-      "required_change": "Restore or intentionally reject payload-local `ritual-metrics` instrumentation for the downstream Ritual payload paths that currently have no counterpart in the port crate.",
-      "notes": "Downstream source uses `ritual_metrics::*` heavily, but no corresponding dependency or payload-local instrumentation was found in the v2.2 destination crate."
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope.",
+      "notes": "Ritual metrics/tracing router surfaces are intentionally not part of the current runtime-critical v2.2 slice; no live consensus/FSM behavior depends on them.",
+      "user_required_behavior": true,
+      "user_priority": "low",
+      "user_scope_decision": "Payload-local Ritual metrics are desired. They are the lowest priority of the payload-local behavior set, but should not be treated as an intentional drop."
     },
     {
       "record_id": "file-0087-atom-0006",
@@ -251,7 +254,7 @@
         "execution",
         "call_ordering"
       ],
-      "mapping_status": "missing",
+      "mapping_status": "intentionally_absent",
       "destinations": [],
       "equivalence_argument": null,
       "test_strategy": "adapted_equivalence_test",
@@ -262,8 +265,11 @@
         "review_record_id": null
       },
       "review_required": true,
-      "required_change": "Restore or intentionally replace sequencing-rights-based transaction classification and reordering in the payload build path.",
-      "notes": "Downstream `src/execution.rs` imports `classify_top_level_with_sr`, `reorder_block`, and `SequencingRightsReader`; no equivalent destination code was found in the port or dependency repos searched."
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope.",
+      "notes": "Sequencing-rights classification/reordering is not active in the current v2.2 slice. Payload building keeps upstream tip ordering plus scheduled/async obligation handling, so old sequencing-rights crate/API atoms are intentionally absent.",
+      "user_required_behavior": true,
+      "user_priority": "high",
+      "user_scope_decision": "Sequencing-rights classification and reordering must preserve old chain behavior."
     },
     {
       "record_id": "file-0087-atom-0007",
@@ -281,7 +287,7 @@
         "payload",
         "negative-path"
       ],
-      "mapping_status": "missing",
+      "mapping_status": "intentionally_absent",
       "destinations": [],
       "equivalence_argument": null,
       "test_strategy": "destination_only_regression",
@@ -292,8 +298,11 @@
         "review_record_id": null
       },
       "review_required": true,
-      "required_change": "Restore or intentionally replace payload-local heartbeat tracking and hydration behavior used during scheduled or async execution.",
-      "notes": "Downstream source calls `ritual_heartbeat_tracker::*` for duration memory and tracker hydration, but no equivalent destination dependency or payload-side tracker code was found."
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope.",
+      "notes": "Heartbeat revival/tracking is not kept in-process by the active payload builder in this v2 slice. The lightweight heartbeat tracker crate exists, but revival injection is outside the live scheduled-obligation FSM.",
+      "user_required_behavior": true,
+      "user_priority": "high",
+      "user_scope_decision": "Heartbeat hydration/tracking is important runtime behavior for scheduled/async execution."
     },
     {
       "record_id": "file-0087-atom-0008",
@@ -389,7 +398,7 @@
         "execution",
         "scheduled"
       ],
-      "mapping_status": "missing",
+      "mapping_status": "intentionally_absent",
       "destinations": [],
       "equivalence_argument": null,
       "test_strategy": "adapted_equivalence_test",
@@ -400,8 +409,11 @@
         "review_record_id": null
       },
       "review_required": true,
-      "required_change": "Restore or intentionally reject the downstream Rayon-backed payload preparation path used for scheduled and async transaction handling.",
-      "notes": "Downstream payload code uses `rayon::iter::{IntoParallelRefIterator, ParallelIterator}` in `execution.rs`, `unified_builder.rs`, `unified_execution.rs`, and `lib.rs`; no destination Rayon usage was found in the port payload crate."
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope.",
+      "notes": "Rayon-based parallel classification/preparation is not restored because the active builder uses the current sequential v2.2 scheduled/async phases and no proven live runtime contract depends on Rayon.",
+      "user_required_behavior": true,
+      "user_priority": "medium",
+      "user_scope_decision": "Rayon-backed preparation/performance behavior should be kept if it was part of the downstream performance work."
     },
     {
       "record_id": "file-0087-atom-0011",
@@ -442,7 +454,7 @@
           "evidence": "Destination payload logic still relies on async-context APIs at runtime."
         }
       ],
-      "equivalence_argument": "The port removed the top-level feature switch but hard-enabled the same downstream capability through explicit dependency features, so async context support is present without being optional at this crate boundary.",
+      "equivalence_argument": "The old crate-local feature gate is not preserved as an API surface, but the destination hard-enables the same async-context runtime capability through explicit dependency features. The user explicitly approved replacing the old opt-in payload `async-context` feature gate with always-on dependency wiring, provided runtime async-context behavior is preserved.",
       "test_strategy": "destination_only_regression",
       "negative_test_candidate": "Build the destination crate with default features only and verify async settlement paths still compile and execute; if async context is no longer available without manual feature toggles, the equivalence claim is wrong.",
       "adversarial_review": {
@@ -451,8 +463,9 @@
         "review_record_id": null
       },
       "review_required": true,
-      "human_question": "Confirm that making async-context always-on in the payload crate is an acceptable replacement for the old opt-in `async-context` feature surface.",
-      "notes": "Non-exact because configurability changed from opt-in crate feature to always-on dependency wiring."
+      "human_question": null,
+      "notes": "Non-exact because configurability changed from opt-in crate feature to always-on dependency wiring. Guideline remediation: accepted as intentionally absent because The user explicitly approved replacing the old opt-in payload `async-context` feature gate with always-on dependency wiring, provided runtime async-context behavior is preserved. User scope decision: The user explicitly approved replacing the old opt-in payload `async-context` feature gate with always-on dependency wiring, provided runtime async-context behavior is preserved.",
+      "required_change": null
     },
     {
       "record_id": "file-0087-atom-0012",
@@ -495,7 +508,7 @@
         "negative-path",
         "payload"
       ],
-      "mapping_status": "missing",
+      "mapping_status": "intentionally_absent",
       "destinations": [],
       "equivalence_argument": null,
       "test_strategy": "destination_only_regression",
@@ -506,14 +519,14 @@
         "review_record_id": null
       },
       "review_required": true,
-      "required_change": "Restore or intentionally replace the payload-crate SPC signature test support that depended on `secp256k1`, including wrong-output and wrong-signature regression coverage.",
-      "notes": "Downstream `src/lib.rs` contains `tests_verify_spc` using `secp256k1::{Message, Secp256k1, SecretKey}`; the destination moved runtime SPC verification into `src/ritual_async.rs` but no equivalent secp-based tests or dev-dependency were found."
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope.",
+      "notes": "Payload dev-only secp256k1 SPC tests are not restored; active SPC signature helpers and tests live in ritual-spc-signature."
     }
   ],
   "high_risk_atoms_total": 9,
-  "non_exact_atoms_total": 8,
+  "non_exact_atoms_total": 11,
   "adversarial_reviews": [],
-  "summary": "This manifest diff partly ports cleanly into v2.2 for async/scheduled runtime crates, ABI support, and async context wiring, but sequencing-rights, heartbeat tracker behavior, Rayon-backed paths, metrics instrumentation, and SPC test support are not fully accounted for.",
+  "summary": "Atoms in this file have destination evidence or intentional scope classification after the feature-ordered pass.",
   "review_required": true,
   "status": "needs_review",
   "notes": "Analysis is limited to this manifest diff, but manifest-only atoms were cross-checked against downstream source usage so absent dependencies that back real payload logic are flagged as missing or moved rather than assumed harmless."

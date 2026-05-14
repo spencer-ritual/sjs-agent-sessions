@@ -1,0 +1,66 @@
+{
+  "cluster_key": "block building:block-lifecycle-events-4df07f25",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: block_time-aware helpers exist, but the required payload and verification events are not emitted by the audited code paths.",
+  "evidence_files": [
+    "crates/ritual-metrics/src/block.rs",
+    "crates/engine/tree/src/tree/mod.rs"
+  ],
+  "invariant_id": "cur-08304a6882-block-lifecycle-events-include-block-time",
+  "invariant_index": 553,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-metrics/src/block.rs",
+      "crates/engine/tree/src/tree/mod.rs",
+      "crates/engine/tree/src/tree/payload_validator.rs",
+      "crates/ethereum/payload/src/lib.rs"
+    ],
+    "checked_queries": [
+      "log_block_verify_end log_payload_building_start log_payload_building_end block_time",
+      "block_time payload building start end verification",
+      "log_el_update_head tip.timestamp"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "log_block_verify_end",
+      "log_payload_building_start",
+      "log_payload_building_end",
+      "log_el_update_head",
+      "block_time"
+    ],
+    "missing_behavior": "The local port does not wire payload-building start/end or block-verification-end events that emit block_time from the block header; only EL head update is wired with block_time.",
+    "related_but_insufficient_code": [
+      "crates/ritual-metrics/src/block.rs defines helpers that emit block_time for payload build start/end and block verification end.",
+      "crates/engine/tree/src/tree/mod.rs calls log_el_update_head with tip.timestamp().",
+      "Search found no calls to log_payload_building_start, log_payload_building_end, or log_block_verify_end outside their definitions; payload_validator uses generic block phase logs without block_time."
+    ]
+  },
+  "notes": "EL head updates preserve block_time, but the invariant requires more event types.",
+  "rationale": "The primary diff adds block_time from block.timestamp(), renames payload logging arguments/fields from timestamp to block_time, and passes tip.timestamp() to log_el_update_head. The commit message states block_time should be used consistently across block lifecycle events. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Block Building",
+  "source_commits": [
+    "d1ed036d88bafcf0df98421398e8128a65490baa"
+  ],
+  "statement": "Block lifecycle metric events for payload building start/end, block verification end, and EL head updates must emit block_time as the Unix timestamp from the relevant block header, and must not use the old generic timestamp field for that value.",
+  "status": "current",
+  "subsystem": "block building",
+  "suggested_falsification_tests": [
+    "Capture block lifecycle tracing events for payload start, payload end, block verification end, and EL head update; assert each contains block_time equal to the block header timestamp and does not emit the old timestamp field for that same value."
+  ],
+  "summary": "Block lifecycle block_time events are only partially wired.",
+  "test_or_falsification_candidate": "Capture lifecycle tracing during payload build and block verification and assert start/end/verification events contain block_time; current calls are absent.",
+  "title": "Block lifecycle events include block_time",
+  "total_invariants": 1954
+}

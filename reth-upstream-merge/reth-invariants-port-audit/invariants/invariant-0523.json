@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "85b41ec83e0009175c328eb0b9a07c92c3008129",
+      "evidence": "The LLM codec decodes the full 30-field ABI and preserves field 29 as a StorageRef while exposing executor, TTL, messages, and model.",
+      "path": "crates/ritual-precompile-codecs/src/llm_call.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let param_types = vec![ ... StorageRef::abi_param_type() ];\nlet tokens = ethabi::decode(&param_types, data)?;\nif tokens.len() != 30 { return Err(...); }\n...\nmessages_json: string_token(&tokens[5], \"messages_json\")?,\nmodel: string_token(&tokens[6], \"model\")?,\nconvo_history: StorageRef::from_token(&tokens[29])?,",
+      "symbols": [
+        "LLMCallRequest::from_abi",
+        "StorageRef::from_token"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "85b41ec83e0009175c328eb0b9a07c92c3008129",
+      "evidence": "Validation consumes the full codec result and still checks executor, TTL, model, and messages.",
+      "path": "crates/ritual-precompile-codecs/src/validation.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let request = LLMCallRequest::from_abi(input)?;\nvalidate_executor_base_fields(request.executor, request.ttl, ...)?;\nif request.model.trim().is_empty() { return Err(EmptyModel); }\nif !request.has_valid_messages() { return Err(EmptyMessages); }",
+      "symbols": [
+        "validate_llm_call_payload"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port rejects truncated or partial LLM payloads by requiring exactly 30 decoded tokens, then validates the same base fields and message/model constraints from that full decode.",
+  "evidence_files": [
+    "crates/ritual-precompile-codecs/src/llm_call.rs",
+    "crates/ritual-async/src/validation.rs"
+  ],
+  "invariant_id": "cur-fb2dd58170-codec-decodes-conversation-history-storageref",
+  "invariant_index": 523,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This duplicate LLM conversation-history invariant is satisfied by the same 30-field codec and validation path as invariant 522.",
+  "rationale": "The merge imports StorageRef, changes the decoder from a minimal first-fields parser to a 30-field ABI decoder, adds convo_history to LLMCallRequest, and adds validation and codec tests asserting GCS StorageRef round-trips. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "b91faf3143bb3a9a922bbca38884447d99847481"
+  ],
+  "statement": "LLMCallRequest::from_abi must decode the full 30-field LLM request ABI and extract convo_history from field 29 as a StorageRef, while still validating executor, TTL, messages_json, and model from their existing fields.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Encode a full LLM request with a non-default StorageRef at field 29 and valid model/messages. Assert validate_async_payload accepts it and LLMCallRequest::from_abi returns the same platform, path, and key_ref. Also assert malformed or truncated payloads that do not satisfy the full ABI are rejected."
+  ],
+  "summary": "LLM codec decodes conversation history as a StorageRef.",
+  "test_or_falsification_candidate": "ABI-encode a full LLM request with a non-default field-29 StorageRef and valid model/messages; assert validation accepts it and LLMCallRequest::from_abi returns the same StorageRef, while truncated payloads fail.",
+  "title": "LLM codec decodes conversation history StorageRef",
+  "total_invariants": 1954
+}

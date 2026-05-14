@@ -1,0 +1,63 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "The start index is deterministic across nodes but varies by agent address tail for the same parent hash.",
+      "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let hash_bytes = parent_hash.as_slice();\nlet agent_bytes = agent_addr.as_slice();\nlet seed = u16::from_be_bytes([hash_bytes[30] ^ agent_bytes[18], hash_bytes[31] ^ agent_bytes[19]]) as usize;\nlet start = seed % http_executors.len();",
+      "symbols": [
+        "select_revival_executor"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "Canonical heartbeat processing passes the revived agent address into the selector.",
+      "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let Some(executor) = select_revival_executor(&http_executors, parent_hash, agent_addr, revival_data.last_executor) else { continue; };",
+      "symbols": [
+        "try_synthesize_heartbeat_revival_transactions"
+      ]
+    }
+  ],
+  "equivalence_argument": "Revival executor selection uses parent hash and agent address tail bytes for deterministic agent-specific rotation.",
+  "evidence_files": [
+    "crates/scheduling/src/canonical.rs"
+  ],
+  "invariant_id": "cur-93038cd782-revival-executor-selection-agent-specific-deterministic",
+  "invariant_index": 549,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This mapping explains why the older parent-only invariant is recorded as a gap.",
+  "rationale": "The primary commit changes select_revival_executor to accept agent_addr, XORs parent_hash bytes 30/31 with agent address bytes 18/19, and passes agent_addr from the revival processing callsite. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "d4b711a230105a0619f18e8a87df24ef75103259"
+  ],
+  "statement": "select_revival_executor should seed its starting executor index from the parent hash tail bytes XORed with the revived agent address tail bytes, so selection remains deterministic across nodes while different agents in the same block can start from different executor indices.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "With a fixed parent hash and executor list, call select_revival_executor for two agent addresses with different tail bytes and assert their start indices can differ deterministically; repeat the same input on another node/test run and assert the selected executor is identical."
+  ],
+  "summary": "Revival executor selection is agent-specific and deterministic.",
+  "test_or_falsification_candidate": "Use a fixed parent hash and executor list with two agent addresses and assert their deterministic starting indices can differ.",
+  "title": "Revival executor selection is agent-specific and deterministic",
+  "total_invariants": 1954
+}

@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No exact mapping: prepared payload construction exists, but the required reviveAgentPrepared ABI entry point is absent from the audited repos.",
+  "evidence_files": [
+    "crates/scheduling/src/canonical.rs",
+    "crates/scheduling/src/transaction.rs"
+  ],
+  "invariant_id": "cur-9393fb5c50-heartbeat-revival-uses-prepared-payloads",
+  "invariant_index": 543,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-scheduled-block-building/src/lib.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/scheduling/src/canonical.rs",
+      "crates/scheduling/src/transaction.rs"
+    ],
+    "checked_queries": [
+      "reviveAgentPrepared reviveAgent precompileInput",
+      "function reviveAgentPrepared",
+      "heartbeat revival prepared payload"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "reviveAgentPrepared",
+      "reviveAgentCall",
+      "create_heartbeat_revival_transaction",
+      "build_revival_precompile_input",
+      "PersistentAgentRequest"
+    ],
+    "missing_behavior": "Canonical heartbeat revival does not submit reviveAgentPrepared(agent, precompileInput); the local port uses reviveAgent(address,bytes) and has no reviveAgentPrepared symbol or selector.",
+    "related_but_insufficient_code": [
+      "crates/ritual-scheduled-block-building/src/lib.rs builds a Persistent Agent precompile input from executor, fixed TTL/max spawn block, manifest CID, and encrypted DA config.",
+      "The same file encodes function reviveAgent(address agentAddr, bytes precompileInput), not reviveAgentPrepared.",
+      "crates/ritual-block-verification/src/lib.rs validates reviveAgent calldata and contains no reviveAgentPrepared selector."
+    ]
+  },
+  "notes": "This is a selector/API-name gap, not a payload-shape gap: the Persistent Agent input is built off-chain.",
+  "rationale": "The commit adds the reviveAgentPrepared ABI, builds the persistent-agent precompile payload locally from revival data, and changes heartbeat system transaction comments and submission paths from reviveAgent to reviveAgentPrepared. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "d454f68d78a80b183ca151a99b43eeba29e09451"
+  ],
+  "statement": "Canonical heartbeat revival must submit reviveAgentPrepared(agent, precompileInput) transactions, not legacy reviveAgent(address) transactions, and the precompileInput must be built off-chain as a Persistent Agent payload containing the selected executor, fixed revival TTL and max spawn block, the agent's latest manifest CID, and encrypted DA config read from heartbeat storage.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Force an agent into FAILED state with stored latestManifestCID and encryptedDAConfig, run canonical heartbeat processing, and assert the submitted heartbeat transaction calls reviveAgentPrepared with a precompileInput containing those storage values and no legacy reviveAgent selector."
+  ],
+  "summary": "Heartbeat revival uses prepared payloads but not the required reviveAgentPrepared ABI.",
+  "test_or_falsification_candidate": "Search for and call a reviveAgentPrepared selector in canonical heartbeat processing; current code only exposes reviveAgent(address,bytes).",
+  "title": "Heartbeat revival uses prepared payloads",
+  "total_invariants": 1954
+}

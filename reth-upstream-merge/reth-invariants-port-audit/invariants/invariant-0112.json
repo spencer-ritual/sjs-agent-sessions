@@ -1,0 +1,78 @@
+{
+  "cluster_key": "scheduler:receipt-rpc",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Txpool RPC details use SCHEDULED_TX_TYPE_ID for scheduled originals.",
+      "path": "crates/rpc/rpc/src/txpool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "use alloy_eips::eip2718::{ASYNC_SETTLEMENT_TX_TYPE_ID, PASSKEY_TX_TYPE_ID, SCHEDULED_TX_TYPE_ID};\n...\nOriginalTransaction::Scheduled(tx) => { OriginalTxDetails { tx_type: SCHEDULED_TX_TYPE_ID, ... } }",
+      "symbols": [
+        "tx_details",
+        "OriginalTransaction::Scheduled",
+        "SCHEDULED_TX_TYPE_ID"
+      ]
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "169074f08721705fbb99cc9531ea798b61e9f3cc",
+      "evidence": "Alloy defines the scheduled transaction type constant as 0x10.",
+      "path": "crates/eips/src/eip2718.rs",
+      "repo": "/home/ritual/repos/ritual-alloy-internal",
+      "snippet": "pub const SCHEDULED_TX_TYPE_ID: u8 = 0x10;",
+      "symbols": [
+        "SCHEDULED_TX_TYPE_ID"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in port and alloy: txpool uses the shared scheduled type constant.",
+  "evidence_files": [
+    "ritual-reth-internal/crates/rpc/rpc/src/txpool.rs"
+  ],
+  "invariant_id": "cur-c55c5a8018-scheduled-txpool-reports-scheduled-type-constant",
+  "invariant_index": 112,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+    "/home/ritual/repos/ritual-alloy-internal"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/rpc/rpc/src/txpool.rs",
+      "crates/eips/src/eip2718.rs"
+    ],
+    "checked_queries": [
+      "SCHEDULED_TX_TYPE_ID|OriginalTransaction::Scheduled|tx_type"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-alloy-internal"
+    ],
+    "checked_symbols": [
+      "SCHEDULED_TX_TYPE_ID",
+      "OriginalTransaction::Scheduled"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The current txpool RPC code imports SCHEDULED_TX_TYPE_ID and uses it for OriginalTransaction::Scheduled.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "b34d35ba7da0968202faaa0c2d2ea89ca89723e1",
+    "72682bad78e5898915bca2fda67fa74e0a4737c3"
+  ],
+  "statement": "The txpool RPC representation for scheduled original transactions must report SCHEDULED_TX_TYPE_ID rather than a stale literal transaction type value.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Call txpool async/scheduled detail conversion for a scheduled original and assert tx_type equals SCHEDULED_TX_TYPE_ID."
+  ],
+  "summary": "Scheduled txpool RPC reports the shared scheduled type constant.",
+  "test_or_falsification_candidate": "Txpool RPC scheduled detail unit test for tx_type constant.",
+  "title": "Scheduled txpool RPC reports the scheduled type constant",
+  "total_invariants": 1954
+}

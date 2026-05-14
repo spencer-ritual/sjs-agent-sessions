@@ -1,0 +1,105 @@
+{
+  "cluster_key": "scheduler:custom-types",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Compact TxType encoding uses shared canonical constants for Scheduled, AsyncCommitment, and AsyncSettlement extended identifiers.",
+      "path": "crates/storage/codecs/src/alloy/transaction/txtype.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "Self::Scheduled => { buf.put_u8(SCHEDULED_TX_TYPE_ID); COMPACT_EXTENDED_IDENTIFIER_FLAG }\nSelf::AsyncCommitment => { buf.put_u8(ASYNC_COMMITMENT_TX_TYPE_ID); COMPACT_EXTENDED_IDENTIFIER_FLAG }\nSelf::AsyncSettlement => { buf.put_u8(ASYNC_SETTLEMENT_TX_TYPE_ID); COMPACT_EXTENDED_IDENTIFIER_FLAG }",
+      "symbols": [
+        "Compact for TxType"
+      ]
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "169074f08721705fbb99cc9531ea798b61e9f3cc",
+      "evidence": "Alloy recovers scheduled/async system senders and allows Scheduled try_into_pooled conversion.",
+      "path": "crates/consensus/src/transaction/envelope.rs",
+      "repo": "/home/ritual/repos/ritual-alloy-internal",
+      "snippet": "Self::Scheduled(_) => Ok(crate::transaction::scheduled::SYSTEM_SENDER)\nSelf::AsyncCommitment(_) => Ok(crate::transaction::async_commitment::ASYNC_COMMITMENT_SYSTEM_SENDER)\n...\nSelf::Scheduled(tx) => Ok(tx.into())",
+      "symbols": [
+        "EthereumTxEnvelope::recover_signer",
+        "EthereumTxEnvelope::try_into_pooled"
+      ]
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "169074f08721705fbb99cc9531ea798b61e9f3cc",
+      "evidence": "Alloy EVM converts Scheduled typed transactions into TxEnv with tx.ty() and system metadata defaults.",
+      "path": "crates/evm/src/tx.rs",
+      "repo": "/home/ritual/repos/ritual-alloy-evm-internal",
+      "snippet": "impl FromRecoveredTx<TxScheduled> for TxEnv { ... Self { tx_type: tx.ty(), gas_limit: *gas, kind: ..., value: *value, data: input.clone(), nonce: 0, ... } }",
+      "symbols": [
+        "FromRecoveredTx<TxScheduled> for TxEnv"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped across port and dependencies: custom types use canonical constants in compact codecs, signer recovery, pooled conversion, and TxEnv conversion.",
+  "evidence_files": [
+    "crates/storage/codecs/src/alloy/transaction/txtype.rs",
+    "crates/storage/codecs/src/alloy/transaction/ethereum.rs",
+    "crates/consensus/src/transaction/envelope.rs"
+  ],
+  "invariant_id": "cur-45b45d4d30-custom-types-canonical-typed-paths",
+  "invariant_index": 130,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+    "/home/ritual/repos/ritual-alloy-internal",
+    "/home/ritual/repos/ritual-alloy-evm-internal"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/storage/codecs/src/alloy/transaction/txtype.rs",
+      "crates/consensus/src/transaction/envelope.rs",
+      "crates/evm/src/tx.rs"
+    ],
+    "checked_queries": [
+      "SCHEDULED_TX_TYPE_ID|ASYNC_COMMITMENT_TX_TYPE_ID|ASYNC_SETTLEMENT_TX_TYPE_ID|recover_signer|try_into_pooled|FromRecoveredTx<TxScheduled>"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal"
+    ],
+    "checked_symbols": [
+      "Compact for TxType",
+      "EthereumTxEnvelope::recover_signer",
+      "EthereumTxEnvelope::try_into_pooled",
+      "FromRecoveredTx<TxScheduled>"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The current evidence keeps the type/codec/signer paths but supersedes older literal type-value wording with canonical constants; the older type-5 candidates are historical support for why this changed.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "bd259b087cfc84f0c15afd83c9dc85b6cb0c9cc5",
+    "c3d406930861aa70d423d0bffdf02927c4980a0a",
+    "8da2286f21a91bd475d62bad4a44dc0ac665a898",
+    "22ae645eeb277497c1b0dc8c83badb6bdfc54818",
+    "1ab1119cbad32ea14c62b5c76719558885288511",
+    "a37fa298dcd39bdbbb9d52fd854b4b1e31860a3e",
+    "2a74aeb7fc2148480c772b79472c5ee607b7dd61",
+    "59cc501a2735ec6287d073142b9344dd7338100f",
+    "b34d35ba7da0968202faaa0c2d2ea89ca89723e1",
+    "72682bad78e5898915bca2fda67fa74e0a4737c3",
+    "fe54eb180604e6d2199de47927aa9fb67c9caae8"
+  ],
+  "statement": "Scheduled, async commitment, and async settlement transactions are first-class typed transactions: compact TxType encoding uses extended identifiers with shared canonical constants, conversions into TxEnv use those constants, scheduled signer recovery returns the system sender, scheduled set_nonce remains non-mutating, and signed scheduled transactions can convert to pooled scheduled transactions without implying P2P export support.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Compact round-trip TxType custom variants and assert canonical constants.",
+    "Recover signer for Scheduled/AsyncCommitment and assert system senders; try_into_pooled Scheduled succeeds."
+  ],
+  "summary": "Custom transaction types use canonical typed paths.",
+  "test_or_falsification_candidate": "Custom transaction type codec/signer/pooled conversion tests.",
+  "title": "Custom transaction types use canonical typed paths",
+  "total_invariants": 1954
+}

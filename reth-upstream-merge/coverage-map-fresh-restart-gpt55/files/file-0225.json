@@ -1,0 +1,34 @@
+{
+  "record_type": "file",
+  "file_index": 225,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/optimism/rpc/src/eth/call.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "semicolon",
+    "optimism",
+    "rpc-call",
+    "blob-hashes"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The Optimism RPC call divergence is a semicolon-only rustfmt change in the empty blob-versioned-hashes validation error return; no call transaction validation behavior changed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 225: M\tcrates/optimism/rpc/src/eth/call.rs.",
+    "The isolated patch only changes an existing `return Err(RpcInvalidTransactionError::BlobTransactionMissingBlobHashes.into_eth_err())` to a semicolon-terminated statement.",
+    "No blob versioned hash validation, tx type selection, or RPC error behavior changed."
+  ]
+}

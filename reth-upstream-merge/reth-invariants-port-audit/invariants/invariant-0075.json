@@ -1,0 +1,63 @@
+{
+  "cluster_key": "scheduler:payload-building:part-02",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-9b782bd535-async-duplicate-checks-fail-closed-ignore-expired-jobs",
+  "invariant_index": 75,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs",
+      "crates/ritual-async-registry/src/lib.rs"
+    ],
+    "checked_queries": [
+      "job_exists_and_active|decide_active_job_augmentation|SkipActiveJob|DatabaseError",
+      "AsyncJobTracker|duplicate|expired"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "job_exists_and_active",
+      "decide_active_job_augmentation",
+      "AugmentationDecision::SkipActiveJob"
+    ],
+    "missing_behavior": "Missing fail-closed duplicate handling: active-job reads that error are treated as Proceed rather than aborting block construction.",
+    "related_but_insufficient_code": [
+      "ritual_async_registry::job_exists_and_active correctly treats expiry_block <= current_block as inactive/absent.",
+      "Payload augmentation skips Ok(true) active jobs, but decide_active_job_augmentation maps Err(_) to Proceed."
+    ]
+  },
+  "notes": "Confirmed gap for full invariant.",
+  "rationale": "This collapses the initial fail-closed duplicate check, the explicit skip behavior, and the later active-job refinement into the current duplicate async job invariant.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "88f223f67512976bf4fc8d6fa7a29f2dce8aa294",
+    "871cd771d400fd532492b6d69d02e200cc37ce2c",
+    "a0e5174a8348b5b5995e2733d09eaf04e96162d2"
+  ],
+  "statement": "During async transaction collection, payload building must read AsyncJobTracker parent state; if the state cannot be read it must abort block construction, and if an async job for the transaction hash exists and is active at the current block it must skip the duplicate, while expired jobs are treated as absent and may be recommitted.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Mock job_exists_and_active to return Err during payload augmentation and assert block construction aborts; current port proceeds, so this should fail until fixed.",
+    "Create active and expired AsyncJobTracker jobs for the same scheduled origin hash; assert active is skipped and expired is allowed."
+  ],
+  "summary": "Active/expired duplicate checks are partial, but fail-closed read handling is absent.",
+  "test_or_falsification_candidate": "Inject an AsyncJobTracker storage-read error in scheduled async augmentation; current port proceeds instead of failing closed.",
+  "title": "Async duplicate checks fail closed and ignore expired jobs",
+  "total_invariants": 1954
+}

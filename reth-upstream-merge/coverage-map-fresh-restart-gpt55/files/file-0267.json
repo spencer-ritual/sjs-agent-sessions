@@ -1,0 +1,33 @@
+{
+  "record_type": "file",
+  "file_index": 267,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/ress/protocol/src/connection.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "semicolon",
+    "ress",
+    "protocol"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The Ress protocol connection divergence is semicolon-only rustfmt noise in existing poll early returns.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 267: M\tcrates/ress/protocol/src/connection.rs.",
+    "The isolated patch only adds semicolons to `Poll::Ready(None)` and node-type-message early returns.",
+    "No connection termination, node-type announcement, polling, or encoded message behavior changed."
+  ]
+}

@@ -1,0 +1,124 @@
+{
+  "record_type": "file",
+  "file_index": 232,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/payload/basic/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "partial",
+  "tags": [
+    "non-exact",
+    "review-closed",
+    "payload-builder",
+    "empty-payload",
+    "build-arguments",
+    "attempt-metadata",
+    "partial",
+    "non-active-api"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0232-atom-0001",
+      "file_index": 232,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/payload/basic/src/lib.rs",
+      "source_hunk_hint": "@@ -246,6 +251,8 @@ through @@ -483,38 +521,67 @@",
+      "source_kind": "payload_resolution_behavior",
+      "source_snippet": "empty_payload_grace: Duration,\n\npub const fn empty_payload_grace(mut self, empty_payload_grace: Duration) -> Self {\n    self.empty_payload_grace = empty_payload_grace;\n    self\n}\n\nempty_payload_grace: Duration::from_millis(200),\n\nlet grace = self.empty_payload_grace;\nself.executor.spawn_blocking(Box::pin(async move {\n    if !grace.is_zero() {\n        std::thread::sleep(grace);\n    }\n    let res = builder.build_empty_payload(args);\n    let _ = tx.send(res);\n}));",
+      "semantic_claim": "The old basic payload job adds configurable `empty_payload_grace` and delays `PayloadKind::Earliest` empty-payload fallback by default before racing it against in-progress payload construction, while explicitly skipping fallback races for `WaitForPending` resolves.",
+      "high_risk": false,
+      "risk_tags": [
+        "payload-builder",
+        "empty-payload",
+        "timing",
+        "api-compatibility",
+        "non-active-empty-payload-path"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/payload/basic/src/lib.rs",
+          "symbols": [
+            "BasicPayloadJobGeneratorConfig",
+            "BasicPayloadJob::resolve_kind",
+            "BuildArguments",
+            "PayloadBuilder::build_empty_payload"
+          ],
+          "evidence": "Current config has interval/deadline/max_payload_tasks only; `resolve_kind` races missing payload fallback immediately based on `on_missing_payload`; `BuildArguments` has no attempt field; `build_empty_payload` remains config-only."
+        }
+      ],
+      "equivalence_argument": "Downgraded after active-path review: empty_payload_grace is absent, but active engine getPayload uses PayloadStore::resolve() -> PayloadKind::WaitForPending, and BasicPayloadJob drops the empty payload race for WaitForPending. The grace setting only matters for Earliest-style empty-payload racing, which is not the active engine path.",
+      "test_strategy": "timing_regression",
+      "negative_test_candidate": "Resolve an `Earliest` payload before the first build completes and assert empty fallback waits for a configured grace period; current code can only race/await immediately.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Non-active path for the current port. Explicit PayloadKind::Earliest usage was found in e2e-test-utils; the production engine API uses WaitForPending."
+    },
+    {
+      "record_id": "file-0232-atom-0002",
+      "file_index": 232,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/payload/basic/src/lib.rs",
+      "source_hunk_hint": "@@ -337,6 +356,10 @@, @@ -348,12 +371,18 @@, @@ -787,6 +854,8 @@, and @@ -845,7 +947,7 @@",
+      "source_kind": "payload_builder_api",
+      "source_snippet": "fn next_build_attempt(&self, kind: &'static str) -> BuildAttemptInfo {\n    BuildAttemptInfo::new(self.next_attempt_id.fetch_add(1, Ordering::Relaxed), kind)\n}\n\npub struct BuildArguments<Attributes, Payload: BuiltPayload> {\n    pub best_payload: Option<Payload>,\n    pub attempt: BuildAttemptInfo,\n}\n\npub struct BuildAttemptInfo {\n    pub id: u64,\n    pub kind: &'static str,\n}\n\nfn build_empty_payload(\n    &self,\n    args: BuildArguments<Self::Attributes, Self::BuiltPayload>,\n) -> Result<Self::BuiltPayload, PayloadBuilderError>;",
+      "semantic_claim": "The old basic payload builder introduces per-job build attempt metadata, attaches it to scheduled/direct/raced builds, and migrates `PayloadBuilder::build_empty_payload` from config-only input to full `BuildArguments` so wrappers and builders can observe attempt identity, cached reads, cancellation, and best-payload context.",
+      "high_risk": false,
+      "risk_tags": [
+        "payload-builder",
+        "public-api",
+        "empty-payload",
+        "attempt-accounting",
+        "api-compatibility",
+        "non-active-empty-payload-path"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/payload/basic/src/lib.rs",
+          "symbols": [
+            "BasicPayloadJobGeneratorConfig",
+            "BasicPayloadJob::resolve_kind",
+            "BuildArguments",
+            "PayloadBuilder::build_empty_payload"
+          ],
+          "evidence": "Current config has interval/deadline/max_payload_tasks only; `resolve_kind` races missing payload fallback immediately based on `on_missing_payload`; `BuildArguments` has no attempt field; `build_empty_payload` remains config-only."
+        }
+      ],
+      "equivalence_argument": "Downgraded after active-path review: BuildAttemptInfo/full-BuildArguments empty-payload API is not exact-preserved, but no active payload FSM transition was found that depends on attempt identity. The active engine path avoids empty-payload racing via WaitForPending.",
+      "test_strategy": "api_regression",
+      "negative_test_candidate": "Use a payload builder test double and assert scheduled/direct/raced builds carry distinct attempt id/kind into both normal and empty-payload calls; current API has no attempt field to assert.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "API/metadata compatibility difference, not a confirmed active FSM gap."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 2,
+  "adversarial_reviews": [],
+  "summary": "The old empty_payload_grace and attempt/full-BuildArguments empty-payload APIs are not exact-preserved, but they are not active FSM gaps for the current engine path because getPayload uses WaitForPending and avoids empty-payload racing.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Active path evidence: `rpc-engine-api` calls `payload_store.resolve(payload_id)`, and `PayloadStore::resolve()` uses `PayloadKind::WaitForPending`.",
+    "`BasicPayloadJob::resolve_kind` filters `empty_payload` out for `WaitForPending`, so missing `empty_payload_grace` does not affect the active getPayload FSM.",
+    "Attempt metadata/full BuildArguments for empty payload remains a non-exact API/metadata difference, not a confirmed active FSM gap."
+  ]
+}

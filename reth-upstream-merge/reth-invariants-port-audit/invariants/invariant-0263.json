@@ -1,0 +1,67 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "The signature verifier rebuilds compact sorted JSON with Python-compatible field formatting, hashes it with keccak256, accepts Ethereum recovery IDs, strips the uncompressed prefix, and compares raw public keys.",
+      "path": "crates/ritual-spc-signature/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let mut ordered_map = BTreeMap::new();\nordered_map.insert(\"block_number\", ...); ordered_map.insert(\"input\", hex::encode(precompile_input)); ordered_map.insert(\"precompile_address\", format!(\"{precompile_address:x}\"));\nlet message_json = serde_json::to_string(&ordered_map)?;\nlet message_hash = keccak256(message_json.as_bytes());\nlet recovery_id = match signature_bytes[64] { 0 | 1 => ..., 27 | 28 => ... };\nlet recovered_pubkey_raw = &recovered_pubkey_bytes[1..];\nlet is_valid = recovered_pubkey_raw == expected_pubkey_raw;",
+      "symbols": [
+        "verify_signature_core",
+        "normalize_recovery_id",
+        "construct_signature_payload"
+      ]
+    }
+  ],
+  "equivalence_argument": "The Python-compatible proof logic moved into ritual-spc-signature, and ritual-spc-verification delegates direct verification to it; this preserves byte-for-byte signed payload and raw public-key comparison semantics.",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-79bf462f48-python-executor-proof-signatures-verify-byte-byte",
+  "invariant_index": 263,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-spc-signature/src/lib.rs",
+      "crates/ritual-spc-verification/src/verifier.rs"
+    ],
+    "checked_queries": [
+      "Python executor JSON format",
+      "recovery ID 27 28",
+      "raw public key compare"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "verify_signature_core",
+      "construct_signature_payload",
+      "verify_signature_direct_sync"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in port.",
+  "rationale": "The commit subject says signature verification is fixed by matching the Python executor JSON format exactly. The diff replaces hex-string proof decoding with direct proof bytes, changes each JSON field's formatting to match the Python executor comments, hashes the JSON with keccak256 before secp256k1 recovery, supports Ethereum-style recovery IDs, and compares against the raw uncompressed public key without the 0x04 prefix. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "a9b5c1b7196215dd21c6d72d4a82b20a27b762f7"
+  ],
+  "statement": "Direct SPC verification must treat the request proof as the 65-byte signature bytes, rebuild the signed proof message using the Python executor's compact JSON field names and value formatting, keccak-hash that JSON, normalize Ethereum recovery IDs 27/28 to 0/1, and accept the proof only when the recovered raw 64-byte public key equals the registered executor public key.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Generate a proof with the Python executor for a known request and registered raw public key, including a signature with recovery id 27 or 28. Submit it through direct SPC verification and assert it returns true. Then change one signed JSON field format, add a 0x prefix to input/output, use the wrong HTTP precompile address, or compare against the 65-byte prefixed public key, and assert verification returns false."
+  ],
+  "summary": "SPC proof signatures use the Python-compatible byte-for-byte verifier.",
+  "test_or_falsification_candidate": "Use a Python executor proof with recovery id 27 or 28 and assert direct verification succeeds only for the matching raw public key and exact JSON field formatting.",
+  "title": "Python executor proof signatures verify byte-for-byte",
+  "total_invariants": 1954
+}

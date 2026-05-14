@@ -9,12 +9,11 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "missing",
+  "file_classification": "moved_to_dependency",
   "tags": [
-    "missing",
     "high-risk",
-    "consensus-constant",
-    "needs-review"
+    "moved_to_dependency",
+    "non-exact"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -33,9 +32,20 @@
         "consensus-constant",
         "execution"
       ],
-      "mapping_status": "missing",
-      "destinations": [],
-      "equivalence_argument": null,
+      "mapping_status": "moved_to_dependency",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-alloy-evm-internal",
+          "path": "crates/evm/src/eth/eip6110.rs",
+          "symbols": [
+            "SUMMIT_DEPOSIT_SIGNATURE",
+            "accumulate_deposits_from_receipts"
+          ],
+          "snippet": "logs are accepted when topic is DepositEvent::SIGNATURE_HASH or SUMMIT_DEPOSIT_SIGNATURE",
+          "evidence": "Summit 7-field deposit event decoding moved into Alloy EVM deposit parsing; Reth no longer needs to store the Summit topic in ChainSpec for runtime parsing."
+        }
+      ],
+      "equivalence_argument": "Summit deposit event behavior is preserved in the Alloy EVM dependency, where both standard and Summit deposit topics are decoded.",
       "test_strategy": "destination_only_regression",
       "negative_test_candidate": "Parse a genesis with a deposit contract address and verify the resulting DepositContract topic is the Summit 7-field topic, not the Ethereum mainnet topic.",
       "adversarial_review": {
@@ -44,14 +54,13 @@
         "review_record_id": null
       },
       "review_required": true,
-      "required_change": "Restore or intentionally replace the Summit deposit event topic constant in the v2.2 chain-spec path.",
-      "notes": "No SUMMIT_DEPOSIT_EVENT_TOPIC or equivalent 7-field DepositEvent topic was found in the v2.2 port."
+      "notes": "No Reth code change needed for deposit-topic behavior; dependency is source of truth."
     }
   ],
   "high_risk_atoms_total": 1,
   "non_exact_atoms_total": 1,
   "adversarial_reviews": [],
-  "summary": "The Summit deposit event topic constant is missing from the v2.2 chain-spec constants.",
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
   "review_required": true,
   "status": "needs_review",
   "notes": "This should be reviewed with the genesis/deposit parsing behavior in spec.rs."

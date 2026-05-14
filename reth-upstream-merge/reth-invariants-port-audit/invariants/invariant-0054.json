@@ -1,0 +1,61 @@
+{
+  "cluster_key": "scheduler:payload-building:part-03",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-bb612fd1fc-heartbeat-expiry-checks-read-only-during-payload-builds",
+  "invariant_index": 54,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-heartbeat-tracker/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs"
+    ],
+    "checked_queries": [
+      "HeartbeatTracker|get_expired_agents|sync_from_storage|heartbeat expiry",
+      "expired agents|FAILED agents|revival"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "HeartbeatTracker",
+      "get_expired_agents",
+      "sync_from_storage",
+      "heartbeat expiry",
+      "synthesize_heartbeat_revival_transactions"
+    ],
+    "missing_behavior": "Missing payload-build heartbeat expiry check that calls get_expired_agents under a read-only tracker snapshot without sync_from_storage or mutable hydration.",
+    "related_but_insufficient_code": [
+      "The port has heartbeat revival synthesis from parent state, but no payload-builder read-lock get_expired_agents path was found."
+    ]
+  },
+  "notes": "Confirmed gap; heartbeat revival synthesis is related but not the same tracker expiry path.",
+  "rationale": "The bounded candidate explicitly removes mutable storage hydration from the heartbeat expiry read-lock path while preserving get_expired_agents. No later bounded candidate changes that path.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "71b87d97c88b29f8762604760fb405cdf5b5538a"
+  ],
+  "statement": "During payload building, heartbeat expiry checks run as a read-only tracker snapshot operation: the read-locked path calls get_expired_agents without sync_from_storage or other mutable hydration.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Instrument HeartbeatTracker so sync_from_storage records calls or panics, run payload building through heartbeat expiry, and assert get_expired_agents executes without any sync_from_storage call under the read lock."
+  ],
+  "summary": "Heartbeat expiry read-only payload-build checks are absent.",
+  "test_or_falsification_candidate": "Instrument HeartbeatTracker::sync_from_storage and run payload building through heartbeat expiry; current port has no such payload path to exercise.",
+  "title": "Heartbeat expiry checks are read-only during payload builds",
+  "total_invariants": 1954
+}

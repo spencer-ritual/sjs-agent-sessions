@@ -9,22 +9,19 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "mapped",
+  "file_classification": "structural_equivalent",
   "tags": [
-    "mapped",
-    "async-fsm",
     "high-risk",
     "non-exact",
-    "needs-review",
-    "revm"
+    "structural_equivalent"
   ],
-  "atoms_total": 1,
+  "atoms_total": 11,
   "atoms": [
     {
       "record_id": "file-0297-atom-0001",
       "file_index": 297,
       "atom_index": 1,
-      "atoms_total": 1,
+      "atoms_total": 11,
       "source_path": "crates/ritual-async/src/validation.rs",
       "source_hunk_hint": "@@ -0,0 +1,1496 @@",
       "source_kind": "other",
@@ -34,23 +31,40 @@
       "risk_tags": [
         "async-fsm"
       ],
-      "mapping_status": "moved_to_dependency",
+      "mapping_status": "structural_equivalent",
       "destinations": [
         {
-          "repo": "/home/ritual/repos/ritual-revm-internal",
-          "path": "crates/handler/src/validation.rs",
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-inspector/src/lib.rs",
           "symbols": [
-            "validate_env",
-            "validate_legacy_gas_price",
-            "validate_priority_fee_tx",
-            "validate_priority_fee_for_tx",
-            "validate_eip4844_tx"
+            "AsyncPrecompileInspector",
+            "SharedAsyncPrecompileInspector"
           ],
-          "snippet": "pub fn validate_env<CTX: ContextTr, ERROR: From<InvalidHeader> + From<InvalidTransaction>>(\n    context: CTX,\n) -> Result<(), ERROR> {\n    let spec = context.cfg().spec().into();\n    // `prevrandao` is required for the merge",
-          "evidence": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path."
+          "snippet": "inspector records registered async precompile calls during EVM execution",
+          "evidence": "The standalone detector crate was replaced by the v2.2 inspector plus payload ritual_async builder helpers."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/lib.rs",
+          "symbols": [
+            "try_decode_precompile_data",
+            "validate_async_payload"
+          ],
+          "snippet": "canonical async precompile decoding and validation surface",
+          "evidence": "The old ritual-async validation API moved into ritual-precompile-codecs and is consumed by RPC, payload, and verifier paths."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "build_short_async_commitment_transaction",
+            "validate_short_commitment_parent_state"
+          ],
+          "snippet": "short async commitment construction and parent-state validation helpers",
+          "evidence": "The old ritual-async crate is decomposed into inspector, codecs, fees, registry, and payload ritual_async helpers."
         }
       ],
-      "equivalence_argument": "The downstream file name resolves uniquely in the destination search scope outside the original path, indicating the behavior likely moved rather than disappearing.",
+      "equivalence_argument": "The old monolithic ritual-async crate was intentionally decomposed into v2.2 crates without losing the active short-async FSM.",
       "test_strategy": "destination_only_regression",
       "negative_test_candidate": "Run the destination behavior owned by crates/ritual-async/src/validation.rs and verify the downstream-observed behavior still holds after the port refactor.",
       "adversarial_review": {
@@ -59,15 +73,728 @@
         "review_record_id": null
       },
       "review_required": true,
-      "notes": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path.",
-      "human_question": "Confirm that landing this file in a dependency repository preserves every downstream behavior atom expected from the old fork."
+      "notes": "Mapped to decomposed v2.2 async modules.",
+      "human_question": "filename/path similarity is not evidence of preserved behavior, guards, transitions, side effects, or failure paths."
+    },
+    {
+      "record_id": "file-0297-atom-0002",
+      "file_index": 297,
+      "atom_index": 2,
+      "atoms_total": 11,
+      "source_path": "crates/ritual-async/src/validation.rs",
+      "source_hunk_hint": "@@ -0,0 +1,1496 @@",
+      "source_kind": "test_fixture",
+      "source_snippet": "        }\n\n        /// TTL validation: valid iff 0 < ttl <= MAX_TTL_BLOCKS\n        #[test]\n        fn fuzz_ttl_bounds(ttl in 0u64..200) {\n            // Verify TTL bounds logic\n            let expected_valid = ttl > 0 && ttl <= MAX_TTL_BLOCKS;\n\n            // The TTL check is part of the overall validation\n            // We verify the property holds\n            assert!(MAX_TTL_BLOCKS > 0);\n\n            if expected_valid {\n                assert!(ttl <= MAX_TTL_BLOCKS && ttl > 0);\n            } else {\n                assert!(ttl == 0 || ttl > MAX_TTL_BLOCKS);\n            }\n        }\n    }\n}",
+      "semantic_claim": "fuzz ttl preserves the encoding, decoding, storage, or proof boundary covered by downstream tests: fuzz_ttl_bounds.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "consensus-constant"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-inspector/src/lib.rs",
+          "symbols": [
+            "AsyncPrecompileInspector",
+            "SharedAsyncPrecompileInspector"
+          ],
+          "snippet": "inspector records registered async precompile calls during EVM execution",
+          "evidence": "The standalone detector crate was replaced by the v2.2 inspector plus payload ritual_async builder helpers."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/lib.rs",
+          "symbols": [
+            "try_decode_precompile_data",
+            "validate_async_payload"
+          ],
+          "snippet": "canonical async precompile decoding and validation surface",
+          "evidence": "The old ritual-async validation API moved into ritual-precompile-codecs and is consumed by RPC, payload, and verifier paths."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "build_short_async_commitment_transaction",
+            "validate_short_commitment_parent_state"
+          ],
+          "snippet": "short async commitment construction and parent-state validation helpers",
+          "evidence": "The old ritual-async crate is decomposed into inspector, codecs, fees, registry, and payload ritual_async helpers."
+        }
+      ],
+      "equivalence_argument": "The old monolithic ritual-async crate was intentionally decomposed into v2.2 crates without losing the active short-async FSM.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: fuzz_ttl_bounds.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to decomposed v2.2 async modules.",
+      "test_derived": true,
+      "source_test_names": [
+        "fuzz_ttl_bounds"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0297-atom-0050"
+      ]
+    },
+    {
+      "record_id": "file-0297-atom-0003",
+      "file_index": 297,
+      "atom_index": 3,
+      "atoms_total": 11,
+      "source_path": "crates/ritual-async/src/validation.rs",
+      "source_hunk_hint": "@@ -0,0 +1,1496 @@",
+      "source_kind": "encoding_rule",
+      "source_snippet": "        );\n    }\n\n    #[test]\n    fn test_try_decode_persistent_agent_uses_full_codec() {\n        let payload = create_persistent_agent_payload(\n            Address::repeat_byte(0xAB),\n            42,\n            6000,\n            \"gemini/gemini-2.5-flash\",\n        );\n        let (executor, ttl) =\n            try_decode_precompile_data(&payload, PERSISTENT_AGENT_PRECOMPILE).unwrap();\n        assert_eq!(executor, Address::repeat_byte(0xAB));\n        assert_eq!(ttl, 42);\n    }\n\n    // ========================================================================\n    // Sovereign Agent (0x080C) payload validation tests\n    // ========================================================================\n\n ",
+      "semantic_claim": "try decode preserves the encoding, decoding, storage, or proof boundary covered by downstream tests: test_try_decode_persistent_agent_uses_full_codec.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "encoding"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-inspector/src/lib.rs",
+          "symbols": [
+            "AsyncPrecompileInspector",
+            "SharedAsyncPrecompileInspector"
+          ],
+          "snippet": "inspector records registered async precompile calls during EVM execution",
+          "evidence": "The standalone detector crate was replaced by the v2.2 inspector plus payload ritual_async builder helpers."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/lib.rs",
+          "symbols": [
+            "try_decode_precompile_data",
+            "validate_async_payload"
+          ],
+          "snippet": "canonical async precompile decoding and validation surface",
+          "evidence": "The old ritual-async validation API moved into ritual-precompile-codecs and is consumed by RPC, payload, and verifier paths."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "build_short_async_commitment_transaction",
+            "validate_short_commitment_parent_state"
+          ],
+          "snippet": "short async commitment construction and parent-state validation helpers",
+          "evidence": "The old ritual-async crate is decomposed into inspector, codecs, fees, registry, and payload ritual_async helpers."
+        }
+      ],
+      "equivalence_argument": "The old monolithic ritual-async crate was intentionally decomposed into v2.2 crates without losing the active short-async FSM.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_try_decode_persistent_agent_uses_full_codec.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to decomposed v2.2 async modules.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_try_decode_persistent_agent_uses_full_codec"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0297-atom-0022"
+      ]
+    },
+    {
+      "record_id": "file-0297-atom-0004",
+      "file_index": 297,
+      "atom_index": 4,
+      "atoms_total": 11,
+      "source_path": "crates/ritual-async/src/validation.rs",
+      "source_hunk_hint": "@@ -0,0 +1,1496 @@",
+      "source_kind": "state_transition",
+      "source_snippet": "        ));\n    }\n\n    #[test]\n    fn test_extract_two_phase_deadline_persistent_agent() {\n        let payload =\n            create_persistent_agent_payload(Address::repeat_byte(0x01), 30, 4000, \"model\");\n        let deadline = extract_two_phase_deadline(&payload, PERSISTENT_AGENT_PRECOMPILE);\n        assert_eq!(deadline, Some(4000), \"Should read max_spawn_block from field 5 (offset 160)\");\n    }\n\n    #[test]\n    fn test_extract_two_phase_deadline_persistent_agent_short_input() {\n        let short = Bytes::from(vec![0u8; 191]);\n        assert_eq!(\n            extract_two_phase_deadline(&short, PERSISTENT_AGENT_PRECOMPILE),\n            None,\n            \"Input < 192 bytes should return None f\n---\n        assert_eq!(deadline, Some(4000), \"Should read max_spawn_block from field 5 (offset 160)\");\n    }\n\n    #[test]\n    fn test_extract_two_phase_deadline_persistent_agent_short_input() {\n        let short = Bytes::from(vec![0u8; 191]);\n        assert_eq!(\n            extract_two_phase_deadline(&short, PERSISTENT_AGENT_PRECOMPILE),\n            None,\n            \"Input < 192 bytes should return None for persistent agent\"\n        );\n    }\n\n    #[test]\n    fn test_try_decode_persistent_agent_uses_full_codec() {\n        let payload = create_persistent_agent_payload(\n            Address::repeat_byte(0xAB),\n            42,\n            6000,\n            \"gemini/gemini-2.5-flash\",\n        );\n     \n---\n    // Two-phase deadline offset tests\n    // With offset semantics: offset must be > ttl\n    // Contract is single source of truth for absolute deadline computation\n    #[test]\n    fn test_validate_two_phase_deadline_valid() {\n        // offset=50, ttl=30 -> 50>30 -> valid\n        assert!(validate_two_phase_deadline(50, 30).is_ok());\n    }\n\n    #[test]\n    fn test_validate_two_phase_deadline_insufficient() {\n        // offset=20, ttl=30 -> 20<=30 -> invalid\n        assert!(matches!(\n            validate_two_phase_deadline(20, 30),\n            Err(TwoPhaseDeadlineError::InsufficientOffset { .. })\n        ));\n    }\n\n    #[test]\n    fn test_validate_two_phase_deadline_equal() {\n        // offs",
+      "semantic_claim": "two phase deadline preserves the production behavior asserted by downstream tests: test_extract_two_phase_deadline_persistent_agent, test_extract_two_phase_deadline_persistent_agent_short_input, test_validate_two_phase_deadline_valid, test_validate_two_phase_deadline_insufficient, test_validate_two_phase_deadline_equal.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "encoding"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-inspector/src/lib.rs",
+          "symbols": [
+            "AsyncPrecompileInspector",
+            "SharedAsyncPrecompileInspector"
+          ],
+          "snippet": "inspector records registered async precompile calls during EVM execution",
+          "evidence": "The standalone detector crate was replaced by the v2.2 inspector plus payload ritual_async builder helpers."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/lib.rs",
+          "symbols": [
+            "try_decode_precompile_data",
+            "validate_async_payload"
+          ],
+          "snippet": "canonical async precompile decoding and validation surface",
+          "evidence": "The old ritual-async validation API moved into ritual-precompile-codecs and is consumed by RPC, payload, and verifier paths."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "build_short_async_commitment_transaction",
+            "validate_short_commitment_parent_state"
+          ],
+          "snippet": "short async commitment construction and parent-state validation helpers",
+          "evidence": "The old ritual-async crate is decomposed into inspector, codecs, fees, registry, and payload ritual_async helpers."
+        }
+      ],
+      "equivalence_argument": "The old monolithic ritual-async crate was intentionally decomposed into v2.2 crates without losing the active short-async FSM.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_extract_two_phase_deadline_persistent_agent, test_extract_two_phase_deadline_persistent_agent_short_input, test_validate_two_phase_deadline_valid, test_validate_two_phase_deadline_insufficient, test_validate_two_phase_deadline_equal, fuzz_validate_two_phase_deadline_property.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to decomposed v2.2 async modules.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_extract_two_phase_deadline_persistent_agent",
+        "test_extract_two_phase_deadline_persistent_agent_short_input",
+        "test_validate_two_phase_deadline_valid",
+        "test_validate_two_phase_deadline_insufficient",
+        "test_validate_two_phase_deadline_equal",
+        "fuzz_validate_two_phase_deadline_property"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0297-atom-0020",
+        "test-file-0297-atom-0021",
+        "test-file-0297-atom-0046",
+        "test-file-0297-atom-0047",
+        "test-file-0297-atom-0048",
+        "test-file-0297-atom-0049"
+      ]
+    },
+    {
+      "record_id": "file-0297-atom-0005",
+      "file_index": 297,
+      "atom_index": 5,
+      "atoms_total": 11,
+      "source_path": "crates/ritual-async/src/validation.rs",
+      "source_hunk_hint": "@@ -0,0 +1,1496 @@",
+      "source_kind": "encoding_rule",
+      "source_snippet": "        ));\n    }\n\n    #[test]\n    fn test_try_decode_sovereign_agent_uses_full_codec() {\n        let payload = create_sovereign_agent_payload(Address::repeat_byte(0xCD), 55, \"hello\");\n        let (executor, ttl) =\n            try_decode_precompile_data(&payload, SOVEREIGN_AGENT_PRECOMPILE).unwrap();\n        assert_eq!(executor, Address::repeat_byte(0xCD));\n        assert_eq!(ttl, 55);\n    }\n\n    // ========================================================================\n    // Targeted tests for the 6 new validation error variants\n    // ========================================================================\n\n    /// Flexible builder that allows overriding specific sovereign agent fields f",
+      "semantic_claim": "user public key preserves the production behavior asserted by downstream tests: test_try_decode_sovereign_agent_uses_full_codec.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "encoding"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-inspector/src/lib.rs",
+          "symbols": [
+            "AsyncPrecompileInspector",
+            "SharedAsyncPrecompileInspector"
+          ],
+          "snippet": "inspector records registered async precompile calls during EVM execution",
+          "evidence": "The standalone detector crate was replaced by the v2.2 inspector plus payload ritual_async builder helpers."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/lib.rs",
+          "symbols": [
+            "try_decode_precompile_data",
+            "validate_async_payload"
+          ],
+          "snippet": "canonical async precompile decoding and validation surface",
+          "evidence": "The old ritual-async validation API moved into ritual-precompile-codecs and is consumed by RPC, payload, and verifier paths."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "build_short_async_commitment_transaction",
+            "validate_short_commitment_parent_state"
+          ],
+          "snippet": "short async commitment construction and parent-state validation helpers",
+          "evidence": "The old ritual-async crate is decomposed into inspector, codecs, fees, registry, and payload ritual_async helpers."
+        }
+      ],
+      "equivalence_argument": "The old monolithic ritual-async crate was intentionally decomposed into v2.2 crates without losing the active short-async FSM.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_try_decode_sovereign_agent_uses_full_codec.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to decomposed v2.2 async modules.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_try_decode_sovereign_agent_uses_full_codec"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0297-atom-0030"
+      ]
+    },
+    {
+      "record_id": "file-0297-atom-0006",
+      "file_index": 297,
+      "atom_index": 6,
+      "atoms_total": 11,
+      "source_path": "crates/ritual-async/src/validation.rs",
+      "source_hunk_hint": "@@ -0,0 +1,1496 @@",
+      "source_kind": "encoding_rule",
+      "source_snippet": "    }\n\n    // Async payload validation tests\n    #[test]\n    fn test_validate_http_payload_valid() {\n        let payload =\n            create_http_request_payload(Address::repeat_byte(0x01), 30, \"https://example.com/api\");\n        assert!(validate_async_payload(HTTP_CALL_PRECOMPILE, &payload).is_ok());\n    }\n\n    #[test]\n    fn test_validate_http_payload_ttl_zero() {\n        let payload =\n            create_http_request_payload(Address::repeat_byte(0x01), 0, \"https://example.com\");\n        assert!(matches!(\n            validate_async_payload(HTTP_CALL_PRECOMPILE, &payload),\n            Err(AsyncPayloadError::TTLZero)\n        ));\n    }\n\n    #[test]\n    fn test_validate_http_payload_ttl_exceed\n---\n        assert!(validate_async_payload(HTTP_CALL_PRECOMPILE, &payload).is_ok());\n    }\n\n    #[test]\n    fn test_validate_http_payload_ttl_zero() {\n        let payload =\n            create_http_request_payload(Address::repeat_byte(0x01), 0, \"https://example.com\");\n        assert!(matches!(\n            validate_async_payload(HTTP_CALL_PRECOMPILE, &payload),\n            Err(AsyncPayloadError::TTLZero)\n        ));\n    }\n\n    #[test]\n    fn test_validate_http_payload_ttl_exceeded() {\n        let payload =\n            create_http_request_payload(Address::repeat_byte(0x01), 1000, \"https://example.com\");\n        assert!(matches!(\n            validate_async_payload(HTTP_CALL_PRECOMPILE, &payload),\n  \n---\n        ));\n    }\n\n    #[test]\n    fn test_validate_http_payload_ttl_exceeded() {\n        let payload =\n            create_http_request_payload(Address::repeat_byte(0x01), 1000, \"https://example.com\");\n        assert!(matches!(\n            validate_async_payload(HTTP_CALL_PRECOMPILE, &payload),\n            Err(AsyncPayloadError::TTLExceeded { .. })\n        ));\n    }\n\n    #[test]\n    fn test_validate_http_payload_empty_url() {\n        let payload = create_http_request_payload(Address::repeat_byte(0x01), 30, \"\");\n        assert!(matches!(\n            validate_async_payload(HTTP_CALL_PRECOMPILE, &payload),\n            Err(AsyncPayloadError::EmptyUrl)\n        ));\n    }\n",
+      "semantic_claim": "validate async payload preserves the production behavior asserted by downstream tests: test_validate_http_payload_valid, test_validate_http_payload_ttl_zero, test_validate_http_payload_ttl_exceeded, test_validate_http_payload_empty_url, test_validate_http_payload_invalid_scheme.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "payload",
+        "consensus-constant",
+        "negative-path",
+        "executor-selection",
+        "encoding"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-inspector/src/lib.rs",
+          "symbols": [
+            "AsyncPrecompileInspector",
+            "SharedAsyncPrecompileInspector"
+          ],
+          "snippet": "inspector records registered async precompile calls during EVM execution",
+          "evidence": "The standalone detector crate was replaced by the v2.2 inspector plus payload ritual_async builder helpers."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/lib.rs",
+          "symbols": [
+            "try_decode_precompile_data",
+            "validate_async_payload"
+          ],
+          "snippet": "canonical async precompile decoding and validation surface",
+          "evidence": "The old ritual-async validation API moved into ritual-precompile-codecs and is consumed by RPC, payload, and verifier paths."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "build_short_async_commitment_transaction",
+            "validate_short_commitment_parent_state"
+          ],
+          "snippet": "short async commitment construction and parent-state validation helpers",
+          "evidence": "The old ritual-async crate is decomposed into inspector, codecs, fees, registry, and payload ritual_async helpers."
+        }
+      ],
+      "equivalence_argument": "The old monolithic ritual-async crate was intentionally decomposed into v2.2 crates without losing the active short-async FSM.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_validate_http_payload_valid, test_validate_http_payload_ttl_zero, test_validate_http_payload_ttl_exceeded, test_validate_http_payload_empty_url, test_validate_http_payload_invalid_scheme, test_validate_llm_payload_valid, test_validate_llm_payload_empty_model, test_validate_llm_payload_empty_messages, ...",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to decomposed v2.2 async modules.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_validate_http_payload_valid",
+        "test_validate_http_payload_ttl_zero",
+        "test_validate_http_payload_ttl_exceeded",
+        "test_validate_http_payload_empty_url",
+        "test_validate_http_payload_invalid_scheme",
+        "test_validate_llm_payload_valid",
+        "test_validate_llm_payload_empty_model",
+        "test_validate_llm_payload_empty_messages",
+        "test_validate_persistent_agent_payload_valid",
+        "test_validate_persistent_agent_payload_zero_executor",
+        "test_validate_persistent_agent_payload_ttl_zero",
+        "test_validate_persistent_agent_payload_ttl_exceeded",
+        "test_validate_persistent_agent_payload_empty_model",
+        "test_validate_persistent_agent_payload_garbage_rejected",
+        "test_validate_sovereign_agent_payload_valid",
+        "test_validate_sovereign_agent_payload_zero_executor",
+        "test_validate_sovereign_agent_payload_ttl_zero",
+        "test_validate_sovereign_agent_payload_empty_prompt",
+        "test_validate_sovereign_agent_payload_whitespace_prompt",
+        "test_validate_sovereign_agent_payload_garbage_rejected",
+        "test_encrypted_secrets_too_short",
+        "test_encrypted_secrets_invalid_prefix",
+        "test_invalid_user_public_key_wrong_length",
+        "test_unsupported_agent_type",
+        "test_unsupported_agent_type_aider",
+        "test_agent_type_out_of_enum_range_rejected_at_decode",
+        "test_phase2_offset_too_small",
+        "test_phase2_offset_too_small_less_than_ttl",
+        "test_phase2_offset_too_large",
+        "test_phase2_offset_at_boundary_valid",
+        "test_valid_with_ecies_secrets_and_pubkey"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0297-atom-0003",
+        "test-file-0297-atom-0004",
+        "test-file-0297-atom-0005",
+        "test-file-0297-atom-0006",
+        "test-file-0297-atom-0007",
+        "test-file-0297-atom-0008",
+        "test-file-0297-atom-0009",
+        "test-file-0297-atom-0010",
+        "test-file-0297-atom-0014",
+        "test-file-0297-atom-0015",
+        "test-file-0297-atom-0016",
+        "test-file-0297-atom-0017",
+        "test-file-0297-atom-0018",
+        "test-file-0297-atom-0019",
+        "test-file-0297-atom-0024",
+        "test-file-0297-atom-0025",
+        "test-file-0297-atom-0026",
+        "test-file-0297-atom-0027",
+        "test-file-0297-atom-0028",
+        "test-file-0297-atom-0029",
+        "test-file-0297-atom-0034",
+        "test-file-0297-atom-0035",
+        "test-file-0297-atom-0036",
+        "test-file-0297-atom-0038",
+        "test-file-0297-atom-0039",
+        "test-file-0297-atom-0040",
+        "test-file-0297-atom-0041",
+        "test-file-0297-atom-0042",
+        "test-file-0297-atom-0043",
+        "test-file-0297-atom-0044",
+        "test-file-0297-atom-0045"
+      ]
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 297,
+      "source_path": "crates/ritual-async/src/validation.rs",
+      "source_hunk_hint": "crates/ritual-async/src/validation.rs:49-70",
+      "source_kind": "error_path",
+      "source_snippet": "\n/// Validate all common ExecutorRequest base fields:\n/// executor non-zero, TTL within bounds, ECIES format, user_public_key format.\nfn validate_base_fields(\n    executor: Address,\n    ttl: u64,\n    encrypted_secrets: &[Bytes],\n    user_public_key: &[u8],\n) -> Result<(), AsyncPayloadError> {\n    validate_executor_and_ttl_bounds(executor, ttl)?;\n    validate_ecies_blob_array(encrypted_secrets)?;\n    validate_user_public_key(user_public_key)?;\n    Ok(())\n}\n\n/// Validate a single ECIES ciphertext blob.\n///\n/// Empty blobs are allowed because several precompile call paths legitimately supply\n/// no encrypted secrets (e.g. sovereign agent calls where the user has no secrets to\n/// pass, or FHE calls where DA storage credentials are optional). The on-chain\n/// contract handles the empty case; this check only rejects non-empty blobs that\n/// are too short to be valid ECIES ciphertext or have the wrong EC point prefix.",
+      "semantic_claim": "Shared async payload validation rejects zero executors, zero or over-limit TTLs, malformed ECIES secret blobs, and compressed or wrong-size user public keys before RPC, builder, or verifier depend on the payload.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "rpc",
+        "negative-path",
+        "consensus-constant"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-inspector/src/lib.rs",
+          "symbols": [
+            "AsyncPrecompileInspector",
+            "SharedAsyncPrecompileInspector"
+          ],
+          "snippet": "inspector records registered async precompile calls during EVM execution",
+          "evidence": "The standalone detector crate was replaced by the v2.2 inspector plus payload ritual_async builder helpers."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/lib.rs",
+          "symbols": [
+            "try_decode_precompile_data",
+            "validate_async_payload"
+          ],
+          "snippet": "canonical async precompile decoding and validation surface",
+          "evidence": "The old ritual-async validation API moved into ritual-precompile-codecs and is consumed by RPC, payload, and verifier paths."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "build_short_async_commitment_transaction",
+            "validate_short_commitment_parent_state"
+          ],
+          "snippet": "short async commitment construction and parent-state validation helpers",
+          "evidence": "The old ritual-async crate is decomposed into inspector, codecs, fees, registry, and payload ritual_async helpers."
+        }
+      ],
+      "equivalence_argument": "The old monolithic ritual-async crate was intentionally decomposed into v2.2 crates without losing the active short-async FSM.",
+      "test_strategy": "flow_equivalence_regression",
+      "negative_test_candidate": "Replay the smallest Admission And Validation Compatibility, Secret, Private Output, And dKMS Trace scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "Admission And Validation Compatibility",
+        "Secret, Private Output, And dKMS Trace"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0014"
+      ],
+      "notes": "Mapped to decomposed v2.2 async modules.",
+      "atom_index": 7,
+      "record_id": "file-0297-atom-0007",
+      "atoms_total": 11
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 297,
+      "source_path": "crates/ritual-async/src/validation.rs",
+      "source_hunk_hint": "crates/ritual-async/src/validation.rs:208-229",
+      "source_kind": "state_transition",
+      "source_snippet": "/// It does NOT validate TTL, executor address, etc.\n///\n/// For validation, use `extract_precompile_data` which includes validation.\npub fn try_decode_precompile_data(\n    input: &Bytes,\n    precompile_address: Address,\n) -> Result<(Address, u64), PrecompileDataError> {\n    // For HTTP precompile, use HTTPCallRequest decoder\n    if precompile_address == HTTP_CALL_PRECOMPILE {\n        let http_request = HTTPCallRequest::from_abi(input).map_err(|e| {\n            PrecompileDataError::DecodeFailed { details: format!(\"HTTPCallRequest: {}\", e) }\n        })?;\n        return Ok((http_request.executor, http_request.ttl));\n    }\n\n    // For LLM precompile, use LLMCallRequest decoder\n    if precompile_address == LLM_CALL_PRECOMPILE {\n        let llm_request = LLMCallRequest::from_abi(input).map_err(|e| {\n            PrecompileDataError::DecodeFailed { details: format!(\"LLMCallRequest: {}\", e) }\n        })?;\n        return Ok((llm_request.executor, llm_request.ttl));\n    }",
+      "semantic_claim": "Async precompile data extraction routes HTTP, LLM, sovereign-agent, persistent-agent, DKMS, and generic ExecutorRequest payloads through their dedicated decoders before validating executor and TTL.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "rpc",
+        "precompile",
+        "encoding"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/validation.rs",
+          "symbols": [
+            "try_decode_precompile_data"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "routes HTTP, LLM, long-running, sovereign, persistent, DKMS, and fallback ExecutorRequest decoders"
+        }
+      ],
+      "equivalence_argument": "Async precompile data extraction is preserved in ritual-precompile-codecs validation, replacing the old ritual-async crate boundary.",
+      "required_change": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Replay the smallest Short-Running Async SPC Trace, Long-Running Two-Phase Trace scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "Short-Running Async SPC Trace",
+        "Long-Running Two-Phase Trace"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0015"
+      ],
+      "notes": "Moved to dedicated codec crate.",
+      "atom_index": 8,
+      "record_id": "file-0297-atom-0008",
+      "atoms_total": 11,
+      "human_question": null
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 297,
+      "source_path": "crates/ritual-async/src/validation.rs",
+      "source_hunk_hint": "crates/ritual-async/src/validation.rs:316-337",
+      "source_kind": "encoding_rule",
+      "source_snippet": "/// offset 128 bytes (field 4).\n///\n/// Returns None if the precompile doesn't have a two-phase deadline or input is too short.\npub fn extract_two_phase_deadline(input: &Bytes, precompile_address: Address) -> Option<u64> {\n    // Sovereign Agent has max_poll_block at field 4 (offset 128) - different ABI layout\n    if precompile_address == SOVEREIGN_AGENT_PRECOMPILE {\n        // Minimum length: at least 5 * 32 = 160 bytes for first 5 fields\n        if input.len() < 160 {\n            debug!(\n                target: \"ritual::async::validation\",\n                input_len = input.len(),\n                \"Input too short to extract two-phase deadline for Sovereign Agent\"\n            );\n            return None;\n        }\n\n        // Field 4 (max_poll_block) is at offset 4 * 32 = 128 bytes\n        let offset = 4 * 32;\n        let deadline_bytes = &input[offset..offset + 32];\n\n        let deadline_u256 = U256::from_be_slice(deadline_bytes);\n        let deadline = deadline_u256.try_into().ok()?;",
+      "semantic_claim": "Two-phase deadline extraction uses precompile-specific ABI offsets for sovereign-agent, persistent-agent, long-running HTTP, ZK, FHE, and multimodal requests, and returns no deadline for non-two-phase precompiles.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "encoding",
+        "scheduled",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/async_pool.rs",
+          "symbols": [
+            "phase2_deadline_offset",
+            "phase2_deadline_offset_uses_precompile_specific_abi_slots"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "pool extracts deadlines from precompile-specific ABI slots and has a regression"
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/validation.rs",
+          "symbols": [
+            "validate_long_running_http_payload",
+            "validate_zk_two_phase_payload",
+            "validate_fhe_call_payload",
+            "validate_sovereign_agent_payload",
+            "validate_persistent_agent_payload"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "payload validation checks precompile-specific Phase 2 deadline offsets"
+        }
+      ],
+      "equivalence_argument": "Two-phase deadline extraction/validation is preserved across validation and pool metadata using per-precompile code paths.",
+      "required_change": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Replay the smallest Long-Running Two-Phase Trace, Scheduled Execution Trace scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "Long-Running Two-Phase Trace",
+        "Scheduled Execution Trace"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0016"
+      ],
+      "notes": "Added focused txpool test for ABI-slot coverage.",
+      "atom_index": 9,
+      "record_id": "file-0297-atom-0009",
+      "atoms_total": 11,
+      "human_question": null
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 297,
+      "source_path": "crates/ritual-async/src/validation.rs",
+      "source_hunk_hint": "crates/ritual-async/src/validation.rs:417-438",
+      "source_kind": "error_path",
+      "source_snippet": "///\n/// The offset must be > TTL to ensure Phase 2 deadline > Phase 1 deadline.\n/// (Since settlementBlock >= commitBlock, offset > TTL guarantees the constraint.)\npub fn validate_two_phase_deadline(offset: u64, ttl: u64) -> Result<(), TwoPhaseDeadlineError> {\n    if offset <= ttl {\n        return Err(TwoPhaseDeadlineError::InsufficientOffset { offset, ttl });\n    }\n\n    Ok(())\n}\n\n/// Validate async payload structure (ABI decoding and field validation)\n///\n/// This validates the payload can be decoded and has valid field values.\n/// It does NOT check on-chain state (executor registration, wallet balance, etc.)\n///\n/// Precompile-specific validation:\n/// - 0x0801 (HTTP): URL not empty, valid scheme\n/// - 0x0802 (LLM): model and messages not empty\n/// - 0x0805 (Long-Running HTTP): 3 URLs valid (url, poll_url, result_url)\n/// - 0x0806 (ZK): Base validation only\n/// - 0x080C (Sovereign Agent): full ABI decode, prompt not empty",
+      "semantic_claim": "Two-phase deadline validation requires the Phase 2 deadline offset to be strictly greater than TTL so Phase 2 delivery cannot expire before Phase 1 settlement.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "negative-path",
+        "consensus-constant"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/validation.rs",
+          "symbols": [
+            "validate_phase2_deadline_offset"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "rejects offsets <= ttl and offsets above MAX_PHASE2_DEADLINE_OFFSET"
+        }
+      ],
+      "equivalence_argument": "Strict offset > TTL rule is preserved in current shared payload validation.",
+      "required_change": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Replay the smallest Long-Running Two-Phase Trace scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "Long-Running Two-Phase Trace"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0017"
+      ],
+      "notes": "Active validation behavior preserved.",
+      "atom_index": 10,
+      "record_id": "file-0297-atom-0010",
+      "atoms_total": 11,
+      "human_question": null
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 297,
+      "source_path": "crates/ritual-async/src/validation.rs",
+      "source_hunk_hint": "crates/ritual-async/src/validation.rs:441-462",
+      "source_kind": "state_transition",
+      "source_snippet": "/// - 0x081A (Video): Base validation (executor, TTL)\n/// - 0x0820 (Persistent Agent): full ABI decode, model not empty\n/// - 0x081B (DKMS Key): executor, owner, TTL\npub fn validate_async_payload(\n    precompile_address: Address,\n    input: &Bytes,\n) -> Result<(), AsyncPayloadError> {\n    // Check input size\n    if input.len() > MAX_ASYNC_INPUT_SIZE {\n        return Err(AsyncPayloadError::InputTooLarge {\n            size: input.len(),\n            max: MAX_ASYNC_INPUT_SIZE,\n        });\n    }\n\n    // Route to appropriate validator based on precompile\n    if precompile_address == HTTP_CALL_PRECOMPILE {\n        return validate_http_call_payload(input);\n    }\n\n    if precompile_address == LLM_CALL_PRECOMPILE {\n        return validate_llm_call_payload(input);",
+      "semantic_claim": "Async payload validation enforces max input size and routes precompile-specific URL, model, prompt, multimodal, FHE, DKMS, and agent checks from one shared validation surface.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "rpc",
+        "precompile",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-inspector/src/lib.rs",
+          "symbols": [
+            "AsyncPrecompileInspector",
+            "SharedAsyncPrecompileInspector"
+          ],
+          "snippet": "inspector records registered async precompile calls during EVM execution",
+          "evidence": "The standalone detector crate was replaced by the v2.2 inspector plus payload ritual_async builder helpers."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/lib.rs",
+          "symbols": [
+            "try_decode_precompile_data",
+            "validate_async_payload"
+          ],
+          "snippet": "canonical async precompile decoding and validation surface",
+          "evidence": "The old ritual-async validation API moved into ritual-precompile-codecs and is consumed by RPC, payload, and verifier paths."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "build_short_async_commitment_transaction",
+            "validate_short_commitment_parent_state"
+          ],
+          "snippet": "short async commitment construction and parent-state validation helpers",
+          "evidence": "The old ritual-async crate is decomposed into inspector, codecs, fees, registry, and payload ritual_async helpers."
+        }
+      ],
+      "equivalence_argument": "The old monolithic ritual-async crate was intentionally decomposed into v2.2 crates without losing the active short-async FSM.",
+      "test_strategy": "flow_equivalence_regression",
+      "negative_test_candidate": "Replay the smallest Admission And Validation Compatibility scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "Admission And Validation Compatibility"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0018"
+      ],
+      "notes": "Mapped to decomposed v2.2 async modules.",
+      "atom_index": 11,
+      "record_id": "file-0297-atom-0011",
+      "atoms_total": 11
     }
   ],
-  "high_risk_atoms_total": 1,
-  "non_exact_atoms_total": 1,
+  "high_risk_atoms_total": 11,
+  "non_exact_atoms_total": 11,
   "adversarial_reviews": [],
-  "summary": "The downstream file maps to destination code but needs review because the destination implementation was refactored or moved.",
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
   "review_required": true,
   "status": "needs_review",
-  "notes": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path."
+  "notes": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path. Curated test-atom insertion appended 5 grouped behavior atom(s) from coverage-map/test-atom-audit; raw helper/no-assert/default-only cases were not canonicalized. Long-running pass: active HTTP/ZK delivery paths mapped; unsupported broader two-phase delivery surfaces are fail-closed unless explicitly enabled. Long-running pass: active HTTP/ZK delivery paths mapped; unsupported broader two-phase delivery surfaces are fail-closed unless explicitly enabled. Long-running pass: active HTTP/ZK delivery paths mapped; unsupported broader two-phase delivery surfaces are fail-closed unless explicitly enabled."
 }

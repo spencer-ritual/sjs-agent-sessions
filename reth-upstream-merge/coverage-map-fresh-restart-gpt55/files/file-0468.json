@@ -1,0 +1,196 @@
+{
+  "record_type": "file",
+  "file_index": 468,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/storage/codecs/src/alloy/transaction/spc_call.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "partial",
+  "tags": [
+    "partial",
+    "mapped",
+    "missing",
+    "needs-review",
+    "high-risk",
+    "spc",
+    "encoding"
+  ],
+  "atoms_total": 4,
+  "atoms": [
+    {
+      "record_id": "file-0468-atom-0001",
+      "file_index": 468,
+      "atom_index": 1,
+      "atoms_total": 4,
+      "source_path": "crates/storage/codecs/src/alloy/transaction/spc_call.rs",
+      "source_hunk_hint": "@@ -0,0 +1,349 @@ SpcCallCompact fields and to/from compact",
+      "source_kind": "encoding_rule",
+      "source_snippet": "address; varuint length-prefixed input/output/proof; u64_le block_number",
+      "semantic_claim": "SPC call compact storage preserves address, input, output, proof, and block number using varuint length prefixes for byte fields and little-endian u64 block numbers.",
+      "high_risk": true,
+      "risk_tags": [
+        "encoding",
+        "spc",
+        "precompile"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/src/alloy/transaction/spc_call.rs",
+          "symbols": [
+            "SpcCallCompact",
+            "encode_len_prefixed_bytes",
+            "decode_len_prefixed_bytes"
+          ],
+          "evidence": "Destination refactors the old inline encoding into helpers but preserves address, len-prefixed byte fields, proof, and little-endian block number behavior."
+        }
+      ],
+      "equivalence_argument": "Equivalent behavior with a cleaner helper factoring; old debug tracing is omitted but serialization shape is preserved.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Round-trip SPC compact values with empty, short, and large input/output/proof byte arrays and assert remaining buffer is empty.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": ""
+    },
+    {
+      "record_id": "file-0468-atom-0002",
+      "file_index": 468,
+      "atom_index": 2,
+      "atoms_total": 4,
+      "source_path": "crates/storage/codecs/src/alloy/transaction/spc_call.rs",
+      "source_hunk_hint": "@@ -0,0 +1,349 @@ impl Compact for SpcCall",
+      "source_kind": "encoding_rule",
+      "source_snippet": "SpcCall <-> SpcCallCompact maps address/input/output/proof/block_number",
+      "semantic_claim": "The public SpcCall compact implementation converts through SpcCallCompact without dropping proof or block-number fields.",
+      "high_risk": true,
+      "risk_tags": [
+        "encoding",
+        "spc",
+        "proof"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/src/alloy/transaction/spc_call.rs",
+          "symbols": [
+            "impl Compact for SpcCall"
+          ],
+          "evidence": "Destination wrapper maps all five fields between `SpcCall` and `SpcCallCompact`."
+        }
+      ],
+      "equivalence_argument": "Equivalent behavior with debug logging removed.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Round-trip an `SpcCall` with distinct input/output/proof bytes and a nonzero block number.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": ""
+    },
+    {
+      "record_id": "file-0468-atom-0003",
+      "file_index": 468,
+      "atom_index": 3,
+      "atoms_total": 4,
+      "source_path": "crates/storage/codecs/src/alloy/transaction/spc_call.rs",
+      "source_hunk_hint": "@@ -0,0 +1,349 @@ varuint_size",
+      "source_kind": "encoding_rule",
+      "source_snippet": "varuint_size thresholds: <0x80, <0x4000, <0x200000, <0x10000000, else 5",
+      "semantic_claim": "SPC call compact length accounting uses the same varuint byte-count thresholds as the shared varuint encoder.",
+      "high_risk": true,
+      "risk_tags": [
+        "encoding",
+        "length-prefix"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/src/alloy/transaction/spc_call.rs",
+          "symbols": [
+            "varuint_size"
+          ],
+          "evidence": "Destination `varuint_size` uses the same thresholds, formatted with separators for the larger constants."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Assert encoded length accounting for byte arrays around 0x7f/0x80 and 0x3fff/0x4000 boundaries.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": ""
+    },
+    {
+      "record_id": "file-0468-atom-0004",
+      "file_index": 468,
+      "atom_index": 4,
+      "atoms_total": 4,
+      "source_path": "crates/storage/codecs/src/alloy/transaction/spc_call.rs",
+      "source_hunk_hint": "@@ -0,0 +1,349 @@ #[cfg(test)] mod tests",
+      "source_kind": "test_coverage",
+      "source_snippet": "test_spc_call_compact_roundtrip; test_spc_call_compact_empty_bytes; test_spc_call_compact_large_bytes; test_spc_call_wrapper_roundtrip",
+      "semantic_claim": "The old downstream file carried focused SPC compact round-trip tests for normal, empty, large, and wrapper cases.",
+      "high_risk": false,
+      "risk_tags": [
+        "test-coverage",
+        "encoding",
+        "spc"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/src/alloy/transaction/spc_call.rs",
+          "symbols": [
+            "tests"
+          ],
+          "evidence": "Destination `spc_call.rs` contains the codec implementation but no local `#[cfg(test)]` round-trip tests for these cases."
+        }
+      ],
+      "equivalence_argument": "Production codec behavior is structurally preserved, but the old focused test coverage is not present in this file.",
+      "test_strategy": "port focused SPC compact tests",
+      "negative_test_candidate": "Remove or break length-prefix handling and observe that no destination-local `spc_call.rs` test catches the regression.",
+      "adversarial_review": {
+        "required": true,
+        "status": "queued",
+        "review_record_id": "review-file-0468-atom-0004"
+      },
+      "review_required": true,
+      "notes": "Review requested only for test coverage parity, not for production serialization shape."
+    }
+  ],
+  "high_risk_atoms_total": 3,
+  "non_exact_atoms_total": 3,
+  "adversarial_reviews": [
+    {
+      "review_record_id": "review-file-0468-atom-0004",
+      "atom_id": "file-0468-atom-0004",
+      "status": "queued",
+      "reason": "The old downstream file carried focused SPC compact round-trip tests for normal, empty, large, and wrapper cases."
+    }
+  ],
+  "summary": "SPC call compact serialization behavior is preserved via a refactor, but the old focused round-trip tests are absent.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": [
+    "Queue entry verified as file-0468: A\tcrates/storage/codecs/src/alloy/transaction/spc_call.rs.",
+    "Diff lines 86947-87296 add the codec and tests.",
+    "A parent review entry is required for missing focused test coverage."
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "BuilderContext::new is still a simple constructor and does not create or spawn an executor registry service.",
+  "evidence_files": [
+    "crates/node/builder/src/builder/mod.rs"
+  ],
+  "invariant_id": "cur-10e602d8c4-builder-startup-launches-executor-registry-service",
+  "invariant_index": 253,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/node/builder/src/builder/mod.rs",
+      "crates/node/builder/src/launch/common.rs",
+      "crates/ritual-spc-verification/src/service.rs"
+    ],
+    "checked_queries": [
+      "ExecutorRegistryService::new",
+      "registry_service.start",
+      "BuilderContext::new ExecutorRegistry",
+      "ExecutorRegistryConfig::from_env spawn"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "BuilderContext::new",
+      "ExecutorRegistryService::new",
+      "ExecutorRegistryConfig::from_env",
+      "registry_service.start",
+      "TaskExecutor::spawn"
+    ],
+    "missing_behavior": "Builder startup does not create or spawn a background ExecutorRegistryService with the shared registry.",
+    "related_but_insufficient_code": [
+      "crates/node/builder/src/builder/mod.rs BuilderContext::new returns Self { head, provider, executor, config_container } only.",
+      "No audited repo contains ExecutorRegistryService::new or registry_service.start."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The primary commit subject explicitly says this integrates ExecutorRegistryService startup for early service initialization, and the diff wires ExecutorRegistryService::new plus executor.spawn(registry_service.start()) directly into BuilderContext::new before SpcVerifier construction. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "f2effc0e9172fffba7e5463d240d9748aa67abed"
+  ],
+  "statement": "Every BuilderContext::new call creates an ExecutorRegistryService from the node provider, environment-derived registry config, and the same shared ExecutorRegistry later passed to SpcVerifier, then spawns that service in the background before returning the builder context.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Instantiate BuilderContext::new with a test TaskExecutor and mocked provider/config, instrument ExecutorRegistryService::start or its dependencies, and assert that a background service task is spawned with the same Arc<RwLock<ExecutorRegistry>> used to construct SpcVerifier."
+  ],
+  "summary": "Builder startup does not launch an executor registry service.",
+  "test_or_falsification_candidate": "Construct BuilderContext::new with an instrumented TaskExecutor and assert it spawns ExecutorRegistryService with the shared registry; current construction performs no spawn.",
+  "title": "Builder startup launches executor registry service",
+  "total_invariants": 1954
+}

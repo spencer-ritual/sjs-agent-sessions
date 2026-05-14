@@ -1,0 +1,64 @@
+{
+  "cluster_key": "scheduler:receipt-rpc",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "ritual-reth-internal/crates/scheduling/src/canonical.rs",
+    "ritual-reth-internal/crates/scheduling/src/singleton.rs",
+    "ritual-reth-internal/crates/scheduling/src/types.rs",
+    "ritual-reth-internal/crates/transaction-pool/src/blocking_handlers.rs"
+  ],
+  "invariant_id": "cur-871e1b84d8-startup-scheduler-hydration-single-owner-fail-fast",
+  "invariant_index": 121,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/scheduling/src/canonical.rs",
+      "crates/scheduling/src/singleton.rs",
+      "crates/transaction-pool/src/blocking_handlers.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "hydration in progress|SynchronousScheduler|last_synced_block|blocking canonical|panic|hydrate scheduler memory"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "SynchronousScheduler",
+      "startup scheduler hydration gate",
+      "blocking canonical scheduler handler"
+    ],
+    "missing_behavior": "Missing startup scheduler-memory hydration gate and fail-fast canonical scheduler handler. The old scheduling singleton/canonical/blocking_handlers paths are absent; the port reads Scheduler parent state directly for obligations instead of hydrating a shared scheduler memory owner.",
+    "related_but_insufficient_code": [
+      "HeartbeatTracker has hydration state, but this invariant targets scheduler memory/canonical scheduling, not heartbeat liveness hydration."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The April 9 hardening candidates refine the initial hydration requirement with concurrency gating and fatal failure behavior.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "d73e202e3514a5a9625de61d87b03d64715e5256",
+    "8027129eae5b008828ad71940ed7a0ee79143220"
+  ],
+  "statement": "Before normal canonical scheduling runs from an unsynced state, exactly one caller may hydrate scheduler memory from parent-block Scheduler storage; concurrent callers observe hydration in progress, synced-block reporting remains zero until completion, hydration failures reset the gate, and the blocking canonical-state path panics rather than continuing with partial state.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Start two concurrent scheduler hydration calls and assert one owns hydration while the other observes in-progress, with synced block remaining zero until success.",
+    "Force hydration failure on blocking canonical path and assert panic/fail-fast behavior."
+  ],
+  "summary": "Startup scheduler-memory single-owner fail-fast hydration is absent.",
+  "test_or_falsification_candidate": "No local SynchronousScheduler startup hydration gate exists to test.",
+  "title": "Startup scheduler hydration is single-owner and fail-fast",
+  "total_invariants": 1954
+}

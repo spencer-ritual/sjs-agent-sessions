@@ -1,0 +1,199 @@
+{
+  "record_type": "file",
+  "file_index": 316,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-precompile-addresses/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "precompile-addresses",
+    "spc",
+    "two-phase",
+    "async"
+  ],
+  "atoms_total": 3,
+  "atoms": [
+    {
+      "record_id": "file-0316-atom-0001",
+      "file_index": 316,
+      "atom_index": 1,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,46 @@; canonical Ritual async precompile address constants",
+      "source_kind": "canonical_precompile_address_constants",
+      "source_snippet": "pub const HTTP_CALL_PRECOMPILE: Address = address!(\"0x0000000000000000000000000000000000000801\");\npub const LLM_CALL_PRECOMPILE: Address = address!(\"0x0000000000000000000000000000000000000802\");\npub const LONG_RUNNING_HTTP_PRECOMPILE: Address = address!(\"0x0000000000000000000000000000000000000805\");\npub const ZK_TWO_PHASE_PRECOMPILE: Address = address!(\"0x0000000000000000000000000000000000000806\");\npub const FHE_PRECOMPILE: Address = address!(\"0x0000000000000000000000000000000000000807\");\n// image/audio/video/sovereign/DKMS/persistent constants",
+      "semantic_claim": "The old divergence adds the canonical chain-fixed Ritual async/SPC precompile address constants for HTTP, LLM, long-running HTTP, ZK two-phase, FHE, image, audio, video, Sovereign Agent, DKMS key, and Persistent Agent precompiles.",
+      "high_risk": false,
+      "risk_tags": [
+        "precompile-addresses",
+        "canonical-constants",
+        "async",
+        "spc"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-addresses/src/lib.rs",
+          "symbols": [
+            "HTTP_CALL_PRECOMPILE",
+            "LLM_CALL_PRECOMPILE",
+            "LONG_RUNNING_HTTP_PRECOMPILE",
+            "ZK_TWO_PHASE_PRECOMPILE",
+            "FHE_PRECOMPILE",
+            "IMAGE_CALL_PRECOMPILE",
+            "AUDIO_CALL_PRECOMPILE",
+            "VIDEO_CALL_PRECOMPILE",
+            "SOVEREIGN_AGENT_PRECOMPILE",
+            "DKMS_KEY_PRECOMPILE",
+            "PERSISTENT_AGENT_PRECOMPILE"
+          ],
+          "evidence": "Destination lines 1-46 exactly match source-added diff lines 56673-56718."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/constants.rs",
+          "symbols": [
+            "ritual-precompile-addresses re-exports"
+          ],
+          "evidence": "Async-fees constants re-export these canonical precompile addresses instead of duplicating literals."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/constants.rs",
+          "symbols": [
+            "precompile address re-exports"
+          ],
+          "evidence": "Block-verification constants re-export the canonical address crate constants."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps all consensus-sensitive precompile address literals centralized and unchanged.",
+      "test_strategy": "precompile_address_constant_tests",
+      "negative_test_candidate": "Changing any address literal should break downstream fee, validation, or SPC allowlist expectations.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0316-atom-0002",
+      "file_index": 316,
+      "atom_index": 2,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +48,83 @@; SPC allowlist, two-phase allowlist, and predicate",
+      "source_kind": "spc_and_two_phase_precompile_allowlists",
+      "source_snippet": "pub const ALL_SPC_BLOCK_VERIFIED_PRECOMPILE_ADDRESSES: [Address; 11] = [ ... ];\npub const ALL_TWO_PHASE_PRECOMPILE_ADDRESSES: [Address; 8] = [ ... ];\n\n#[inline]\npub fn is_two_phase_precompile(addr: Address) -> bool {\n    ALL_TWO_PHASE_PRECOMPILE_ADDRESSES.contains(&addr)\n}",
+      "semantic_claim": "The old divergence adds the canonical SPC block-verified precompile allowlist, the canonical two-phase async precompile allowlist, and the `is_two_phase_precompile` predicate used to keep classification logic synchronized.",
+      "high_risk": false,
+      "risk_tags": [
+        "spc-allowlist",
+        "two-phase",
+        "classification",
+        "precompile-addresses"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-addresses/src/lib.rs",
+          "symbols": [
+            "ALL_SPC_BLOCK_VERIFIED_PRECOMPILE_ADDRESSES",
+            "ALL_TWO_PHASE_PRECOMPILE_ADDRESSES",
+            "is_two_phase_precompile"
+          ],
+          "evidence": "Destination lines 48-83 exactly match source-added diff lines 56720-56755."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-signature/src/lib.rs",
+          "symbols": [
+            "is_spc_block_verified_precompile"
+          ],
+          "evidence": "SPC signature verification documents that its predicate source addresses come from this crate."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "is_two_phase_precompile"
+          ],
+          "evidence": "Block verifier tests and Phase 2 checks use the two-phase classifier behavior."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the canonical allowlist membership and two-phase classifier used by downstream verifier and SPC logic.",
+      "test_strategy": "spc_and_two_phase_allowlist_tests",
+      "negative_test_candidate": "A two-phase precompile omitted from the SPC allowlist should fail the subset invariant test.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0316-atom-0003",
+      "file_index": 316,
+      "atom_index": 3,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +85,115 @@; address invariant tests",
+      "source_kind": "precompile_address_invariant_tests",
+      "source_snippet": "#[cfg(test)]\nmod tests {\n    #[test]\n    fn precompile_addresses_are_nonzero_and_pairwise_distinct() { ... }\n\n    #[test]\n    fn two_phase_precompiles_are_subset_of_spc_verified_allowlist() { ... }\n}",
+      "semantic_claim": "The old divergence adds invariant tests asserting canonical precompile addresses are nonzero and pairwise distinct, and that every two-phase precompile is included in the SPC-verified allowlist.",
+      "high_risk": false,
+      "risk_tags": [
+        "tests",
+        "address-invariants",
+        "spc-allowlist",
+        "two-phase"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-addresses/src/lib.rs",
+          "symbols": [
+            "precompile_addresses_are_nonzero_and_pairwise_distinct",
+            "two_phase_precompiles_are_subset_of_spc_verified_allowlist"
+          ],
+          "evidence": "Destination lines 85-115 exactly match source-added diff lines 56757-56787."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the local regression guard for duplicate/zero addresses and allowlist subset drift.",
+      "test_strategy": "cargo test -p ritual-precompile-addresses",
+      "negative_test_candidate": "Duplicating an address or adding a two-phase address outside the SPC allowlist should fail the invariant tests.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Test atom only."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The canonical precompile-address library is exact-port preserved, including the Ritual async/SPC precompile constants, SPC and two-phase allowlists, classifier helper, and invariant tests.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 316: A\tcrates/ritual-precompile-addresses/src/lib.rs.",
+    "Source-added hunk spans diff lines 56673-56787 with header `@@ -0,0 +1,115 @@`; the next diff starts at line 56788.",
+    "Destination `crates/ritual-precompile-addresses/src/lib.rs` has 115 lines and matches the source-added content exactly.",
+    "Bounded usage evidence found downstream consumption in async-fees constants, block-verification constants/verifier tests, and SPC signature allowlist logic.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

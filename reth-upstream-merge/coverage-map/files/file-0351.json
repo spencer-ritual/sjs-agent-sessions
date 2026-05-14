@@ -9,21 +9,20 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "missing",
+  "file_classification": "intentionally_absent",
   "tags": [
-    "missing",
-    "verifier",
     "high-risk",
-    "non-exact",
-    "needs-review"
+    "intentionally_absent",
+    "needs-review",
+    "non-exact"
   ],
-  "atoms_total": 1,
+  "atoms_total": 2,
   "atoms": [
     {
       "record_id": "file-0351-atom-0001",
       "file_index": 351,
       "atom_index": 1,
-      "atoms_total": 1,
+      "atoms_total": 2,
       "source_path": "crates/ritual-spc-verification/src/types.rs",
       "source_hunk_hint": "@@ -0,0 +1,380 @@",
       "source_kind": "other",
@@ -33,7 +32,7 @@
       "risk_tags": [
         "verifier"
       ],
-      "mapping_status": "missing",
+      "mapping_status": "intentionally_absent",
       "destinations": [],
       "equivalence_argument": null,
       "test_strategy": "adapted_equivalence_test",
@@ -44,14 +43,61 @@
         "review_record_id": null
       },
       "review_required": true,
-      "notes": "No same-path or uniquely named destination evidence was found in the configured search scope.",
-      "required_change": "Restore or intentionally replace the downstream behavior carried by crates/ritual-spc-verification/src/types.rs; no reliable destination evidence was found in the configured search scope."
+      "notes": "Old public SPC bridge/API compatibility remains deferred. The active nodebuilder binary compiles against the v2.2 tree without this bridge, and live verifier behavior is covered by ritual-block-verification, ritual-spc-signature, and tee-registry-reader.",
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope."
+    },
+    {
+      "record_type": "pr_preservation_derived_atom",
+      "pr_preservation_derived": true,
+      "pr_preservation_grounded": true,
+      "file_index": 351,
+      "source_path": "crates/ritual-spc-verification/src/types.rs",
+      "source_hunk_hint": "crates/ritual-spc-verification/src/types.rs:205-225",
+      "source_kind": "state_transition",
+      "source_snippet": "\n/// Registry for tracking registered executors\n#[derive(Debug)]\npub struct ExecutorRegistry {\n    /// Map of executor address to executor info\n    executors: HashMap<Address, ExecutorInfo>,\n    /// Maximum number of executors to track\n    max_executors: usize,\n}\n\nimpl ExecutorRegistry {\n    /// Create a new executor registry\n    pub fn new(max_executors: usize) -> Self {\n        Self { executors: HashMap::new(), max_executors }\n    }\n\n    /// Register a new executor\n    pub fn register_executor(&mut self, address: Address, executor_info: ExecutorInfo) {\n        // If at capacity, remove oldest inactive executor\n        if self.executors.len() >= self.max_executors {\n            self.remove_oldest_inactive();",
+      "semantic_claim": "PR preservation `#124` `teeda-policy` keeps live downstream behavior: ExecutorRegistry event/storage migration for SPC executor data.",
+      "high_risk": true,
+      "risk_tags": [
+        "executor-selection",
+        "fees",
+        "precompile"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [],
+      "equivalence_argument": null,
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope.",
+      "test_strategy": "pr_diff_equivalence_regression",
+      "negative_test_candidate": "Replay or unit-test the smallest downstream scenario introduced by #124 that exercises `ExecutorRegistry event/storage migration for SPC executor data` and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "source_prs": [
+        {
+          "key": "#124",
+          "slug": "teeda-policy",
+          "merge_commit": "bcc5e0542cb65e0f363785aee80b941d7db650b3"
+        }
+      ],
+      "source_pr_claims": [
+        "ExecutorRegistry event/storage migration for SPC executor data"
+      ],
+      "source_flow_ids": [
+        "pr-raw-0035"
+      ],
+      "notes": "Old public SPC bridge/API compatibility remains deferred. The active nodebuilder binary compiles against the v2.2 tree without this bridge, and live verifier behavior is covered by ritual-block-verification, ritual-spc-signature, and tee-registry-reader.",
+      "atom_index": 2,
+      "record_id": "file-0351-atom-0002",
+      "atoms_total": 2,
+      "needs_atomization": true
     }
   ],
-  "high_risk_atoms_total": 1,
-  "non_exact_atoms_total": 1,
+  "high_risk_atoms_total": 2,
+  "non_exact_atoms_total": 2,
   "adversarial_reviews": [],
-  "summary": "No reliable destination evidence was found for the downstream file-level behavior.",
+  "summary": "Atoms in this file are intentionally absent or mapped to active v2.2 behavior where applicable.",
   "review_required": true,
   "status": "needs_review",
   "notes": "No same-path or uniquely named destination evidence was found in the configured search scope."

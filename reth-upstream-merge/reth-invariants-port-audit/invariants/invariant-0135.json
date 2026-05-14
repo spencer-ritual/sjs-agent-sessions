@@ -1,0 +1,65 @@
+{
+  "cluster_key": "scheduler:type-hash-codec:part-01",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "encode_supported_origin_tx uses encode_2718 for Legacy, Eip1559, and Passkey origin transactions, but uses tx.tx().encode_for_signing for TransactionSigned::Scheduled.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "Legacy(tx) => tx.encode_2718(&mut out),\nEip1559(tx) => tx.encode_2718(&mut out),\nScheduled(tx) => tx.tx().encode_for_signing(&mut out),\nPasskey(tx) => tx.encode_2718(&mut out),",
+      "symbols": [
+        "detect_short_async_call",
+        "encode_supported_origin_tx"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port payload async path: ordinary supported origins are encoded as EIP-2718 bytes while scheduled origins are special-cased through encode_for_signing, preserving scheduled origin-byte hash semantics.",
+  "evidence_files": [
+    "ritual-reth-internal/crates/ritual-async/src/detector.rs"
+  ],
+  "invariant_id": "cur-83d91eba84-scheduled-origin-byte-semantics-special-cased",
+  "invariant_index": 135,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/ritual_async.rs"
+    ],
+    "checked_queries": [
+      "encode_supported_origin_tx|detect_short_async_call|encode_2718|encode_for_signing|TransactionSigned::Scheduled"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "detect_short_async_call",
+      "encode_supported_origin_tx"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The packet contains a direct conflict: an older scheduled-hash candidate claims full signed EIP-2718 hashing, while later/current evidence uses encode_for_signing for scheduled recalculation and scheduled async originals. The refined invariant keeps the current special case.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "b36e52e9914d4e5fb7f2c8c55718c51a0ba1b7e1",
+    "7ce306fe1d391baa1e90d7efc85a16d64916f361"
+  ],
+  "statement": "Async detection uses EIP-2718 bytes for ordinary typed origin transactions but uses scheduled signing-payload bytes for scheduled originals, matching the current scheduled transaction hash semantics.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Detect async calls for an EIP-1559 origin and assert origin_tx_rlp begins with the EIP-2718 type byte and decodes through the EIP-2718 decoder.",
+    "Detect async calls for a Scheduled origin and assert stored origin bytes equal encode_for_signing output and not the full signed EIP-2718 encoding.",
+    "Recalculate a signed scheduled transaction hash and assert it matches the signing-payload hash path used by scheduled transaction construction."
+  ],
+  "summary": "Scheduled origin-byte semantics are special-cased through encode_for_signing.",
+  "test_or_falsification_candidate": "Origin-byte encoding regression tests for scheduled and ordinary async origins.",
+  "title": "Scheduled origin-byte semantics are special-cased",
+  "total_invariants": 1954
+}

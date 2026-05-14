@@ -1,0 +1,65 @@
+{
+  "cluster_key": "scheduler:receipt-rpc",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Scheduled transaction verification logs include common fields and scheduled-specific metadata; non-scheduled logs include the common fields.",
+      "path": "crates/ritual-metrics/src/tx.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if let Some(scheduled_tx) = as_scheduled_tx(txn) {\n    tracing::debug!(..., from = ?txn.recover_signer().ok().unwrap_or_default(), to = ?txn.to().unwrap_or_default(), tx_hash = %txn.tx_hash(), gas_limit = txn.gas_limit(), gas_used = gas_used, tx_size = txn.size(), tx_type = txn.ty(), origin_tx = %scheduled_tx.origin_tx, scheduled_id = scheduled_tx.call_id, index = scheduled_tx.index, expiry_block = scheduled_tx.expiry_block(), initial_block = scheduled_tx.initial_block, frequency = scheduled_tx.frequency);\n} else { tracing::debug!(..., tx_hash = %txn.tx_hash(), gas_limit = txn.gas_limit(), gas_used = gas_used, tx_size = txn.size(), tx_type = txn.ty()); }",
+      "symbols": [
+        "log_tx_verify_end",
+        "as_scheduled_tx"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port: log_tx_verify_end emits the common verification fields for all transactions and scheduled-only metadata when applicable.",
+  "evidence_files": [
+    "ritual-reth-internal/crates/ritual-metrics/src/tx.rs"
+  ],
+  "invariant_id": "cur-3472152713-verification-logs-common-fields-plus-scheduled-metadata",
+  "invariant_index": 113,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-metrics/src/tx.rs"
+    ],
+    "checked_queries": [
+      "log_tx_verify_end|origin_tx|scheduled_id|expiry_block|initial_block|frequency|tx_size|tx_type"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "log_tx_verify_end",
+      "as_scheduled_tx"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The current metrics implementation logs txn.size(), tx_type, from, and to in the scheduled branch and adds disambiguated scheduled fields, so the earlier reduced-introspection candidate is obsolete.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "693aa5392e797122b45a0d647afc44cf168037b1",
+    "89bf90489f5ef76e4eacc71459a74689adbfb605",
+    "b83f87f9d7d1d203d5c292adc2196b57dc88b14a",
+    "abd18e4cc0f1fcd2bd4d5e46a4bf458c92b86d00"
+  ],
+  "statement": "Transaction verification end logs must include common transaction fields such as hash, gas, type, size, recovered sender, and recipient for both scheduled and non-scheduled transactions; scheduled transactions additionally log origin_tx, scheduled_id, index, expiry_block, initial_block, and frequency.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Capture tracing output for scheduled and non-scheduled verification end logs and assert common fields plus scheduled metadata are present only in the scheduled branch."
+  ],
+  "summary": "Transaction verification logs include common fields plus scheduled metadata.",
+  "test_or_falsification_candidate": "Tracing-layer test for log_tx_verify_end scheduled/non-scheduled fields.",
+  "title": "Transaction verification logs use common fields plus scheduled metadata",
+  "total_invariants": 1954
+}

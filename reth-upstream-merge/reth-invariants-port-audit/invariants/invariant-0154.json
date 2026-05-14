@@ -1,0 +1,76 @@
+{
+  "cluster_key": "executor delivery:async-pool-refreshes-9872303e",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The duplicate-origin path compares canonical block/address/input/deadline context and replaces the entry when that context differs.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "self.precompile_address == other.precompile_address &&\nself.precompile_input == other.precompile_input &&\nself.commit_block == other.commit_block &&\nself.max_poll_block == other.max_poll_block\n...\nif previous.has_same_canonical_context(&metadata) { return Ok(()); }\n...\ninner.transactions.insert(tx_hash, metadata)",
+      "symbols": [
+        "AsyncTxMetadata::has_same_canonical_context",
+        "AsyncPool::add_metadata"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Unchanged duplicates preserve current lifecycle state, while changed canonical context resets the entry and clears result/proof fields tied to the old context.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "execution_result: None,\nexecution_proof: None,\ndelivery_result: None,\ndelivery_proof: None,\nzk_proof: None\n...\nduplicate_same_context_preserves_fulfilled_state\n...\nduplicate_changed_context_resets_to_awaiting_execution",
+      "symbols": [
+        "AsyncTxMetadata::awaiting_execution",
+        "tests::duplicate_same_context_preserves_fulfilled_state",
+        "tests::duplicate_changed_context_resets_to_awaiting_execution"
+      ]
+    }
+  ],
+  "equivalence_argument": "The invariant is implemented by the same canonical-context refresh path as index 153. For the same original transaction hash, changed commit_block, precompile address/input, commitment transaction, or phase-2 deadline prevents the idempotent duplicate return and causes replacement with fresh AwaitingExecution metadata with all old result/proof fields cleared.",
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/async_pool.rs"
+  ],
+  "invariant_id": "cur-1ec8cdb783-async-pool-refreshes-stale-canonical-context",
+  "invariant_index": 154,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/async_pool.rs"
+    ],
+    "checked_queries": [
+      "commit_block|precompile_address|precompile_input|execution_result: None|delivery_proof: None"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "AsyncPool::add_metadata",
+      "AsyncTxMetadata::has_same_canonical_context",
+      "tests::duplicate_changed_context_resets_to_awaiting_execution"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The duplicate-origin path now computes context_changed, refreshes original_tx, commitment_tx, precompile_address, input, commit_block, max_poll_block, contract expiry, resets state to AwaitingExecution, and clears execution/delivery results and proofs when canonical commitment context changes. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: This only matters under reorgs or canonical updates where the same origin hash is reprocessed with different commitment context.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "8ba7c3628bb51a5346db6a31592b9562045d178d"
+  ],
+  "statement": "When adding a commitment for an origin transaction already present in the async pool, if commit_block, precompile address, or precompile input changed, the pool must replace the stored canonical context and clear previously submitted execution, delivery, and proof data tied to the old context.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Insert an async pool entry with one commitment context and submitted results/proofs, then add the same origin hash with different commit_block/input/precompile; assert the stored context updates and all old result/proof fields are cleared."
+  ],
+  "summary": "Duplicate origins with changed canonical context reset async pool state and clear stale proofs.",
+  "test_or_falsification_candidate": "Insert an async pool entry with one commitment context and submitted results/proofs, then add the same origin hash with different commit_block/input/precompile; assert the stored context updates and all old result/proof fields are cleared.",
+  "title": "Async pool refreshes stale canonical context",
+  "total_invariants": 1954
+}

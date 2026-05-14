@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Settlement transaction construction obtains executor, commitment, inclusion, and total amounts from calculate_async_fees rather than separate local fee branches.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let fees = calculate_async_fees(db, get_model_registry_address(), contract_job.precompile_address, &metadata.precompile_input, Some(execution_result), model_cache).map_err(|err| format!(\"async fee calculation failed: {err}\"))?;\n...\nfees.executor_fee, fees.commitment_fee, fees.inclusion_fee, ... fees.total",
+      "symbols": [
+        "prepare_fulfilled_async_settlement",
+        "calculate_async_fees"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "The shared entry point returns the complete fee breakdown consumed by the payload builder.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub struct AsyncFees { pub executor_fee: U256, pub commitment_fee: U256, pub inclusion_fee: U256, pub total: U256 }\n...\nOk(AsyncFees::new(executor_fee, commitment_fee, inclusion_fee))",
+      "symbols": [
+        "calculate_async_fees",
+        "AsyncFees"
+      ]
+    }
+  ],
+  "equivalence_argument": "The payload builder delegates settlement fee construction to the same calculate_async_fees entry point used by verification, including error propagation.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-async-fees/src/lib.rs"
+  ],
+  "invariant_id": "cur-1f0479ad76-settlement-calculation-uses-shared-async-entry-point",
+  "invariant_index": 353,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to the port payload-builder settlement path.",
+  "rationale": "The payload builder removes its separate HTTP/LLM fee branches and calls `calculate_async_fees`, while the commit body explicitly says block building was unified with the verification entry point. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "6dc9040291543797ad2085dc7f2981583425a9be"
+  ],
+  "statement": "Async settlement transaction construction must calculate executor, commitment, inclusion, and total fees through `calculate_async_fees`, so block building uses the same fee logic as verification.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "For representative HTTP and LLM async metadata, construct settlement fees in the payload builder and independently call `calculate_async_fees` with the same precompile address, input, and output; assert executor, commitment, inclusion, and total fees are identical, and assert a `calculate_async_fees` error prevents settlement construction."
+  ],
+  "summary": "Settlement construction uses the shared async fee calculation entry point.",
+  "test_or_falsification_candidate": "For HTTP and LLM settlement metadata, compare payload-builder fee fields with an independent calculate_async_fees call and assert errors prevent settlement construction.",
+  "title": "Settlement fee calculation uses the shared async fee entry point",
+  "total_invariants": 1954
+}

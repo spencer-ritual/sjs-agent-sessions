@@ -1,0 +1,156 @@
+{
+  "record_type": "file",
+  "file_index": 339,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-sequencing-rights/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "sequencing-rights",
+    "crate-root"
+  ],
+  "atoms_total": 3,
+  "atoms": [
+    {
+      "record_id": "file-0339-atom-0001",
+      "file_index": 339,
+      "atom_index": 1,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-sequencing-rights/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,69 @@; crate docs, modules, and public re-exports",
+      "source_kind": "sequencing_rights_crate_root_exports",
+      "source_snippet": "pub mod bucket;\npub mod classifier;\npub mod error;\npub mod priority;\npub mod reader;\npub mod types;\npub use bucket::{Bucket, BucketManager, Partition};\npub use classifier::{classify_top_level_with_sr, sequencing_rights_full_call_graph_enabled, try_classify_static, Classification, ContractCallInspector, SR_FULL_CALL_GRAPH_ENABLED_ENV};\npub use error::SequencingRightsError;\npub use priority::PriorityComputer;\npub use reader::SequencingRightsReader;\npub use types::{SelectorSet, SequencingOrdering};",
+      "semantic_claim": "The old divergence adds the sequencing-rights crate root documentation, module declarations, and public re-exports for bucket management, classifiers, error type, priority computer, reader, selector sets, and orderings.",
+      "high_risk": false,
+      "risk_tags": [
+        "crate-root",
+        "public-api",
+        "sequencing-rights"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-sequencing-rights/src/lib.rs",
+          "symbols": [
+            "Bucket",
+            "BucketManager",
+            "Classification",
+            "ContractCallInspector",
+            "SequencingRightsReader",
+            "SequencingOrdering"
+          ],
+          "evidence": "Destination lines 1-69 exactly match source-added diff lines 68116-68184."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the sequencing-rights public API and documented builder/verifier flow unchanged.",
+      "test_strategy": "sequencing_rights_public_api_compile_tests",
+      "negative_test_candidate": "Removing `ContractCallInspector` from re-exports should break downstream classification callers.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0339-atom-0002",
+      "file_index": 339,
+      "atom_index": 2,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-sequencing-rights/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +71,183 @@; reorder_block builder entry point",
+      "source_kind": "sequencing_rights_reorder_block",
+      "source_snippet": "pub fn reorder_block<S>(classified_transactions: Vec<(Recovered<TransactionSigned>, Classification)>, parent_header: &Header, state_provider: &S) -> Result<Vec<Recovered<TransactionSigned>>, SequencingRightsError> where S: StateProviderFactory + Sync { ... }",
+      "semantic_claim": "The old divergence adds the block-builder entry point for sequencing rights, hard-failing when parent state is unavailable, partitioning classified transactions into buckets, sorting buckets in parallel, and reassembling the reordered block.",
+      "high_risk": false,
+      "risk_tags": [
+        "block-building",
+        "state-provider",
+        "partition",
+        "parallel-sort",
+        "consensus-critical"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-sequencing-rights/src/lib.rs",
+          "symbols": [
+            "reorder_block"
+          ],
+          "evidence": "Destination lines 71-183 exactly match source-added diff lines 68186-68298."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the builder-side state-failure policy, partition/sort/reassemble phases, and logging.",
+      "test_strategy": "sequencing_rights_reorder_block_tests",
+      "negative_test_candidate": "Parent-state provider failure must return `StateProviderError` rather than falling back to unsorted transactions.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0339-atom-0003",
+      "file_index": 339,
+      "atom_index": 3,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-sequencing-rights/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +185,244 @@; verify_block verifier entry point",
+      "source_kind": "sequencing_rights_verify_block",
+      "source_snippet": "pub fn verify_block<S>(classified_transactions: Vec<(Recovered<TransactionSigned>, Classification)>, parent_header: &Header, state_provider: &S) -> Result<(), SequencingRightsError> where S: StateProviderFactory + Sync { ... }",
+      "semantic_claim": "The old divergence adds the block-verifier entry point for sequencing rights, reconstructing partitions from classified transactions and verifying all buckets in parallel against parent-state sequencing rights.",
+      "high_risk": false,
+      "risk_tags": [
+        "block-verification",
+        "partition",
+        "parallel-verify",
+        "sequencing-rights"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-sequencing-rights/src/lib.rs",
+          "symbols": [
+            "verify_block"
+          ],
+          "evidence": "Destination lines 185-244 exactly match source-added diff lines 68300-68359."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps verifier-side bucket reconstruction and parallel ordering verification aligned with the builder path.",
+      "test_strategy": "sequencing_rights_verify_block_tests",
+      "negative_test_candidate": "A bucket whose priorities decrease should cause `verify_block` to return an ordering violation.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The sequencing-rights crate root is exact-port preserved, including public re-exports, block-builder reordering, and verifier bucket-order checks.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 339: A\tcrates/ritual-sequencing-rights/src/lib.rs.",
+    "Source-added hunk spans diff lines 68116-68359 with header `@@ -0,0 +1,244 @@`; the next diff starts at line 68360.",
+    "Destination `crates/ritual-sequencing-rights/src/lib.rs` has 244 lines and matches the source-added file exactly.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

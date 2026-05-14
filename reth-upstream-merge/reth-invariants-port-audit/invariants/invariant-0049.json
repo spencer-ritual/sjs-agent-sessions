@@ -1,0 +1,64 @@
+{
+  "cluster_key": "scheduler:pool-accounting:part-02",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/async_pool.rs"
+  ],
+  "invariant_id": "cur-a48f14c25e-async-pool-derives-block-expiry",
+  "invariant_index": 49,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/transaction-pool/src/pool/mod.rs",
+      "crates/consensus/src/transaction/async_commitment.rs"
+    ],
+    "checked_queries": [
+      "expiry_block - ttl|commit_block.*expiry|contract_expiry_block|async_commitment.commit_block",
+      "add_committed_async_tx|process_async_commitment_transactions"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "AsyncTxMetadata",
+      "commit_block",
+      "contract_expiry_block",
+      "ttl",
+      "add_committed_async_tx",
+      "process_async_commitment_transactions",
+      "phase2_deadline_offset"
+    ],
+    "missing_behavior": "Async pool metadata insertion does not derive commit_block as expiry_block - ttl and does not compute two-phase deadlines from such a derived commit block.",
+    "related_but_insufficient_code": [
+      "The port process_async_commitment_transactions receives commit_block from the canonical tip and computes contract_expiry_block as commit_block + async_commitment.ttl.",
+      "AsyncTxMetadata stores commit_block supplied by canonical processing and computes only phase2 offset from precompile input; it does not derive commit_block from expiry_block - ttl."
+    ]
+  },
+  "notes": "Confirmed gap; the current metadata flow derives expiry from canonical commit_block, the reverse of the invariant.",
+  "rationale": "The async metadata candidate states a concrete current formula for deriving commit block and phase-two deadlines from expiry and ttl rather than trusting a possibly divergent commitment field.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "26423b15bdef1c1a4a31d5d3bab7f01172a0ce80"
+  ],
+  "statement": "At current tip, AsyncCommitmentPool metadata insertion must derive commit_block as expiry_block - ttl and must compute two-phase deadline offsets from that derived commit_block rather than from async_commitment.commit_block.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Insert an async commitment with expiry_block 120, ttl 20, phase-two offset 7, and an intentionally different async_commitment.commit_block; assert metadata stores commit_block 100 and phase-two deadline 107."
+  ],
+  "summary": "Async pool commit-block-from-expiry derivation is absent.",
+  "test_or_falsification_candidate": "Insert commitment with expiry_block=120, ttl=20, and divergent commitment commit_block; current port has no expiry_block input and stores canonical commit_block instead.",
+  "title": "Async pool derives commit block from expiry",
+  "total_invariants": 1954
+}

@@ -1,0 +1,52 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "The active-job predicate returns false for missing or expired jobs and true only for nonzero executor with future expiry.",
+      "path": "crates/ritual-async-registry/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let executor = Address::from_slice(&executor_bytes.to_be_bytes::<32>()[12..]);\nif executor.is_zero() {\n    return Ok(false);\n}\n...\nlet expiry_block = expiry_bytes.to::<u64>();\nif expiry_block <= current_block_number {\n    return Ok(false);\n}\nOk(true)",
+      "symbols": [
+        "job_exists_and_active"
+      ]
+    }
+  ],
+  "equivalence_argument": "Recommitment checks can use job_exists_and_active so lingering expired storage does not count as an active job; only future-expiring jobs block duplicates.",
+  "evidence_files": [
+    "crates/ritual-async-registry/src/lib.rs"
+  ],
+  "invariant_id": "cur-b09d6e16af-expired-async-jobs-block-recommitment",
+  "invariant_index": 488,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The helper is expiry-aware and treats expired jobs as non-existent for commitment-duplication purposes.",
+  "rationale": "The new job_exists_and_active helper reads both jobExecutor and expiryBlock, returning false for expired jobs so lazy cleanup does not permanently block recommitment. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "e2a50aa75628498e28546e378efe5224701fbb8a"
+  ],
+  "statement": "When checking whether an async commitment's job already exists, the system must treat a job as active only if jobExecutor[id] is non-zero and expiryBlock[id] is greater than the block being built or verified; expired jobs with lingering storage must not block a fresh commitment for the same transaction hash.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Mock AsyncJobTracker storage for missing job, active job, and expired job; assert job_exists_and_active returns false, true, and false respectively at the target block."
+  ],
+  "summary": "Expired async jobs do not block recommitment.",
+  "test_or_falsification_candidate": "Mock AsyncJobTracker storage for missing job, active job, and expired job; assert job_exists_and_active returns false, true, and false respectively at the target block.",
+  "title": "Expired async jobs do not block recommitment",
+  "total_invariants": 1954
+}

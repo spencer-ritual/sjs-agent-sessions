@@ -1,0 +1,72 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The verifier clone used for spawned verification work shares the same Arc<RwLock<ExecutorRegistry>> instead of copying registry contents.",
+      "path": "crates/ritual-spc-verification/src/verifier.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "fn clone_for_task(&self) -> Self {\n    Self {\n        client: self.client.clone(),\n        config: self.config.clone(),\n        executor_registry: Arc::clone(&self.executor_registry),\n        provider: self.provider.clone(),\n    }\n}",
+      "symbols": [
+        "SpcVerifier::clone_for_task"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The registry remains an Arc-backed shared object exposed by reference, matching the shared-state model used by clone_for_task.",
+      "path": "crates/ritual-spc-verification/src/verifier.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn executor_registry(&self) -> &Arc<std::sync::RwLock<ExecutorRegistry>> {\n    &self.executor_registry\n}",
+      "symbols": [
+        "SpcVerifier::executor_registry"
+      ]
+    }
+  ],
+  "equivalence_argument": "The current port does not expose a public Clone impl, but every internal verifier clone used by batch verification is created through clone_for_task, which Arc::clone shares the exact registry lock with the source verifier.",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-12261696ba-cloned-verifiers-share-executor-registry-state",
+  "invariant_index": 235,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-spc-verification/src/verifier.rs"
+    ],
+    "checked_queries": [
+      "clone_for_task|Arc::clone(&self.executor_registry)|impl Clone for SpcVerifier"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "SpcVerifier::clone_for_task",
+      "executor_registry"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped via the current clone_for_task path; no independent registry snapshot is created.",
+  "rationale": "The manual Clone implementation was updated to Arc::clone the executor_registry field, matching the new constructor-owned registry model and preserving shared validation state across verifier clones. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "1039916d0cd57b159eb59696e4e2723f7e6ed696"
+  ],
+  "statement": "Cloning an SpcVerifier must preserve access to the same ExecutorRegistry state rather than creating an independent registry snapshot.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create a verifier, clone it, mutate the registry through the original verifier's registry reference to activate an executor, and assert validate_executor on the clone observes the newly active executor."
+  ],
+  "summary": "Internal SPC verifier clones share the same executor registry Arc.",
+  "test_or_falsification_candidate": "Create a verifier, clone it, mutate the registry through the original verifier's registry reference to activate an executor, and assert validate_executor on the clone observes the newly active executor.",
+  "title": "Cloned SPC verifiers share executor registry state",
+  "total_invariants": 1954
+}

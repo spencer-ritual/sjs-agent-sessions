@@ -1,0 +1,64 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: delivery proof verification exists at builder/verifier time, but the invariant requires RPC-side verification before pool submission.",
+  "evidence_files": [
+    "crates/rpc/rpc/src/ritual.rs"
+  ],
+  "invariant_id": "cur-c9941368c5-phase-delivery-proofs-cryptographically-verified",
+  "invariant_index": 499,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "submit_delivery_result verify delivery proof",
+      "Delivery proof verification failed",
+      "verify_result delivery RPC canonical metadata"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "submit_delivery_result",
+      "AsyncDeliverySubmission",
+      "submit_async_delivery_result",
+      "verify_spc_with_preloaded_context",
+      "verify_signature_core"
+    ],
+    "missing_behavior": "RPC Phase 2 delivery result submission does not cryptographically verify the delivery proof before accepting it into the async pool.",
+    "related_but_insufficient_code": [
+      "crates/ethereum/node/src/ritual_async_rpc.rs submit_delivery_result only packages request.result/proof into AsyncDeliverySubmission and calls pool.submit_async_delivery_result.",
+      "crates/ethereum/payload/src/ritual_async.rs and crates/ritual-block-verification/src/lib.rs verify delivery SPC proofs later at build/verification time, which is not RPC-side verification before pool update."
+    ]
+  },
+  "notes": "The present RPC path accepts syntactically supplied proof bytes into the pool and defers verification.",
+  "rationale": "The old `verify_delivery_proof` only checked proof shape. This commit removes that helper and changes delivery submission to call `verify_result(async_meta.input, request.result, request.proof, async_meta.commit_block, request.tx_hash, canonical_executor, async_meta.precompile_address)` before `submit_delivery_result`. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "70225f8992ed10af8559fc7a276eade5614bb7ff"
+  ],
+  "statement": "RPC Phase 2 delivery result submission must verify the delivery proof with the same SPC verification context as Phase 1, using canonical async metadata and the derived executor, before submitting the delivery result to the async pool.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Submit a delivery result with a syntactically valid 65-byte proof that does not sign the canonical SPC payload and assert RPC returns `Delivery proof verification failed` and leaves the async pool entry awaiting delivery."
+  ],
+  "summary": "RPC delivery result submission lacks cryptographic proof verification.",
+  "test_or_falsification_candidate": "Submit a delivery result with a 65-byte invalid proof and assert RPC returns failure and leaves the pool state unchanged; current code would accept it if pool state permits.",
+  "title": "Phase 2 delivery proofs are cryptographically verified",
+  "total_invariants": 1954
+}

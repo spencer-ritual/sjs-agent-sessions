@@ -1,0 +1,63 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "The current registry is bounded by max size but has no executor TTL field or one-hour TTL initialization.",
+  "evidence_files": [
+    "crates/ethereum/node/src/node.rs"
+  ],
+  "invariant_id": "cur-5ad9d3de66-verifier-registry-starts-bounded",
+  "invariant_index": 241,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/node/src/node.rs",
+      "crates/ritual-spc-verification/src/types.rs"
+    ],
+    "checked_queries": [
+      "ExecutorRegistry::new(100)",
+      "executor_ttl",
+      "EXECUTOR_REGISTRY_TTL",
+      "3600",
+      "ExecutorRegistryConfig::from_env"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "ExecutorRegistry::new",
+      "ExecutorRegistryConfig",
+      "executor_ttl",
+      "ttl"
+    ],
+    "missing_behavior": "The verifier-created registry does not initialize or preserve executor_ttl=3600 seconds.",
+    "related_but_insufficient_code": [
+      "crates/ethereum/node/src/node.rs initializes the RPC verifier registry with ExecutorRegistry::new(100).",
+      "crates/ritual-spc-verification/src/types.rs ExecutorRegistry stores max_executors only, and ExecutorRegistryConfig exposes contract_address and max_executors without TTL."
+    ]
+  },
+  "notes": "Confirmed gap for the TTL part of the invariant.",
+  "rationale": "The registry is constructed directly with those literal parameters in the primary diff. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "bbcdc489383e0dbefde7d559327646f48fd6506c"
+  ],
+  "statement": "The node-builder-created SPC verifier must use an ExecutorRegistry initialized with max_executors=100 and executor_ttl=3600 seconds.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Inspect the verifier registry created by components() and assert its configured max size is 100 and executor TTL is one hour."
+  ],
+  "summary": "The verifier registry is size-bounded but has no TTL configuration.",
+  "test_or_falsification_candidate": "Inspect the node-created verifier registry config and assert max_executors=100 plus executor_ttl=3600; current registry has no TTL field.",
+  "title": "SPC verifier registry starts bounded",
+  "total_invariants": 1954
+}

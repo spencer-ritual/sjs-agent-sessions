@@ -1,0 +1,194 @@
+{
+  "record_type": "file",
+  "file_index": 403,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/rpc/rpc/src/eth/helpers/transaction.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "partial",
+  "tags": [
+    "async-fsm",
+    "missing",
+    "non-exact",
+    "rpc-transaction",
+    "confirmed-gap"
+  ],
+  "atoms_total": 3,
+  "atoms": [
+    {
+      "record_id": "file-0403-atom-0001",
+      "file_index": 403,
+      "atom_index": 1,
+      "atoms_total": 3,
+      "source_path": "crates/rpc/rpc/src/eth/helpers/transaction.rs",
+      "source_hunk_hint": "@@ -1,20 +1,46 @@; @@ -23,26 +49,253 @@",
+      "source_kind": "rpc_admission_validation",
+      "source_snippet": "KEY DESIGN: Pool insertion and validation run IN PARALLEL... If validation fails, we remove from pool and return error to user.\n\nlet (pool_result, validation_result) = tokio::join!(pool_future, validation_future);",
+      "semantic_claim": "The old `send_raw_transaction` path runs pool insertion and async precompile validation concurrently, waits for both, and removes the transaction from the pool if validation fails so users receive immediate RPC errors.",
+      "high_risk": true,
+      "risk_tags": [
+        "rpc",
+        "txpool",
+        "async-fsm",
+        "negative-path"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc/src/eth/helpers/transaction.rs",
+          "symbols": [
+            "send_transaction",
+            "add_pool_transaction",
+            "broadcast_raw_transaction"
+          ],
+          "evidence": "Current `send_transaction` broadcasts the raw transaction and awaits `add_pool_transaction`; it does not launch an RPC async validation task, join it with pool insertion, or remove the transaction from the pool on validation failure."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc-eth-api/src/helpers/pending_block.rs",
+          "symbols": [
+            "is_transient_precompile_validation_error",
+            "is_permanently_invalid_precompile_request"
+          ],
+          "evidence": "Pending-block construction handles async precompile validation errors during transaction selection, after RPC admission."
+        }
+      ],
+      "equivalence_argument": "Confirmed non-parity for RPC admission behavior: final builder/pending-block/verifier validation remains covered, but the old immediate RPC validation plus pool rollback path is still absent.",
+      "test_strategy": "RPC sendRawTransaction negative admission regression",
+      "negative_test_candidate": "Submit a statically invalid async precompile transaction and verify whether destination RPC returns an immediate error and removes it from the pool.",
+      "adversarial_review": {
+        "required": false,
+        "status": "closed_confirmed_gap",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Definitive after current-edits check; this is the main remaining RPC behavior delta."
+    },
+    {
+      "record_id": "file-0403-atom-0002",
+      "file_index": 403,
+      "atom_index": 2,
+      "atoms_total": 3,
+      "source_path": "crates/rpc/rpc/src/eth/helpers/transaction.rs",
+      "source_hunk_hint": "@@ -23,26 +49,253 @@",
+      "source_kind": "hashing_rule",
+      "source_snippet": "For passkey transactions (type 0x77), compute the canonical hash from the re-encoded transaction... return the pool hash which matches what's stored in blocks.",
+      "semantic_claim": "The old RPC send path normalizes the returned hash for passkey P256/WebAuthn transactions by re-encoding after signature conversion and returns the pool/block hash rather than the raw byte hash.",
+      "high_risk": true,
+      "risk_tags": [
+        "rpc",
+        "passkey",
+        "transaction-hash"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc/src/eth/helpers/transaction.rs",
+          "symbols": [
+            "send_transaction",
+            "AddedTransactionOutcome::hash"
+          ],
+          "evidence": "Current RPC send path returns the hash from `add_pool_transaction`, i.e. the pool transaction hash, rather than returning a raw-byte hash."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/traits.rs",
+          "symbols": [
+            "PoolTransaction::from_pooled",
+            "EthPooledTransaction::hash"
+          ],
+          "evidence": "`EthPooledTransaction::from_pooled` preserves the recovered signed transaction, and `EthPooledTransaction::hash()` delegates to `transaction.tx_hash()`."
+        },
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/rlp.rs",
+          "symbols": [
+            "RlpEcdsaDecodableTx::rlp_decode_with_type",
+            "tx_hash_with_type"
+          ],
+          "evidence": "Typed transaction decoding constructs `Signed::new_unchecked` with the canonical type-aware transaction hash, which includes passkey transactions through the shared typed transaction hash path."
+        }
+      ],
+      "equivalence_argument": "Exact/covered: the explicit old passkey hash branch is unnecessary because the current RPC path returns the pool/signed transaction hash, and the pool transaction hash delegates to the canonical decoded signed transaction hash.",
+      "test_strategy": "passkey sendRawTransaction hash regression",
+      "negative_test_candidate": "Submit a P256/WebAuthn passkey transaction and compare the returned RPC hash with the canonical block/pool hash.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Closed after current-code recheck; passkey returned-hash parity is covered through the generic pool-hash path."
+    },
+    {
+      "record_id": "file-0403-atom-0003",
+      "file_index": 403,
+      "atom_index": 3,
+      "atoms_total": 3,
+      "source_path": "crates/rpc/rpc/src/eth/helpers/transaction.rs",
+      "source_hunk_hint": "@@ -23,26 +49,253 @@",
+      "source_kind": "simulation_validation",
+      "source_snippet": "run_validation(...) runs simulate_for_rpc_validation, validate_async_payload, extract_executor_and_ttl, and validate_detected_async against latest state.",
+      "semantic_claim": "The old RPC transaction helper simulates recovered transactions with the builder-style async inspector and then runs full static/state async validation before accepting async traffic.",
+      "high_risk": false,
+      "risk_tags": [
+        "rpc",
+        "async-fsm",
+        "simulation",
+        "executor-selection",
+        "fees",
+        "non-fsm-rpc-ux"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "validate_async_payload",
+            "verify_wallet_for_commitment",
+            "read_executor"
+          ],
+          "evidence": "Builder/payload path validates async calls using shared validation, registry, and wallet checks."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_async_payload",
+            "verify_wallet_for_commitment"
+          ],
+          "evidence": "Verifier path validates async payloads and wallet/registry state."
+        }
+      ],
+      "equivalence_argument": "Confirmed non-exact RPC/API behavior: equivalent validation authority exists in builder/verifier/pending-block paths, but old RPC simulation preflight before pool admission is not restored.",
+      "test_strategy": "builder/verifier validation regression plus RPC UX regression",
+      "negative_test_candidate": "Compare invalid async transaction lifecycle: old RPC should reject at admission; destination may defer rejection/skip until pending-block or verification.",
+      "adversarial_review": {
+        "required": false,
+        "status": "closed_confirmed_non_exact",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Definitive after current-edits check; overlaps file-0396 and is not a core builder/verifier FSM gap."
+    }
+  ],
+  "high_risk_atoms_total": 2,
+  "non_exact_atoms_total": 2,
+  "adversarial_reviews": [],
+  "summary": "Confirmed non-parity remains only for RPC admission/preflight and rollback behavior. Passkey returned hash is covered by the generic pool-hash path; builder/verifier validation authority remains covered elsewhere.",
+  "review_required": false,
+  "status": "confirmed_gap",
+  "notes": [
+    "Current RPC send path returns `AddedTransactionOutcome.hash` from pool insertion.",
+    "Pool transaction hash delegates to the canonical signed transaction hash, so the old explicit passkey hash normalization branch is covered structurally.",
+    "Current RPC send path still lacks old async simulation/preflight and pool rollback on validation failure.",
+    "This is confirmed RPC/API non-parity, not a final payload/verifier FSM gap."
+  ]
+}

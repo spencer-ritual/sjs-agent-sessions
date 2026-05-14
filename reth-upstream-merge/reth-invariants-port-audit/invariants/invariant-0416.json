@@ -1,0 +1,74 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-async/src/wallet.rs",
+    "crates/ritual-async-fees/src/lib.rs"
+  ],
+  "invariant_id": "cur-dc90761a2c-wallet-escrow-covers-audio-video",
+  "invariant_index": 416,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/wallet.rs",
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-async-fees/src/constants.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs",
+      "ritual-revm-internal/crates/precompile/src/audio_call.rs",
+      "ritual-revm-internal/crates/precompile/src/video_call.rs"
+    ],
+    "checked_queries": [
+      "audio_escrow_lockup",
+      "video_escrow_lockup",
+      "calculate_audio_fees_phase1",
+      "calculate_video_fees_phase2",
+      "AUDIO_CALL_PRECOMPILE wallet validation",
+      "VIDEO_CALL_PRECOMPILE wallet validation"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "verify_wallet_for_commitment",
+      "supports_wallet_check",
+      "audio_escrow_lockup",
+      "video_escrow_lockup",
+      "AUDIO_CALL_PRECOMPILE",
+      "VIDEO_CALL_PRECOMPILE"
+    ],
+    "missing_behavior": "The audited v2.2 port lacks audio_escrow_lockup/video_escrow_lockup and does not require worst-case audio/video executor escrow plus commitment, inclusion, and callback costs during wallet validation.",
+    "related_but_insufficient_code": [
+      "wallet.rs supports HTTP, long-running HTTP, ZK, LLM, DKMS, persistent agent, and sovereign agent, but not AUDIO_CALL_PRECOMPILE or VIDEO_CALL_PRECOMPILE.",
+      "ritual-precompile-addresses registers audio/video metadata, but both are short_settlement_enabled=false and payload/block verification reject them as unsupported two-phase fee families.",
+      "ritual-revm-internal precompile docs describe audio/video outputs, but do not implement v2.2 port wallet escrow checks."
+    ]
+  },
+  "notes": "The short async wallet helper currently excludes audio and video even though those precompile addresses are registered.",
+  "rationale": "Wallet validation now imports audio/video escrow helpers and uses audio_escrow_lockup or video_escrow_lockup for the executor fee branch, and includes audio/video in the long-running Phase 2 callback-cost path. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "d20810cd8ec6e60f1849cf8eb9d13eb3309f932c"
+  ],
+  "statement": "Wallet validation for audio and video async calls must require worst-case executor escrow plus the normal commitment, inclusion, and Phase 2 callback costs before accepting the original async transaction.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "For audio and video async calls, run wallet validation with balances just below and just above the sum of modality escrow, commitment fee, inclusion fee, and decoded delivery callback cost; assert only the sufficient balance case is accepted."
+  ],
+  "summary": "Audio/video wallet escrow is not implemented in the audited v2.2 port.",
+  "test_or_falsification_candidate": "For audio and video async calls, run wallet validation with balances just below and just above the sum of modality escrow, commitment fee, inclusion fee, and decoded delivery callback cost; assert only the sufficient balance case is accepted.",
+  "title": "Wallet escrow covers audio and video",
+  "total_invariants": 1954
+}

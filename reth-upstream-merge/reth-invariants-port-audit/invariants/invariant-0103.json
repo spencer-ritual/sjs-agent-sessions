@@ -1,0 +1,63 @@
+{
+  "cluster_key": "scheduler:scheduler-address-environment-d14e5e0e",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "Ritual add-ons read SCHEDULER_ADDRESS and fall back to the current hard-coded Scheduler address.",
+      "path": "crates/node/src/addons.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "let scheduler_address = std::env::var(\"SCHEDULER_ADDRESS\").map(|addr| addr.parse().expect(\"Invalid scheduler address format\")).unwrap_or(address!(\"56e776BAE2DD60664b69Bd5F865F1180ffB7D58B\"));",
+      "symbols": [
+        "RitualAddOns::default",
+        "scheduler_address"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in nodebuilder dependency: RitualAddOns::default supports the override and fallback semantics.",
+  "evidence_files": [
+    "crates/node/src/addons.rs"
+  ],
+  "invariant_id": "cur-f5f404ad2e-scheduler-address-override",
+  "invariant_index": 103,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/node/src/addons.rs"
+    ],
+    "checked_queries": [
+      "RitualAddOns::default|SCHEDULER_ADDRESS|scheduler_address"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+    ],
+    "checked_symbols": [
+      "RitualAddOns::default",
+      "scheduler_address"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in nodebuilder dependency.",
+  "rationale": "The assigned candidate directly supports the environment override semantics, and current referenced code still parses SCHEDULER_ADDRESS before falling back.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "0f2656daf372fa4752c954cc6a566dea81afeaaf"
+  ],
+  "statement": "RitualAddOns::default should parse SCHEDULER_ADDRESS when it is set to a valid address; when it is unset, it should fall back to the current hard-coded scheduler address. Current local evidence shows the fallback as 0x56e776BAE2DD60664b69Bd5F865F1180ffB7D58B.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Set SCHEDULER_ADDRESS before constructing RitualAddOns and assert scheduler_address equals the override.",
+    "Unset SCHEDULER_ADDRESS and assert fallback is 0x56e776BAE2DD60664b69Bd5F865F1180ffB7D58B."
+  ],
+  "summary": "Ritual add-ons use SCHEDULER_ADDRESS override.",
+  "test_or_falsification_candidate": "RitualAddOns::default env override/fallback unit test.",
+  "title": "Ritual add-ons use SCHEDULER_ADDRESS override",
+  "total_invariants": 1954
+}

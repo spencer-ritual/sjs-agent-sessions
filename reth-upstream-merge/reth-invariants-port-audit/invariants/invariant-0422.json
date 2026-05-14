@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "Capability byte 6 is parsed as DKMS, but DKMS is deliberately omitted from the executor-capability predicate.",
+      "path": "crates/ritual-tee-registry-reader/src/types.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub enum Capability {\n    HttpCall = 0,\n    Llm = 1,\n    WormholeQuery = 2,\n    Streaming = 3,\n    VllmProxy = 4,\n    ZkCall = 5,\n    Dkms = 6,\n    ImageCall = 7,\n    AudioCall = 8,\n    VideoCall = 9,\n    Fhe = 10,\n    AutonomousAgent = 11,\n    Telemetry = 12,\n}\n...\n6 => Ok(Capability::Dkms),\n...\npub fn is_executor_capability(&self) -> bool {\n    matches!(self, Capability::HttpCall | Capability::Llm | Capability::WormholeQuery | Capability::ZkCall | Capability::ImageCall | Capability::AudioCall | Capability::VideoCall | Capability::Fhe)\n}",
+      "symbols": [
+        "Capability",
+        "Capability::try_from",
+        "Capability::is_executor_capability"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "Registry enumeration only returns services whose parsed capability is an executor capability, so DKMS services are excluded from executor candidate sets.",
+      "path": "crates/ritual-tee-registry-reader/src/reader.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if info.capability.is_executor_capability() {\n    tracing::debug!(\n        target: \"ritual::registry\",\n        payment_address = ?info.payment_address,\n        tee_address = ?info.tee_address,\n        tee_type = info.tee_type,\n        capability = ?info.capability,\n        \"Found executor in TEE registry\"\n    );\n    executors.push(info);\n}",
+      "symbols": [
+        "read_all_executors"
+      ]
+    }
+  ],
+  "equivalence_argument": "DKMS is represented as a parseable capability byte, but is_executor_capability excludes it. read_all_executors filters through that predicate, so DKMS service records are not returned as executor candidates.",
+  "evidence_files": [
+    "crates/ritual-tee-registry-reader/src/reader.rs"
+  ],
+  "invariant_id": "cur-998a29f686-dkms-executor-capability",
+  "invariant_index": 422,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The current enum also includes additional media/FHE/agent capabilities; DKMS remains non-executor.",
+  "rationale": "The commit adds test coverage asserting !Capability::Dkms.is_executor_capability(), matching the commit message that DKMS is a non-executor capability like Streaming and VllmProxy. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "1785be21d4f452fa74da274a3957cbe9119d0ba5"
+  ],
+  "statement": "Capability::Dkms must not be classified as an executor capability by the TEE registry reader.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call Capability::Dkms.is_executor_capability() and assert it returns false; assert executor-only selection logic excludes DKMS services from executor candidate sets."
+  ],
+  "summary": "DKMS is parsed but excluded from executor capabilities.",
+  "test_or_falsification_candidate": "Call Capability::Dkms.is_executor_capability() and assert it returns false; assert executor-only selection logic excludes DKMS services from executor candidate sets.",
+  "title": "DKMS is not an executor capability",
+  "total_invariants": 1954
+}

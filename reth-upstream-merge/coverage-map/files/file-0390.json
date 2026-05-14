@@ -9,15 +9,11 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "mapped",
+  "file_classification": "moved_to_dependency",
   "tags": [
-    "mapped",
-    "execution",
-    "rpc",
     "high-risk",
-    "non-exact",
-    "alloy-evm",
-    "reth-port"
+    "moved_to_dependency",
+    "non-exact"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -68,7 +64,7 @@
         "status": "pass",
         "review_record_id": "review-file-0390-atom-0001"
       },
-      "review_required": false,
+      "review_required": true,
       "notes": "Reclassified after locating the moved fee helper in Alloy EVM and its Reth re-export path.",
       "required_change": null
     }
@@ -78,8 +74,8 @@
   "adversarial_reviews": [
     "coverage-map/reviews/review-file-0390-atom-0001.json"
   ],
-  "summary": "The downstream RPC zero-fee exception moved from Reth `revm_utils.rs` into Alloy EVM `CallFees` and is consumed through Reth's rpc-convert layer.",
-  "review_required": false,
-  "status": "complete",
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": true,
+  "status": "needs_review",
   "notes": "Reclassified from missing based on destination code evidence in Alloy EVM and Reth RPC conversion."
 }

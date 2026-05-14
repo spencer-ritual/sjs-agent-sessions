@@ -1,0 +1,33 @@
+{
+  "record_type": "file",
+  "file_index": 203,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/node/events/src/cl.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "semicolon",
+    "node-events",
+    "consensus-layer-health"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The consensus-layer health event stream divergence is semicolon-only rustfmt noise; no health-event state machine behavior changed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 203: M\tcrates/node/events/src/cl.rs.",
+    "The isolated patch only adds semicolons after `continue`, `return Poll::Ready(...)`, a match-arm expression, and `return Poll::Ready(Some(NeverSeen))`.",
+    "No fork-choice timestamp, transition-config timestamp, or health-event emission semantics changed."
+  ]
+}

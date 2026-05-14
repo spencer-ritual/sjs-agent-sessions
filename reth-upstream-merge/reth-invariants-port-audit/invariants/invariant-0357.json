@@ -1,0 +1,78 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "The LLM fee path returns Err for missing output, malformed/undecodable responses, and absent registry model entries.",
+      "path": "crates/ritual-async-fees/src/llm.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "None => return Err(\"Missing LLM executor output\".to_string()),\n...\nErr(err) => return Err(format!(\"Failed to decode LLM response: {err}\")),\n...\n.ok_or_else(|| format!(\"Model '{model_name}' not in LLM registry\"))?",
+      "symbols": [
+        "compute_llm_executor_fee",
+        "decode_llm_response",
+        "resolve_llm_model_config"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "calculate_async_fees propagates LLM pricing errors and only uses HTTP byte pricing for HTTP precompile addresses, not as an LLM fallback.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let executor_fee = if precompile_address == LLM_CALL_PRECOMPILE {\n    let is_encrypted = has_encrypted_output(input);\n    compute_llm_executor_fee(db, model_registry_contract, output, is_encrypted, model_cache)?\n} else if precompile_address == HTTP_CALL_PRECOMPILE {\n    http_executor_fee(input_len, output_len)\n}",
+      "symbols": [
+        "calculate_async_fees"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Model lookup is exact contract storage lookup through the model registry reader; missing models are returned as None and then converted to Err by the LLM pricing path.",
+      "path": "crates/ritual-async-fees/src/registry.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if exists_u256.is_zero() { return Ok(None); }\n...\nlet result = read_model_from_db(db, contract, model_name)?;",
+      "symbols": [
+        "read_model_from_db",
+        "read_model_from_db_cached"
+      ]
+    }
+  ],
+  "equivalence_argument": "For the enumerated failure modes in this invariant, the port returns Err and calculate_async_fees propagates it; no byte-based HTTP price or static/default model path is used for missing output, decode failure, or missing model.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ritual-async-fees/src/llm.rs"
+  ],
+  "invariant_id": "cur-f5f07d8fb2-pricing-fallback",
+  "invariant_index": 357,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Executor-reported has_error constant-fee behavior is a separate confirmed no-fallback gap covered by stricter overlapping invariants; this record maps the enumerated missing/decode/model cases.",
+  "rationale": "The commit title and code both state a strict no-fallback policy; `calculate_async_fees` propagates `compute_llm_executor_fee` errors with `?`, and LLM code logs that missing output or unknown models have no fallback. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "8283cdb5e582a0cc1a63686aff41b5f000435e3e"
+  ],
+  "statement": "LLM async fee calculation fails with `Err` when executor output is missing, the response cannot be decoded, or the model is absent from the static registry; it must not fall back to byte-based HTTP pricing or default model parameters.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Attempt LLM fee calculation with `None` output, malformed output, and a valid response naming an unknown model; assert each returns `Err` and no HTTP byte-fee or default model fee is produced."
+  ],
+  "summary": "LLM pricing returns errors for missing output, decode failures, and absent registry models without HTTP or default-model fallback.",
+  "test_or_falsification_candidate": "Call calculate_async_fees for LLM with None output, malformed output, and a valid response naming an absent model; assert each returns Err and no HTTP fee is produced.",
+  "title": "LLM pricing has no fallback",
+  "total_invariants": 1954
+}

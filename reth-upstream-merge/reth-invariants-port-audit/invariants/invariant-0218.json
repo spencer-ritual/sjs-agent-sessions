@@ -1,0 +1,63 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping was found: the port gates submission through SpcVerifier, but SPC-verified precompiles use local direct signature verification instead of always POSTing every known async result to the configured verification service.",
+  "evidence_files": [
+    "crates/rpc/rpc/src/ritual.rs",
+    "crates/rpc/rpc/Cargo.toml"
+  ],
+  "invariant_id": "cur-be7237b584-async-results-require-external-verification",
+  "invariant_index": 218,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "crates/ritual-spc-verification/src/verifier.rs",
+      "crates/ritual-spc-verification/src/client.rs",
+      "crates/rpc/rpc-api/src/ritual.rs"
+    ],
+    "checked_queries": [
+      "verify_result|VerificationRequest|reqwest|send_verification_request|verify_single|sidecar|direct signature verification"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "submit_async_result",
+      "SpcVerifier::verify_single",
+      "VerificationClient::send_verification_request",
+      "VerificationRequest"
+    ],
+    "missing_behavior": "Missing unconditional external verification-service POST for every known async result before pool update.",
+    "related_but_insufficient_code": [
+      "ritual_async_rpc::submit_async_result builds an SpcVerificationRequest and calls context.spc_verifier.verify_single before pool submission.",
+      "SpcVerifier::verify_single routes SPC block-verified precompiles to direct signature verification using the local executor registry.",
+      "VerificationClient::send_verification_request does POST to the configured sidecar, but it is used only for precompiles not in the SPC block-verified allowlist."
+    ]
+  },
+  "notes": "Confirmed gap relative to the exact external-service invariant.",
+  "rationale": "The new `verify_result` method builds a `VerificationRequest`, posts it as JSON with reqwest, treats non-success HTTP statuses as errors, decodes `VerificationResponse`, and the handler returns failed `AwaitingExecution` responses for both `Ok(false)` and errors before the pool update block. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "a24b0ca99af6f8618ac989513ecd1e695243e17a"
+  ],
+  "statement": "For known async transactions, `ritual_submitAsyncResult` must POST the precompile input, output, proof, block number, transaction hash, and executor to the configured verification service, and it must not update the transaction pool unless the service returns a successful HTTP response whose decoded result is true.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Run the handler against a local mock verification service: have it return `result: false` and then a non-2xx status, and in both cases assert the RPC response is unsuccessful with `new_state == \"AwaitingExecution\"` and the mock pool records no `submit_async_result` call; then assert the JSON request body contains all verification fields from the RPC request plus the pool precompile input."
+  ],
+  "summary": "External POST verification is not universal in the current port.",
+  "test_or_falsification_candidate": "Submit a result for an SPC block-verified precompile and assert no VerificationClient POST occurs; the current verifier can accept via local signature verification instead.",
+  "title": "Async results require external verification",
+  "total_invariants": 1954
+}

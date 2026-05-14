@@ -1,0 +1,72 @@
+{
+  "record_type": "file",
+  "file_index": 538,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/transaction-pool/src/test_utils/gen.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "test-utils",
+    "txpool"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0538-atom-0001",
+      "file_index": 538,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/transaction-pool/src/test_utils/gen.rs",
+      "source_hunk_hint": "@@ -152,6 +152,9 @@ impl TransactionBuilder {",
+      "source_kind": "test_fixture",
+      "source_snippet": "                spc_calls: None,\n                commitment_tx: None,\n                settlement_tx: None,\n                spc_calls: None,\n                commitment_tx: None,\n                settlement_tx: None,",
+      "semantic_claim": "The old txpool test transaction builder initializes `spc_calls`, `commitment_tx`, and `settlement_tx` fields.",
+      "high_risk": false,
+      "risk_tags": [
+        "txpool",
+        "tests",
+        "spc"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/test_utils/tx_gen.rs",
+          "symbols": [
+            "spc_calls",
+            "commitment_tx",
+            "settlement_tx"
+          ],
+          "evidence": "Destination test transaction generator initializes the same fields; the old `gen.rs` path was renamed to `tx_gen.rs`."
+        }
+      ],
+      "equivalence_argument": "Exact fixture fields are present at the destination test utility path.",
+      "test_strategy": "compile txpool test transaction generator",
+      "negative_test_candidate": "Mock/test transactions should carry empty SPC/commitment/settlement fields by default.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": ""
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "Transaction test builder SPC/commitment fields are exact-port preserved at the renamed tx_gen path.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0538: M\tcrates/transaction-pool/src/test_utils/gen.rs.",
+    "Source diff lines 95728-95751; first hunk `@@ -152,6 +152,9 @@ impl TransactionBuilder {`.",
+    "Fresh destination evidence was checked against /home/ritual/repos/ritual-reth-internal-v2.2.0-port."
+  ]
+}

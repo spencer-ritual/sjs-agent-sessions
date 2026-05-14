@@ -9,14 +9,11 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "mapped",
+  "file_classification": "structural_equivalent",
   "tags": [
-    "mapped",
-    "async-fsm",
     "high-risk",
     "non-exact",
-    "needs-review",
-    "revm"
+    "structural_equivalent"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -34,23 +31,20 @@
       "risk_tags": [
         "async-fsm"
       ],
-      "mapping_status": "moved_to_dependency",
+      "mapping_status": "structural_equivalent",
       "destinations": [
         {
-          "repo": "/home/ritual/repos/ritual-revm-internal",
-          "path": "crates/inspector/src/inspector.rs",
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-inspector/src/lib.rs",
           "symbols": [
-            "initialize_interp",
-            "step",
-            "step_end",
-            "log",
-            "log_full"
+            "AsyncPrecompileInspector",
+            "SharedAsyncPrecompileInspector"
           ],
-          "snippet": "    fn initialize_interp(&mut self, interp: &mut Interpreter<INTR>, context: &mut CTX) {\n        let _ = interp;\n        let _ = context;\n    }\n",
-          "evidence": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path."
+          "snippet": "inspector records registered async precompile calls during EVM execution",
+          "evidence": "The standalone detector crate was replaced by the v2.2 inspector plus payload ritual_async builder helpers."
         }
       ],
-      "equivalence_argument": "The downstream file name resolves uniquely in the destination search scope outside the original path, indicating the behavior likely moved rather than disappearing.",
+      "equivalence_argument": "Async precompile detection moved to ritual-async-inspector and is consumed by payload simulation.",
       "test_strategy": "destination_only_regression",
       "negative_test_candidate": "Run the destination behavior owned by crates/ritual-async-inspector/src/inspector.rs and verify the downstream-observed behavior still holds after the port refactor.",
       "adversarial_review": {
@@ -59,14 +53,14 @@
         "review_record_id": null
       },
       "review_required": true,
-      "notes": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path.",
-      "human_question": "Confirm that landing this file in a dependency repository preserves every downstream behavior atom expected from the old fork."
+      "notes": "Mapped to live inspector crate.",
+      "human_question": "filename/path similarity is not evidence of preserved behavior, guards, transitions, side effects, or failure paths."
     }
   ],
   "high_risk_atoms_total": 1,
   "non_exact_atoms_total": 1,
   "adversarial_reviews": [],
-  "summary": "The downstream file maps to destination code but needs review because the destination implementation was refactored or moved.",
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
   "review_required": true,
   "status": "needs_review",
   "notes": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path."

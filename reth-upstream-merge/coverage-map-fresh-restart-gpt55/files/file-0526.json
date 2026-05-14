@@ -1,0 +1,76 @@
+{
+  "record_type": "file",
+  "file_index": 526,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/transaction-pool/src/metrics.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "missing",
+    "reviewed",
+    "txpool",
+    "metrics"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0526-atom-0001",
+      "file_index": 526,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/transaction-pool/src/metrics.rs",
+      "source_hunk_hint": "@@ -36,7 +36,16 @@ pub struct TxPoolMetrics {",
+      "source_kind": "metrics_surface",
+      "source_snippet": "    pub(crate) scheduled_pool_transactions: Gauge,\n    pub(crate) scheduled_pool_size_bytes: Gauge,\n    pub(crate) async_commitment_pool_transactions: Gauge,\n    pub(crate) async_commitment_pool_size_bytes: Gauge,\n    pub(crate) total_scheduled_transactions: Gauge,",
+      "semantic_claim": "The old diff adds txpool gauges for scheduled pool count/bytes, async commitment pool count/bytes, and total scheduled transactions.",
+      "high_risk": false,
+      "risk_tags": [
+        "txpool",
+        "metrics",
+        "observability",
+        "missing"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/metrics.rs",
+          "symbols": [
+            "scheduled_pool_transactions",
+            "async_commitment_pool_transactions",
+            "total_scheduled_transactions"
+          ],
+          "evidence": "Destination txpool metrics still expose pending/basefee/queued/blob and total-other gauges, but no scheduled/async commitment gauges."
+        }
+      ],
+      "equivalence_argument": "Reviewed confirmed missing for observability only: broader Ritual metrics exist elsewhere, but the old txpool-local scheduled/async commitment gauges are not present in destination txpool metrics.",
+      "test_strategy": "metrics scrape/assert gauge names",
+      "negative_test_candidate": "A metrics scrape should not find the old scheduled/async txpool gauge names.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed observability gap, not a txpool FSM/runtime gap."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Reviewed confirmed missing observability: old txpool scheduled/async gauge metrics are absent from destination txpool metrics, with no known FSM/runtime effect.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0526: M\tcrates/transaction-pool/src/metrics.rs.",
+    "Source diff lines 91028-91058; first hunk `@@ -36,7 +36,16 @@ pub struct TxPoolMetrics {`.",
+    "Fresh destination evidence was checked against /home/ritual/repos/ritual-reth-internal-v2.2.0-port.",
+    "Review conclusion: definitive metrics gap only."
+  ]
+}

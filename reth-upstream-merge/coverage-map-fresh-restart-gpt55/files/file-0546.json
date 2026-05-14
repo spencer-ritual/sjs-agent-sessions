@@ -1,0 +1,70 @@
+{
+  "record_type": "file",
+  "file_index": 546,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/trie/common/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "intentionally_absent",
+    "trie",
+    "manifest"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0546-atom-0001",
+      "file_index": 546,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/trie/common/Cargo.toml",
+      "source_hunk_hint": "@@ -43,6 +43,7 @@ arbitrary = { workspace = true, features = [\"derive\"], optional = true }",
+      "source_kind": "manifest_dependency",
+      "source_snippet": "tracing = { workspace = true }",
+      "semantic_claim": "The old diff adds `tracing` to `crates/trie/common/Cargo.toml`.",
+      "high_risk": false,
+      "risk_tags": [
+        "trie",
+        "manifest"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/trie/common/Cargo.toml",
+          "symbols": [
+            "tracing"
+          ],
+          "evidence": "Destination manifest has no direct `tracing` dependency; the audited trie code changes in this slice are rustfmt-only and do not require it."
+        }
+      ],
+      "equivalence_argument": "Intentional absence for this slice: no behavior-bearing trie tracing calls are introduced by files 547-562.",
+      "test_strategy": "cargo check trie/common",
+      "negative_test_candidate": "No audited trie file in this range should require a new direct tracing dependency.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": ""
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Old trie common tracing manifest dependency is intentionally absent because audited trie changes are rustfmt-only.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0546: M\tcrates/trie/common/Cargo.toml.",
+    "Source diff lines 97148-97159; first hunk `@@ -43,6 +43,7 @@ arbitrary = { workspace = true, features = [\"derive\"], optional = true }`.",
+    "Fresh destination evidence was checked against /home/ritual/repos/ritual-reth-internal-v2.2.0-port."
+  ]
+}

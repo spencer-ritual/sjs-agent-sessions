@@ -1,0 +1,72 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-async-commitment-validator/src/lib.rs",
+    "crates/transaction-pool/src/pool/async_pool.rs",
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/ritual-tee-registry-reader/src/types.rs",
+    "crates/ritual-async-inspector/src/lib.rs"
+  ],
+  "invariant_id": "cur-34a1822c2c-agent-calls-long-running-async-work",
+  "invariant_index": 389,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-precompile-addresses/src/lib.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ritual-tee-registry-reader/src/types.rs"
+    ],
+    "checked_queries": [
+      "0808",
+      "AGENT_CALL_PRECOMPILE",
+      "AgentCall",
+      "agent-call",
+      "SOVEREIGN_AGENT_PRECOMPILE capability Llm",
+      "AutonomousAgent is_executor_capability"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "AGENT_CALL_PRECOMPILE",
+      "SOVEREIGN_AGENT_PRECOMPILE",
+      "ALL_TWO_PHASE_PRECOMPILE_ADDRESSES",
+      "AsyncPrecompileCapabilityTag::Llm",
+      "Capability::AutonomousAgent"
+    ],
+    "missing_behavior": "The audited local code has no 0x0808 AGENT_CALL_PRECOMPILE accepted as async/two-phase/SPC-verified work, and the related sovereign agent path at 0x080C uses HttpCall capability rather than LLM.",
+    "related_but_insufficient_code": [
+      "crates/ritual-precompile-addresses/src/lib.rs defines SOVEREIGN_AGENT_PRECOMPILE at 0x080C and maps it to HttpCall capability.",
+      "crates/transaction-pool/src/pool/async_pool.rs treats current two-phase metadata as long-running, but there is no 0x0808 agent-call metadata.",
+      "crates/ritual-tee-registry-reader/src/types.rs explicitly does not consider AutonomousAgent an executor capability."
+    ]
+  },
+  "notes": "Confirmed gap: related sovereign-agent support exists under 0x080C/HttpCall, but it is not the 0x0808 LLM-backed agent-call behavior required by the invariant.",
+  "rationale": "The primary commit message and diff add AGENT_CALL_PRECOMPILE at 0x0808, include it in commitment validation and block verification filters, mark it as long-running in async pool state, extract max_poll_block for its Phase 2 TTL, and document that agent calls are served by executors with LLM capability. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "a5be1396136caf79405755ec98e2d9ceb131f730"
+  ],
+  "statement": "The 0x0808 agent-call precompile must be accepted as an async precompile in commitment validation, treated as a long-running two-phase async transaction by the async pool, included in block-verification/SPC async precompile filtering, and use the LLM executor capability rather than requiring a distinct AgentCall executor capability.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Submit an async commitment for precompile 0x0808 with an LLM-capable executor and valid max_poll_block; assert commitment validation accepts it, async-pool metadata reports is_long_running, block verification recognizes its SPC call as async, and an otherwise identical unsupported precompile address is rejected."
+  ],
+  "summary": "The 0x0808 LLM-backed agent-call async path is absent.",
+  "test_or_falsification_candidate": "Submit a 0x0808 agent-call commitment with an LLM executor; current metadata lookup treats 0x0808 as unsupported, exposing the missing invariant behavior.",
+  "title": "Agent calls are long-running async work",
+  "total_invariants": 1954
+}

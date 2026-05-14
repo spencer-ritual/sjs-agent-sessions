@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "The verifier reads AsyncJobTracker job data from parent state and matches each SPC call against the job precompile address, commit block, and input hash.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let mut db = StateProviderDatabase::new(parent_state);\nlet jobs = ritual_async_registry::read_jobs_for_spc_verification(&mut db, None, &settlement_job_ids)?;\n...\nlet spc_call = ... find(|call| call.address == job.precompile_address && call.block_number == job.commit_block && keccak256(&call.input) == job.input_hash) ...?;",
+      "symbols": [
+        "verify_spc_calls"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Missing executor keys, short proofs, signature errors, and invalid signatures are consensus rejections.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if spc_call.proof.len() < 65 { return Err(BlockVerificationError::InvalidSpc(...)); }\n...\nlet executor = read_expected_executor(&mut db, job.executor_address, metadata, \"SPC\")?;\nif executor.public_key.is_empty() { return Err(...); }\nlet valid = verify_signature_core(...)?;\nif !valid { return Err(...); }",
+      "symbols": [
+        "verify_spc_calls",
+        "verify_signature_core"
+      ]
+    }
+  ],
+  "equivalence_argument": "Every fulfilled HTTP/LLM SPC call is tied back to parent-state AsyncJobTracker and TEE registry data before shared signature verification; all listed malformed or missing-data paths return BlockVerificationError.",
+  "evidence_files": [
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/ritual-executor-registry-reader/src/reader.rs"
+  ],
+  "invariant_id": "cur-01dd1516b8-verification-uses-parent-state-contract-data",
+  "invariant_index": 365,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to the port block verifier.",
+  "rationale": "The merge moves executor key reads to the unified registry reader and the verifier documents parent-state contract data as consensus-critical; the implementation extracts SPC calls, reads jobs and executor keys from parent state, checks job block numbers, and hard-fails invalid signatures. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "bf113c77db7cd3bfaf7fc87e76965c4dfb1cdf78"
+  ],
+  "statement": "During block verification, every HTTP/LLM SPC call in fulfilled async transactions must be verified against AsyncJobTracker job data and ExecutorRegistry public keys read from the parent block state, and missing jobs, missing executors, block-number mismatch, short proofs, or invalid signatures must reject the block.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Build a block with a fulfilled async transaction containing an HTTP SPC call and vary parent-state AsyncJobTracker/ExecutorRegistry data: missing job, missing executor key, mismatched job commit block, proof shorter than the signature length, and bad signature should each cause verify_block to return an SPC verification error."
+  ],
+  "summary": "SPC verification uses parent-state job and executor data and rejects missing jobs, bad block/input matches, short proofs, and invalid signatures.",
+  "test_or_falsification_candidate": "Run verify_block with missing job, missing executor, mismatched commit block, short proof, bad signature, and valid signature variants; assert only the valid block passes.",
+  "title": "SPC verification uses parent-state contract data",
+  "total_invariants": 1954
+}

@@ -1,0 +1,63 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The constructor stores the supplied identity fields, marks the executor active, and records creation time.",
+      "path": "crates/ritual-spc-verification/src/types.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn new(address: Address, public_key: Vec<u8>, registration_block: u64, registration_tx_hash: B256, ...) -> Self {\n    Self {\n        address,\n        public_key,\n        is_active: true,\n        registration_block,\n        registration_tx_hash,\n        registration_time: SystemTime::now(),\n        ...\n    }\n}",
+      "symbols": [
+        "ExecutorInfo::new"
+      ]
+    }
+  ],
+  "equivalence_argument": "ExecutorInfo::new preserves the supplied executor metadata and initializes is_active to true with registration_time set at construction.",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/types.rs"
+  ],
+  "invariant_id": "cur-d0d3c9e1a3-executor-records-start-active",
+  "invariant_index": 230,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-spc-verification/src/types.rs"
+    ],
+    "checked_queries": [
+      "ExecutorInfo::new|is_active: true|registration_time"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "ExecutorInfo",
+      "ExecutorInfo::new",
+      "is_active",
+      "registration_time"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The new constructor explicitly initializes executor metadata and sets is_active to true, making the active-by-default state part of the registry model added by this commit. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "71f0156e2a83c51d57191e946a8502f679c40308"
+  ],
+  "statement": "Constructing an ExecutorInfo with ExecutorInfo::new stores the supplied address, public key, registration block, and registration transaction hash, marks the executor active, and records a registration timestamp at creation time.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Instantiate ExecutorInfo::new with known address, public key, block, and tx hash; assert those fields are preserved, is_active is true, and registration_time falls between timestamps captured immediately before and after construction."
+  ],
+  "summary": "New executor records start active in the port registry model.",
+  "test_or_falsification_candidate": "Construct ExecutorInfo::new with fixed fields and assert address/public_key/block/tx hash are preserved, is_active is true, and registration_time is between two sampled timestamps.",
+  "title": "New executor records start active",
+  "total_invariants": 1954
+}

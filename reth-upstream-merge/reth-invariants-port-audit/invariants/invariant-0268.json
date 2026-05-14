@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "The base codec decodes the shared ABI prefix into executor, encrypted secrets, and ttl, preserves additional base fields, and converts ttl through u64::try_from so overflow returns CodecError.",
+      "path": "crates/ritual-precompile-codecs/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let param_types = vec![ParamType::Address, ParamType::Array(Box::new(ParamType::Bytes)), ParamType::Uint(256), ParamType::Array(Box::new(ParamType::Bytes)), ParamType::Bytes];\nlet ttl = match ttl_token { Token::Uint(val) => u64::try_from(val).map_err(|_| CodecError::InvalidFieldValue { field: \"ttl\".to_string(), value: val.to_string() })?, ... };\nOk((executor, encrypted_secrets, ttl, secret_signature, user_public_key))",
+      "symbols": [
+        "ExecutorRequest::decode_base_fields"
+      ]
+    }
+  ],
+  "equivalence_argument": "The current base schema has five shared fields rather than only three, but the required executor, encrypted secrets, and ttl prefix semantics are preserved, and malformed or too-short ABI data returns CodecError via ethabi decode failure.",
+  "evidence_files": [
+    "crates/ritual-precompile-codecs/src/executor.rs",
+    "crates/ritual-precompile-codecs/src/error.rs"
+  ],
+  "invariant_id": "cur-e63696c4cc-executor-request-base-fields-decode-prefix",
+  "invariant_index": 268,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-precompile-codecs/src/executor.rs",
+      "crates/ritual-precompile-codecs/src/error.rs"
+    ],
+    "checked_queries": [
+      "decode_base_fields ttl u64",
+      "InputTooShort",
+      "FieldExtractionFailed"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "ExecutorRequest::decode_base_fields",
+      "CodecError::InvalidFieldValue"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in port.",
+  "rationale": "The new codec crate explicitly defines the common precompile request prefix and tests successful decoding, short input rejection, and field preservation. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "23bddd597d65ef0bde4768e456828b99410cd600"
+  ],
+  "statement": "ExecutorRequest decoding must interpret the first ABI fields of a precompile request as executor address, encrypted secrets bytes, and TTL uint256 converted to u64; inputs shorter than 96 bytes or TTLs that do not fit in u64 must return CodecError instead of producing a request.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "ABI-encode an address, bytes, and uint256 TTL, assert decode_base_fields returns the same values; then assert a 50-byte input returns InputTooShort and a uint256 larger than u64::MAX returns InvalidFieldValue for ttl."
+  ],
+  "summary": "Executor request base fields decode through the shared ABI codec.",
+  "test_or_falsification_candidate": "ABI-encode the base fields and assert decoded executor/secrets/ttl match; use short input and a ttl above u64::MAX and assert CodecError.",
+  "title": "Executor request base fields decode from ABI prefix",
+  "total_invariants": 1954
+}

@@ -1,0 +1,63 @@
+{
+  "cluster_key": "scheduler:receipt-rpc",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "read_scheduled_call returns None for absent storage/mismatched call id, and verification converts that to ScheduledConstraintViolation::CallNotFound.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "read_scheduled_call(...)? .ok_or(ScheduledConstraintViolation::CallNotFound { call_id })?",
+      "symbols": [
+        "read_scheduled_call",
+        "verify_scheduled_transactions",
+        "ScheduledConstraintViolation::CallNotFound"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port; this is the same C1 missing-call behavior as invariant 118.",
+  "evidence_files": [
+    "ritual-reth-internal/crates/ritual-scheduled-verification/src/lib.rs"
+  ],
+  "invariant_id": "cur-b2bc7b9f11-scheduled-verification-rejects-absent-scheduler-calls",
+  "invariant_index": 119,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-scheduled-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "read_scheduled_call|CallNotFound|call_id"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "read_scheduled_call",
+      "ScheduledConstraintViolation::CallNotFound"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped; overlaps invariant 118.",
+  "rationale": "This packet is a later formulation of the same C1 verification behavior. Current tip evidence shows read_scheduled_call returning None or read failure is converted into CallNotFound in scheduled verification.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "42605a8e6fbfd8387a94fc93c97fee5f8bce7878"
+  ],
+  "statement": "Scheduled transaction verification must reject a scheduled transaction whose call_id has no corresponding Scheduler contract storage entry, returning ScheduledConstraintViolation::CallNotFound with that call id.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Verify absent call_id and assert returned CallNotFound contains that call_id."
+  ],
+  "summary": "Absent Scheduler calls are rejected with CallNotFound.",
+  "test_or_falsification_candidate": "Scheduled verifier absent-call regression test.",
+  "title": "Scheduled verification rejects absent Scheduler calls",
+  "total_invariants": 1954
+}

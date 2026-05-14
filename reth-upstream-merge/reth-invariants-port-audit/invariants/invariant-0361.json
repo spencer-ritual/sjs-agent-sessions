@@ -1,0 +1,76 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Signature verification reconstructs the compact sorted JSON payload from job/SPC fields, hashes it with keccak256, and uses the last 65 proof bytes as the signature.",
+      "path": "crates/ritual-spc-signature/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let mut ordered_map = BTreeMap::new();\nordered_map.insert(\"block_number\", ...);\n...\nlet message_json = serde_json::to_string(&ordered_map)?;\nlet message_hash = keccak256(message_bytes);\nlet signature_bytes = &proof[proof.len() - 65..];",
+      "symbols": [
+        "verify_signature_core"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "The verifier accepts only recovery IDs 0, 1, 27, or 28, recovers the public key, and compares it to the expected executor key.",
+      "path": "crates/ritual-spc-signature/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let recovery_id = match recovery_id_byte { 0 | 1 => recovery_id_byte, 27 | 28 => recovery_id_byte - 27, _ => return Err(format!(\"Invalid recovery ID byte: ...\")) };\n...\nlet is_valid = recovered_pubkey_raw == expected_pubkey_raw;",
+      "symbols": [
+        "verify_signature_core",
+        "normalize_recovery_id"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Block verification supplies the parent-state job and SPC fields to the shared strict signature verifier and rejects false or errored results.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let valid = verify_signature_core(public_key, job.commit_block, job.tx_hash, job.precompile_address, &spc_call.input, &spc_call.output, job.previous_block_hash, job.previous_block_number, job.previous_block_timestamp, \"\", &spc_call.proof)?;\nif !valid { return Err(BlockVerificationError::InvalidSpc(...)); }",
+      "symbols": [
+        "verify_spc_calls",
+        "verify_signature_core"
+      ]
+    }
+  ],
+  "equivalence_argument": "The shared signature crate implements the strict reconstruction, hashing, signature slicing, recovery-ID validation, public-key recovery, and equality check required by the invariant; block verification calls it with parent-state job data.",
+  "evidence_files": [
+    "crates/ritual-spc-signature/src/lib.rs"
+  ],
+  "invariant_id": "cur-af5c6af256-signatures-reconstructed-validated-strictly",
+  "invariant_index": 361,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to the port SPC signature crate and block verifier call site.",
+  "rationale": "The primary diff introduces a shared pure signature crate with verify_signature_core, explicit JSON reconstruction, proof length checks, recovery ID normalization, public-key recovery, and public-key comparison. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "19bd287f1e4c369f324043e1a1f11a1025f39fdf"
+  ],
+  "statement": "SPC signature verification must reconstruct the exact executor-signed JSON payload from job/SPC fields, hash it with keccak256, use the last 65 bytes of proof as an ECDSA recoverable signature, accept only recovery IDs 0, 1, 27, or 28, and compare the recovered public key to the executor public key.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Generate an executor proof with a known public key and payload fields and assert verification succeeds; mutate each payload field, use a recovery ID outside 0/1/27/28, or change the expected public key and assert verification fails with an error or false."
+  ],
+  "summary": "SPC signatures are verified through strict JSON reconstruction, recovery-ID validation, and public-key comparison.",
+  "test_or_falsification_candidate": "Generate a valid proof, then mutate each signed field, recovery ID, and expected public key; assert verification returns false or Err for every mutation.",
+  "title": "SPC signatures are reconstructed and validated strictly",
+  "total_invariants": 1954
+}

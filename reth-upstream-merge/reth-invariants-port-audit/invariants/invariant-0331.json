@@ -1,0 +1,79 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "LLM pricing errors propagate out of calculate_async_fees instead of falling back to HTTP executor pricing.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let executor_fee = if precompile_address == LLM_CALL_PRECOMPILE {\n    let is_encrypted = has_encrypted_output(input);\n    compute_llm_executor_fee(db, model_registry_contract, output, is_encrypted, model_cache)?\n} else if precompile_address == HTTP_CALL_PRECOMPILE {\n    http_executor_fee(input_len, output_len)\n} else { return Err(...); };",
+      "symbols": [
+        "calculate_async_fees",
+        "compute_llm_executor_fee"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Settlement preparation returns an error when LLM fee calculation fails.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let fees = calculate_async_fees(db, get_model_registry_address(), contract_job.precompile_address, &metadata.precompile_input, Some(execution_result), model_cache)\n    .map_err(|err| format!(\"async fee calculation failed: {err}\"))?;",
+      "symbols": [
+        "prepare_fulfilled_async_settlement",
+        "calculate_async_fees"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The payload builder skips the async entry when settlement preparation fails, so it is not included with fallback HTTP pricing.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let prepared = match prepared {\n    Ok(prepared) => prepared,\n    Err(reason) => {\n        debug!(?tx_hash, reason, \"skipping fulfilled async settlement entry\");\n        continue;\n    }\n};",
+      "symbols": [
+        "build_payload",
+        "prepare_fulfilled_async_settlement"
+      ]
+    }
+  ],
+  "equivalence_argument": "The failure path is split across shared fee calculation, settlement preparation, and payload candidate collection: compute_llm_executor_fee errors propagate as Err, prepare_fulfilled_async_settlement returns Err, and payload construction skips the fulfilled entry rather than substituting HTTP byte pricing.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ritual-async-fees/src/llm.rs"
+  ],
+  "invariant_id": "cur-32f677e9a0-unpriceable-llms-fallback-priced",
+  "invariant_index": 331,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to calculate_async_fees error propagation and payload-builder skip behavior.",
+  "rationale": "create_settlement_transaction now returns Result, maps compute_llm_executor_fee errors into an error instead of warning and using http_executor_fee, and the payload builder logs the failure and continues without including the async transaction. The commit body explicitly calls out a strict no-fallback policy. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "04a5905e27ef72657de48ca2d5af008eda2350b3"
+  ],
+  "statement": "If LLM executor fee calculation fails, settlement creation must return an error and the payload builder must skip that async transaction instead of falling back to HTTP byte-based pricing.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Feed the payload builder an LLM async transaction whose execution_result lacks required pricing metadata, and assert no settlement transaction is created and the async transaction is skipped rather than included with HTTP executor fees."
+  ],
+  "summary": "Unpriceable LLM async results are skipped rather than priced with HTTP fallback fees.",
+  "test_or_falsification_candidate": "Feed a fulfilled LLM async entry whose output lacks required pricing metadata and assert prepare_fulfilled_async_settlement returns an error and the payload builder skips the entry instead of creating an HTTP-priced settlement.",
+  "title": "Unpriceable LLMs are not fallback-priced",
+  "total_invariants": 1954
+}

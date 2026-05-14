@@ -9,13 +9,11 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "missing",
+  "file_classification": "structural_equivalent",
   "tags": [
-    "missing",
-    "payload",
     "high-risk",
     "non-exact",
-    "needs-review"
+    "structural_equivalent"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -33,9 +31,20 @@
       "risk_tags": [
         "payload"
       ],
-      "mapping_status": "missing",
-      "destinations": [],
-      "equivalence_argument": null,
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "default_ethereum_payload",
+            "ritual async/scheduled phases"
+          ],
+          "snippet": "scheduled obligations, async commitments, fulfilled async settlements, delivery readiness, and regular transactions are handled in the unified v2.2 payload builder",
+          "evidence": "The old collector/bundle/unified_builder split is collapsed into the current payload builder; active behavior is present in one module and verified by focused scheduled/async checks."
+        }
+      ],
+      "equivalence_argument": "Old payload submodules are collapsed into the current unified payload builder; active transaction fit/execution behavior is preserved there.",
       "test_strategy": "adapted_equivalence_test",
       "negative_test_candidate": "Exercise the crates/ethereum/payload/src/unified_execution.rs behavior boundary in the port and verify the downstream path-specific behavior still exists; absence or changed rejection/ordering would falsify the mapping.",
       "adversarial_review": {
@@ -44,14 +53,13 @@
         "review_record_id": null
       },
       "review_required": true,
-      "notes": "No same-path or uniquely named destination evidence was found in the configured search scope.",
-      "required_change": "Restore or intentionally replace the downstream behavior carried by crates/ethereum/payload/src/unified_execution.rs; no reliable destination evidence was found in the configured search scope."
+      "notes": "Mapped to current payload module; old file split is not restored."
     }
   ],
   "high_risk_atoms_total": 1,
   "non_exact_atoms_total": 1,
   "adversarial_reviews": [],
-  "summary": "No reliable destination evidence was found for the downstream file-level behavior.",
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
   "review_required": true,
   "status": "needs_review",
   "notes": "No same-path or uniquely named destination evidence was found in the configured search scope."

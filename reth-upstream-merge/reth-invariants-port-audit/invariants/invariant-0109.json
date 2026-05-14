@@ -1,0 +1,59 @@
+{
+  "cluster_key": "scheduler:receipt-rpc",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "ritual-reth-internal/crates/scheduling/src/contract.rs"
+  ],
+  "invariant_id": "cur-3ac8507412-scheduler-legacy-bounds-derive-saturating-contract-recurrence-fields",
+  "invariant_index": 109,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/scheduling/src/contract.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "derive_execution_bounds|u256_to_u64|EventDecodingError|startBlock|numCalls|last_execution_block|expiryBlock"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "derive_execution_bounds",
+      "u256_to_u64",
+      "EventDecodingError"
+    ],
+    "missing_behavior": "Missing scheduler event parser that derives legacy bounds from event recurrence fields and rejects oversized U256 event indices. Port has saturating block math for parent-state ScheduledCall, but no event parser or u256_to_u64 overflow-rejection path.",
+    "related_but_insufficient_code": [
+      "compute_max_block_number_u64 uses saturating arithmetic for storage-derived ScheduledCall fields; this does not cover receipt event decoding or oversized U256 event index rejection."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The current contract parser has derive_execution_bounds using saturating arithmetic, decodes new startBlock/numCalls fields across event types, and uses checked u256_to_u64 conversion for event indices.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "6b25e8dbc4c7974585426891ef50f6837accf546",
+    "f814f05adb439fd9404146b9fdedc56f12fd3038",
+    "42645f30bcb7628237c23135f65432818ecd893f"
+  ],
+  "statement": "Scheduler event parsing must decode startBlock and numCalls and derive legacy bounds with saturating arithmetic: last_execution_block = startBlock + frequency * (numCalls - 1), max_block_number = last_execution_block + ttl for scheduled events, last_execution_block for execution/completion-style events, and expiryBlock for expired events; oversized u256 indices must be rejected rather than truncated.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Parse Scheduler events with extreme recurrence fields and oversized U256 identifiers; assert bounds saturate and oversized event indices reject."
+  ],
+  "summary": "Scheduler event legacy-bound derivation and U256 rejection are absent.",
+  "test_or_falsification_candidate": "No local derive_execution_bounds/u256_to_u64 event parser exists.",
+  "title": "Scheduler legacy bounds derive saturating from contract recurrence fields",
+  "total_invariants": 1954
+}

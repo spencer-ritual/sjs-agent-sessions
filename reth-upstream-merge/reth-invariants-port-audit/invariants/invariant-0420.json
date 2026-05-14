@@ -1,0 +1,78 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "The cache stores Option<ModelInfo>, so both found models and not-found None results are cached without changing the registry lookup result.",
+      "path": "crates/ritual-async-fees/src/registry.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub type ModelCache = HashMap<String, Option<ModelInfo>>;\n...\nif let Some(cached) = cache.get(model_name) {\n    return Ok(cached.clone());\n}\nlet result = read_model_from_db(db, contract, model_name)?;\ncache.insert(model_name.to_string(), result.clone());\nOk(result)",
+      "symbols": [
+        "ModelCache",
+        "read_model_from_db_cached"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "LLM pricing resolves the exact decoded model name through the cached registry reader and still errors when the model is absent; executor metadata is explicitly ignored during response decoding.",
+      "path": "crates/ritual-async-fees/src/llm.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let info = read_model_from_db_cached(db, contract, model_name, cache)?\n    .ok_or_else(|| format!(\"Model '{model_name}' not in LLM registry\"))?;\nOk(LlmModelConfig { params_b: info.params_b, theta: info.theta })",
+      "symbols": [
+        "compute_llm_executor_fee",
+        "resolve_llm_model_config"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "The public fee calculation path threads ModelCache into LLM pricing and rejects unsupported fee paths rather than falling back to unrelated metadata.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let executor_fee = if precompile_address == LLM_CALL_PRECOMPILE {\n    let is_encrypted = has_encrypted_output(input);\n    compute_llm_executor_fee(db, model_registry_contract, output, is_encrypted, model_cache)?\n} else if precompile_address == HTTP_CALL_PRECOMPILE ||\n    precompile_address == LONG_RUNNING_HTTP_PRECOMPILE\n{\n    http_executor_fee(input_len, output_len)\n} else {\n    return Err(format!(\n        \"unsupported precompile address for fee calculation: {precompile_address:?}\"\n    ));\n};",
+      "symbols": [
+        "calculate_async_fees"
+      ]
+    }
+  ],
+  "equivalence_argument": "The cache preserves exact-match registry semantics because it caches the exact Option<ModelInfo> result for the exact model_name key. resolve_llm_model_config converts cached None into the same missing-model error and has no fallback to normalized names, default pricing, or executor-supplied metadata.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/registry.rs",
+    "crates/ritual-async-fees/src/llm.rs",
+    "crates/ritual-async-fees/src/lib.rs"
+  ],
+  "invariant_id": "cur-368d114dd7-missing-models-remain-exact-match-failures",
+  "invariant_index": 420,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This is the same cache path as invariant 415, with the missing-model branch as the important behavior.",
+  "rationale": "The cache deliberately stores Option<ModelInfo>, including None for not-found models, and the LLM resolver still states that missing models cause the transaction to be skipped with no fallback. Caching must not weaken the consensus-sensitive exact model lookup rule. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "889f4336c68d50da06a21dd451ff8c567cb815ee"
+  ],
+  "statement": "The ModelCache must preserve exact-match ModelRegistry semantics: a model name not found in storage is cached as None and subsequent fee calculations for that same model in the same block must return the same missing-model error rather than falling back to executor metadata, normalized names, or default pricing.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Run two LLM fee calculations in the same block for an absent model name. Assert the first lookup returns a missing-model error and populates the cache with None, the second returns the same error without a storage reread, and neither produces a fallback executor fee."
+  ],
+  "summary": "Missing LLM models remain cached exact-match failures.",
+  "test_or_falsification_candidate": "Run two LLM fee calculations in the same block for an absent model name. Assert the first lookup returns a missing-model error and populates the cache with None, the second returns the same error without a storage reread, and neither produces a fallback executor fee.",
+  "title": "Missing LLM models remain exact-match failures",
+  "total_invariants": 1954
+}

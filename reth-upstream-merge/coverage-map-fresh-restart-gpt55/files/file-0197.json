@@ -1,0 +1,113 @@
+{
+  "record_type": "file",
+  "file_index": 197,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/node/builder/src/setup.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "partial",
+  "tags": [
+    "partial",
+    "high-risk",
+    "non-exact",
+    "pipeline",
+    "execution-stage",
+    "blocking-handler",
+    "canonical-state",
+    "reviewed",
+    "structural-equivalent"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0197-atom-0001",
+      "file_index": 197,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/node/builder/src/setup.rs",
+      "source_hunk_hint": "@@ -11,13 +11,14 @@; @@ -37,6 +38,7 @@; @@ -64,6 +66,7 @@; @@ -83,6 +86,7 @@; @@ -104,25 +108,29 @@",
+      "source_kind": "control_flow",
+      "source_snippet": "use reth_execution_types::Chain;\nuse reth_stages::{prelude::DefaultStages, stages::ExecutionStage, Pipeline, StageId, StageSet};\n\npub fn build_networked_pipeline<N, Client, Executor>(\n    /* ... */\n    exex_manager_handle: ExExManagerHandle<N::Primitives>,\n    blocking_handler: Option<Arc<dyn Fn(&Chain<N::Primitives>) + Send + Sync>>,\n) -> eyre::Result<Pipeline<N>> {\n    let pipeline = build_pipeline(\n        /* ... */\n        exex_manager_handle,\n        blocking_handler,\n    )?;\n}\n\nlet pipeline = builder\n    .with_tip_sender(tip_tx)\n    .with_metrics_tx(metrics_tx)\n    .add_stages(DefaultStages::new(/* ... */))\n    .add_stage({\n        let mut execution_stage = ExecutionStage::new(/* ... */);\n        if let Some(handler) = blocking_handler {\n            execution_stage = execution_stage.with_blocking_handler(handler);\n        }\n        execution_stage\n    })\n    .build(provider_factory, static_file_producer);",
+      "semantic_claim": "The old pipeline setup accepts an optional canonical-state blocking handler, passes it from networked pipeline construction into the base pipeline builder, and installs it on the execution stage so blocking transaction processing runs during execution-stage canonical updates.",
+      "high_risk": true,
+      "risk_tags": [
+        "canonical-state",
+        "execution-stage",
+        "blocking-handler",
+        "transaction-backfill",
+        "pipeline-ordering"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/node/builder/src/launch/engine.rs",
+          "symbols": [
+            "EngineNodeLauncher::launch_node"
+          ],
+          "evidence": "Current engine launch does not construct create_backfill_blocking_handler, does not pass a transaction-pool backfill handler into build_networked_pipeline, and exact searches found no process_canonical_state_transactions callback in this launch path."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/node/builder/src/setup.rs",
+          "symbols": [
+            "build_networked_pipeline",
+            "build_pipeline"
+          ],
+          "evidence": "Current pipeline setup has no blocking_handler parameter and no ExecutionStage::with_blocking_handler call, so the old execution-stage synchronous registration path is absent."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/node/builder/src/components/pool.rs",
+          "symbols": [
+            "spawn_pool_maintenance_task"
+          ],
+          "evidence": "The replacement work now includes both provider.subscribe_blocking_canon_state for ordering-sensitive Ritual async lifecycle side effects and the existing asynchronous txpool maintenance stream for ordinary pool updates."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/maintain.rs",
+          "symbols": [
+            "maintain_transaction_pool"
+          ],
+          "evidence": "The maintenance task still handles Commit/Reorg notifications and calls pool.on_canonical_state_change(update), while TransactionPoolExt::on_blocking_canonical_state_change gives the provider-level blocking subscriber a pre-notification hook for Ritual async lifecycle state."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/mod.rs",
+          "symbols": [
+            "Pool::on_canonical_state_change"
+          ],
+          "evidence": "Pool::process_blocking_canonical_state_change now processes async commitments, async settlements, and expiry cleanup from the canonical tip. Pool::on_canonical_state_change delegates to the same idempotent hook after ordinary pool updates, preserving eventual stream maintenance and pre-notification async lifecycle visibility."
+        }
+      ],
+      "equivalence_argument": "Resolved with v2-style structural equivalence. The port still does not thread an execution-stage blocking_handler through setup.rs, but the transaction-pool maintenance builder now registers its canonical async lifecycle hook with provider.subscribe_blocking_canon_state. The provider guarantees blocking handlers run before async canonical notifications, so the old ordering invariant is restored at the v2 ownership boundary.",
+      "test_strategy": "covered_by_destination_tests",
+      "negative_test_candidate": "Keep the txpool regression that proves a canonical async commitment processed through the blocking hook populates async metadata and sender locks before ordinary stream maintenance.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed and updated 2026-05-11: setup.rs still lacks old execution-stage plumbing by design, but equivalent ordering is restored through provider.subscribe_blocking_canon_state in spawn_pool_maintenance_task."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Reviewed and resolved: pipeline setup still does not thread the old execution-stage blocking handler, but the ordering-sensitive behavior is structurally covered by provider-level blocking canonical-state subscription from txpool maintenance.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Reviewed 2026-05-11 against current port code.",
+    "setup.rs has no blocking_handler parameter and no ExecutionStage::with_blocking_handler call; that old plumbing remains intentionally absent.",
+    "Pool maintenance now registers TransactionPoolExt::on_blocking_canonical_state_change with provider.subscribe_blocking_canon_state.",
+    "The provider-level blocking subscriber restores the old ordering guarantee before async canonical notifications.",
+    "The focused txpool regression and local HTTP async traffic passed after this wiring."
+  ]
+}

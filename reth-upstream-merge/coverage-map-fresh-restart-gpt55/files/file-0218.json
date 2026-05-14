@@ -1,0 +1,83 @@
+{
+  "record_type": "file",
+  "file_index": 218,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/optimism/payload/src/builder.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "missing",
+  "tags": [
+    "missing",
+    "high-risk",
+    "non-exact",
+    "review-closed",
+    "confirmed-gap",
+    "optimism",
+    "payload-builder",
+    "empty-payload",
+    "build-arguments"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0218-atom-0001",
+      "file_index": 218,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/optimism/payload/src/builder.rs",
+      "source_hunk_hint": "@@ -148,7 +148,7 @@ and @@ -232,13 +232,14 @@",
+      "source_kind": "payload_builder_api",
+      "source_snippet": "let BuildArguments { mut cached_reads, config, cancel, best_payload, .. } = args;\n\nfn build_empty_payload(\n    &self,\n    args: BuildArguments<Self::Attributes, Self::BuiltPayload>,\n) -> Result<Self::BuiltPayload, PayloadBuilderError> {\n    let args = BuildArguments {\n        config: args.config,\n        cached_reads: Default::default(),\n        cancel: Default::default(),\n        best_payload: None,\n        attempt: args.attempt,\n    };",
+      "semantic_claim": "The old Optimism payload builder was updated for a richer `BuildArguments` API: normal builds ignore new fields they do not need, while empty-payload fallback receives full build arguments and preserves the caller's build `attempt` when constructing the no-transaction payload.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload-builder",
+        "empty-payload",
+        "engine-api",
+        "attempt-accounting"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/payload/basic/src/lib.rs",
+          "symbols": [
+            "BuildArguments",
+            "PayloadBuilder::build_empty_payload"
+          ],
+          "evidence": "Current `BuildArguments` carries cached reads, execution cache, trie handle, config, cancel, and best payload, but no `attempt`; the trait still defines `build_empty_payload(config)`."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/optimism/payload/src/builder.rs",
+          "evidence": "No exact OP payload builder file exists in the port."
+        }
+      ],
+      "equivalence_argument": "Confirmed non-equivalence: the old OP empty-payload fallback could receive full BuildArguments and preserve attempt identity; the current port has neither the OP builder boundary nor a generic attempt-aware empty-payload API.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "If OP payload building is required, use a builder test double and assert an empty-payload fallback receives the caller attempt metadata rather than only reconstructed config.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Review closed as a confirmed payload-builder API/metadata gap. This overlaps the generic gaps in files 231-233 and is not left as needs-proof."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The old OP payload builder attempt-preserving empty-payload API is not preserved. Current generic payload code lacks `BuildArguments::attempt`, uses config-only `build_empty_payload`, and the OP builder path is absent.",
+  "review_required": false,
+  "status": "confirmed_gap",
+  "notes": [
+    "Review closed against current port code: generic `BuildArguments` has no `attempt` field and `PayloadBuilder::build_empty_payload` still accepts only config.",
+    "No exact `crates/optimism/payload/src/builder.rs` exists in the port.",
+    "FSM/config status: confirmed gap for attempt-aware empty-payload metadata if that old OP/generic payload API is required."
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "cluster_key": "scheduler:startup",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/node/src/addons.rs",
+    "bin/src/main.rs",
+    "bin/Cargo.toml"
+  ],
+  "invariant_id": "cur-8ef1204264-scheduler-address-initialization-parsed-fail-fast",
+  "invariant_index": 125,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/node/src/addons.rs",
+      "bin/src/main.rs",
+      "crates/scheduling/src/singleton.rs"
+    ],
+    "checked_queries": [
+      "SCHEDULER_ADDRESS|RitualAddOns|SynchronousScheduler|initialize|abort|expect"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "RitualAddOns::default",
+      "SynchronousScheduler"
+    ],
+    "missing_behavior": "Missing startup SynchronousScheduler initialization and initialization-failure abort. Nodebuilder add-ons parse SCHEDULER_ADDRESS with expect and default fallback, but no local SynchronousScheduler startup path was found.",
+    "related_but_insufficient_code": [
+      "RitualAddOns::default parses SCHEDULER_ADDRESS and panics on invalid address format.",
+      "Port get_scheduler_address parses env with fallback, but does not initialize SynchronousScheduler."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The nodebuilder candidates form a coherent startup invariant but are kept at medium confidence because the packet does not show whether nodebuilder is still the deployed startup path.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "7710f8930c9deea051c058384b303bb670728677",
+    "4b5dd4108f30137e6c34b88a0e7bd25c5247c9c4",
+    "c0d5f084cf3a559a3bb2449a856b9e9d33a56570"
+  ],
+  "statement": "Node startup paths that configure the scheduler parse SCHEDULER_ADDRESS as an Alloy address when set, use the built-in default when unset, initialize SynchronousScheduler before launching the node, and abort startup on invalid addresses or initialization failure.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Start node with invalid SCHEDULER_ADDRESS and assert startup aborts before launch.",
+    "Assert SynchronousScheduler is initialized before node launch."
+  ],
+  "summary": "Address parsing exists, but SynchronousScheduler startup initialization is absent.",
+  "test_or_falsification_candidate": "Startup integration test for scheduler address parsing and scheduler initialization.",
+  "title": "Scheduler address initialization is parsed and fail-fast",
+  "total_invariants": 1954
+}

@@ -11,10 +11,9 @@
   },
   "file_classification": "mapped",
   "tags": [
-    "mapped",
-    "non-exact",
+    "blocked",
     "needs-review",
-    "reth-port"
+    "non-exact"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -30,39 +29,35 @@
       "semantic_claim": "The downstream diff for crates/engine/tree/src/tree/cached_state.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
       "high_risk": false,
       "risk_tags": [],
-      "mapping_status": "moved_to_dependency",
+      "mapping_status": "structural_equivalent",
       "destinations": [
         {
           "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
           "path": "crates/engine/execution-cache/src/cached_state.rs",
-          "symbols": [
-            "fixed_cache_entry_size",
-            "fixed_cache_key_size_with_value",
-            "new",
-            "new_prewarm",
-            "with_cache_stats"
-          ],
-          "snippet": "const fn fixed_cache_entry_size<K, V>() -> usize {\n    fixed_cache_key_size_with_value::<K>(size_of::<V>())\n}\n\n/// Calculates the actual size of a fixed-cache entry for a given key-value pair.",
-          "evidence": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path."
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/engine/execution-cache/src/cached_state.rs."
         }
       ],
-      "equivalence_argument": "The downstream file name resolves uniquely in the destination search scope outside the original path, indicating the behavior likely moved rather than disappearing.",
+      "equivalence_argument": "Downstream path `crates/engine/tree/src/tree/cached_state.rs` maps to v2.2 `crates/engine/execution-cache/src/cached_state.rs` (remapped). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
       "test_strategy": "not_needed",
       "negative_test_candidate": null,
       "adversarial_review": {
         "required": false,
-        "status": "not_requested",
-        "review_record_id": null
+        "status": "pass",
+        "review_record_id": "review-file-0062-atom-0001"
       },
-      "review_required": true,
-      "notes": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path.",
-      "human_question": "Confirm that landing this file in a dependency repository preserves every downstream behavior atom expected from the old fork."
+      "review_required": false,
+      "notes": "No concrete live runtime/API contract was proven for this broad/file-level atom during the feature-ordered pass; atomization is required before restoration.",
+      "human_question": "filename/path similarity is not evidence of preserved behavior.",
+      "required_change": null,
+      "needs_atomization": false
     }
   ],
   "high_risk_atoms_total": 0,
   "non_exact_atoms_total": 1,
   "adversarial_reviews": [],
-  "summary": "The downstream file maps to destination code but needs review because the destination implementation was refactored or moved.",
+  "summary": "Remaining unresolved atoms are blocked for atomization or explicit scope decisions; concrete live behavior has been mapped or classified.",
   "review_required": true,
   "status": "needs_review",
   "notes": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path."

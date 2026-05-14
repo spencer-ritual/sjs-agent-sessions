@@ -1,0 +1,63 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "Registry population is state-snapshot based and does not process ExecutorRegistered or ExecutorUpdated log topics.",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/service.rs"
+  ],
+  "invariant_id": "cur-80e8771e35-register-update-events-activate-payment-address",
+  "invariant_index": 258,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-spc-verification/src/service.rs",
+      "crates/ritual-spc-verification/src/types.rs",
+      "crates/ritual-spc-verification/src/verifier.rs"
+    ],
+    "checked_queries": [
+      "ExecutorRegistered paymentAddress topic[2]",
+      "ExecutorUpdated paymentAddress register active",
+      "handle_executor_registered InvalidEventData",
+      "paymentAddress ExecutorInfo active"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "handle_executor_registered",
+      "handle_executor_updated",
+      "paymentAddress",
+      "ExecutorInfo::new",
+      "register_executor"
+    ],
+    "missing_behavior": "No audited repo handles ExecutorRegistered or ExecutorUpdated logs by extracting owner and paymentAddress topics and registering an active ExecutorInfo keyed by paymentAddress.",
+    "related_but_insufficient_code": [
+      "ExecutorRegistry::register_executor exists, but it is called by SpcVerifier::update_registry_from_data with tuples read from TEE registry state, not by event-log handlers keyed by paymentAddress topics."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "Both new handlers extract owner from topic[1], payment_address from topic[2], construct active ExecutorInfo with address set to payment_address, and write it through register_executor. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "3aeb9bff2387ecbd42714e9c9db11b5a0c9363ee"
+  ],
+  "statement": "ExecutorRegistered and ExecutorUpdated logs with at least owner and paymentAddress topics must register an active ExecutorInfo keyed by the indexed paymentAddress, using that paymentAddress as the executor address.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Pass registered and updated logs with distinct owner and paymentAddress topics to the handlers, then assert the registry contains an active executor under the paymentAddress and not solely under the owner; pass a log missing topic[2] and assert it returns InvalidEventData without changing the registry."
+  ],
+  "summary": "Register/update log activation is absent.",
+  "test_or_falsification_candidate": "Submit registered and updated TeeDA logs with distinct owner and paymentAddress topics; current code has no event handler that would update the in-memory registry from those logs.",
+  "title": "Register and update events activate payment address",
+  "total_invariants": 1954
+}

@@ -1,0 +1,78 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "The inspector records DKMS calls because DKMS is registered in the canonical async precompile metadata.",
+      "path": "crates/ritual-async-inspector/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if !is_known_async_precompile(target) {\n    return;\n}\nself.has_async_call = true;\nself.precompile_address = Some(target);\nself.precompile_input = Some(input);",
+      "symbols": [
+        "AsyncPrecompileInspector::observe_call",
+        "is_known_async_precompile"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "The DKMS codec decodes the executor, TTL, owner, key index, and key format fields required by the invariant.",
+      "path": "crates/ritual-precompile-codecs/src/dkms_key.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "executor: address_token(&tokens[0], \"executor\")?,\nttl: u64_token(&tokens[2], \"ttl\")?,\nowner: address_token(&tokens[5], \"owner\")?,\nkey_index: u64_token(&tokens[6], \"key_index\")?,\nkey_format: u8_token(&tokens[7], \"key_format\")?,",
+      "symbols": [
+        "DkmsKeyRequest::from_abi"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "RPC admission routes detected DKMS calls through async payload decoding, executor capability validation, and wallet validation.",
+      "path": "crates/rpc/rpc/src/async_tx_validator.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "validate_async_payload(async_call.precompile_address, async_call.input.as_ref(), MAX_SHORT_ASYNC_TTL_BLOCKS)?;\nlet decoded = try_decode_precompile_data(async_call.precompile_address, async_call.input.as_ref())?;\nvalidate_executor(db, decoded.executor, metadata)?;",
+      "symbols": [
+        "validate_detected_async_call"
+      ]
+    }
+  ],
+  "equivalence_argument": "Because DKMS is in the metadata matrix, the inspector treats 0x081B as async; the DKMS codec provides field decoding; RPC admission then validates the decoded request using the shared async validation path.",
+  "evidence_files": [
+    "crates/ritual-async-inspector/src/inspector.rs",
+    "crates/ritual-async-inspector/src/lib.rs",
+    "crates/rpc/rpc/src/async_tx_validator.rs",
+    "crates/ritual-precompile-codecs/src/dkms_key.rs"
+  ],
+  "invariant_id": "cur-5f4319601b-dkms-calls-async",
+  "invariant_index": 482,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This maps inspection, decoding, and RPC validation aspects of the DKMS async-call invariant.",
+  "rationale": "The primary merge adds DKMS_KEY_PRECOMPILE, includes it in the async inspector's recognized addresses and exports, adds DKMS request codec support, and extends RPC async validation paths to include DKMS-specific errors and registration capability handling. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "26423b15bdef1c1a4a31d5d3bab7f01172a0ce80"
+  ],
+  "statement": "The DKMS key precompile at 0x000000000000000000000000000000000000081B must be treated as an async precompile by inspection and RPC validation, with request decoding available for executor, ttl, owner, key_index, and key_format fields.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Submit or simulate a call to 0x081B with a valid DkmsKeyRequest and assert AsyncPrecompileInspector records it as async, RPC validation routes it through async validation, and DkmsKeyRequest::from_abi decodes executor, ttl, owner, key_index, and key_format; assert malformed or zero-owner payloads are rejected where validated."
+  ],
+  "summary": "DKMS calls are detected and validated as async calls.",
+  "test_or_falsification_candidate": "Submit or simulate a call to 0x081B with a valid DkmsKeyRequest and assert AsyncPrecompileInspector records it as async, RPC validation routes it through async validation, and DkmsKeyRequest::from_abi decodes executor, ttl, owner, key_index, and key_format; assert malformed or zero-owner payloads are rejected where validated.",
+  "title": "DKMS key calls are async",
+  "total_invariants": 1954
+}

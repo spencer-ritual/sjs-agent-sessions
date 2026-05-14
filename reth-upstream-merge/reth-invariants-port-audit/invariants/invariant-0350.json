@@ -1,0 +1,78 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "The shared entry point computes executor, commitment, and inclusion components and totals them through AsyncFees::new.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn new(executor_fee: U256, commitment_fee: U256, inclusion_fee: U256) -> Self { let total = executor_fee + commitment_fee + inclusion_fee; ... }\n...\nlet executor_fee = if precompile_address == LLM_CALL_PRECOMPILE { compute_llm_executor_fee(...) ? } else if precompile_address == HTTP_CALL_PRECOMPILE { http_executor_fee(input_len, output_len) } else { return Err(...); };\nlet commitment_fee = async_commitment_fee(input_len);\nlet inclusion_fee = async_inclusion_fee(input_len, output_len);\nOk(AsyncFees::new(executor_fee, commitment_fee, inclusion_fee))",
+      "symbols": [
+        "AsyncFees::new",
+        "calculate_async_fees"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "HTTP executor pricing is byte-based over input and output lengths.",
+      "path": "crates/ritual-async-fees/src/http.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn http_executor_fee(input_len: usize, output_len: usize) -> U256 {\n    U256::from(HTTP_EXECUTOR_BASE_FEE_WEI) + input_component + output_component\n}",
+      "symbols": [
+        "http_executor_fee"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Validator fee helpers live in the shared fee crate and are operation-agnostic functions used by calculate_async_fees.",
+      "path": "crates/ritual-async-fees/src/validators.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn async_commitment_fee(input_len: usize) -> U256 { ... input_len ... }\npub fn async_inclusion_fee(_input_len: usize, _output_len: usize) -> U256 { U256::ZERO }",
+      "symbols": [
+        "async_commitment_fee",
+        "async_inclusion_fee"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port centralizes short async fee calculation in ritual-async-fees and derives total as executor plus commitment plus inclusion fees.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ritual-async-fees/src/http.rs",
+    "crates/ritual-async-fees/src/validators.rs"
+  ],
+  "invariant_id": "cur-9cb5290f5d-unified-async-calculation",
+  "invariant_index": 350,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to the port shared async-fees crate.",
+  "rationale": "The commit creates ritual-async-fees as the single source of truth, moves HTTP executor pricing and validator pricing into it, and makes AsyncFees.total the sum of executor, commitment, and inclusion fees. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "7a12cae9882c0310c67a99096593ccee3727e1a4"
+  ],
+  "statement": "Async transaction fees must be calculated as executor_fee plus async_commitment_fee plus async_inclusion_fee using the shared ritual-async-fees crate, where HTTP executor fees are byte-based and validator fees are operation-agnostic byte-based functions.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call calculate_async_fees for an HTTP precompile with known input/output lengths and assert total equals executor_fee + async_commitment_fee(input_len) + async_inclusion_fee(input_len, output_len), with each component matching the shared crate formulas."
+  ],
+  "summary": "Short async fees are calculated through the shared ritual-async-fees entry point.",
+  "test_or_falsification_candidate": "Call calculate_async_fees for HTTP with known input/output lengths and assert each component and total match the shared formulas.",
+  "title": "Unified async fee calculation",
+  "total_invariants": 1954
+}

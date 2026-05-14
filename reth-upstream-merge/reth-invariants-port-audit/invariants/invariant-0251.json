@@ -1,0 +1,64 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "ExecutorRegistryConfig::from_env exists, but it reads different environment variables and omits TTL entirely.",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/types.rs"
+  ],
+  "invariant_id": "cur-93f32a2f94-executor-registry-config-honors-defaults",
+  "invariant_index": 251,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-spc-verification/src/types.rs"
+    ],
+    "checked_queries": [
+      "TEEDA_CONTRACT_ADDRESS",
+      "EXECUTOR_REGISTRY_MAX_SIZE",
+      "EXECUTOR_REGISTRY_TTL",
+      "TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS",
+      "TEE_SERVICE_REGISTRY_MAX_SIZE"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "ExecutorRegistryConfig::from_env",
+      "TEEDA_CONTRACT_ADDRESS",
+      "EXECUTOR_REGISTRY_MAX_SIZE",
+      "EXECUTOR_REGISTRY_TTL",
+      "TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS",
+      "TEE_SERVICE_REGISTRY_MAX_SIZE"
+    ],
+    "missing_behavior": "from_env does not read TEEDA_CONTRACT_ADDRESS, EXECUTOR_REGISTRY_MAX_SIZE, or EXECUTOR_REGISTRY_TTL with the required Address::ZERO/1000/3600 fallback behavior.",
+    "related_but_insufficient_code": [
+      "crates/ritual-spc-verification/src/types.rs reads TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS and TEE_SERVICE_REGISTRY_MAX_SIZE.",
+      "ExecutorRegistryConfig has contract_address and max_executors only; absent or invalid address falls back to 0x9644e8562cE0Fe12b4deeC4163c064A8862Bf47F rather than Address::ZERO, and there is no TTL field."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The commit adds a dedicated from_env constructor and explicitly defines the environment variable names, default values, parse behavior, and invalid address fallback. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "bf9ee9ad2ce276e9293840bba80e3ce37f6f8b31"
+  ],
+  "statement": "ExecutorRegistryConfig::from_env must read TEEDA_CONTRACT_ADDRESS, EXECUTOR_REGISTRY_MAX_SIZE, and EXECUTOR_REGISTRY_TTL from the process environment; absent or unparsable size and TTL values must fall back to 1000 and 3600 respectively, and an absent or invalid contract address must produce Address::ZERO.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Run isolated tests with env vars unset, set to valid values, and set to invalid strings; assert from_env returns Address::ZERO/1000/3600 for unset or invalid fallbacks and the parsed address, max_executors, and executor_ttl_seconds for valid values."
+  ],
+  "summary": "Executor registry env defaults do not match the invariant contract.",
+  "test_or_falsification_candidate": "Run from_env with TEEDA_CONTRACT_ADDRESS, EXECUTOR_REGISTRY_MAX_SIZE, and EXECUTOR_REGISTRY_TTL unset/invalid/valid and assert Address::ZERO/1000/3600 fallback semantics; current code uses different variables and no TTL.",
+  "title": "Executor registry config honors env defaults",
+  "total_invariants": 1954
+}

@@ -1,0 +1,125 @@
+{
+  "record_type": "file",
+  "file_index": 280,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-async-fees/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "async-fees",
+    "crate-root",
+    "re-exports",
+    "shared-pricing"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0280-atom-0001",
+      "file_index": 280,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-async-fees/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,1820 @@",
+      "source_kind": "async_fees_crate_root_reexports_and_shared_pricing_surface",
+      "source_snippet": "pub mod constants;\npub mod delivery;\npub mod gas;\npub mod http;\npub mod llm;\npub mod registry;\npub mod scheduled;\npub mod validators;\npub mod wallet;\n\n// Re-export commonly used items\npub use constants::*;\npub use delivery::{\n    extract_delivery_callback_gas, get_delivery_callback_gas_or_fallback, DeliveryGasResult,\n};\npub use gas::{calculate_calldata_gas, effective_gas_limit_for_block, is_system_transaction};\npub use http::http_executor_fee;\npub use llm::{\n    compute_llm_executor_fee, extract_model_from_llm_input, has_encrypted_output,\n    llm_executor_deposit_estimate_for_model, LlmComputationTrace, LlmModelConfig,\n    LlmPricingMetrics,\n};\npub use registry::{ModelCache, ModelInfo};\npub use scheduled::{\n    extract_scheduled_callback_gas, get_callback_gas_or_fallback, ScheduledTxGasResult,\n};\npub use validators::{async_commitment_fee, async_inclusion_fee};\npub use wallet::{extract_commitment_sender, verify_wallet_for_commitment};\n\npub struct OutputUxParams {\n    pub num_inference_steps: u16,\n    pub fps: u8,\n}\n\npub fn calculate_async_fees<DB: revm::Database>(...) -> Result<AsyncFees, String>\npub fn calculate_async_fees_phase2(...) -> Result<AsyncFees, String>",
+      "semantic_claim": "The old divergence adds the async-fees crate root: public module declarations for constants, delivery, gas, http, llm, registry, scheduled, validators, and wallet; crate-level re-exports for the shared async fee API; the `OutputUxParams` and `AsyncFees` data structures; and the shared fee/extraction entry points used by builders, verifiers, and wallet validation. This public surface keeps HTTP, LLM, scheduled, delivery, validator, wallet, multimodal, DKMS, persistent-agent, and phase-2 fee helpers available through the crate root.",
+      "high_risk": false,
+      "risk_tags": [
+        "crate-root-public-api",
+        "consensus-critical-fee-surface",
+        "precompile-fee-routing",
+        "module-reexports"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "constants",
+            "delivery",
+            "gas",
+            "http",
+            "llm",
+            "registry",
+            "scheduled",
+            "validators",
+            "wallet",
+            "OutputUxParams",
+            "AsyncFees",
+            "calculate_async_fees",
+            "calculate_async_fees_phase2",
+            "calculate_persistent_agent_fees_phase2",
+            "extract_model_from_multimodal_input",
+            "extract_output_ux_params_from_input",
+            "delivery_has_error",
+            "extract_image_dimensions_from_delivery",
+            "extract_audio_duration_from_delivery",
+            "extract_video_dimensions_and_duration_from_delivery",
+            "extract_agent_metrics_from_delivery"
+          ],
+          "evidence": "The destination `lib.rs` is an exact 1820-line match for the source addition extracted from diff lines 37292-39117, ending before the `llm.rs` diff header. Both extracted source and destination have SHA-256 `370a7a11f723c83c0f2187d8c7f6b2100a9c84a81fa6b2e0fa7c5c4cc9ff63bb`."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/{delivery,gas,http,llm,registry,scheduled,validators,wallet}.rs",
+          "symbols": [
+            "extract_delivery_callback_gas",
+            "get_delivery_callback_gas_or_fallback",
+            "DeliveryGasResult",
+            "calculate_calldata_gas",
+            "effective_gas_limit_for_block",
+            "is_system_transaction",
+            "http_executor_fee",
+            "compute_llm_executor_fee",
+            "extract_model_from_llm_input",
+            "has_encrypted_output",
+            "llm_executor_deposit_estimate_for_model",
+            "LlmComputationTrace",
+            "LlmModelConfig",
+            "LlmPricingMetrics",
+            "ModelCache",
+            "ModelInfo",
+            "extract_scheduled_callback_gas",
+            "get_callback_gas_or_fallback",
+            "ScheduledTxGasResult",
+            "async_commitment_fee",
+            "async_inclusion_fee",
+            "extract_commitment_sender",
+            "verify_wallet_for_commitment"
+          ],
+          "evidence": "Destination symbol search confirmed the crate-root re-export targets are present in the corresponding destination modules; this was used only to verify the `lib.rs` re-export surface, not to audit later queue entries."
+        }
+      ],
+      "equivalence_argument": "Because the source-added `lib.rs` body extracted from the queue diff is byte-for-byte equivalent after removing diff markers, the destination preserves the crate root, all public module declarations, all re-export statements, all local fee/extraction functions, and the embedded unit tests exactly. The re-export target search additionally confirms the referenced destination symbols exist under the declared modules.",
+      "test_strategy": "textual_exact_match_and_symbol_search",
+      "negative_test_candidate": "A downstream import such as `use ritual_async_fees::{calculate_async_fees, http_executor_fee, ModelCache, ModelInfo};` should compile through the crate root; removing or renaming any audited re-export would break this surface.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers only `crates/ritual-async-fees/src/lib.rs`; `crates/ritual-async-fees/src/llm.rs` was used only as the next diff boundary and remains unaudited for file-0281."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The async fees crate root, public re-export surface, local shared fee helpers, and embedded root-level tests are exact-port preserved in the destination.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 280: A\tcrates/ritual-async-fees/src/lib.rs.",
+    "Source diff for file-0280 starts at the `lib.rs` diff header and ends before the `src/llm.rs` diff header.",
+    "Automated comparison found 1820 extracted source-added lines and 1820 destination lines with exact match true and identical SHA-256 `370a7a11f723c83c0f2187d8c7f6b2100a9c84a81fa6b2e0fa7c5c4cc9ff63bb`.",
+    "Destination symbol search confirmed the `lib.rs` module declarations and re-export targets exist in the corresponding destination modules; no review queue entry was required."
+  ]
+}

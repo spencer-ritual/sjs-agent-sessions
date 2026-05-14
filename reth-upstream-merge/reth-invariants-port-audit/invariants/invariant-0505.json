@@ -1,0 +1,53 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "Phase 1 settlement preparation re-reads contract job data and executor public key and re-verifies the proof before settlement construction.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let spc_jobs = ritual_async_registry::read_jobs_for_spc_verification(db, None, &[job_id])?;\n...\nlet executor = read_executor(db, tee_registry, contract_job.executor_address)?;\n...\nverify_spc_with_preloaded_context(origin_tx_hash, &metadata.precompile_input, execution_result, execution_proof, spc_job, &executor.public_key)?;",
+      "symbols": [
+        "prepare_fulfilled_async_settlement",
+        "verify_spc_with_preloaded_context"
+      ]
+    }
+  ],
+  "equivalence_argument": "Fulfilled Phase 1 entries are included only after the builder proves pool metadata matches AsyncJobTracker, the executor key exists, and verify_signature_core accepts the execution proof.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-7ec34b60a8-builder-verifies-phase-proofs",
+  "invariant_index": 505,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Invalid proof or stale contract context causes settlement preparation to return an error and the builder to skip the entry.",
+  "rationale": "The merge adds batch reads of SPC jobs and executor keys, constructs SPC calls from contract job context, and skips Phase 1 settlement when build-time re-verification fails, eliminating a temporal gap between RPC intake and block building. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "3e50b10f76a692e4d7267885e25260da8042f171"
+  ],
+  "statement": "Before including a fulfilled async transaction for Phase 1 settlement, the payload builder must verify the injected SPC call against AsyncJobTracker job data and the executor public key using the same signature logic as block verification, skipping the transaction if verification fails.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create a fulfilled async pool entry whose SPC proof was valid at RPC time but whose contract job input hash, executor key, or output no longer matches; payload building should skip it instead of producing a block with that settlement."
+  ],
+  "summary": "Builder re-verifies Phase 1 SPC proofs before settlement inclusion.",
+  "test_or_falsification_candidate": "Create a fulfilled pool entry with stale contract input hash or an invalid proof and assert the builder does not include its Phase 1 settlement.",
+  "title": "Builder re-verifies Phase 1 SPC proofs",
+  "total_invariants": 1954
+}

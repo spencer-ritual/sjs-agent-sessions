@@ -1,0 +1,53 @@
+{
+  "cluster_key": "precompile pricing:agent-commitments-expose-f1a9fb82",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/async_pool.rs"
+  ],
+  "invariant_id": "cur-c1e13e6b63-agent-commitments-expose-phase-deadline",
+  "invariant_index": 139,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/async_pool.rs"
+    ],
+    "checked_queries": [
+      "phase2_deadline_offset|CLI_AGENT_PRECOMPILE|max_poll_block|mark_awaiting_delivery|checked_add|SOVEREIGN_AGENT_PRECOMPILE"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "phase2_deadline_offset",
+      "CLI_AGENT_PRECOMPILE",
+      "mark_awaiting_delivery",
+      "checked_add"
+    ],
+    "missing_behavior": "Missing CLI_AGENT_PRECOMPILE Phase 2 deadline support. phase2_deadline_offset handles FHE, SOVEREIGN_AGENT_PRECOMPILE, PERSISTENT_AGENT_PRECOMPILE, LONG_RUNNING_HTTP, ZK, IMAGE/AUDIO/VIDEO, but no CLI_AGENT_PRECOMPILE branch was found.",
+    "related_but_insufficient_code": [
+      "mark_awaiting_delivery uses checked_add when applying an already-computed deadline offset.",
+      "That overflow guard is insufficient because CLI_AGENT_PRECOMPILE never produces a Phase 2 deadline offset."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The only candidate directly describes a load-bearing deadline-dispatch requirement added for CLI_AGENT_PRECOMPILE commitments. It stands as the current effective invariant for this bounded cluster, with no older or newer in-cluster candidate to collapse or supersede.",
+  "record_type": "invariant_mapping",
+  "section": "Precompile Pricing",
+  "source_commits": [
+    "792f7a6a4746fdea70e4bf40caa107722272759d"
+  ],
+  "statement": "AsyncCommitmentPool deadline lookup for CLI_AGENT_PRECOMPILE commitments must extract the max_poll_block offset from the CLI agent precompile input and return commit_block plus that offset via checked addition; CLI agent commitments must not fall through to having no deadline.",
+  "status": "current",
+  "subsystem": "precompile pricing",
+  "suggested_falsification_tests": [
+    "Insert a CLI_AGENT_PRECOMPILE async commitment whose input encodes a valid max_poll_block offset and assert deadline lookup returns commit_block + offset.",
+    "Insert CLI_AGENT_PRECOMPILE commitments with malformed deadline input and with an offset that overflows checked_add, and assert lookup returns None rather than a wrong deadline or panic."
+  ],
+  "summary": "CLI_AGENT_PRECOMPILE commitments fall through without Phase 2 deadline support.",
+  "test_or_falsification_candidate": "Async pool Phase 2 deadline tests for CLI_AGENT_PRECOMPILE commitments.",
+  "title": "CLI agent commitments expose Phase 2 deadline",
+  "total_invariants": 1954
+}

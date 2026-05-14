@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Settlement verification compares executor payment and commitment validator against parent-state job/TEE registry data, then recalculates fees from the job precompile address, input, and fulfilled output and rejects mismatches.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if settlement.executor_address != executor.payment_address { return Err(...); }\nif settlement.commitment_validator != job.commitment_validator { return Err(...); }\n...\nlet fees = calculate_async_fees(... job.precompile_address, &precompile_input, Some(&spc_output), ...)?;\nif settlement.executor_fee != fees.executor_fee || settlement.commitment_fee != fees.commitment_fee || settlement.inclusion_fee != fees.inclusion_fee || settlement.total_amount != fees.total { return Err(...); }",
+      "symbols": [
+        "verify_settlements",
+        "read_expected_executor"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "The verifier reads the settlement job fields from AsyncJobTracker parent-state storage instead of trusting settlement calldata alone.",
+      "path": "crates/ritual-async-registry/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub struct SettlementData { pub executor_address: Address, pub commitment_validator: Address, pub precompile_address: Address, pub input_hash: B256, pub input_size: u64, ... }\n...\npub fn read_jobs_for_settlement<DB: Database>(...) -> Result<HashMap<B256, SettlementData>, RegistryError>",
+      "symbols": [
+        "read_jobs_for_settlement",
+        "SettlementData"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port verifier enforces the same contract-data source of truth by reading settlement job data from parent state, matching the fulfilled original output by job precompile/input/commit block, recalculating shared fees, and rejecting address or fee mismatches.",
+  "evidence_files": [
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/ritual-async-registry/src/lib.rs"
+  ],
+  "invariant_id": "cur-3f7bd955f6-settlement-addresses-fees-match-contract-data",
+  "invariant_index": 358,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to the port block-verification and async-registry crates.",
+  "rationale": "The diff replaces async-pool-derived expected values with job data read from the contract, extracts executor output from the fulfilled transaction's SPC call, and fails verification on address or fee mismatches. The commit body says this fixes fee calculation using output_len=0. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "62ee7cd93a7b8b9e5cc2f68ef59baeed3a420ae1"
+  ],
+  "statement": "Settlement verification must compare the settlement executor and commitment validator against AsyncJobTracker job data, and settlement executor, commitment, and inclusion fees must equal calculate_async_fees(job.precompile_address, job.precompile_input, fulfilled_executor_output).",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Use a job whose contract executor, commitment validator, precompile input, and fulfilled output imply known fees, then assert matching settlement values verify; mutate each settlement address or fee independently and assert verification rejects the block."
+  ],
+  "summary": "Settlement verification checks addresses and fee components against parent-state job data and shared fee calculation.",
+  "test_or_falsification_candidate": "Mutate settlement executor, commitment validator, executor fee, commitment fee, inclusion fee, and total independently for a fulfilled job and assert each variant is rejected.",
+  "title": "Settlement addresses and fees match contract data",
+  "total_invariants": 1954
+}

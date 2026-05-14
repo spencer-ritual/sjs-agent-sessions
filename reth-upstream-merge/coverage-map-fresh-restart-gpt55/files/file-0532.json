@@ -1,0 +1,76 @@
+{
+  "record_type": "file",
+  "file_index": 532,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/transaction-pool/src/pool/mod.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "structural_equivalent",
+  "tags": [
+    "structural_equivalent",
+    "reviewed",
+    "txpool",
+    "async",
+    "scheduled"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0532-atom-0001",
+      "file_index": 532,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/transaction-pool/src/pool/mod.rs",
+      "source_hunk_hint": "@@ -71,6 +71,8 @@ use crate::{",
+      "source_kind": "pool_integration",
+      "source_snippet": "        async_pool::{AsyncConversionError, AsyncTxMeta, AsyncUpdateError},\n        best::BestTransactions,\n    CanonicalStateUpdate, EthPoolTransaction, EthPooledTransaction, PoolConfig,\n    TransactionOrdering, TransactionValidator,\nuse alloy_consensus::{BlockHeader, Transaction};\nuse alloy_primitives::{Address, Bytes, TxHash, B256};\nuse alloy_consensus::transaction::OriginalTransaction;\nuse reth_ethereum_primitives::TransactionSigned;\nuse reth_primitives_traits::{Recovered, SignedTransaction};\nuse ritual_metrics;",
+      "semantic_claim": "The old pool module wires async commitment processing, original transaction hash extraction, scheduled subpool modules, and async metadata APIs into PoolInner.",
+      "high_risk": true,
+      "risk_tags": [
+        "txpool",
+        "async",
+        "scheduled"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/mod.rs",
+          "symbols": [
+            "process_async_commitment_transactions",
+            "add_async_metadata",
+            "cleanup_expired_async",
+            "SCHEDULED_TX_TYPE_ID"
+          ],
+          "evidence": "Destination processes canonical async commitments into metadata, enforces async sender locks, processes settlements/deliveries, and cleans up expired async entries. Raw scheduled pool/module wiring is absent because scheduled execution is handled via Scheduler parent-state synthesis and payload candidates."
+        }
+      ],
+      "equivalence_argument": "Reviewed structural equivalent: async behavior is preserved in refactored `PoolInner`/`AsyncPool` APIs. Old raw scheduled subpool integration is intentionally not exact in v2.2 because due scheduled transactions are synthesized from Scheduler parent state and verified by block verification rather than kept in a txpool scheduled subpool.",
+      "test_strategy": "canonical async commitment finalization and scheduled obligation payload tests",
+      "negative_test_candidate": "A finalized async commitment should move original metadata into the async pool and block conflicting sender txs.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed: txpool async integration is present; scheduled subpool absence is an intentional v2 architectural replacement."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Reviewed: Pool integration for canonical async commitments is structurally preserved; raw scheduled subpool integration is intentionally replaced by parent-state scheduled payload synthesis and verifier checks.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0532: M\tcrates/transaction-pool/src/pool/mod.rs.",
+    "Source diff lines 93288-94426; first hunk `@@ -71,6 +71,8 @@ use crate::{`.",
+    "Fresh destination evidence was checked against /home/ritual/repos/ritual-reth-internal-v2.2.0-port.",
+    "Review conclusion: no remaining txpool PoolInner integration review gap."
+  ]
+}

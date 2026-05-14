@@ -1,0 +1,93 @@
+{
+  "cluster_key": "precompile pricing:addresses:part-01",
+  "confidence": "high",
+  "destinations": [
+    {
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "files": [
+        "crates/precompiles/src/lib.rs"
+      ],
+      "evidence": "Mercury precompiles now include ONNX, ed25519, secp256r1, Nitro, JQ, HTTP/LLM/DKMS entries; the provider selects standard Ethereum precompiles before the Mercury/Cancun spec and keeps the removed Echo address unregistered."
+    }
+  ],
+  "equivalence_argument": "Mapped in the nodebuilder precompile provider: the Mercury set includes the previously missing secp256r1 and Nitro entries, the provider delegates to standard Ethereum precompiles for pre-Mercury specs instead of unconditionally installing the Mercury set, and Echo remains absent.",
+  "evidence_files": [
+    "crates/precompiles/src/lib.rs",
+    "crates/precompiles/src/echo.rs",
+    "crates/precompiles/src/onnx.rs",
+    "crates/precompiles/src/sigver.rs",
+    "crates/chainspec/src/forks.rs"
+  ],
+  "invariant_id": "cur-f7ca7f6365-mercury-precompile-hardfork-gated-excludes-echo",
+  "invariant_index": 176,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "ritual-reth-nodebuilder-internal/crates/precompiles/src/lib.rs",
+      "ritual-reth-nodebuilder-internal/crates/precompiles/src/sigver.rs",
+      "ritual-reth-nodebuilder-internal/crates/chainspec/src/forks.rs",
+      "ritual-reth-nodebuilder-internal/bin/src/main.rs",
+      "ritual-revm-internal/crates/handler/src/precompile_provider.rs",
+      "ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_queries": [
+      "mercury_precompiles|RitualPrecompiles|RitualHardfork::Mercury|ECHO_ADDRESS|TEST_NONDETERMINISTIC_ADDRESS",
+      "is_ritual_hardfork_active|RitualHardfork::Mercury|Mercury|set_spec\\(|mercury_precompiles\\(|SpecId::CANCUN|0x0000000000000000000000000000000000000999|ECHO|echo",
+      "SECP|secp|NITRO|Nitro|sigver_precompile_nitro|SIGVER_SECP|SIGVER_NITRO"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "mercury_precompiles",
+      "RitualPrecompiles::set_spec",
+      "RitualHardfork::Mercury",
+      "is_ritual_hardfork_active",
+      "SIGVER_SECP256R1_ADDRESS",
+      "NITRO_VERIFICATION_ADDRESS",
+      "ECHO_ADDRESS"
+    ],
+    "missing_behavior": "",
+    "related_but_insufficient_code": [
+      "The original audit observed unconditional Mercury installation and missing secp256r1/Nitro registration. Local nodebuilder code now fixes those gaps."
+    ]
+  },
+  "notes": "Resolved in ritual-reth-nodebuilder-internal.",
+  "rationale": "The lineage shows a prototype Echo/ONNX provider, removal of Echo, replacement of a temporary Cancun gate by the Ritual Mercury hardfork gate, and consolidation of the production ONNX/signature/Nitro/JQ addresses into the current Mercury set.",
+  "record_type": "invariant_mapping",
+  "section": "Precompile Pricing",
+  "source_commits": [
+    "be4d16319a1fa03c778c36f4cf32c329d265524d",
+    "aad6a539ead7fe6b598633b19c3c53b980db4b1e",
+    "bb49e744c767e0002a7adf40f79fefc98882b5ab",
+    "7bc3ba387bb8f8b6ce9a3ce24662c94699ef886f",
+    "acd97cd00fcada580a49fca034567124e215a749",
+    "ab012cb752da13da12d2edd4cff297967bdd6c00",
+    "3b2e503805b813f95f374f2281671d036efef0ee",
+    "ff15396591acf6ce870a70b55b13455122def115",
+    "609b32a538b6da75fccfee1de6a8078c46a1faff",
+    "ccadb7a029c24e6213f5e1869cc953cb9c4f230f",
+    "b980f435150f3bf3969520599954124af15e50db"
+  ],
+  "statement": "When RitualHardfork::Mercury is active for the current block and timestamp, the Ritual precompile provider extends the base Cancun set with the configured ONNX, ed25519, secp256r1, Nitro, and JQ entry points; before Mercury activation it delegates to standard Ethereum precompiles, and the former Echo test precompile at 0x999 is not registered.",
+  "status": "current",
+  "subsystem": "precompile pricing",
+  "suggested_falsification_tests": [
+    "Instantiate mercury_precompiles() and assert it contains the ONNX, ed25519, secp256r1, Nitro, and JQ addresses while no entry exists for the former Echo address 0x0000000000000000000000000000000000000999.",
+    "Select RitualPrecompiles for a pre-Mercury spec/context and assert Ritual-only addresses are absent; select a Mercury-active spec/context and assert ONNX/Ritual precompile addresses are present.",
+    "With Mercury active, assert address 0x9 dispatches to Ed25519, 0x100 dispatches to secp256r1, and 0x101 dispatches to Nitro rather than falling through as unknown precompiles."
+  ],
+  "summary": "The Mercury precompile set and provider gating are mapped in the nodebuilder dependency.",
+  "test_or_falsification_candidate": "Instantiate the nodebuilder precompile provider in a pre-Mercury context and at Mercury; assert pre-Mercury delegates to standard Ethereum precompiles, Mercury includes ONNX/ed25519/secp256r1/Nitro/JQ, and Echo 0x999 remains absent.",
+  "title": "Mercury precompile set is hardfork-gated and excludes Echo",
+  "total_invariants": 1954
+}

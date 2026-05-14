@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: the constant-fee has_error branch is present, but the audited repos do not expose zero token metrics, empty model config, or a trace fallback_reason for that branch.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/constants.rs",
+    "crates/ritual-async-fees/src/llm.rs"
+  ],
+  "invariant_id": "cur-c632bb5e0f-error-responses-constant",
+  "invariant_index": 528,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/llm.rs",
+      "crates/ritual-async-fees/src/constants.rs"
+    ],
+    "checked_queries": [
+      "LLM has_error fallback_reason trace zero token metrics",
+      "LlmPricingTrace fallback_reason LLM_ERROR_EXECUTOR_FEE_WEI",
+      "compute_llm_executor_fee fallback_reason"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "compute_llm_executor_fee",
+      "decode_llm_response",
+      "LLM_HAS_ERROR_PREFIX",
+      "LLM_ERROR_EXECUTOR_FEE_WEI",
+      "fallback_reason",
+      "LlmPricingTrace"
+    ],
+    "missing_behavior": "The port returns only U256 from compute_llm_executor_fee and has no fallback_reason/LlmPricingTrace result path for has_error=true responses.",
+    "related_but_insufficient_code": [
+      "crates/ritual-async-fees/src/llm.rs decode_llm_response returns an LLM_HAS_ERROR_PREFIX error for has_error=true, and compute_llm_executor_fee maps that prefix to Ok(LLM_ERROR_EXECUTOR_FEE_WEI).",
+      "crates/ritual-async-fees/src/constants.rs defines LLM_ERROR_EXECUTOR_FEE_WEI and a compile-time bound against HTTP_EXECUTOR_BASE_FEE_WEI.",
+      "No audited checkout contains fallback_reason, LlmPricingTrace, or an equivalent returned trace/model-metrics object for this branch."
+    ]
+  },
+  "notes": "The settlement-critical fee behavior is present and is mapped separately by invariants 532 and 534; this stricter artifact records the missing trace/metrics portion of the older invariant statement.",
+  "rationale": "The primary diff adds LLM_ERROR_EXECUTOR_FEE_WEI and a dedicated decode-error branch for errors containing 'LLM response flagged error', allowing settlement to proceed with a bounded fee. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "de45b38a800b21373e290bbe84e2fcb7bb8f9a77"
+  ],
+  "statement": "When LLM response decoding fails because the response is flagged with has_error=true, compute_llm_executor_fee returns Ok with executor fee 500,000,000,000 wei, zero token metrics, and a trace fallback reason instead of returning an error.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Pass an LLM response payload that decodes as has_error=true through compute_llm_executor_fee. Assert the function returns Ok with executor fee 500,000,000,000 wei, no model metrics, and does not return a decode error. Pass a malformed non-has_error payload and assert it still errors."
+  ],
+  "summary": "LLM error constant fee lacks trace fallback metadata.",
+  "test_or_falsification_candidate": "Call compute_llm_executor_fee on a has_error=true response and assert the API returns a trace/fallback object with fallback_reason plus zero token metrics; no such returned metadata exists locally.",
+  "title": "LLM error responses use constant fee",
+  "total_invariants": 1954
+}

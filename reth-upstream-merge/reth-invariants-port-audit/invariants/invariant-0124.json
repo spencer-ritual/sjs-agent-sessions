@@ -1,0 +1,71 @@
+{
+  "cluster_key": "scheduler:validation",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ethereum/primitives/src/transaction.rs",
+    "crates/transaction-pool/src/validate/eth.rs",
+    "docs/scheduled_txs.md",
+    "crates/transaction-pool/src/pool/txpool.rs"
+  ],
+  "invariant_id": "cur-02bf47c51d-system-validation-bypasses-user-nonce-balance-checks",
+  "invariant_index": 124,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/validate/eth.rs",
+      "crates/transaction-pool/src/traits.rs",
+      "crates/transaction-pool/src/pool/txpool.rs",
+      "crates/consensus/src/transaction/envelope.rs"
+    ],
+    "checked_queries": [
+      "requires_nonce_check|set_nonce|scheduled support|TxState|SCHEDULED_SYSTEM_SENDER|AsyncCommitment system sender"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "requires_nonce_check",
+      "TxState",
+      "scheduled set_nonce",
+      "system sender recovery"
+    ],
+    "missing_behavior": "Missing full system-validation bypass surface in the port. Alloy recovers scheduled/async system senders and txpool has generic disable_balance_check, but local pool validation still calls requires_nonce_check defaulting to true and no scheduled-specific validation bypass/feature-disable/set_nonce placeholder path was found.",
+    "related_but_insufficient_code": [
+      "EthereumTxEnvelope::recover_signer returns system senders for Scheduled and AsyncCommitment.",
+      "EthTransactionValidator::validate_stateful skips nonce only when transaction.requires_nonce_check() is false, but the only local default implementation returns true."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The early pool and docs candidates agree that system-generated scheduled transactions are not validated like user transactions. Later candidates preserve the bypass while tightening feature-gating and normal-state flag behavior.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "c3d406930861aa70d423d0bffdf02927c4980a0a",
+    "fc79889b63ef0771db9358daa244cc4555b39a16",
+    "3500630ef9126298e5e1bc1de34236db0a6b4e29",
+    "6c237435f1b699b6df9c344b31047b3622478e27",
+    "59cc501a2735ec6287d073142b9344dd7338100f",
+    "3f07b73fe9d0af68553b01b6c2fa7faa756532cd",
+    "19b715f8413a37ee816702c4db11045916b04d60"
+  ],
+  "statement": "Scheduled and async commitment/exec system transactions bypass ordinary sender nonce and balance validation where appropriate; scheduled support can still be disabled to reject scheduled type bytes, scheduled set_nonce is a no-op, and scheduled registration uses placeholders without marking the normal validation TxState flag.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Submit a scheduled system transaction through normal pool validation with mismatched sender nonce/balance and assert it bypasses only the intended checks.",
+    "Disable scheduled support and assert scheduled type bytes are rejected."
+  ],
+  "summary": "System sender recovery exists, but the full nonce/balance validation bypass surface is missing.",
+  "test_or_falsification_candidate": "Pool validation tests for scheduled/async system transactions.",
+  "title": "System transaction validation bypasses user nonce and balance checks",
+  "total_invariants": 1954
+}

@@ -1,0 +1,68 @@
+{
+  "cluster_key": "block building:builder-applies-sequencing-3ea3d727",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: the builder reorders by sequencing-rights priority, but audited code classifies by static/top-level transaction target and does not run the simulated contract call-graph classification required by this invariant.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/unified_builder.rs",
+    "crates/ethereum/payload/src/unified_execution.rs"
+  ],
+  "invariant_id": "cur-b8b495a4de-builder-applies-sequencing-rights-ordering",
+  "invariant_index": 560,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/sequencing_rights.rs",
+      "crates/ritual-sequencing-rights/src/classifier.rs",
+      "crates/ritual-sequencing-rights/src/lib.rs",
+      "crates/ethereum/payload/src/lib.rs"
+    ],
+    "checked_queries": [
+      "ContractCallInspector use sites",
+      "sequencing_rights_full_call_graph_enabled use sites",
+      "simulated contract call graph sequencing rights builder",
+      "classify_top_level_with_sr reorder_payload_candidates"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "ContractCallInspector",
+      "sequencing_rights_full_call_graph_enabled",
+      "into_classification_with_sr",
+      "classify_top_level_with_sr",
+      "reorder_payload_candidates",
+      "reorder_block"
+    ],
+    "missing_behavior": "Payload building does not classify transactions by simulated contract call graph before sequencing-rights reordering.",
+    "related_but_insufficient_code": [
+      "crates/ethereum/payload/src/sequencing_rights.rs classifies candidates with try_classify_static or classify_top_level_with_sr.",
+      "crates/ritual-sequencing-rights/src/classifier.rs defines ContractCallInspector and into_classification_with_sr, but search found no production use site.",
+      "reorder_payload_candidates falls back on parent-state lookup or reorder_block errors, but not on simulation failures because no simulation is invoked."
+    ]
+  },
+  "notes": "Top-level sequencing-rights ordering is present, but the invariant requires call-graph simulation semantics.",
+  "rationale": "The merge introduces unified block building paths that classify transactions with ContractCallInspector, call reorder_block, and log sequencing-rights phases while preserving fallback ordering on errors. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Block Building",
+  "source_commits": [
+    "d8ce28a47c715ff3f39ce3e10327ab730f1b04d0"
+  ],
+  "statement": "Payload building must classify transactions by simulated contract call graph, reorder sequencing-rights buckets with reorder_block, and fall back to original/tip order if state lookup, simulation, or reordering fails.",
+  "status": "current",
+  "subsystem": "block building",
+  "suggested_falsification_tests": [
+    "Create a block candidate with multiple transactions calling a contract whose sequencingRights ordering prefers selector B before selector A; assert the builder reorders those transactions within that contract bucket while preserving tip order for transactions without sequencing rights or when reordering errors."
+  ],
+  "summary": "Builder sequencing-rights ordering lacks simulated call-graph classification.",
+  "test_or_falsification_candidate": "Create a transaction whose top-level target lacks sequencingRights but an internal call reaches an SR contract; the current builder will not classify it as the SR contract bucket.",
+  "title": "Builder applies sequencing-rights ordering",
+  "total_invariants": 1954
+}

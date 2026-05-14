@@ -1,0 +1,57 @@
+{
+  "cluster_key": "scheduler:receipt-rpc",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "ritual-reth-internal/crates/engine/tree/src/tree/cached_state.rs"
+  ],
+  "invariant_id": "cur-c31c7402a3-regular-state-cache-expiry-environment-configurable",
+  "invariant_index": 120,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/engine/execution-cache/src/cached_state.rs",
+      "crates/engine/tree/src/tree/payload_processor/mod.rs"
+    ],
+    "checked_queries": [
+      "RETH_STATE_CACHE_TTL_SECS|RETH_STATE_CACHE_IDLE_SECS|time_to_live|time_to_idle|7200|3600|ProviderCacheBuilder"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "ProviderCacheBuilder",
+      "RETH_STATE_CACHE_TTL_SECS",
+      "RETH_STATE_CACHE_IDLE_SECS"
+    ],
+    "missing_behavior": "Missing regular provider cache TTL/idle environment configuration. The port uses ExecutionCache/CachedStateProvider fixed-size caches and has no RETH_STATE_CACHE_TTL_SECS/RETH_STATE_CACHE_IDLE_SECS handling or 7200s/3600s defaults.",
+    "related_but_insufficient_code": [
+      "CachedStateProvider and ExecutionCache exist, but their creation paths pass cache size rather than time_to_live/time_to_idle."
+    ]
+  },
+  "notes": "Confirmed gap; overlaps invariant 97.",
+  "rationale": "The assigned candidate captures the load-bearing environment configurability and application to storage/account/code caches. A bounded current-file check shows the default values were later changed from 300/300 seconds to 7200/3600 seconds, so the refined invariant keeps the current behavior but lowers confidence because that later change is not represented by a separate candidate in this packet.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "2cd87cd23af24e7f1179b8080daa377369cc1b04"
+  ],
+  "statement": "Regular provider account, storage, and code caches read RETH_STATE_CACHE_TTL_SECS for time_to_live and RETH_STATE_CACHE_IDLE_SECS for time_to_idle when the variables parse as u64 seconds; at current tip invalid or missing values fall back to 7200 seconds TTL and 3600 seconds idle, and pinned system-contract caches are not given TTL/idle expiry.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Set RETH_STATE_CACHE_TTL_SECS/IDLE_SECS and assert account/storage/code caches expire on those durations; current code has no such inputs."
+  ],
+  "summary": "Regular state cache expiry env configuration is absent.",
+  "test_or_falsification_candidate": "Search and unit test for cache env configuration; currently absent.",
+  "title": "Regular state cache expiry is environment-configurable",
+  "total_invariants": 1954
+}

@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Nonce-lock helpers read senderJobs lengths and jobExecutor mappings directly from AsyncJobTracker contract storage.",
+      "path": "crates/ritual-async-registry/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let array_slot = sender_jobs_slot(*sender);\nlet length_word = db.storage(contract, array_slot)?;\nresults.insert(*sender, length_word.to::<u64>());\n...\nlet executor_slot = job_executor_slot(*job_id);\nlet executor = Address::from_slice(&executor_bytes.to_be_bytes::<32>()[12..]);\nif !executor.is_zero() { existing_jobs.insert(*job_id); }",
+      "symbols": [
+        "batch_sender_pending_job_counts",
+        "batch_jobs_exist",
+        "job_exists"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Block verification derives sender lock and fulfillment existence from parent-state AsyncJobTracker reads, then rejects non-fulfillment txs from locked senders.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let sender_job_counts = ritual_async_registry::batch_sender_pending_job_counts(&mut db, None, &senders)?;\n...\nlet existing_jobs = ritual_async_registry::batch_jobs_exist(&mut db, None, &locked_tx_hashes)?;\n...\nreturn Err(BlockVerificationError::InvalidNonceLock(...));",
+      "symbols": [
+        "verify_async_nonce_locks"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port uses contract storage as the consensus source for sender pending-job counts and job existence rather than the local async pool.",
+  "evidence_files": [
+    "crates/ritual-async-registry/src/lib.rs",
+    "crates/ritual-async-registry/src/slots.rs"
+  ],
+  "invariant_id": "cur-f2d4fb6b0a-nonce-locks-asyncjobtracker-state",
+  "invariant_index": 392,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in the port async-registry and block-verification code.",
+  "rationale": "The commit adds registry helpers that read sender job array lengths and job executor mappings directly from AsyncJobTracker storage, and updates slot constants for the new `senderJobs` and `senderIndex` layout. The commit message explicitly states this is to make nonce-lock state consensus-backed rather than node-local. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "cd6e796affa41f1621ebfacb7d5364002ed22a2a"
+  ],
+  "statement": "Nonce-lock checks must derive pending-job state from AsyncJobTracker contract storage, not the local in-memory async pool: `senderJobs[sender].length > 0` means the sender is locked, and `jobExecutor[job_id] != 0` means that job exists.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Populate a test database with AsyncJobTracker storage where `senderJobs[sender]` length is zero and nonzero, and where `jobExecutor[jobId]` is zero and nonzero. Assert `sender_has_pending_job`, `sender_pending_job_count`, and `job_exists` return the contract-state values without consulting any transaction pool state."
+  ],
+  "summary": "Nonce locks are derived from AsyncJobTracker state.",
+  "test_or_falsification_candidate": "Populate AsyncJobTracker senderJobs and jobExecutor storage in a test database and assert nonce-lock checks follow those values without pool state.",
+  "title": "Nonce locks use AsyncJobTracker state",
+  "total_invariants": 1954
+}

@@ -1,0 +1,80 @@
+{
+  "cluster_key": "scheduler:payload-building:part-01",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "169074f08721705fbb99cc9531ea798b61e9f3cc",
+      "evidence": "The envelope exposes TxScheduled only for the Scheduled variant.",
+      "path": "crates/consensus/src/transaction/envelope.rs",
+      "repo": "/home/ritual/repos/ritual-alloy-internal",
+      "snippet": "match self { Self::Scheduled(tx) => Some(tx), _ => None }",
+      "symbols": [
+        "EthereumTxEnvelope::as_scheduled"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Port code uses as_scheduled to inspect scheduled payloads.",
+      "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let scheduled_tx = tx.as_scheduled()?;",
+      "symbols": [
+        "scheduled_tx_info",
+        "TransactionSigned::as_scheduled"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped through alloy envelope and port usage.",
+  "evidence_files": [
+    "crates/primitives-traits/src/transaction/signed.rs",
+    "crates/ethereum/primitives/src/transaction.rs",
+    "crates/ritual-metrics/src/tx.rs"
+  ],
+  "invariant_id": "cur-9391fa1f9b-signed-abstractions-expose-scheduled-payloads",
+  "invariant_index": 87,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-alloy-internal",
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/consensus/src/transaction/envelope.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs"
+    ],
+    "checked_queries": [
+      "as_scheduled|TxScheduled"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "EthereumTxEnvelope::as_scheduled",
+      "scheduled_tx_info"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in dependency and used by port.",
+  "rationale": "The current invariant is generic scheduled payload detection without direct type-ID matching.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "39fe7141f8832ed14ad2a10daafe6382468d0564",
+    "32a543107a4182fa552d18c6e4f7e563b5957857",
+    "0dc5bfc41c64dbc86cd69f76b2cec8dd1f74a6fc"
+  ],
+  "statement": "Any signed transaction value used through the SignedTransaction abstraction must expose its TxScheduled payload through as_scheduled only when it represents a scheduled transaction, and must return None for non-scheduled transaction variants.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Variant matrix for as_scheduled across all tx variants."
+  ],
+  "summary": "Scheduled payload introspection is available through transaction abstractions.",
+  "test_or_falsification_candidate": "as_scheduled returns Some only for Scheduled.",
+  "title": "Signed transaction abstractions expose scheduled payloads",
+  "total_invariants": 1954
+}

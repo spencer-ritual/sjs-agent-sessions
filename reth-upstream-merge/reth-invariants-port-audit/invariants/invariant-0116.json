@@ -1,0 +1,81 @@
+{
+  "cluster_key": "scheduler:receipt-rpc",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2f812352eb831b90237ad9d550380a15d0f6de5a",
+      "evidence": "The port RPC helper now computes effective_limit as limit.unwrap_or(200).min(capacity), then passes that value to recent_scheduled_incidents. This preserves newest-first ordering, capacity clamping, retainedCount/capacity/enabled fields, and stored revertSelector/revertReason mapping.",
+      "path": "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let effective_limit = limit.unwrap_or(200).min(capacity);\nlet incidents = ritual_metrics::scheduling::recent_scheduled_incidents(effective_limit)",
+      "symbols": [
+        "get_scheduled_incidents",
+        "recent_scheduled_incidents",
+        "GetScheduledIncidentsResponse"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port after the local parity fix: ritual_getScheduledIncidents defaults omitted limits to 200, clamps supplied limits to capacity, returns newest-first incidents, and preserves retainedCount/capacity/enabled plus revert metadata fields.",
+  "evidence_files": [
+    "ritual-reth-internal/crates/rpc/rpc/src/ritual.rs",
+    "ritual-reth-internal/crates/rpc/rpc-api/src/ritual.rs",
+    "ritual-reth-internal/crates/ritual-metrics/src/scheduling.rs"
+  ],
+  "invariant_id": "cur-d96d22d0c8-scheduled-incident-returns-bounded-newest-first-diagnostics",
+  "invariant_index": 116,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "crates/rpc/rpc-api/src/ritual.rs",
+      "crates/ritual-metrics/src/scheduling.rs"
+    ],
+    "checked_queries": [
+      "get_scheduled_incidents|recent_scheduled_incidents|revertSelector|revertReason|retainedCount|capacity|enabled|DEFAULT_SCHEDULED_INCIDENT_TRACE_CAPACITY"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "get_scheduled_incidents",
+      "recent_scheduled_incidents",
+      "ScheduledIncidentDebug"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "Before the local parity fix, get_scheduled_incidents used recent_scheduled_incidents(limit.unwrap_or(capacity)).",
+      "recent_scheduled_incidents clamps limit to scheduled_incident_trace_capacity().",
+      "ScheduledIncidentDebug exposes revertSelector and revertReason."
+    ]
+  },
+  "notes": "Mapped after local parity fix: omitted limit now defaults to 200 before capacity clamping.",
+  "rationale": "The latest incident RPC candidate merges the limit/capacity behavior and revert metadata shape into one current response invariant.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "033a883c43869718b9a5f00cd8b48eda251c3fca",
+    "4cfd2b4284523787d926eb12a6d14c92725a3599",
+    "8a0660f57736b826231b3db41f503c3011853d24"
+  ],
+  "statement": "ritual_getScheduledIncidents must return scheduled incidents newest-first, default omitted limits to 200, clamp supplied limits to incident capacity, expose retainedCount/capacity/enabled, and include stored revertSelector and revertReason metadata.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Call ritual_getScheduledIncidents without a limit after recording more than 200 incidents; expected 200, current code returns capacity-limited count.",
+    "Call with limit > capacity and assert clamp to capacity."
+  ],
+  "summary": "Scheduled incident diagnostics are mapped; omitted limit defaults to 200 and supplied limits clamp to capacity.",
+  "test_or_falsification_candidate": "RPC default-limit and capacity-clamp tests for ritual_getScheduledIncidents.",
+  "title": "Scheduled incident RPC returns bounded newest-first diagnostics",
+  "total_invariants": 1954
+}

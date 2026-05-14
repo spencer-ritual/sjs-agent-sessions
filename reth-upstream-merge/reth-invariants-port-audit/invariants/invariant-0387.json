@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Phase 2 fee calculation accepts 0x0806 and charges fixed proof-generation fee plus delivery payload fee with zero validator fees.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn calculate_zk_fees_phase2(delivery_result_len: usize) -> AsyncFees {\n    let executor_fee = U256::from(ZK_PROOF_GENERATION_FEE_WEI) + http_executor_fee(0, delivery_result_len);\n    AsyncFees::new(executor_fee, U256::ZERO, U256::ZERO)\n}\n...\n} else if precompile_address == ZK_TWO_PHASE_PRECOMPILE { Ok(calculate_zk_fees_phase2(delivery_result_len)) }",
+      "symbols": [
+        "calculate_zk_fees_phase2",
+        "calculate_async_fees_phase2"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Async inclusion fees are zero for all async transactions.",
+      "path": "crates/ritual-async-fees/src/validators.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn async_inclusion_fee(_input_len: usize, _output_len: usize) -> U256 { U256::ZERO }",
+      "symbols": [
+        "async_inclusion_fee"
+      ]
+    }
+  ],
+  "equivalence_argument": "Builder and verifier both call the same Phase 2 fee helper, so ZK fee semantics and zero inclusion-fee behavior are shared.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/constants.rs",
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ritual-async-fees/src/validators.rs"
+  ],
+  "invariant_id": "cur-288df55e3a-phase-pricing-inclusion-fees",
+  "invariant_index": 387,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in the port fee calculator.",
+  "rationale": "The commit adds the ZK proof generation fee constant, extends calculate_async_fees_phase2 to branch on 0x0806 and use that fixed fee, and changes async_inclusion_fee to always return U256::ZERO because inclusion is compensated by the original transaction's EIP-1559 fees. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "7a74a52e0113a13b5e18cf32c640c504f7f26c34"
+  ],
+  "statement": "Phase 2 fee calculation must accept both long-running HTTP 0x0805 and ZK two-phase 0x0806; ZK Phase 2 executor fees must be the fixed ZK proof generation fee plus payload fee, while async_inclusion_fee must return zero for all async transactions.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call calculate_async_fees_phase2 for 0x0806 with a nonempty delivery result and assert executor_fee equals ZK_PROOF_GENERATION_FEE_WEI plus http_executor_fee(0, result_len), with zero validator fees. Also assert async_inclusion_fee returns zero for multiple input/output lengths."
+  ],
+  "summary": "ZK Phase 2 pricing and zero inclusion fees are implemented.",
+  "test_or_falsification_candidate": "Call calculate_async_fees_phase2 for 0x0806 and assert proof fee plus http_executor_fee(0, len), then assert async_inclusion_fee is zero for varied lengths.",
+  "title": "ZK Phase 2 pricing and inclusion fees",
+  "total_invariants": 1954
+}

@@ -1,0 +1,9 @@
+{
+  "record_type": "adversarial_review",
+  "record_id": "review-file-0076-atom-0001",
+  "atom_record_id": "file-0076-atom-0001",
+  "review_result": "pass",
+  "falsification_attempt": "Checked that ritual-alloy-internal owns PayloadAttributes::extra_data, Beacon API serialization/deserialization copies extra_data with a regression test, the reth v2.2 port workspace points alloy-rpc-types-engine and alloy-rpc-types-beacon at sibling ritual-alloy-internal paths, payload construction consumes attributes.extra_data with builder-config fallback, and payload_id length-prefixes extra_data with regression coverage.",
+  "missed_risks": [],
+  "notes": "The source field moved from Reth engine-primitives into Alloy's Engine API type, but the CL-facing schema, Beacon conversion, Reth dependency wiring, payload builder consumer, and payload ID hashing path are all present."
+}

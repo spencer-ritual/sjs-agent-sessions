@@ -1,0 +1,78 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "HTTP precompile input is decoded to obtain the executor address from the ABI request payload.",
+      "path": "crates/ritual-precompile-codecs/src/validation.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "match metadata.address {\n    HTTP_CALL_PRECOMPILE => {\n        let request = HTTPCallRequest::from_abi(input).map_err(decode_error(\"HTTPCallRequest\"))?;\n        (request.executor, request.ttl)\n    }\n    ...\n}",
+      "symbols": [
+        "try_decode_precompile_data"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Block verification rejects commitments whose decoded executor differs from the committed/job executor and later verifies SPC signatures using job.executor_address, not the HTTP precompile address.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let decoded = try_decode_precompile_data(commitment.precompile_address, commitment.precompile_input.as_ref())?;\nif decoded.executor != commitment.executor_address { return Err(...); }\n...\nlet executor = read_expected_executor(&mut db, job.executor_address, metadata, \"SPC\")?;",
+      "symbols": [
+        "validate_commitment_structure",
+        "verify_spc_calls"
+      ]
+    }
+  ],
+  "equivalence_argument": "The current architecture stores the executor decoded from the HTTP request in async commitment/job state, then SPC verification reads executor data by that job executor; there is no fallback to the 0x0801 precompile address.",
+  "evidence_files": [
+    "crates/evm/src/execute.rs"
+  ],
+  "invariant_id": "cur-7ad384aa1d-http-verification-uses-extracted-executor",
+  "invariant_index": 248,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-precompile-codecs/src/validation.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "HTTP_CALL_PRECOMPILE try_decode_precompile_data",
+      "decoded.executor != commitment.executor_address",
+      "job.executor_address read_expected_executor"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "try_decode_precompile_data",
+      "validate_commitment_structure",
+      "verify_spc_calls",
+      "read_expected_executor"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped structurally through commitment/job validation rather than the older execute.rs request builder.",
+  "rationale": "The commit subject identifies incorrect executor-address verification as the bug, and the diff replaces `executor: spc_call.address` with a value from `spc_call.extract_executor_address()` for HTTP SPC calls. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "580552d9b9271e7bd69cad3afb86f684db5e4f44"
+  ],
+  "statement": "When block execution verifies an HTTP SPC call to precompile address `0x0000000000000000000000000000000000000801`, the verification request uses the executor address extracted from the SPC input data, not the precompile address.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Execute a block containing an HTTP SPC call whose input encodes executor A while the precompile address remains `0x0801`; assert the verifier receives executor A and not `0x0801`, and that a proof valid only for `0x0801` is rejected."
+  ],
+  "summary": "HTTP SPC verification uses the decoded request executor carried through job state.",
+  "test_or_falsification_candidate": "Execute a block containing an HTTP SPC call whose input encodes executor A while the precompile address remains `0x0801`; assert the verifier receives executor A and not `0x0801`, and that a proof valid only for `0x0801` is rejected.",
+  "title": "HTTP SPC verification uses extracted executor",
+  "total_invariants": 1954
+}

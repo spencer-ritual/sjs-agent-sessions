@@ -9,10 +9,10 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "missing",
+  "file_classification": "structural_equivalent",
   "tags": [
-    "missing",
-    "needs-review"
+    "non-exact",
+    "structural_equivalent"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -28,9 +28,19 @@
       "semantic_claim": "The chain-state crate depends on Ritual's blocking canonical-state pubsub helper.",
       "high_risk": false,
       "risk_tags": [],
-      "mapping_status": "missing",
-      "destinations": [],
-      "equivalence_argument": null,
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/chain-state/Cargo.toml",
+          "symbols": [
+            "ritual-blocking-pubsub"
+          ],
+          "snippet": "ritual-blocking-pubsub.workspace = true",
+          "evidence": "The chain-state crate now depends on the existing workspace ritual-blocking-pubsub helper."
+        }
+      ],
+      "equivalence_argument": "The v2.2 port now restores the old blocking canonical-state pubsub dependency at the same chain-state crate boundary.",
       "test_strategy": "destination_only_regression",
       "negative_test_candidate": null,
       "adversarial_review": {
@@ -38,16 +48,17 @@
         "status": "not_requested",
         "review_record_id": null
       },
-      "review_required": true,
-      "required_change": "Decide whether the v2.2 port should restore a blocking canonical-state pubsub dependency or replace it with the current async notification architecture.",
-      "notes": "No ritual-blocking-pubsub crate or dependency was found in the v2.2 port or searched integration repos."
+      "review_required": false,
+      "required_change": null,
+      "notes": "Restored as part of the blocking canonical-state subscription cluster.",
+      "human_question": null
     }
   ],
   "high_risk_atoms_total": 0,
   "non_exact_atoms_total": 1,
   "adversarial_reviews": [],
-  "summary": "The old chain-state blocking-pubsub dependency is absent from the v2.2 port.",
-  "review_required": true,
-  "status": "needs_review",
-  "notes": "This dependency underpins the missing blocking canonical-state subscription atoms in adjacent chain-state files."
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Updated during Core async first pass; unresolved atoms in the same feature remain separate and require active-consumer or runtime evidence."
 }

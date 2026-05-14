@@ -1,0 +1,70 @@
+{
+  "record_type": "file",
+  "file_index": 495,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/storage/provider/src/providers/blockchain_provider.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "storage",
+    "blocking-pubsub"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0495-atom-0001",
+      "file_index": 495,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/storage/provider/src/providers/blockchain_provider.rs",
+      "source_hunk_hint": "@@ -707,6 +707,13 @@ impl<N: ProviderNodeTypes> CanonStateSubscriptions for BlockchainProvider<N> {",
+      "source_kind": "provider_subscription",
+      "source_snippet": "    fn subscribe_blocking_canon_state(\n        &self,\n        handler: ritual_blocking_pubsub::BlockingHandler<Self::Primitives>,\n    ) {\n        self.canonical_in_memory_state.subscribe_blocking_canon_state(handler)\n    }",
+      "semantic_claim": "`BlockchainProvider` implements `subscribe_blocking_canon_state` by forwarding the handler to canonical in-memory state.",
+      "high_risk": false,
+      "risk_tags": [
+        "storage",
+        "canonical-state"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/provider/src/providers/blockchain_provider.rs",
+          "symbols": [
+            "subscribe_blocking_canon_state",
+            "BlockingHandler"
+          ],
+          "evidence": "Destination has the same method forwarding to `canonical_in_memory_state.subscribe_blocking_canon_state(handler)`."
+        }
+      ],
+      "equivalence_argument": "Exact same provider hook exists at the same storage provider surface.",
+      "test_strategy": "compile CanonStateSubscriptions impl",
+      "negative_test_candidate": "A caller requiring blocking canonical-state callbacks should compile against BlockchainProvider.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": ""
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "BlockchainProvider blocking canonical-state subscription forwarding is exact-port preserved.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0495: M\tcrates/storage/provider/src/providers/blockchain_provider.rs.",
+    "Source diff lines 88202-88219; first hunk `@@ -707,6 +707,13 @@ impl<N: ProviderNodeTypes> CanonStateSubscriptions for BlockchainProvider<N> {`.",
+    "Fresh destination evidence was checked against /home/ritual/repos/ritual-reth-internal-v2.2.0-port."
+  ]
+}

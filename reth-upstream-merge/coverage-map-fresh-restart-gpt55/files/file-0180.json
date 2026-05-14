@@ -1,0 +1,32 @@
+{
+  "record_type": "file",
+  "file_index": 180,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/net/p2p/src/error.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "p2p",
+    "errors"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The P2P error divergence is rustfmt-only noise in response validation and request error pattern formatting; no error behavior changed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 180: M\tcrates/net/p2p/src/error.rs.",
+    "The isolated patch adds a semicolon to a `return true` and reformats RequestError alternatives.",
+    "No header response validity check, reputation-change mapping, or timeout classification changed."
+  ]
+}

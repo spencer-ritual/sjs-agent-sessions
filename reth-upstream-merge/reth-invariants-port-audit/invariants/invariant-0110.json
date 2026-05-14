@@ -1,0 +1,100 @@
+{
+  "cluster_key": "scheduler:receipt-rpc",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Scheduled filtering and full verification reject any signature other than r=0, s=0, v=false before state-heavy checks.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const EXPECTED_SIGNATURE_R: U256 = U256::ZERO;\npub const EXPECTED_SIGNATURE_S: U256 = U256::ZERO;\npub const EXPECTED_SIGNATURE_V: bool = false;\n...\nif tx_info.signature_r != EXPECTED_SIGNATURE_R || tx_info.signature_s != EXPECTED_SIGNATURE_S || tx_info.signature_v != EXPECTED_SIGNATURE_V { ... }",
+      "symbols": [
+        "EXPECTED_SIGNATURE_R",
+        "EXPECTED_SIGNATURE_S",
+        "EXPECTED_SIGNATURE_V",
+        "filter_scheduled_for_block_building_full",
+        "verify_scheduled_transactions_full_with_predicate_evaluator"
+      ]
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "169074f08721705fbb99cc9531ea798b61e9f3cc",
+      "evidence": "Alloy exposes scheduled signatures through the envelope signature accessor and as_scheduled helper.",
+      "path": "crates/consensus/src/transaction/envelope.rs",
+      "repo": "/home/ritual/repos/ritual-alloy-internal",
+      "snippet": "Self::Scheduled(tx) => tx.signature(),\n...\npub const fn as_scheduled(&self) -> Option<&Signed<TxScheduled>> { match self { Self::Scheduled(tx) => Some(tx), _ => None } }",
+      "symbols": [
+        "EthereumTxEnvelope::signature",
+        "EthereumTxEnvelope::as_scheduled"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Port-generated scheduled system transactions are signed with the dummy zero signature.",
+      "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let signature = Signature::new(U256::ZERO, U256::ZERO, false);\nlet signed = tx.into_signed(signature);",
+      "symbols": [
+        "create_scheduled_execution_transaction"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped across port and alloy: generated scheduled transactions use the dummy signature, verifiers reject non-dummy signatures, and raw signatures are exposed for that check.",
+  "evidence_files": [
+    "ritual-reth-internal/crates/ritual-scheduled-verification/src/lib.rs",
+    "ritual-reth-internal/crates/primitives-traits/src/transaction/signed.rs",
+    "ritual-reth-internal/crates/ethereum/primitives/src/transaction.rs",
+    "ritual-reth-internal/crates/optimism/primitives/src/transaction/signed.rs",
+    "ritual-reth-internal/examples/custom-node/src/primitives/tx.rs"
+  ],
+  "invariant_id": "cur-4ae2d7c0a0-scheduled-verification-requires-dummy-system-signatures",
+  "invariant_index": 110,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+    "/home/ritual/repos/ritual-alloy-internal"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs",
+      "crates/consensus/src/transaction/envelope.rs"
+    ],
+    "checked_queries": [
+      "EXPECTED_SIGNATURE|signature_r|signature_s|signature_v|dummy signature|signature\\(\\)"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-alloy-internal"
+    ],
+    "checked_symbols": [
+      "EXPECTED_SIGNATURE_R",
+      "filter_scheduled_for_block_building_full",
+      "verify_scheduled_transactions_full_with_predicate_evaluator",
+      "EthereumTxEnvelope::signature"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The current full verifier checks signature fields before state reads and the SignedTransaction trait exposes signature() for scheduled and other transaction envelopes.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "c3cc78635e46b0c41e1a102902bc4f41691d64df",
+    "679be26082c3521781ac604635c6e1c4c869499c",
+    "170518c2f5e2b4a0bc9effefb840501a3de72583"
+  ],
+  "statement": "Full scheduled transaction verification and scheduled block-building filtering must reject scheduled transactions unless their signature is exactly r=0, s=0, v=false, while SignedTransaction implementations expose raw signatures needed for that check.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Construct scheduled tx infos with nonzero r, nonzero s, and v=true; assert filtering and full verification reject each."
+  ],
+  "summary": "Scheduled verification enforces dummy system signatures.",
+  "test_or_falsification_candidate": "Existing C7 tests cover nonzero r/s and wrong v; keep them as regression coverage.",
+  "title": "Scheduled transaction verification requires dummy system signatures",
+  "total_invariants": 1954
+}

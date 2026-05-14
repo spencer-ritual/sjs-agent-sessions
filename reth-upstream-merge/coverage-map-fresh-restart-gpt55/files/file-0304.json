@@ -1,0 +1,561 @@
+{
+  "record_type": "file",
+  "file_index": 304,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-block-verification/src/verifier.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "block-verification",
+    "verifier",
+    "async-commitments",
+    "settlement",
+    "spc",
+    "scheduled",
+    "sequencing-rights"
+  ],
+  "atoms_total": 11,
+  "atoms": [
+    {
+      "record_id": "file-0304-atom-0001",
+      "file_index": 304,
+      "atom_index": 1,
+      "atoms_total": 11,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,426 @@; imports, helper functions, verifier trait, config, and constructors",
+      "source_kind": "block_verifier_config_helpers_and_constructors",
+      "source_snippet": "fn read_skip_validity_constraints_flag() -> bool { ... }\nfn build_scheduled_origin_tx_hash(...) -> B256 { ... }\nfn obligation_has_active_async_job(...) -> Result<bool, BlockVerificationError> { ... }\nfn is_two_phase_precompile(addr: Address) -> bool { ... }\nfn extract_phase2_deadline(addr: Address, input: &[u8]) -> Option<u64> { ... }\npub trait BlockVerifierTrait { ... }\npub struct BlockVerifier { ... }\nimpl BlockVerifier { pub fn new(...) -> Self { ... } }",
+      "semantic_claim": "The old divergence defines verifier dependencies, skip-validity environment handling, scheduled-origin hash helpers, heartbeat and Phase 2 deadline helpers, verifier trait/config shape, and constructors with environment-driven ModelRegistry and TEE registry configuration.",
+      "high_risk": false,
+      "risk_tags": [
+        "configuration",
+        "env-flag",
+        "constructor",
+        "helper-functions",
+        "public-api"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "read_skip_validity_constraints_flag",
+            "build_scheduled_origin_tx_hash",
+            "obligation_has_active_async_job",
+            "decode_heartbeat_system_call",
+            "is_two_phase_precompile",
+            "extract_phase2_deadline",
+            "BlockVerifierTrait",
+            "BlockVerifier",
+            "BlockVerifier::new",
+            "BlockVerifier::new_with_evm_classification"
+          ],
+          "evidence": "Read-only audit confirmed destination lines 1-426 are byte-identical to source-added lines 49026-49451."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "BlockVerifier",
+            "BlockVerifierTrait"
+          ],
+          "evidence": "Destination crate root re-exports `BlockVerifier` and `BlockVerifierTrait` from the preserved verifier module."
+        }
+      ],
+      "equivalence_argument": "Exact added-file preservation keeps helper logic, environment/config behavior, public trait shape, and constructors unchanged.",
+      "test_strategy": "constructor_and_helper_boundary_tests",
+      "negative_test_candidate": "Malformed two-phase input or FHE/Sovereign/Persistent deadline field layout should fail or choose the correct offset; skip-validity env flag should affect verifier orchestration as documented.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping; no review queue entry required."
+    },
+    {
+      "record_id": "file-0304-atom-0002",
+      "file_index": 304,
+      "atom_index": 2,
+      "atoms_total": 11,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +443,659 @@; verify_block_concrete phase orchestration",
+      "source_kind": "block_verification_phase_orchestration",
+      "source_snippet": "fn verify_block_concrete(...) -> Result<(), BlockVerificationError> {\n    // async commitments\n    // settlement payments\n    // SPC calls\n    // scheduled constraints\n    // nonce locks\n    // sequencing rights\n    // scheduled censorship\n}",
+      "semantic_claim": "`verify_block_concrete` runs async commitment validation, settlement payment validation, SPC call verification, scheduled constraints, nonce locks, sequencing rights, and scheduled censorship in order, logging phase metrics and honoring `SKIP_VALIDITY_CONSTRAINTS`.",
+      "high_risk": true,
+      "risk_tags": [
+        "consensus-verification",
+        "phase-ordering",
+        "skip-validity",
+        "error-propagation"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "verify_block_concrete"
+          ],
+          "evidence": "Destination lines 443-659 are byte-identical to the source hunk and preserve the phase calls, hard-fail behavior, and skip branches."
+        }
+      ],
+      "equivalence_argument": "Because phase ordering and error propagation are exactly preserved, the consensus-verification sequencing matches the source divergence.",
+      "test_strategy": "block_verifier_phase_order_tests",
+      "negative_test_candidate": "A block with invalid settlement should be rejected unless the skip-validity environment flag is enabled.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping; high-risk due to consensus verifier orchestration."
+    },
+    {
+      "record_id": "file-0304-atom-0003",
+      "file_index": 304,
+      "atom_index": 3,
+      "atoms_total": 11,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +665,1593 @@; settlement payment and Phase 2 pricing validation",
+      "source_kind": "settlement_payment_and_phase2_pricing_validation",
+      "source_snippet": "fn verify_settlement_payments(...) -> Result<(), BlockVerificationError> { ... }\nfn extract_precompile_input_from_calldata(...) -> Result<Bytes, String> { ... }\nfn extract_delivery_result_len(...) -> Option<usize> { ... }\nfn extract_agent_metrics(...) -> Option<AgentMetrics> { ... }",
+      "semantic_claim": "Settlement validation checks parent-state AsyncJobTracker data, expiry, calldata input hash, fulfilled transaction adjacency for Phase 1, Phase 2 fee formulas by precompile family, TEE-to-payment address lookup, validator address rules, heartbeat zero-fee behavior, and exact fee equality.",
+      "high_risk": true,
+      "risk_tags": [
+        "settlement",
+        "fee-validation",
+        "phase2-pricing",
+        "async-job-tracker",
+        "tee-payment"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "verify_settlement_payments",
+            "extract_precompile_input_from_calldata",
+            "extract_delivery_result_len",
+            "extract_delivery_result_bytes",
+            "extract_agent_metrics"
+          ],
+          "evidence": "Destination lines 665-1593 preserve parent-state reads, `read_jobs_for_settlement`, Phase 2 branches, registry lookup, and fee comparisons exactly."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "Phase 2 fee calculation"
+          ],
+          "evidence": "Destination payload builder contains corresponding Phase 2 fee and delivery handling paths used as parity evidence."
+        }
+      ],
+      "equivalence_argument": "Exact content preserves all settlement economic checks and fail-closed extraction paths from the source divergence.",
+      "test_strategy": "settlement_payment_and_phase2_fee_tests",
+      "negative_test_candidate": "A Phase 2 settlement with wrong input hash, expired job, nonzero validator address, or mismatched executor fee should be rejected.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping; high-risk due to economic consensus checks."
+    },
+    {
+      "record_id": "file-0304-atom-0004",
+      "file_index": 304,
+      "atom_index": 4,
+      "atoms_total": 11,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1598,1892 @@; async commitment validation",
+      "source_kind": "async_commitment_validation",
+      "source_snippet": "fn verify_async_commitments(...) -> Result<(), BlockVerificationError> { ... }\nfn validate_commitment_structure(...) -> Result<(), _> { ... }\nfn validate_commitment_with_state(...) -> Result<(), _> { ... }\nfn extract_commitment_sender(...) -> Result<Address, _> { ... }",
+      "semantic_claim": "Async commitments require configured state and EVM support, unique economic senders per block, no active duplicate job, structural validation, wallet/lock checks except heartbeat commitments, two-phase deadline offset bounds, and parent-state EVM re-simulation.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-commitment",
+        "wallet-validation",
+        "duplicate-job",
+        "phase2-deadline",
+        "parent-state-replay"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "verify_async_commitments",
+            "validate_commitment_structure",
+            "validate_commitment_with_state",
+            "extract_commitment_sender",
+            "job_exists_and_active"
+          ],
+          "evidence": "Destination lines 1598-1892 preserve sender set checks, active job lookup, wallet validation, Phase 2 offset checks, and re-simulation call exactly."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves commitment validity and builder/verifier parity checks.",
+      "test_strategy": "async_commitment_verifier_tests",
+      "negative_test_candidate": "Duplicate sender commitments, an active existing job, or Phase 2 offset less than or equal to TTL should reject.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0304-atom-0005",
+      "file_index": 304,
+      "atom_index": 5,
+      "atoms_total": 11,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1903,2468 @@; scheduled and heartbeat transaction constraints",
+      "source_kind": "scheduled_and_heartbeat_constraints",
+      "source_snippet": "fn verify_scheduled_transactions(...) -> Result<(), BlockVerificationError> { ... }\nfn verify_scheduled_constraints_full(...) -> Result<(), _> { ... }\nfn encode_should_execute_call(...) -> Bytes { ... }\nfn decode_should_execute_result(...) -> Result<bool, _> { ... }",
+      "semantic_claim": "Scheduled transactions are verified from deterministic Scheduler and Heartbeat parent state: heartbeat CH2-CH9 checks, Scheduler C1-C10 via shared verifier, and C11 predicate execution with per-predicate and per-block gas limits.",
+      "high_risk": true,
+      "risk_tags": [
+        "scheduled-transactions",
+        "heartbeat",
+        "parent-state",
+        "c11-predicates",
+        "gas-limits"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "verify_scheduled_transactions",
+            "decode_heartbeat_system_call",
+            "verify_scheduled_constraints_full",
+            "encode_should_execute_call",
+            "decode_should_execute_result"
+          ],
+          "evidence": "Destination lines 1903-2468 preserve scheduled transaction collection, heartbeat validation, shared C1-C10 verification, and C11 predicate evaluation exactly."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "filter_obligations_by_predicates"
+          ],
+          "evidence": "Payload builder contains corresponding C11 obligation filtering behavior used as bounded parity evidence."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves deterministic parent-state scheduled validity rules.",
+      "test_strategy": "scheduled_and_heartbeat_verification_tests",
+      "negative_test_candidate": "A scheduled transaction whose predicate returns false, reverts, halts, or a duplicate heartbeat `checkAndRevive` should reject.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0304-atom-0006",
+      "file_index": 304,
+      "atom_index": 6,
+      "atoms_total": 11,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +2470,2514 @@; nonce-lock delegation",
+      "source_kind": "block_verifier_nonce_lock_delegation",
+      "source_snippet": "fn verify_nonce_locks(...) -> Result<(), BlockVerificationError> {\n    let parent_state = ...;\n    crate::nonce_lock::verify_nonce_locks(...)\n}",
+      "semantic_claim": "Nonce-lock verification requires parent state and delegates to `crate::nonce_lock::verify_nonce_locks`, preserving the shared duplicate and in-flight async sender checks.",
+      "high_risk": true,
+      "risk_tags": [
+        "nonce-lock",
+        "parent-state",
+        "delegation",
+        "sender-lock"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "verify_nonce_locks"
+          ],
+          "evidence": "Destination lines 2470-2514 preserve parent state acquisition and delegation to the standalone nonce-lock module exactly."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/nonce_lock.rs",
+          "symbols": [
+            "verify_nonce_locks"
+          ],
+          "evidence": "The delegated nonce-lock helper was audited in `file-0303` as exact-preserved."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the verifier-to-helper boundary and parent-state source.",
+      "test_strategy": "nonce_lock_integration_tests",
+      "negative_test_candidate": "An ordinary transaction from a sender with an active async job should reject through the delegated nonce-lock path.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0304-atom-0007",
+      "file_index": 304,
+      "atom_index": 7,
+      "atoms_total": 11,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +2516,2923 @@; SPC extraction and signature verification",
+      "source_kind": "spc_extraction_and_signature_verification",
+      "source_snippet": "fn extract_spc_calls_from_block(...) -> Result<Vec<SpcCall>, BlockVerificationError> { ... }\nfn verify_spc_calls(...) -> Result<(), BlockVerificationError> { ... }\nfn verify_signature_core(...) -> Result<(), _> { ... }\nfn construct_signature_payload(...) -> Vec<u8> { ... }",
+      "semantic_claim": "The verifier extracts at most one allowlisted `spc_calls` and `delivery_spc_calls` attachment per transaction, rejects malformed proofs and executor addresses, reads jobs and executor keys from parent-state contracts, checks commit block and input hash, and verifies executor JSON signatures.",
+      "high_risk": true,
+      "risk_tags": [
+        "spc",
+        "signature-verification",
+        "parent-state",
+        "executor-registry",
+        "delivery-spc"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "extract_spc_calls_from_block",
+            "verify_spc_calls",
+            "verify_signature_core",
+            "construct_signature_payload"
+          ],
+          "evidence": "Destination lines 2516-2923 preserve attachment extraction, allowlist checks, job/key reads, input hash checks, and signature verification exactly."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "delivery_spc_calls"
+          ],
+          "evidence": "Destination payload builder has corresponding delivery SPC call handling on the builder path."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves cryptographic verification and fail-closed malformed attachment handling.",
+      "test_strategy": "spc_verification_tests",
+      "negative_test_candidate": "Delivery SPC without `origin_tx_hash`, short proof, zero executor, bad input hash, or invalid signature should reject.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0304-atom-0008",
+      "file_index": 304,
+      "atom_index": 8,
+      "atoms_total": 11,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +2925,3146 @@; sequencing rights ordering",
+      "source_kind": "sequencing_rights_ordering_verification",
+      "source_snippet": "fn verify_sequencing_rights(...) -> Result<(), BlockVerificationError> { ... }\n// static/top-level/full-call-graph classification and priority monotonicity per contract",
+      "semantic_claim": "Sequencing rights verification requires parent state/header and EVM config, uses the same static, top-level, and full-call-graph classification and priority computation as the builder, and rejects descending priority within each contract bucket.",
+      "high_risk": true,
+      "risk_tags": [
+        "sequencing-rights",
+        "ordering",
+        "builder-verifier-parity",
+        "priority"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "verify_sequencing_rights",
+            "try_classify_static",
+            "classify_top_level_with_sr",
+            "ContractCallInspector",
+            "PriorityComputer",
+            "SequencingRightsReader"
+          ],
+          "evidence": "Destination lines 2925-3146 preserve transaction classification and monotonic priority enforcement per sequencing-rights contract."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves ordering semantics and builder-shared sequencing-rights components.",
+      "test_strategy": "sequencing_rights_ordering_tests",
+      "negative_test_candidate": "Two transactions for the same sequencing-rights contract ordered with lower priority after higher priority should reject.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0304-atom-0009",
+      "file_index": 304,
+      "atom_index": 9,
+      "atoms_total": 11,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +3148,3395 @@; scheduled censorship detection",
+      "source_kind": "scheduled_censorship_detection",
+      "source_snippet": "fn verify_scheduled_censorship(...) -> Result<(), BlockVerificationError> {\n    let obligations = compute_obligations(...);\n    let executable = filter_obligations_by_predicates(...);\n    // fulfilled set from scheduled txs and async commitments\n    // reject omitted due obligations when gas remains\n}",
+      "semantic_claim": "The verifier recomputes scheduled obligations from parent state, filters them by C11 predicates using builder-shared logic, builds fulfilled sets from scheduled transactions and async commitments wrapping scheduled origins, excludes obligations with active async jobs, and rejects omitted obligations when block gas capacity remains.",
+      "high_risk": true,
+      "risk_tags": [
+        "scheduled-censorship",
+        "obligations",
+        "c11-predicates",
+        "gas-capacity",
+        "async-job-exclusion"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "verify_scheduled_censorship",
+            "compute_obligations",
+            "filter_obligations_by_predicates",
+            "obligation_has_active_async_job"
+          ],
+          "evidence": "Destination lines 3148-3395 preserve obligation computation, predicate evaluation, fulfilled scanning, active-job exclusion, and gas-capacity rejection."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "filter_obligations_by_predicates"
+          ],
+          "evidence": "Destination builder path shares scheduled predicate filtering logic with the verifier."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves censorship-detection semantics and active-job exclusion.",
+      "test_strategy": "scheduled_censorship_tests",
+      "negative_test_candidate": "A due obligation omitted from a block with enough remaining gas and no active async job should reject.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0304-atom-0010",
+      "file_index": 304,
+      "atom_index": 10,
+      "atoms_total": 11,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +3425,3683 @@; ABI extraction utilities",
+      "source_kind": "block_verifier_abi_extraction_utilities",
+      "source_snippet": "fn extract_delivery_result_len(...) -> Option<usize> { ... }\nfn extract_delivery_result_bytes(...) -> Option<Bytes> { ... }\nfn extract_agent_metrics(...) -> Option<AgentMetrics> { ... }\nfn u256_from_be_slice(...) -> U256 { ... }\nfn extract_precompile_input_from_calldata(...) -> Result<Bytes, String> { ... }",
+      "semantic_claim": "The old divergence adds ABI helper functions that parse delivery result length and bytes, agent metrics, U256-sized integers, and settlement `precompileInput` for settle and deliver selectors with bounds checks.",
+      "high_risk": false,
+      "risk_tags": [
+        "abi-decoding",
+        "calldata",
+        "delivery-result",
+        "agent-metrics",
+        "bounds-checks"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "extract_delivery_result_len",
+            "extract_delivery_result_bytes",
+            "extract_agent_metrics",
+            "u256_from_be_slice",
+            "extract_precompile_input_from_calldata"
+          ],
+          "evidence": "Destination lines 3425-3683 preserve selector dispatch and ABI offset/length guards exactly."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves parsing and malformed-calldata rejection behavior.",
+      "test_strategy": "abi_extraction_utility_tests",
+      "negative_test_candidate": "Calldata with unknown selector, out-of-bounds offset, or truncated dynamic bytes should return an error or `None` as appropriate.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0304-atom-0011",
+      "file_index": 304,
+      "atom_index": 11,
+      "atoms_total": 11,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +3685,5303 @@; local differential and regression tests",
+      "source_kind": "block_verifier_regression_and_property_tests",
+      "source_snippet": "#[cfg(test)]\nmod tests {\n    // phase2 deadlines, builder/verifier equivalence, sequencing rights,\n    // TTL/executor validation, settlement expiry, duplicate sender, SPC, fees,\n    // nonce locks, scheduled constraints/predicates, metrics extraction, error classification\n}",
+      "semantic_claim": "The old divergence adds unit and property tests for Phase 2 deadlines, builder/verifier equivalence, sequencing rights, TTL/executor validation, settlement expiry, duplicate async sender behavior, SPC proof handling, fees, nonce locks, scheduled constraints and predicates, metrics extraction, and error classification.",
+      "high_risk": false,
+      "risk_tags": [
+        "tests",
+        "property-tests",
+        "builder-verifier-parity",
+        "regression-coverage"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "mod tests"
+          ],
+          "evidence": "Destination lines 3685-5303 preserve the embedded test module through EOF exactly."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the source test coverage embedded in the added verifier file.",
+      "test_strategy": "cargo test -p ritual-block-verification",
+      "negative_test_candidate": "Run the verifier crate tests and proptests to catch drift in builder/verifier equivalence helpers.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Test atom only."
+    }
+  ],
+  "high_risk_atoms_total": 8,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The block verifier implementation is exact-port preserved across configuration and helpers, phase orchestration, settlement payment and Phase 2 economics, async commitment validation, scheduled/heartbeat constraints, nonce-lock delegation, SPC verification, sequencing-rights ordering, scheduled censorship detection, ABI extraction utilities, and embedded regression/property tests.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 304: A\tcrates/ritual-block-verification/src/verifier.rs.",
+    "Read-only audit confirmed the source added-file hunk header is at diff line 49025 with `@@ -0,0 +1,5303 @@`; source-added content spans lines 49026-54328 and the next diff starts at line 54329.",
+    "Destination `crates/ritual-block-verification/src/verifier.rs` has 5,303 lines and exactly matches the source-added content byte-for-byte (245,176 bytes).",
+    "Bounded destination usage evidence confirms the crate root re-exports verifier symbols and payload-builder code contains corresponding builder-parity behavior for Phase 2 fees, delivery SPC, C11 predicate filtering, and scheduled obligations.",
+    "No review queue entry was required because all atoms are exact mappings; high-risk tags reflect consensus/economic verification sensitivity only."
+  ]
+}

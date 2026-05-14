@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "910f91cf4b627222a8222f3976af0db517075458",
+      "evidence": "The 0x080C request decoder extracts executor from field 0, TTL from field 1, max_poll_block from field 4, and prompt from the ABI payload.",
+      "path": "crates/ritual-precompile-codecs/src/sovereign_agent.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub struct SovereignAgentRequest {\n    pub executor: Address,\n    pub ttl: u64,\n    pub max_poll_block: u64,\n    pub prompt: String,\n    ...\n}\n\nexecutor: address_token(&tokens[0], \"executor\")?,\nttl: u64_token(&tokens[1], \"ttl\")?,\nmax_poll_block: u64_token(&tokens[4], \"max_poll_block\")?,\nprompt: string_token(&tokens[12], \"prompt\")?,",
+      "symbols": [
+        "SovereignAgentRequest::from_abi"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "910f91cf4b627222a8222f3976af0db517075458",
+      "evidence": "Validation rejects malformed ABI, zero/excessive TTL or zero executor through bounds checks, rejects empty prompt, and enforces the Phase 2 deadline offset.",
+      "path": "crates/ritual-precompile-codecs/src/validation.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let request = SovereignAgentRequest::from_abi(input).map_err(decode_error(\"SovereignAgentRequest\"))?;\nvalidate_executor_and_ttl_bounds(request.executor, request.ttl, max_ttl)?;\nif request.prompt.trim().is_empty() {\n    return Err(PayloadValidationError::EmptyPrompt);\n}\nvalidate_phase2_deadline_offset(request.max_poll_block, request.ttl)?;",
+      "symbols": [
+        "validate_sovereign_agent_payload"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port maps the CLI-specific behavior to the local SovereignAgentRequest codec for the same 0x080C address: the executor/TTL and max_poll_block offsets match the invariant, and malformed, empty-prompt, and TTL/executor failures are rejected.",
+  "evidence_files": [
+    "crates/ritual-precompile-codecs/src/cli_agent.rs",
+    "crates/ritual-async/src/detector.rs",
+    "crates/ritual-async/src/validation.rs",
+    "crates/transaction-pool/src/pool/async_pool.rs"
+  ],
+  "invariant_id": "cur-accdd3dd22-agent-payloads-specific-deadline-offsets",
+  "invariant_index": 466,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The implementation name differs from the invariant title, but the requested field extraction and rejection behavior is present.",
+  "rationale": "The commit adds a dedicated CLI Agent codec and routes detector, validation, and pool deadline extraction through the CLI-specific layout rather than the standard ExecutorRequest or agent-call field positions. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "10040420016c9c741801a11c9adf73bb7555b183"
+  ],
+  "statement": "CLI Agent inputs should decode with the `CLIAgentRequest` ABI layout, extracting executor and TTL from fields 0-1, max_poll_block from field 4 at byte offset 128, and rejecting malformed payloads, zero executor, zero or excessive TTL, or an empty prompt.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "ABI-encode a valid CLI Agent request and assert detector/validator extract executor, TTL, prompt, and field-4 max_poll_block correctly; then assert short inputs, invalid cli_type, zero executor, ttl=0, ttl above max, and whitespace-only prompt are rejected."
+  ],
+  "summary": "The 0x080C agent payload uses the expected ABI offsets and validation gates.",
+  "test_or_falsification_candidate": "ABI-encode a valid CLI Agent request and assert detector/validator extract executor, TTL, prompt, and field-4 max_poll_block correctly; then assert short inputs, invalid cli_type, zero executor, ttl=0, ttl above max, and whitespace-only prompt are rejected.",
+  "title": "CLI Agent payloads use CLI-specific ABI and deadline offsets",
+  "total_invariants": 1954
+}

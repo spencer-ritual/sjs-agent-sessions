@@ -1,0 +1,79 @@
+{
+  "record_type": "file",
+  "file_index": 233,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/payload/basic/src/stack.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "partial",
+  "tags": [
+    "non-exact",
+    "review-closed",
+    "payload-builder",
+    "build-arguments",
+    "attempt-metadata",
+    "stack",
+    "partial",
+    "empty-payload",
+    "non-active-api"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0233-atom-0001",
+      "file_index": 233,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/payload/basic/src/stack.rs",
+      "source_hunk_hint": "@@ -210,6 +210,7 @@, @@ -229,6 +230,7 @@, and @@ -238,22 +240,46 @@",
+      "source_kind": "payload_builder_wrapper",
+      "source_snippet": "let left_args = BuildArguments {\n    cached_reads: args.cached_reads.clone(),\n    config: PayloadConfig {\n        parent_header: args.config.parent_header.clone(),\n        attributes: left_attr,\n    },\n    cancel: args.cancel.clone(),\n    best_payload: args.best_payload.clone().and_then(|payload| {\n        if let Either::Left(p) = payload { Some(p) } else { None }\n    }),\n    attempt: args.attempt,\n};\nself.left.build_empty_payload(left_args).map(Either::Left)",
+      "semantic_claim": "The old Either payload-builder stack preserves BuildArguments attempt metadata when dispatching normal and empty payload builds to the selected left or right builder, and converts full empty-payload arguments instead of only converting PayloadConfig.",
+      "high_risk": false,
+      "risk_tags": [
+        "payload-builder",
+        "empty-payload",
+        "wrapper-forwarding",
+        "attempt-accounting",
+        "api-compatibility",
+        "non-active-empty-payload-path"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/payload/basic/src/stack.rs",
+          "symbols": [
+            "PayloadBuilderStack::try_build",
+            "PayloadBuilderStack::build_empty_payload"
+          ],
+          "evidence": "Current normal builds forward cached reads, execution cache, trie handle, config, cancel, and branch-filtered best payload, but no attempt field exists; empty-payload dispatch still converts only PayloadConfig."
+        }
+      ],
+      "equivalence_argument": "Downgraded after active-path review: stack empty-payload full-argument forwarding is not exact-preserved, but active engine getPayload uses WaitForPending and does not race the empty payload branch. Normal stack dispatch still forwards current BuildArguments fields except absent attempt metadata, with no active FSM dependency found.",
+      "test_strategy": "wrapper_regression",
+      "negative_test_candidate": "Use a left/right payload builder test double under PayloadBuilderStack and assert both `try_build` and `build_empty_payload` receive the same attempt metadata and branch-specific best payload from the outer BuildArguments.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "API/metadata compatibility difference, not a confirmed active FSM gap."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The payload builder stack full-BuildArguments empty-payload forwarding and attempt metadata are not exact-preserved, but this is downgraded to non-active API/support because the active engine path uses WaitForPending and does not exercise empty-payload racing.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Normal stack builds forward the current BuildArguments fields; the absent attempt field has no active FSM consumer found.",
+    "Empty-payload stack dispatch remains config-only, but active engine getPayload avoids the empty-payload race through WaitForPending."
+  ]
+}

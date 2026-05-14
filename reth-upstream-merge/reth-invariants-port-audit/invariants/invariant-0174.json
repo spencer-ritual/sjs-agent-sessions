@@ -1,0 +1,90 @@
+{
+  "cluster_key": "executor delivery:builder-skips-unpriceable-9e33572f",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Phase 1 settlement preparation propagates fee-calculation failures instead of synthesizing a fallback settlement.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let fees = calculate_async_fees(... )\n    .map_err(|err| format!(\"async fee calculation failed: {err}\"))?;",
+      "symbols": [
+        "prepare_fulfilled_async_settlement",
+        "calculate_async_fees"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Phase 2 delivery settlement preparation also propagates unpriceable fee errors.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "calculate_async_fees_phase2(... )\n    .map_err(|err| format!(\"Phase 2 fee calculation failed: {err}\"))?",
+      "symbols": [
+        "prepare_delivery_settlement_transaction",
+        "calculate_async_fees_phase2"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Both fulfilled and delivery-ready async collection loops continue on preparation errors, so no fallback settlement/original inclusion is added for unpriceable async transactions.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let prepared = match prepared {\n    Ok(prepared) => prepared,\n    Err(reason) => { ... \"skipping ... async ... entry\"; continue; }\n};",
+      "symbols": [
+        "get_fulfilled_original_async_commitment_transactions",
+        "prepare_fulfilled_async_settlement",
+        "prepare_delivery_settlement_transaction"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port implements the no-fallback policy by making fee calculation part of settlement preparation and treating preparation errors as skip conditions in both fulfilled and delivery-ready async loops.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-b085f3b991-builder-skips-unpriceable-async",
+  "invariant_index": 174,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ethereum/payload/src/lib.rs"
+    ],
+    "checked_queries": [
+      "calculate_async_fees|create_settlement_transaction|Transaction will be skipped|will be skipped|settlement fee"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "calculate_async_fees",
+      "calculate_async_fees_phase2",
+      "prepare_fulfilled_async_settlement",
+      "prepare_delivery_settlement_transaction"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The builder now handles `create_settlement_transaction` as a `Result`; errors from `calculate_async_fees` log 'Transaction will be skipped' and the loop continues without adding the async transaction. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: The exact error path and log message are implementation details; a future builder might quarantine or defer the transaction rather than using `continue` while preserving the no-fallback policy.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "8283cdb5e582a0cc1a63686aff41b5f000435e3e"
+  ],
+  "statement": "During payload building, an async transaction whose settlement fee calculation fails is skipped and not included with a fallback settlement transaction.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Put an async LLM transaction with unpriceable executor output in the pool and build a payload; assert the transaction and settlement are absent from the payload and no fallback fee settlement is created."
+  ],
+  "summary": "Unpriceable async settlements are skipped without fallback inclusion in the port.",
+  "test_or_falsification_candidate": "Put an async transaction whose fee helper returns Err into fulfilled and delivery-ready paths and assert payload building skips it without adding any fallback settlement transaction.",
+  "title": "Builder skips unpriceable async transactions",
+  "total_invariants": 1954
+}

@@ -1,0 +1,74 @@
+{
+  "record_type": "file",
+  "file_index": 514,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/transaction-pool/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "structural_equivalent",
+    "reviewed",
+    "txpool"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0514-atom-0001",
+      "file_index": 514,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/transaction-pool/Cargo.toml",
+      "source_hunk_hint": "@@ -24,12 +24,19 @@ reth-storage-api.workspace = true",
+      "source_kind": "manifest_dependency",
+      "source_snippet": "ritual-metrics.workspace = true\nritual-scheduling.workspace = true\nritual-heartbeat-tracker.workspace = true\nritual-scheduled-verification.workspace = true\nritual-async-fees.workspace = true\nalloy-consensus = { workspace = true, features = [\"kzg\", \"k256\"] }\nalloy-sol-macro.workspace = true\nalloy-sol-types.workspace = true\n# concurrent data structures\ndashmap.workspace = true",
+      "semantic_claim": "The old transaction-pool manifest wires several Ritual crates, k256 support, sol macro/types, and dashmap for async/scheduled pool behavior.",
+      "high_risk": true,
+      "risk_tags": [
+        "txpool",
+        "async",
+        "scheduled",
+        "manifest",
+        "missing"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/Cargo.toml",
+          "symbols": [
+            "ritual-async-fees"
+          ],
+          "evidence": "Destination manifest contains the txpool-local dependencies needed by the active v2 async pool (`ritual-async-fees`, `ritual-precompile-addresses`, `tokio`, tracing, metrics, and Alloy kzg support). The old scheduled/heartbeat dependencies moved out of txpool into `ritual-scheduled-verification`, `ritual-scheduled-block-building`, payload building, block verification, and heartbeat tracker crates."
+        }
+      ],
+      "equivalence_argument": "Reviewed structural equivalent: active txpool async behavior is wired through a narrower local dependency set, while scheduled and heartbeat behavior moved to storage-derived builder/verifier crates instead of remaining txpool-local manifest edges. The old manifest shape is not exact, but no txpool runtime behavior depends on the removed `ritual-scheduling` or heartbeat crate edges.",
+      "test_strategy": "cargo check transaction-pool plus scheduled/async feature compile paths",
+      "negative_test_candidate": "Old code depending on transaction-pool-local `ritual_metrics` or `ritual_scheduling` imports should not compile from this crate.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed: old broad manifest wiring is replaced by v2 crate ownership. Txpool owns async metadata/pool dependencies; scheduled and heartbeat synthesis/verification live outside txpool."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Reviewed: transaction-pool manifest behavior is structurally covered by narrower txpool async dependencies plus scheduled/heartbeat ownership moved to dedicated builder/verifier crates.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0514: M\tcrates/transaction-pool/Cargo.toml.",
+    "Source diff lines 89492-89526; first hunk `@@ -24,12 +24,19 @@ reth-storage-api.workspace = true`.",
+    "Fresh destination evidence was checked against /home/ritual/repos/ritual-reth-internal-v2.2.0-port.",
+    "Review conclusion: no txpool-local manifest gap remains; old scheduled/heartbeat dependencies are intentionally owned by non-txpool v2 crates."
+  ]
+}

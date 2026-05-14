@@ -1,0 +1,77 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The API request includes the required txHash/output/proof/blockNumber/executor fields and the current port also carries precompileAddress/input for verifier parity.",
+      "path": "crates/rpc/rpc-api/src/ritual.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub struct SubmitAsyncResultRequest {\n    #[serde(rename = \"txHash\")]\n    pub tx_hash: B256,\n    pub output: Bytes,\n    pub proof: Bytes,\n    #[serde(rename = \"blockNumber\")]\n    pub block_number: u64,\n    pub executor: Address,\n    #[serde(rename = \"precompileAddress\")]\n    pub precompile_address: Address,\n    pub input: Bytes,\n}",
+      "symbols": [
+        "SubmitAsyncResultRequest",
+        "SubmitAsyncResultResponse"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The jsonrpsee contract exposes submitAsyncResult in the ritual namespace and returns SubmitAsyncResultResponse.",
+      "path": "crates/rpc/rpc-api/src/ritual.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "#[cfg_attr(not(feature = \"client\"), rpc(server, namespace = \"ritual\"))]\n...\n#[method(name = \"submitAsyncResult\")]\nasync fn ritual_submit_async_result(&self, request: SubmitAsyncResultRequest) -> RpcResult<SubmitAsyncResultResponse>;",
+      "symbols": [
+        "RitualApi::ritual_submit_async_result"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port API contract preserves the ritual namespace submitAsyncResult method and serialized request/response fields, with additional verifier-context fields that do not remove the invariant fields.",
+  "evidence_files": [
+    "crates/rpc/rpc-api/src/ritual.rs",
+    "crates/rpc/rpc-api/src/lib.rs"
+  ],
+  "invariant_id": "cur-c69a956c45-accepts-async-result-submissions",
+  "invariant_index": 217,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/rpc/rpc-api/src/ritual.rs",
+      "crates/rpc/rpc-api/src/lib.rs"
+    ],
+    "checked_queries": [
+      "submitAsyncResult|SubmitAsyncResultRequest|SubmitAsyncResultResponse|namespace = \"ritual\""
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "RitualApi",
+      "SubmitAsyncResultRequest",
+      "SubmitAsyncResultResponse",
+      "submitAsyncResult"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The new jsonrpsee trait is explicitly namespaced as ritual, declares method name submitAsyncResult, and is exported through both server and client API modules. The request/response structs define the externally serialized field names for async result submission. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "6e792ddf676153097c0603c675cb70c37b77bc14"
+  ],
+  "statement": "The Ritual JSON-RPC API contract must include a ritual namespace method named submitAsyncResult that accepts a SubmitAsyncResultRequest containing txHash, output, proof, blockNumber, and executor, and returns a SubmitAsyncResultResponse containing success, message, transactionHash, previousState, and newState.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Build the rpc-api crate with server and client features and use the generated jsonrpsee metadata or a mock RitualApi implementation to assert that ritual_submitAsyncResult is exposed as ritual_submitAsyncResult/ritual_submitAsyncResult-compatible namespace method submitAsyncResult with the documented serde field names round-tripping in request and response JSON."
+  ],
+  "summary": "The Ritual RPC API exposes submitAsyncResult with the required request and response contract.",
+  "test_or_falsification_candidate": "Build the rpc-api crate and assert jsonrpsee exposes ritual_submitAsyncResult/submitAsyncResult and round-trips txHash, output, proof, blockNumber, executor, transactionHash, previousState, and newState.",
+  "title": "Ritual RPC accepts async result submissions",
+  "total_invariants": 1954
+}

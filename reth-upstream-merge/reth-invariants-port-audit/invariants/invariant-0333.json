@@ -1,0 +1,79 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The registry reader obtains settlement job data from AsyncJobTracker parent-state storage for verifier checks.",
+      "path": "crates/ritual-async-registry/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub struct SettlementData { pub executor_address: Address, pub commitment_validator: Address, pub precompile_address: Address, pub input_hash: B256, pub input_size: u64, pub expiry_block: u64, pub sender: Address }\n...\nresults.insert(*job_id, SettlementData { executor_address: executor, commitment_validator, precompile_address, input_hash, input_size, tx_rlp_hash, tx_rlp_size, commit_block, is_phase1_settled, expiry_block, sender });",
+      "symbols": [
+        "read_jobs_for_settlement",
+        "SettlementData"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The verifier fails the block when AsyncJobTracker data is missing or settlement calldata does not match the tracked input.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let jobs = ritual_async_registry::read_jobs_for_settlement(&mut db, None, &settlement_job_ids)?;\nlet job = jobs.get(&settlement.origin_tx).ok_or_else(|| BlockVerificationError::InvalidAsyncSettlement(format!(\"job {} not found in AsyncJobTracker\", settlement.origin_tx)))?;\nif input_hash != job.input_hash { return Err(BlockVerificationError::InvalidAsyncSettlement(...)); }",
+      "symbols": [
+        "verify_settlements"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The verifier rejects mismatched executor, commitment validator, and fee amounts instead of logging and continuing.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if settlement.executor_address != executor.payment_address { return Err(BlockVerificationError::InvalidAsyncSettlement(...)); }\nif settlement.commitment_validator != job.commitment_validator { return Err(BlockVerificationError::InvalidAsyncSettlement(...)); }\nif settlement.executor_fee != fees.executor_fee || settlement.commitment_fee != fees.commitment_fee || settlement.inclusion_fee != fees.inclusion_fee || settlement.total_amount != fees.total { return Err(BlockVerificationError::InvalidAsyncSettlement(...)); }",
+      "symbols": [
+        "verify_settlements",
+        "read_expected_executor",
+        "calculate_async_fees"
+      ]
+    }
+  ],
+  "equivalence_argument": "The current verifier reads AsyncJobTracker data from parent state, treats missing jobs or mismatched tracked fields as InvalidAsyncSettlement, and propagates the error to block verification. That preserves fail-block semantics for invalid async settlements.",
+  "evidence_files": [
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/ritual-async-registry/src/lib.rs",
+    "crates/ritual-async-registry/src/slots.rs"
+  ],
+  "invariant_id": "cur-6f726413f1-invalid-async-settlements-reject-blocks",
+  "invariant_index": 333,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to ritual-async-registry job reads and ritual-block-verification settlement checks.",
+  "rationale": "The primary diff replaces log-and-continue settlement verification with self.verify_settlement_payments(block)?, reads settlement job IDs from AsyncJobTracker using parent state, and verifies settlement fields against contract-derived executor, commitment validator, precompile address, input, and calculated fees. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "adec5e1661048fbfb4114def51e6b9a77a4da56d"
+  ],
+  "statement": "Block verification should fail a block containing an async settlement if the settlement cannot be verified against AsyncJobTracker data from the parent block state, including missing job data, mismatched executor or commitment validator, or incorrect fee amounts.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Construct a block with an async settlement whose origin_tx has AsyncJobTracker parent-state data, then mutate the settlement executor, commitment validator, or fee amount. BlockVerifier::verify_block should return an error for each mutation and should pass the matching settlement. Also assert a settlement whose job is absent from AsyncJobTracker parent state fails verification."
+  ],
+  "summary": "Invalid async settlements reject blocks through parent-state AsyncJobTracker verification.",
+  "test_or_falsification_candidate": "Create a block with an async settlement whose AsyncJobTracker job is missing, whose executor/validator differs, or whose fee components differ from calculate_async_fees; assert verification rejects the block.",
+  "title": "Invalid async settlements reject blocks",
+  "total_invariants": 1954
+}

@@ -1,0 +1,257 @@
+{
+  "record_type": "file",
+  "file_index": 329,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-scheduled-block-building/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "scheduled-block-building",
+    "payload-builder",
+    "scheduled-transactions"
+  ],
+  "atoms_total": 5,
+  "atoms": [
+    {
+      "record_id": "file-0329-atom-0001",
+      "file_index": 329,
+      "atom_index": 1,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-scheduled-block-building/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,159 @@; crate docs, imports, FilteringStats, ScheduledFilteringResult",
+      "source_kind": "scheduled_block_building_api_and_stats",
+      "source_snippet": "pub struct FilteringStats { pub total: usize, pub valid: usize, pub c1_not_found: usize, ... }\nimpl FilteringStats { fn from_results(results: &[FilterResult]) -> Self { ... } }\npub struct ScheduledFilteringResult<PoolTx: PoolTransaction> { pub valid_transactions: Vec<Arc<ValidPoolTransaction<PoolTx>>>, pub filter_results: Vec<(Arc<ValidPoolTransaction<PoolTx>>, FilterResult)>, pub stats: FilteringStats }",
+      "semantic_claim": "The old divergence adds the scheduled block-building crate root API, documentation, filtering statistics for C1-C11/database outcomes, and a result wrapper carrying valid pool transactions, aligned per-transaction filter results, and stats.",
+      "high_risk": false,
+      "risk_tags": [
+        "scheduled-block-building",
+        "filtering-stats",
+        "payload-builder",
+        "c1-c11"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+          "symbols": [
+            "FilteringStats",
+            "ScheduledFilteringResult",
+            "ScheduledFilterResult"
+          ],
+          "evidence": "Destination lines 1-159 exactly match source-added diff lines 61200-61358."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the public API and accounting surface for scheduled transaction filtering unchanged.",
+      "test_strategy": "scheduled_filtering_stats_tests",
+      "negative_test_candidate": "C10 cross-block and intra-block duplicate results should increment different statistics counters.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0329-atom-0002",
+      "file_index": 329,
+      "atom_index": 2,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-scheduled-block-building/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +161,315 @@; filter_scheduled_transactions main block-builder entry point",
+      "source_kind": "scheduled_pool_transaction_filtering",
+      "source_snippet": "pub fn filter_scheduled_transactions<PoolTx, SP>(scheduled_txs: impl IntoIterator<Item = Arc<ValidPoolTransaction<PoolTx>>>, state_provider: &SP, block_number: u64, base_fee: u64) -> ScheduledFilteringResult<PoolTx> { ... }",
+      "semantic_claim": "The old divergence adds the main payload-builder filtering entry point, extracting scheduled tx info from pool transactions, bypassing heartbeat-targeted txs, running `filter_scheduled_for_block_building_full` against state-backed REVM, logging C1-C10 filter stats, preserving aligned filter results, and returning valid scheduler plus heartbeat transactions.",
+      "high_risk": false,
+      "risk_tags": [
+        "payload-builder",
+        "scheduled-transactions",
+        "heartbeat-bypass",
+        "c1-c10",
+        "state-provider"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+          "symbols": [
+            "filter_scheduled_transactions"
+          ],
+          "evidence": "Destination lines 161-315 exactly match source-added diff lines 61360-61514."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "filter_scheduled_transactions"
+          ],
+          "evidence": "Ethereum payload builder calls this function before including scheduled transactions."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the block-builder filtering boundary, heartbeat bifurcation, state database construction, and valid transaction selection semantics.",
+      "test_strategy": "scheduled_block_builder_filtering_integration_tests",
+      "negative_test_candidate": "A heartbeat-targeted scheduled transaction should bypass Scheduler C1-C10 filtering and remain in valid transactions.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0329-atom-0003",
+      "file_index": 329,
+      "atom_index": 3,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-scheduled-block-building/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +317,558 @@; ScheduledTxInfo extraction, max-block derivation, and augmentation from obligations",
+      "source_kind": "scheduled_obligation_augmentation",
+      "source_snippet": "fn extract_scheduled_tx_info(tx: &TransactionSigned, base_fee: u64) -> Option<ScheduledTxInfo> { ... }\nfn read_origin_hash<DB: Database>(db: &mut DB, call_id: u64) -> B256 { ... }\nfn derive_max_block_number(...) -> u32 { ... }\npub enum AugmentationDecision { Proceed, SkipActiveJob }\npub fn decide_active_job_augmentation<F>(...) -> AugmentationDecision { ... }\npub fn augment_from_obligations<SP: StateProvider>(...) -> Vec<Recovered<TransactionSigned>> { ... }\npub fn augment_from_contract_state<SP: StateProvider>(...) -> Vec<Recovered<TransactionSigned>> { ... }",
+      "semantic_claim": "The old divergence adds helpers to extract scheduled tx metadata and origin hashes, derive saturating max block numbers, synthesize missing scheduled transactions from verified obligations, skip augmentation when an async job is already active, fail open on active-job storage errors, and provide a legacy contract-state augmentation wrapper.",
+      "high_risk": false,
+      "risk_tags": [
+        "augmentation",
+        "scheduled-obligations",
+        "active-job",
+        "origin-hash",
+        "saturating-math"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+          "symbols": [
+            "extract_scheduled_tx_info",
+            "read_origin_hash",
+            "derive_max_block_number",
+            "AugmentationDecision",
+            "decide_active_job_augmentation",
+            "augment_from_obligations",
+            "augment_from_contract_state"
+          ],
+          "evidence": "Destination lines 317-558 exactly match source-added diff lines 61516-61757."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps obligation synthesis, active-job fail-open dispatch, and origin/max-block handling unchanged.",
+      "test_strategy": "scheduled_obligation_augmentation_tests",
+      "negative_test_candidate": "If the active-job storage check errors, `decide_active_job_augmentation` must return `Proceed` so transient read failures do not silently drop obligations.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0329-atom-0004",
+      "file_index": 329,
+      "atom_index": 4,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-scheduled-block-building/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +560,644 @@; compute obligations from in-memory scheduler pool state",
+      "source_kind": "scheduled_pool_state_obligation_computation",
+      "source_snippet": "pub fn compute_obligations_from_pool<DB: Database>(state: &SchedulerServiceState, db: &mut DB, block_number: u64, base_fee: u64) -> Vec<ScheduledObligation> { ... }",
+      "semantic_claim": "The old divergence adds the fast-path obligation computation from `SchedulerServiceState`, skipping heartbeat calls, invalid zero-call schedules, TTLs above the protocol bound, calls outside the due window, base-fee-incompatible calls, and already-executed indices while leaving wallet-balance eviction to the contract.",
+      "high_risk": false,
+      "risk_tags": [
+        "scheduler-pool-state",
+        "obligations",
+        "due-window",
+        "ttl-bound",
+        "executed-bitmap"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+          "symbols": [
+            "compute_obligations_from_pool"
+          ],
+          "evidence": "Destination lines 560-644 exactly match source-added diff lines 61759-61843."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the pool-synced fast path for due scheduled obligations and its deliberate base-fee/contract-wallet handling split.",
+      "test_strategy": "scheduled_pool_obligation_computation_tests",
+      "negative_test_candidate": "A pooled call with TTL above `SCHEDULER_MAX_TTL_BLOCKS` should produce no obligations.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0329-atom-0005",
+      "file_index": 329,
+      "atom_index": 5,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-scheduled-block-building/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +646,911 @@; scheduled block-building tests",
+      "source_kind": "scheduled_block_building_tests",
+      "source_snippet": "#[cfg(test)]\nmod tests {\n    #[test] fn test_filtering_stats_from_results() { ... }\n    #[test] fn test_derive_max_block_number_saturates_on_overflow() { ... }\n    #[test] fn test_compute_obligations_from_pool_skips_calls_above_protocol_ttl_bound() { ... }\n    #[test] fn test_compute_obligations_from_pool_includes_underfunded_call_for_contract_eviction() { ... }\n    #[test] fn active_job_dispatch_skips_when_active() { ... }\n    #[test] fn active_job_dispatch_proceeds_on_storage_error() { ... }\n}",
+      "semantic_claim": "The old divergence adds scheduled block-building tests for filtering stats, saturating max-block derivation, pool obligation TTL/base-fee behavior, deliberate inclusion of underfunded calls for contract eviction, active-job skip/proceed/error dispatch, and argument passthrough.",
+      "high_risk": false,
+      "risk_tags": [
+        "tests",
+        "scheduled-block-building",
+        "obligations",
+        "active-job",
+        "filtering-stats"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+          "symbols": [
+            "test_filtering_stats_from_results",
+            "test_derive_max_block_number_saturates_on_overflow",
+            "test_compute_obligations_from_pool_skips_calls_above_protocol_ttl_bound",
+            "test_compute_obligations_from_pool_includes_underfunded_call_for_contract_eviction",
+            "active_job_dispatch_skips_when_active",
+            "active_job_dispatch_proceeds_on_storage_error",
+            "active_job_dispatch_passes_through_arguments"
+          ],
+          "evidence": "Destination lines 646-911 exactly match source-added diff lines 61845-62110."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the regression tests for scheduled filtering, obligation computation, and augmentation safety branches.",
+      "test_strategy": "cargo test -p ritual-scheduled-block-building",
+      "negative_test_candidate": "Changing the active-job error branch to skip should fail `active_job_dispatch_proceeds_on_storage_error`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Test atom only."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The scheduled block-building crate root is exact-port preserved, including payload-builder scheduled transaction filtering, heartbeat bypass, filtering stats, obligation synthesis/augmentation, pool-state obligation computation, and regression tests.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 329: A\tcrates/ritual-scheduled-block-building/src/lib.rs.",
+    "Source-added hunk spans diff lines 61200-62110 with header `@@ -0,0 +1,911 @@`; the next diff starts at line 62111.",
+    "Destination `crates/ritual-scheduled-block-building/src/lib.rs` has 911 lines and matches the source-added file exactly.",
+    "Bounded usage evidence found `filter_scheduled_transactions` imported and called by `crates/ethereum/payload/src/lib.rs`.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

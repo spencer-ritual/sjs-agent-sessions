@@ -1,0 +1,64 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "The port creates an SPC verifier for the async RPC module, but Ethereum node component construction does not inject that verifier into an executor provider.",
+  "evidence_files": [
+    "crates/ethereum/node/src/node.rs"
+  ],
+  "invariant_id": "cur-995ceb6781-builder-injects-verifier",
+  "invariant_index": 240,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/node/src/node.rs",
+      "crates/node/builder/src/builder/mod.rs",
+      "ritual-reth-nodebuilder-internal/crates/node/src/executor.rs"
+    ],
+    "checked_queries": [
+      "BasicBlockExecutorProvider::new_with_spc",
+      "spc_verifier executor provider",
+      "build_evm ctx.spc_verifier",
+      "ExecutorRegistry::new(100)"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "EthereumNode::components",
+      "EthEvmConfig::new",
+      "BasicBlockExecutorProvider::new_with_spc",
+      "ctx.spc_verifier"
+    ],
+    "missing_behavior": "Ethereum node component construction does not create and inject a verifier-backed executor provider.",
+    "related_but_insufficient_code": [
+      "crates/ethereum/node/src/node.rs creates SpcVerifier::new_from_env_simple only for ritual_async_rpc::module.",
+      "crates/ethereum/node/src/node.rs build_evm returns EthEvmConfig::new(ctx.chain_spec()) and does not construct an executor provider with SPC verification.",
+      "ritual-reth-nodebuilder-internal expects ctx.spc_verifier(), but the audited port BuilderContext has no such method."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The primary diff imports the concrete SPC verifier, creates VerificationConfig and ExecutorRegistry, wraps it in SpcVerifierImpl, and replaces BasicBlockExecutorProvider::new with new_with_spc(Some(spc_verifier)). No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "bbcdc489383e0dbefde7d559327646f48fd6506c"
+  ],
+  "statement": "When building Ethereum node components, the executor provider must be constructed with an SPC verifier created from default verification config and an in-memory executor registry, rather than using a BasicBlockExecutorProvider without SPC verification.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Instantiate EthereumNode components and assert the returned executor provider contains an SPC verifier; simulate ConcreteSpcVerifier::new failure and assert components() returns an error instead of silently constructing an executor without SPC verification."
+  ],
+  "summary": "The node builds an RPC verifier but does not inject one into block execution.",
+  "test_or_falsification_candidate": "Instantiate Ethereum node components and assert the executor provider contains an SPC verifier; the current port only wires a verifier into the RPC module.",
+  "title": "Node builder injects SPC verifier",
+  "total_invariants": 1954
+}

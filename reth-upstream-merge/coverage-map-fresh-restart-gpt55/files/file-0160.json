@@ -1,0 +1,33 @@
+{
+  "record_type": "file",
+  "file_index": 160,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/net/network/src/eth_requests.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "semicolon_only",
+    "network",
+    "eth-requests"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The ETH request serving divergence is semicolon-only rustfmt noise in header, body, and receipt loop exits; no request serving behavior changed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 160: M\tcrates/net/network/src/eth_requests.rs.",
+    "The isolated patch only adds semicolons to early `return headers` and `break` statements in header, body, and receipt serving loops.",
+    "No block lookup, skip/direction logic, soft response limit, max serve limit, body retrieval, or receipt retrieval behavior changed."
+  ]
+}

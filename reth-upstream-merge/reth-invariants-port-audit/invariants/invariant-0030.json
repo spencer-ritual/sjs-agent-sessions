@@ -1,0 +1,109 @@
+{
+  "cluster_key": "scheduler:locks-observability",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Parent-state obligation computation structurally replaces FrequencyIndex executable-call selection.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "compute_obligations scans Scheduler parent state, filters deleted/non-SCHEDULED/invalid timing/executed/fee-ineligible entries, then filter_obligations_by_predicates applies C11.",
+      "symbols": [
+        "compute_obligations",
+        "due_index_bounds",
+        "filter_obligations_by_predicates",
+        "is_executed"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Payload builder submits exactly the filtered Scheduler obligations for the block.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "current_block = parent + 1; compute_obligations(...); filter_obligations_by_predicates(...); push PayloadCandidate::Scheduled; dedupe included_scheduled_indices.",
+      "symbols": [
+        "compute_obligations",
+        "filter_obligations_by_predicates",
+        "create_scheduled_execution_transaction_from_state",
+        "PayloadCandidate::Scheduled",
+        "included_scheduled_indices"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Verifier parity prevents a builder from omitting executable obligations when gas remains.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "Verifier recomputes the same obligation set and checks fulfilled scheduled call/index pairs.",
+      "symbols": [
+        "verify_scheduled_censorship",
+        "compute_obligations",
+        "filter_obligations_by_predicates"
+      ]
+    }
+  ],
+  "equivalence_argument": "The old FrequencyIndex/SynchronousScheduler surface is gone, but its executable-call semantics are structurally preserved by deriving obligations from Scheduler parent state and sharing the result between builder and verifier.",
+  "evidence_files": [
+    "crates/scheduling/src/singleton.rs"
+  ],
+  "invariant_id": "cur-788ebe3bdf-frequencyindex-preserves-executable-call-semantics",
+  "invariant_index": 30,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/scheduling/src/singleton.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs",
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "FrequencyIndex|SynchronousScheduler|get_executable_calls",
+      "compute_obligations|filter_obligations_by_predicates|ScheduledObligation"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "FrequencyIndex",
+      "SynchronousScheduler",
+      "get_executable_calls",
+      "should_execute_at_block",
+      "compute_obligations",
+      "filter_obligations_by_predicates"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "No audited repo contains exact FrequencyIndex symbols; port scheduled-block-building documents replacing old SchedulerServiceState helper."
+    ]
+  },
+  "notes": "Mapped structurally; old data structure absent by design.",
+  "rationale": "The FrequencyIndex candidate is an optimization whose invariant is semantic preservation: optimized executable-call lookup must produce the same submit set as the previous full scan.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "fd896a707bb99588997944a1834b397e839893b3"
+  ],
+  "statement": "After processing block N, SynchronousScheduler must submit exactly the calls returned by state.get_executable_calls(N+1) that still exist in state.calls, preserving the same eligibility semantics as should_execute_at_block iteration without scanning every call.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Build scheduler state with multiple frequency patterns, cancelled/missing calls, and nonmatching blocks; compare manual should_execute_at_block results for N+1 with get_executable_calls(N+1) filtered through state.calls and assert identical submitted call IDs."
+  ],
+  "summary": "FrequencyIndex executable-call semantics are structurally preserved through parent-state obligations.",
+  "test_or_falsification_candidate": "Compare payload builder scheduled candidates against a naive executable set from Scheduler storage with cancelled/deleted/executed/predicate-filtered calls.",
+  "title": "FrequencyIndex preserves executable-call semantics",
+  "total_invariants": 1954
+}

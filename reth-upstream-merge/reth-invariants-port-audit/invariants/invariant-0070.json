@@ -1,0 +1,77 @@
+{
+  "cluster_key": "scheduler:pool-accounting:part-01",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/async_pool.rs",
+    "crates/transaction-pool/src/pool/scheduled.rs",
+    "crates/transaction-pool/src/pool/mod.rs",
+    "crates/transaction-pool/src/maintain.rs",
+    "crates/transaction-pool/src/traits.rs",
+    "crates/scheduling/src/transaction.rs"
+  ],
+  "invariant_id": "cur-4b080eecde-async-scheduled-pools-expire-block-time-chain-halt",
+  "invariant_index": 70,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/transaction-pool/src/pool/scheduled.rs",
+      "crates/transaction-pool/src/pool/mod.rs",
+      "crates/transaction-pool/src/maintain.rs",
+      "crates/transaction-pool/src/traits.rs",
+      "crates/scheduling/src/transaction.rs"
+    ],
+    "checked_queries": [
+      "cleanup_expired|cleanup_expired_by_time|contract_expiry_block",
+      "scheduled_pool|expiry_block|CHAIN_HALT_THRESHOLD_SECS|chain halt"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "cleanup_expired",
+      "cleanup_expired_by_time",
+      "contract_expiry_block",
+      "CHAIN_HALT_THRESHOLD_SECS",
+      "scheduled pool",
+      "expiry_block",
+      "SynchronousScheduler"
+    ],
+    "missing_behavior": "Missing scheduled-pool block expiry, scheduled stale lifetime expiry, and chain-halt eviction of scheduled pool plus Scheduler state; only async block/time expiry is present.",
+    "related_but_insufficient_code": [
+      "Async pool has block-based cleanup_expired and wall-clock cleanup_expired_by_time using contract_expiry_block/time references.",
+      "Scheduled pool block/time cleanup and chain-halt scheduler-state eviction are absent."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The expiry lineage begins with dual block/time eviction for async and scheduled transactions, then bounded newer candidates refine scheduled expiry to per-execution expiry_block() and split routine age cleanup from poisonous chain-halt cleanup of scheduler state.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "529d6a70dadd06238309eb513b92e39b1849443e",
+    "b4ed27da1a0a42cbe9964051344e05f02f766676",
+    "ea2b12c0af1e691fb320469bba0079f9944299f5"
+  ],
+  "statement": "Async and scheduled pool entries must be evicted by block-based expiry during canonicalization and by configured queued lifetime during canonicalization or maintenance ticks; scheduled transaction expiry is computed per execution from expiry_block(), routine age eviction removes pool instances while preserving scheduler jobs, and chain-halt detection evicts scheduled jobs from scheduler state before ordinary lifetime eviction can mask poison.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Insert async and scheduled transactions with expired block TTLs and assert canonicalization removes them, classifying async entries by block expiry before time expiry.",
+    "Insert stale async and scheduled transactions while block height is unchanged, advance the stale eviction maintenance interval, and assert time-based eviction removes the stale pool entries.",
+    "Create scheduled transactions whose computed expiry_block is below, equal to, and above current_block and assert cleanup removes only current_block > expiry_block.",
+    "Simulate a chain halt where wall-clock seconds exceed latest block timestamp by the halt threshold and assert all scheduled transactions are removed from the pool and scheduler state; simulate routine age expiry without halt and assert scheduler jobs remain."
+  ],
+  "summary": "Async and scheduled pool expiry rules are incomplete.",
+  "test_or_falsification_candidate": "Run async and scheduled block/time/chain-halt expiry fixtures; current port can only satisfy async cleanup portions.",
+  "title": "Async and scheduled pools expire by block, time, and chain-halt rules",
+  "total_invariants": 1954
+}

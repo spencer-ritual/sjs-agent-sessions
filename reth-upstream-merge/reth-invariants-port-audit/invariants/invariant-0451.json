@@ -1,0 +1,67 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-async-fees/src/wallet.rs"
+  ],
+  "invariant_id": "cur-6297d3b720-wallet-escrow-uses-layers",
+  "invariant_index": 451,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/wallet.rs",
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-async-fees/src/constants.rs",
+      "crates/ritual-precompile-codecs/src/validation.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs"
+    ],
+    "checked_queries": [
+      "fhe_escrow_lockup",
+      "FHE_MAX_LAYERS",
+      "FHE_PRECOMPILE wallet validation",
+      "unsupported precompile for wallet verification"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "verify_wallet_for_commitment",
+      "fhe_escrow_lockup",
+      "FHE_MAX_LAYERS",
+      "FHE_PRECOMPILE",
+      "supports_wallet_check"
+    ],
+    "missing_behavior": "Wallet verification for FHE does not include fhe_escrow_lockup(FHE_MAX_LAYERS); FHE reaches the unsupported-precompile path.",
+    "related_but_insufficient_code": [
+      "FHE_PRECOMPILE is registered and payload validation has an FHE branch.",
+      "verify_wallet_for_commitment has branches for LLM, HTTP, long-running HTTP, DKMS, ZK, sovereign agent, persistent agent, and audio, but no FHE branch.",
+      "No fhe_escrow_lockup or FHE_MAX_LAYERS symbol exists in the audited v2.2 port checkout."
+    ]
+  },
+  "notes": "Run verify_wallet_for_commitment for FHE_PRECOMPILE with sufficient balance and lock; the current code returns unsupported instead of requiring max-layer FHE escrow.",
+  "rationale": "The diff imports FHE_PRECOMPILE, FHE_MAX_LAYERS, and fhe_escrow_lockup, then adds an FHE branch that uses fhe_escrow_lockup(FHE_MAX_LAYERS) as the executor fee. The commit message states FHE uses fhe_escrow_lockup for fee calculation. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "0076c2ca3468de46b13d001c3d421cfded1349ab"
+  ],
+  "statement": "Wallet verification for the FHE precompile address 0x0807 must include an executor fee equal to fhe_escrow_lockup(FHE_MAX_LAYERS).",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Run wallet fee verification for an FHE async request and assert total_required_fees includes fhe_escrow_lockup(FHE_MAX_LAYERS) plus commitment/inclusion/callback components."
+  ],
+  "summary": "FHE max-layer wallet escrow is not implemented in the port.",
+  "test_or_falsification_candidate": "Run wallet fee verification for an FHE async request and assert total_required_fees includes fhe_escrow_lockup(FHE_MAX_LAYERS) plus commitment/inclusion/callback components.",
+  "title": "FHE wallet escrow uses max layers",
+  "total_invariants": 1954
+}

@@ -1,0 +1,53 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "Both normal and inspector factory paths initialize a default async execution context under the async-context feature before building the EVM.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "#[cfg(feature = \"async-context\")]\nlet async_context = {\n    let async_ctx = revm_context::async_context::AsyncCommitmentutionContext::default();\n    AsyncEthEvmContext::new(inner_context).with_async_context(Box::new(async_ctx))\n};",
+      "symbols": [
+        "RitualEvmFactory::create_evm",
+        "RitualEvmFactory::create_evm_with_inspector"
+      ]
+    }
+  ],
+  "equivalence_argument": "The feature-gated construction attaches AsyncCommitmentutionContext::default to the AsyncEthEvmContext in both creation paths, so async precompiles start with an initialized context.",
+  "evidence_files": [
+    "crates/node/src/executor.rs"
+  ],
+  "invariant_id": "cur-57f833a340-async-context-initialized-enabled",
+  "invariant_index": 285,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in nodebuilder factory construction.",
+  "rationale": "The async-context cfg branches now create AsyncExecutionContext::default and attach it with with_async_context before the EVM is built. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "f2830503bec1cdbd7009631a13c9dbf8829f1f34"
+  ],
+  "statement": "When compiled with async-context, RitualEvmFactory must initialize AsyncEthEvmContext with a default AsyncExecutionContext for both normal and inspector EVM creation paths.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Build with async-context, create normal and inspector EVMs, and assert their contexts expose an initialized async context before executing async precompiles."
+  ],
+  "summary": "Async context is initialized by both RitualEvmFactory creation paths when enabled.",
+  "test_or_falsification_candidate": "Build with async-context, create normal and inspector EVMs, and assert async_context() is available before any transaction executes.",
+  "title": "Async context is initialized when enabled",
+  "total_invariants": 1954
+}

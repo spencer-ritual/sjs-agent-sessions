@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "LLM pricing fails closed on missing output, decode failure, and unresolved model configuration before producing a fee.",
+      "path": "crates/ritual-async-fees/src/llm.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let metrics = match exec_output {\n    Some(bytes) => match decode_llm_response(bytes, is_encrypted_output) {\n        Ok(metrics) => metrics,\n        Err(err) => return Err(format!(\"Failed to decode LLM response: {err}\")),\n    },\n    None => return Err(\"Missing LLM executor output\".to_string()),\n};\nlet config = resolve_llm_model_config(db, model_registry_contract, metrics.model.as_deref(), model_cache)?;",
+      "symbols": [
+        "compute_llm_executor_fee",
+        "decode_llm_response",
+        "resolve_llm_model_config"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Model resolution must come from the state-backed registry/cache and returns an error when the model is absent.",
+      "path": "crates/ritual-async-fees/src/llm.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let model_name = model.ok_or_else(|| \"LLM response did not include a model\".to_string())?;\nlet info = read_model_from_db_cached(db, contract, model_name, cache)?\n    .ok_or_else(|| format!(\"Model '{model_name}' not in LLM registry\"))?;",
+      "symbols": [
+        "resolve_llm_model_config",
+        "read_model_from_db_cached"
+      ]
+    }
+  ],
+  "equivalence_argument": "The current port uses a state-backed ModelRegistry reader instead of the older static registry wording, but the required fail-closed behavior is preserved: missing executor output, undecodable output, absent model name, or unknown registry model prevents LLM fee calculation.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-60975e81bb-pricing-requires-decoded-output-registry-model",
+  "invariant_index": 319,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to ritual-async-fees LLM pricing and model registry resolution.",
+  "rationale": "The primary diff removes fallback_llm_metrics, changes missing/decode failures into Err, introduces a static model registry with concrete model info, and changes model lookup to return None/Err rather than inferring params from substrings. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "c13e404b0c63970a6532e2c1716753d24a6afd8e"
+  ],
+  "statement": "LLM executor fee calculation should fail when executor output is missing, the LLM response cannot be decoded, or the model cannot be resolved from metadata/static registry, instead of silently using generic fallback token/model metrics.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call LLM fee calculation with None output, malformed ABI output, and a decoded response whose model is absent from metadata and the static registry; assert each returns Err. Then call with a registered model and valid token counts and assert fee calculation succeeds using the registered params/theta."
+  ],
+  "summary": "LLM pricing fails closed unless output decodes and the model resolves through the registry.",
+  "test_or_falsification_candidate": "Call compute_llm_executor_fee with None output, malformed output, and a decoded unknown model; assert each returns Err, then seed the model registry and assert a known model prices successfully.",
+  "title": "LLM pricing requires decoded output and registry model",
+  "total_invariants": 1954
+}

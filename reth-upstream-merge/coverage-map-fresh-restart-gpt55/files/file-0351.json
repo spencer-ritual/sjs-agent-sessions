@@ -1,0 +1,205 @@
+{
+  "record_type": "file",
+  "file_index": 351,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-spc-verification/src/types.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "spc-verification",
+    "types",
+    "executor-registry"
+  ],
+  "atoms_total": 4,
+  "atoms": [
+    {
+      "record_id": "file-0351-atom-0001",
+      "file_index": 351,
+      "atom_index": 1,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-spc-verification/src/types.rs",
+      "source_hunk_hint": "@@ -0,0 +1,77 @@; request/result/batch/config types",
+      "source_kind": "spc_verification_request_config_types",
+      "source_snippet": "pub const MAX_EXECUTORS: usize = 10_000;\npub const MAX_PUBLIC_KEY_LEN: usize = 128;\npub struct SpcVerificationRequest { ... }\npub struct SpcVerificationResult { ... }\npub struct BatchVerificationRequest { ... }\npub struct BatchVerificationResult { ... }\npub struct VerificationConfig { ... }",
+      "semantic_claim": "The old divergence adds SPC verification request/result/batch types, safety bounds for executor counts and public-key lengths, and the environment-backed verifier configuration.",
+      "high_risk": false,
+      "risk_tags": [
+        "request-types",
+        "configuration",
+        "dos-bounds",
+        "spc"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/types.rs",
+          "symbols": [
+            "MAX_EXECUTORS",
+            "MAX_PUBLIC_KEY_LEN",
+            "SpcVerificationRequest",
+            "SpcVerificationResult",
+            "BatchVerificationRequest",
+            "BatchVerificationResult",
+            "VerificationConfig"
+          ],
+          "evidence": "Destination lines 1-130 exactly match source-added diff lines 73990-74120."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves request shape, batching result shape, and configuration defaults.",
+      "test_strategy": "spc_verification_type_config_tests",
+      "negative_test_candidate": "Unset env vars should default to sidecar base port 30200 and retry attempts 3.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0351-atom-0002",
+      "file_index": 351,
+      "atom_index": 2,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-spc-verification/src/types.rs",
+      "source_hunk_hint": "@@ -0,0 +132,204 @@; response and executor info",
+      "source_kind": "spc_executor_info_type",
+      "source_snippet": "pub struct VerificationResponse { pub result: bool }\npub struct ExecutorInfo { pub address: Address, pub public_key: Vec<u8>, pub is_active: bool, pub registration_block: u64, pub registration_tx_hash: B256, pub registration_time: SystemTime, pub tee_address: Address, pub capability: u8, pub tee_type: u8, pub workload_id: FixedBytes<32> }\nimpl ExecutorInfo { pub fn new(...) -> Self { ... } pub fn update_public_key(...); pub fn deactivate(...); pub fn reactivate(...); }",
+      "semantic_claim": "The old divergence adds the sidecar response type and executor metadata model, including payment address, public key, active flag, registration context, TEE address/type, capability, and workload id.",
+      "high_risk": false,
+      "risk_tags": [
+        "executor-info",
+        "tee-registry",
+        "sidecar-response"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/types.rs",
+          "symbols": [
+            "VerificationResponse",
+            "ExecutorInfo",
+            "ExecutorInfo::new",
+            "ExecutorInfo::update_public_key",
+            "ExecutorInfo::deactivate",
+            "ExecutorInfo::reactivate"
+          ],
+          "evidence": "Destination lines 132-204 exactly match source-added diff lines 74122-74194."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves executor identity and lifecycle state semantics.",
+      "test_strategy": "executor_info_lifecycle_tests",
+      "negative_test_candidate": "Calling `deactivate` should make `is_active` false without changing the public key.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0351-atom-0003",
+      "file_index": 351,
+      "atom_index": 3,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-spc-verification/src/types.rs",
+      "source_hunk_hint": "@@ -0,0 +206,343 @@; executor registry",
+      "source_kind": "spc_executor_registry",
+      "source_snippet": "pub struct ExecutorRegistry { executors: HashMap<Address, ExecutorInfo>, max_executors: usize }\nimpl ExecutorRegistry { pub fn new(...); pub fn register_executor(...); pub fn deactivate_executor(...); pub fn update_executor(...); pub fn get_executor(...); pub fn is_executor_active(...); pub fn get_active_executors(...); pub fn clear(...); pub fn stats(...); fn remove_oldest_inactive(...); }\npub struct ExecutorRegistryStats { ... }",
+      "semantic_claim": "The old divergence adds the in-memory executor registry, including capacity handling, active/inactive lifecycle, public-key updates, address lookup, active executor enumeration, clearing, statistics, and oldest-inactive eviction.",
+      "high_risk": false,
+      "risk_tags": [
+        "executor-registry",
+        "capacity",
+        "active-state",
+        "spc"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/types.rs",
+          "symbols": [
+            "ExecutorRegistry",
+            "ExecutorRegistry::register_executor",
+            "ExecutorRegistry::get_executor",
+            "ExecutorRegistry::is_executor_active",
+            "ExecutorRegistryStats"
+          ],
+          "evidence": "Destination lines 206-343 exactly match source-added diff lines 74196-74333."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves registry mutation, lookup, and capacity semantics.",
+      "test_strategy": "executor_registry_lifecycle_tests",
+      "negative_test_candidate": "At capacity, registering a new executor should remove the oldest inactive executor, not an active one.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0351-atom-0004",
+      "file_index": 351,
+      "atom_index": 4,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-spc-verification/src/types.rs",
+      "source_hunk_hint": "@@ -0,0 +345,380 @@; executor registry config",
+      "source_kind": "spc_executor_registry_config",
+      "source_snippet": "pub struct ExecutorRegistryConfig { pub contract_address: Address, pub max_executors: usize }\nimpl Default for ExecutorRegistryConfig { ... }\nimpl ExecutorRegistryConfig { pub fn from_env() -> Self { ... } }",
+      "semantic_claim": "The old divergence adds environment-backed TEE service registry configuration, including default registry address fallback and maximum executor count.",
+      "high_risk": false,
+      "risk_tags": [
+        "configuration",
+        "tee-service-registry",
+        "executor-limit"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/types.rs",
+          "symbols": [
+            "ExecutorRegistryConfig",
+            "ExecutorRegistryConfig::from_env"
+          ],
+          "evidence": "Destination lines 345-380 exactly match source-added diff lines 74335-74370."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves environment parsing and fallback registry configuration.",
+      "test_strategy": "executor_registry_config_env_tests",
+      "negative_test_candidate": "An invalid `TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS` should fall back to the default address.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The SPC verification type module is exact-port preserved, including request/config/result types, executor metadata, in-memory registry, and registry environment config.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 351: A\tcrates/ritual-spc-verification/src/types.rs.",
+    "Source-added hunk spans diff lines 73990-74370 with header `@@ -0,0 +1,380 @@`.",
+    "Destination `crates/ritual-spc-verification/src/types.rs` has 380 lines and matches the source-added content exactly.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "cluster_key": "executor delivery:delivery-waits-finalized-21ad06c7",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Delivery result submission accepts only AwaitingDelivery and rejects Fulfilled before any delivery result is stored.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if metadata.state == AsyncState::Fulfilled {\n    return Err(AsyncPoolError::InvalidState(AsyncState::Fulfilled));\n}\nif metadata.state != AsyncState::AwaitingDelivery {\n    return Err(AsyncPoolError::InvalidState(metadata.state.clone()));\n}\nmetadata.state = AsyncState::DeliveryReady;",
+      "symbols": [
+        "submit_delivery_result_with_context"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The separate canonical-settlement path transitions Fulfilled to AwaitingDelivery and releases the sender lock.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if metadata.state != AsyncState::Fulfilled {\n    return Err(AsyncPoolError::InvalidState(metadata.state.clone()));\n}\nmetadata.state = AsyncState::AwaitingDelivery;\n...\ninner.sender_locks.remove(&sender);",
+      "symbols": [
+        "mark_awaiting_delivery"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The pool invokes mark_awaiting_delivery only while processing canonical Phase 1 settlement transactions.",
+      "path": "crates/transaction-pool/src/pool/mod.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "Ok(AsyncSettlementCall::Settle) => {\n    ...\n    self.async_pool.mark_awaiting_delivery(&origin_tx_hash, new_tip.number())\n}",
+      "symbols": [
+        "process_async_settlement_transactions"
+      ]
+    }
+  ],
+  "equivalence_argument": "Delivery submission is gated on canonical AwaitingDelivery, while the canonical Phase 1 settlement processor performs the only Fulfilled-to-AwaitingDelivery transition.",
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/async_pool.rs",
+    "crates/transaction-pool/src/pool/mod.rs"
+  ],
+  "invariant_id": "cur-d1f3e71db1-delivery-waits-finalized-phase-settlement",
+  "invariant_index": 204,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/transaction-pool/src/pool/mod.rs"
+    ],
+    "checked_queries": [
+      "AwaitingDelivery|Fulfilled|InvalidState|mark_awaiting_delivery|AsyncSettlementCall::Settle"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "submit_delivery_result_with_context",
+      "mark_awaiting_delivery",
+      "process_async_settlement_transactions"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The diff replaces a recovery auto-transition from Fulfilled to AwaitingDelivery with warnings and rejection, explaining that Phase 1 settlement must be canonicalized before delivery submission to avoid consensus divergence. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "262194a0e10a953ae54912be7b29bb0385ad2746"
+  ],
+  "statement": "Async delivery results are accepted only for transactions in AwaitingDelivery state; submitting delivery while the transaction is still Fulfilled is rejected rather than auto-transitioned, and AwaitingDelivery is set only after Phase 1 settlement is canonicalized.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Insert a long-running async transaction in Fulfilled state and call submit_delivery_result, asserting it is rejected; then simulate canonical finalization that marks the entry AwaitingDelivery and assert the same delivery path becomes eligible."
+  ],
+  "summary": "Delivery waits for canonical Phase 1 settlement before accepting Phase 2 results.",
+  "test_or_falsification_candidate": "Insert a Fulfilled two-phase entry, assert delivery submission rejects it, then process a canonical Phase 1 settlement and assert the entry becomes AwaitingDelivery.",
+  "title": "Delivery waits for finalized Phase 1 settlement",
+  "total_invariants": 1954
+}

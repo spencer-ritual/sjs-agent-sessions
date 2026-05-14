@@ -1,0 +1,72 @@
+{
+  "record_type": "file",
+  "file_index": 535,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/transaction-pool/src/pool/scheduled.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "intentionally_absent",
+    "txpool",
+    "scheduled"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0535-atom-0001",
+      "file_index": 535,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/transaction-pool/src/pool/scheduled.rs",
+      "source_hunk_hint": "@@ -0,0 +1,154 @@",
+      "source_kind": "scheduled_pool",
+      "source_snippet": "use crate::{pool::TransactionId, traits::PoolTransaction, validate::ValidPoolTransaction};\nuse reth_primitives_traits::SignedTransaction;\nuse revm_primitives::B256;\nuse std::sync::Arc;\n#[derive(Debug)]\npub(crate) struct ScheduledPool<T: PoolTransaction> {\n    transactions: Vec<Arc<ValidPoolTransaction<T>>>,\n}\nimpl<T: PoolTransaction> ScheduledPool<T> {\n    pub(crate) fn new() -> Self {",
+      "semantic_claim": "The old divergence adds an in-memory `ScheduledPool` storing scheduled transactions directly in txpool.",
+      "high_risk": true,
+      "risk_tags": [
+        "txpool",
+        "scheduled",
+        "intentional-absence"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+          "symbols": [
+            "collect_scheduled_obligations",
+            "build_scheduled_transaction"
+          ],
+          "evidence": "Destination scheduled execution is synthesized from Scheduler parent state, and `crates/transaction-pool/src/pool/scheduled.rs` is absent."
+        }
+      ],
+      "equivalence_argument": "Intentional non-equivalence: v2.2 treats Scheduler state as source of truth instead of maintaining the old raw txpool ScheduledPool.",
+      "test_strategy": "scheduled obligation synthesis and verifier tests",
+      "negative_test_candidate": "Raw scheduled txpool admission should not be required for Scheduler-state obligations.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": ""
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Old raw ScheduledPool file is intentionally absent under the v2.2 Scheduler-state design.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0535: A\tcrates/transaction-pool/src/pool/scheduled.rs.",
+    "Source diff lines 94543-94702; first hunk `@@ -0,0 +1,154 @@`.",
+    "Fresh destination evidence was checked against /home/ritual/repos/ritual-reth-internal-v2.2.0-port."
+  ]
+}

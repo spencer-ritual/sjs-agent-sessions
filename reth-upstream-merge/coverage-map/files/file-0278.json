@@ -9,24 +9,20 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "mapped",
+  "file_classification": "structural_equivalent",
   "tags": [
-    "mapped",
-    "async-fsm",
-    "fees",
-    "gas",
     "high-risk",
-    "non-exact",
     "needs-review",
-    "reth-port"
+    "non-exact",
+    "structural_equivalent"
   ],
-  "atoms_total": 1,
+  "atoms_total": 4,
   "atoms": [
     {
       "record_id": "file-0278-atom-0001",
       "file_index": 278,
       "atom_index": 1,
-      "atoms_total": 1,
+      "atoms_total": 4,
       "source_path": "crates/ritual-async-fees/src/gas.rs",
       "source_hunk_hint": "@@ -0,0 +1,198 @@",
       "source_kind": "other",
@@ -63,13 +59,190 @@
       "review_required": true,
       "notes": "The destination keeps the module at the same relative path with overlapping symbols ['is_system_transaction', 'calculate_calldata_gas', 'effective_gas_limit_for_block'].",
       "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor."
+    },
+    {
+      "record_id": "file-0278-atom-0002",
+      "file_index": 278,
+      "atom_index": 2,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-async-fees/src/gas.rs",
+      "source_hunk_hint": "@@ -0,0 +1,198 @@",
+      "source_kind": "test_fixture",
+      "source_snippet": "mod tests {\n    use super::*;\n\n    #[test]\n    fn test_calculate_calldata_gas_empty() {\n        assert_eq!(calculate_calldata_gas(&[]).unwrap(), TX_BASE_COST);\n    }\n\n    #[test]\n    fn test_calculate_calldata_gas_zeros() {\n        let input = vec![0u8; 100];\n        // 21000 base + 100 * 4 = 21400\n        assert_eq!(calculate_calldata_gas(&input).unwrap(), 21_400);\n    }\n\n    #[test]\n    fn test_calculate_calldata_gas_non_zeros() {\n        let input = vec![0xffu8; 100];\n        // 21000 base + 100 * 16 = 22600\n        assert_eq!(calculate_calldata_gas(&input).unwrap(), 22_600);\n    }\n\n---\n        assert_eq!(calculate_calldata_gas(&[]).unwrap(), TX_BASE_COST);\n    }\n\n    #[test]\n    fn test_calculate_calldata_gas_zeros() {\n        let input = vec![0u8; 100];\n        // 21000 base + 100 * 4 = 21400\n        assert_eq!(calculate_calldata_gas(&input).unwrap(), 21_400);\n    }\n\n    #[test]\n    fn test_calculate_calldata_gas_non_zeros() {\n        let input = vec![0xffu8; 100];\n        // 21000 base + 100 * 16 = 22600\n        assert_eq!(calculate_calldata_gas(&input).unwrap(), 22_600);\n    }\n\n    #[test]\n    fn test_calculate_calldata_gas_mixed() {\n        // 50 zeros + 50 non-zeros\n        let mut input = vec![0u8; 50];\n        input.extend(vec![0xffu8; 50]);\n---\n        assert_eq!(calculate_calldata_gas(&input).unwrap(), 21_400);\n    }\n\n    #[test]\n    fn test_calculate_calldata_gas_non_zeros() {\n        let input = vec![0xffu8; 100];\n        // 21000 base + 100 * 16 = 22600\n        assert_eq!(calculate_calldata_gas(&input).unwrap(), 22_600);\n    }\n\n    #[test]\n    fn test_calculate_calldata_gas_mixed() {\n        // 50 zeros + 50 non-zeros\n        let mut input = vec![0u8; 50];\n        input.extend(vec![0xffu8; 50]);\n        // 21000 base + 50*4 + 50*16 = 21000 + 200 + 800 = 22000\n        assert_eq!(calculate_calldata_gas(&input).unwrap(), 22_000);\n    }\n\n    #[test]\n    fn test_calculate_calldata_gas_overflow_protection() {\n        // Test that lar",
+      "semantic_claim": "calculate calldata gas preserves the fee/gas/accounting behavior covered by downstream tests: test_calculate_calldata_gas_empty, test_calculate_calldata_gas_zeros, test_calculate_calldata_gas_non_zeros, test_calculate_calldata_gas_mixed.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "gas",
+        "fees",
+        "negative-path",
+        "rewards"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "calculate_async_fees",
+            "calculate_async_fees_phase2",
+            "verify_wallet_for_commitment"
+          ],
+          "snippet": "shared fee, wallet, registry, and delivery pricing helpers",
+          "evidence": "The v2.2 port keeps fee/wallet logic in ritual-async-fees and consumes it from builder and verifier paths."
+        }
+      ],
+      "equivalence_argument": "Fee, wallet, registry, gas accounting, and delivery-pricing helpers are preserved in ritual-async-fees. Runtime-inactive precompile families remain gated/fail-closed elsewhere.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_calculate_calldata_gas_empty, test_calculate_calldata_gas_zeros, test_calculate_calldata_gas_non_zeros, test_calculate_calldata_gas_mixed, test_calculate_calldata_gas_overflow_protection.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to shared fee crate.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_calculate_calldata_gas_empty",
+        "test_calculate_calldata_gas_zeros",
+        "test_calculate_calldata_gas_non_zeros",
+        "test_calculate_calldata_gas_mixed",
+        "test_calculate_calldata_gas_overflow_protection"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0278-atom-0001",
+        "test-file-0278-atom-0002",
+        "test-file-0278-atom-0003",
+        "test-file-0278-atom-0004",
+        "test-file-0278-atom-0005"
+      ]
+    },
+    {
+      "record_id": "file-0278-atom-0003",
+      "file_index": 278,
+      "atom_index": 3,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-async-fees/src/gas.rs",
+      "source_hunk_hint": "@@ -0,0 +1,198 @@",
+      "source_kind": "state_transition",
+      "source_snippet": "        assert_eq!(result, 160_021_000);\n    }\n\n    #[test]\n    fn test_is_system_transaction() {\n        assert!(is_system_transaction(0x10)); // Scheduled\n        assert!(is_system_transaction(0x11)); // AsyncCommitment\n        assert!(is_system_transaction(0x12)); // AsyncSettlement\n        assert!(!is_system_transaction(0x00)); // Legacy\n        assert!(!is_system_transaction(0x01)); // EIP-2930\n        assert!(!is_system_transaction(0x02)); // EIP-1559\n    }\n\n    #[test]\n    fn test_effective_gas_limit_for_block_commitment_tx() {\n        let input = vec![0xffu8; 100];\n        // Commitment tx (0x11) should return ZERO - they don't contribute to block gas limit\n        let result = effec\n---\n        assert!(!is_system_transaction(0x02)); // EIP-1559\n    }\n\n    #[test]\n    fn test_effective_gas_limit_for_block_commitment_tx() {\n        let input = vec![0xffu8; 100];\n        // Commitment tx (0x11) should return ZERO - they don't contribute to block gas limit\n        let result = effective_gas_limit_for_block(0x11, &input, u64::MAX).unwrap();\n        assert_eq!(result, 0);\n    }\n\n    #[test]\n    fn test_effective_gas_limit_for_block_settlement_tx() {\n        let input = vec![0xffu8; 100];\n        // Settlement tx (0x12) should return calldata gas, not the provided gas_limit\n        let result = effective_gas_limit_for_block(0x12, &input, u64::MAX).unwrap();\n        assert_eq!(resu\n---\n        assert_eq!(result, 0);\n    }\n\n    #[test]\n    fn test_effective_gas_limit_for_block_settlement_tx() {\n        let input = vec![0xffu8; 100];\n        // Settlement tx (0x12) should return calldata gas, not the provided gas_limit\n        let result = effective_gas_limit_for_block(0x12, &input, u64::MAX).unwrap();\n        assert_eq!(result, 22_600); // 21000 + 100*16\n    }\n\n    #[test]\n    fn test_effective_gas_limit_for_block_scheduled_tx() {\n        let input = vec![0xffu8; 100];\n        // Scheduled tx (0x10) should return calldata gas, not the provided gas_limit\n        let result = effective_gas_limit_for_block(0x10, &input, u64::MAX).unwrap();\n        assert_eq!(result, 22_600); /",
+      "semantic_claim": "effective gas limit for block preserves the fee/gas/accounting behavior covered by downstream tests: test_is_system_transaction, test_effective_gas_limit_for_block_commitment_tx, test_effective_gas_limit_for_block_settlement_tx, test_effective_gas_limit_for_block_scheduled_tx.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "gas",
+        "fees",
+        "rewards",
+        "consensus-constant",
+        "scheduled"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "calculate_async_fees",
+            "calculate_async_fees_phase2",
+            "verify_wallet_for_commitment"
+          ],
+          "snippet": "shared fee, wallet, registry, and delivery pricing helpers",
+          "evidence": "The v2.2 port keeps fee/wallet logic in ritual-async-fees and consumes it from builder and verifier paths."
+        }
+      ],
+      "equivalence_argument": "Fee, wallet, registry, gas accounting, and delivery-pricing helpers are preserved in ritual-async-fees. Runtime-inactive precompile families remain gated/fail-closed elsewhere.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_is_system_transaction, test_effective_gas_limit_for_block_commitment_tx, test_effective_gas_limit_for_block_settlement_tx, test_effective_gas_limit_for_block_scheduled_tx, test_effective_gas_limit_for_block_regular_tx.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to shared fee crate.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_is_system_transaction",
+        "test_effective_gas_limit_for_block_commitment_tx",
+        "test_effective_gas_limit_for_block_settlement_tx",
+        "test_effective_gas_limit_for_block_scheduled_tx",
+        "test_effective_gas_limit_for_block_regular_tx"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0278-atom-0006",
+        "test-file-0278-atom-0007",
+        "test-file-0278-atom-0008",
+        "test-file-0278-atom-0009",
+        "test-file-0278-atom-0010"
+      ]
+    },
+    {
+      "record_type": "pr_preservation_derived_atom",
+      "pr_preservation_derived": true,
+      "pr_preservation_grounded": true,
+      "file_index": 278,
+      "source_path": "crates/ritual-async-fees/src/gas.rs",
+      "source_hunk_hint": "crates/ritual-async-fees/src/gas.rs:3-23",
+      "source_kind": "state_transition",
+      "source_snippet": "//! This module provides the SINGLE SOURCE OF TRUTH for gas accounting of system transactions.\n//! System transactions use unlimited EVM gas (u64::MAX) for execution, but contribute differently\n//! to block gas limits:\n//! - AsyncCommitment (0x11): Contribute ZERO gas to block gas limit\n//! - AsyncSettlement (0x12): Contribute calldata-based gas to block gas limit\n//! - Scheduled (0x10): Contribute calldata-based gas to block gas limit\n//!\n//! Note: System transactions may consume different amounts of gas during execution than what\n//! they contribute to the block gas limit. This is intentional and allows for unbounded\n//! execution while maintaining fair block gas accounting.\n\n/// Transaction type constants (must match alloy_eips::eip2718)\npub const TX_TYPE_SCHEDULED: u8 = 0x10;\npub const TX_TYPE_ASYNC_COMMITMENT: u8 = 0x11;\npub const TX_TYPE_ASYNC_SETTLEMENT: u8 = 0x12;\n\n/// Gas cost constants (EIP-2028)\nconst TX_BASE_COST: u64 = 21_000;\nconst ZERO_BYTE_COST: u64 = 4;\nconst NON_ZERO_BYTE_COST: u64 = 16;\n",
+      "semantic_claim": "PR preservation `#167` `async-fixes-revive-to-dev` keeps live downstream behavior: system tx gas accounting: async commitments charge zero block gas.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "fees",
+        "gas",
+        "payload",
+        "verifier"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "calculate_async_fees",
+            "calculate_async_fees_phase2",
+            "verify_wallet_for_commitment"
+          ],
+          "snippet": "shared fee, wallet, registry, and delivery pricing helpers",
+          "evidence": "The v2.2 port keeps fee/wallet logic in ritual-async-fees and consumes it from builder and verifier paths."
+        }
+      ],
+      "equivalence_argument": "Fee, wallet, registry, gas accounting, and delivery-pricing helpers are preserved in ritual-async-fees. Runtime-inactive precompile families remain gated/fail-closed elsewhere.",
+      "test_strategy": "pr_diff_equivalence_regression",
+      "negative_test_candidate": "Replay or unit-test the smallest downstream scenario introduced by #167 that exercises `system tx gas accounting: async commitments charge zero block gas` and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "source_prs": [
+        {
+          "key": "#167",
+          "slug": "async-fixes-revive-to-dev",
+          "merge_commit": "532ab7ed2324ef6779d0045f8b6eb35803b6865c"
+        }
+      ],
+      "source_pr_claims": [
+        "system tx gas accounting: async commitments charge zero block gas"
+      ],
+      "source_flow_ids": [
+        "pr-raw-0046"
+      ],
+      "notes": "Mapped to shared fee crate.",
+      "atom_index": 4,
+      "record_id": "file-0278-atom-0004",
+      "atoms_total": 4,
+      "needs_atomization": true
     }
   ],
-  "high_risk_atoms_total": 1,
-  "non_exact_atoms_total": 1,
+  "high_risk_atoms_total": 4,
+  "non_exact_atoms_total": 4,
   "adversarial_reviews": [],
-  "summary": "The downstream file maps to destination code but needs review because the destination implementation was refactored or moved.",
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
   "review_required": true,
   "status": "needs_review",
-  "notes": "The destination keeps the module at the same relative path with overlapping symbols ['is_system_transaction', 'calculate_calldata_gas', 'effective_gas_limit_for_block']."
+  "notes": "The destination keeps the module at the same relative path with overlapping symbols ['is_system_transaction', 'calculate_calldata_gas', 'effective_gas_limit_for_block']. Curated test-atom insertion appended 2 grouped behavior atom(s) from coverage-map/test-atom-audit; raw helper/no-assert/default-only cases were not canonicalized."
 }

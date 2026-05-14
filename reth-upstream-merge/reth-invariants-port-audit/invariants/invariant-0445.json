@@ -1,0 +1,69 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/rpc/rpc/src/eth/helpers/transaction.rs"
+  ],
+  "invariant_id": "cur-c5267c83f4-validation-task-covers-simulation-state-checks",
+  "invariant_index": 445,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/rpc/rpc/src/eth/helpers/transaction.rs",
+      "crates/rpc/rpc/src/async_tx_validator.rs",
+      "crates/ritual-precompile-codecs/src/validation.rs"
+    ],
+    "checked_queries": [
+      "run_validation",
+      "validate_target_block",
+      "target block range",
+      "max_lookback",
+      "latest-state lookup",
+      "current-block lookup",
+      "validate_rpc_async_admission"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "run_validation",
+      "validate_rpc_async_admission",
+      "validate_detected_async_call",
+      "validate_target_block",
+      "latest_header",
+      "state_by_block_hash"
+    ],
+    "missing_behavior": "The current RPC validation task lacks the invariant-required target-block validation/current-block lookup portion of the full simulation-plus-state validation sequence.",
+    "related_but_insufficient_code": [
+      "send_transaction spawns validate_rpc_async_admission before pool insertion.",
+      "validate_rpc_async_admission performs EVM simulation and parent state lookup, returns Ok when no async call is detected, and validates payload, executor, and wallet state.",
+      "No run_validation function, target-block extraction, max-lookback range check, or explicit current-block validation step exists in the audited v2.2 RPC admission path."
+    ]
+  },
+  "notes": "The v2 port has a renamed admission path rather than run_validation, and it preserves non-async pass-through plus several state checks, but not the target-block/current-block checks required here.",
+  "rationale": "The primary diff moves the previous inline validation into `run_validation`, preserving the full simulation/static/state validation sequence and explicit non-async fast path. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "8917c97beb533618976615458f4d683b5d474655"
+  ],
+  "statement": "The parallel validation task must run builder-style EVM simulation, target-block validation, static async payload validation, executor/TTL extraction, latest-state lookup, current-block lookup, and full state-based async validation; transactions with no async precompile detected must pass validation.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Submit a regular transaction and assert `run_validation` returns `Ok(())` after simulation reports no async call; submit an async transaction with invalid target block, invalid payload, or failing state validation and assert the corresponding formatted validation error is returned."
+  ],
+  "summary": "RPC admission validation is present but incomplete for the stated validation-task contract.",
+  "test_or_falsification_candidate": "Submit a regular transaction and assert `run_validation` returns `Ok(())` after simulation reports no async call; submit an async transaction with invalid target block, invalid payload, or failing state validation and assert the corresponding formatted validation error is returned.",
+  "title": "Validation task covers simulation and state checks",
+  "total_invariants": 1954
+}

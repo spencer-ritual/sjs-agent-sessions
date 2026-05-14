@@ -1,0 +1,64 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "The inclusion fee helper unconditionally returns zero and documents EIP-1559 compensation as the reason.",
+      "path": "crates/ritual-async-fees/src/validators.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "/// Returns zero per the old ZK two-phase design update: the inclusion validator is\n/// compensated through EIP-1559 fees on the original async transaction.\npub fn async_inclusion_fee(_input_len: usize, _output_len: usize) -> U256 {\n    U256::ZERO\n}",
+      "symbols": [
+        "async_inclusion_fee"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "Total fee calculation includes the zero inclusion fee as part of the AsyncFees total, preserving total == executor + commitment + zero inclusion.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn new(executor_fee: U256, commitment_fee: U256, inclusion_fee: U256) -> Self {\n    let total = executor_fee + commitment_fee + inclusion_fee;\n    Self { executor_fee, commitment_fee, inclusion_fee, total }\n}\n...\nlet commitment_fee = async_commitment_fee(input_len);\nlet inclusion_fee = async_inclusion_fee(input_len, output_len);\n\nOk(AsyncFees::new(executor_fee, commitment_fee, inclusion_fee))",
+      "symbols": [
+        "AsyncFees::new",
+        "calculate_async_fees"
+      ]
+    }
+  ],
+  "equivalence_argument": "HTTP async fee calculation uses async_inclusion_fee for inclusion_fee, and that helper always returns U256::ZERO. AsyncFees::new computes total as executor + commitment + inclusion, so the total includes a zero inclusion component.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/lib.rs"
+  ],
+  "invariant_id": "cur-969bc6cb8e-async-inclusion-zero",
+  "invariant_index": 424,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The helper is shared across current short async fee calculations.",
+  "rationale": "Although the primary diff updates only a test assertion, the commit message states the ZK Two-Phase design rule: inclusion_fee is always zero because inclusion is compensated via the original transaction's EIP-1559 fees. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "720b76fab6793127a2a4cab32f778b70d5a017f0"
+  ],
+  "statement": "HTTP async fee calculation must return inclusion_fee equal to zero, with total fees equal to executor_fee plus commitment_fee plus that zero inclusion_fee, because inclusion validator compensation comes from EIP-1559 fees on the original async transaction.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call the HTTP async fee calculation with representative input/output sizes and assert inclusion_fee == 0 and total == executor_fee + commitment_fee."
+  ],
+  "summary": "HTTP async inclusion fee is zero in the v2 port.",
+  "test_or_falsification_candidate": "Call the HTTP async fee calculation with representative input/output sizes and assert inclusion_fee == 0 and total == executor_fee + commitment_fee.",
+  "title": "Async inclusion fee is zero",
+  "total_invariants": 1954
+}

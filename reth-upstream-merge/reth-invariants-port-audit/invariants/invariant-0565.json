@@ -1,0 +1,65 @@
+{
+  "cluster_key": "block building:chainspec-extra-data-26a62548",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: the underlying port ChainSpec supports unbounded extra_data, but nodebuilder Ritual mainnet construction does not set max_extra_data_bytes(None) and RitualChainSpec does not delegate max_extra_data_bytes through EthChainSpec.",
+  "evidence_files": [
+    "crates/chainspec/src/lib.rs",
+    "crates/chainspec/src/networks/mainnet.rs"
+  ],
+  "invariant_id": "cur-717a7fcd54-chainspec-extra-data-byte",
+  "invariant_index": 565,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/chainspec/src/lib.rs",
+      "crates/chainspec/src/networks/mainnet.rs",
+      "crates/chainspec/src/api.rs",
+      "crates/chainspec/src/spec.rs"
+    ],
+    "checked_queries": [
+      "max_extra_data_bytes RitualChainSpecBuilder ritual_mainnet RITUAL_MAINNET",
+      "RITUAL_MAINNET max_extra_data_bytes None",
+      "EthChainSpec max_extra_data_bytes delegate"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "RITUAL_MAINNET",
+      "RitualChainSpecBuilder::ritual_mainnet",
+      "max_extra_data_bytes",
+      "EthChainSpec"
+    ],
+    "missing_behavior": "RITUAL_MAINNET and RitualChainSpecBuilder::ritual_mainnet do not explicitly set max_extra_data_bytes(None), and RitualChainSpec does not expose a max_extra_data_bytes EthChainSpec override/delegation in nodebuilder.",
+    "related_but_insufficient_code": [
+      "ritual-reth-nodebuilder-internal/crates/chainspec/src/lib.rs builds ritual_mainnet from ChainSpecBuilder::default().chain(...).genesis(...).with_forks(...) without max_extra_data_bytes(None).",
+      "ritual-reth-nodebuilder-internal/crates/chainspec/src/networks/mainnet.rs builds RITUAL_MAINNET without max_extra_data_bytes(None).",
+      "The nodebuilder chainspec source has no max_extra_data_bytes symbol, while the port ChainSpec API does expose the field."
+    ]
+  },
+  "notes": "The likely owner is nodebuilder chainspec, not the base port chainspec field implementation.",
+  "rationale": "The merge adds max_extra_data_bytes(None) to both the default Ritual mainnet builder and static mainnet spec, and exposes the field via EthChainSpec delegation. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Block Building",
+  "source_commits": [
+    "d3e3de0125fe071ac75736ac790117a5030faa80"
+  ],
+  "statement": "RITUAL_MAINNET and RitualChainSpecBuilder::ritual_mainnet must set max_extra_data_bytes(None), and RitualChainSpec must delegate max_extra_data_bytes through EthChainSpec.",
+  "status": "current",
+  "subsystem": "block building",
+  "suggested_falsification_tests": [
+    "Construct RITUAL_MAINNET and RitualChainSpecBuilder::ritual_mainnet().build(), then assert max_extra_data_bytes() returns None for both and block/header validation accepts extra_data longer than the default Ethereum limit when other rules pass."
+  ],
+  "summary": "Ritual nodebuilder chainspec does not remove the extra-data byte cap.",
+  "test_or_falsification_candidate": "Construct nodebuilder RITUAL_MAINNET and RitualChainSpecBuilder::ritual_mainnet().build() and assert max_extra_data_bytes() returns None; current source lacks the setter/delegation.",
+  "title": "Ritual chainspec has no extra-data byte cap",
+  "total_invariants": 1954
+}

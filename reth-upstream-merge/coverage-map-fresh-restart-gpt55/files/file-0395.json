@@ -1,0 +1,121 @@
+{
+  "record_type": "file",
+  "file_index": 395,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/rpc/rpc/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "manifest",
+    "non-exact",
+    "ritual-rpc",
+    "structural-equivalent",
+    "review-closed",
+    "relocated"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0395-atom-0001",
+      "file_index": 395,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/rpc/rpc/Cargo.toml",
+      "source_hunk_hint": "@@ -38,6 +38,16 @@; @@ -86,6 +96,7 @@; @@ -98,6 +109,7 @@",
+      "source_kind": "manifest_wiring",
+      "source_snippet": "ritual-metrics.workspace = true\nritual-spc-verification.workspace = true\nritual-async.workspace = true\nritual-async-fees.workspace = true\nritual-async-registry.workspace = true\nritual-precompile-codecs.workspace = true\nritual-async-inspector.workspace = true\nritual-tee-registry-reader.workspace = true\nritual-heartbeat-tracker.workspace = true\nritual-scheduled-verification.workspace = true\ndashmap = \"6.1\"\nethabi.workspace = true",
+      "semantic_claim": "The old `reth-rpc` crate directly depends on Ritual async validation, fees, registry, metrics, heartbeat, scheduled verification, SPC verification, and ABI crates so its RPC modules can compile and expose Ritual-specific validation/result APIs.",
+      "high_risk": true,
+      "risk_tags": [
+        "rpc",
+        "manifest",
+        "ritual-rpc",
+        "async-fsm"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/Cargo.toml",
+          "symbols": [
+            "ritual-spc-verification",
+            "ritual-async-registry",
+            "ritual-tee-registry-reader"
+          ],
+          "evidence": "The active node-level Ritual async RPC bridge owns the node dependencies it needs to register result/delivery methods and construct provider-backed SPC/registry submission verification."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/Cargo.toml",
+          "symbols": [
+            "ritual-async-fees",
+            "ritual-async-registry",
+            "ritual-precompile-codecs",
+            "ritual-tee-registry-reader"
+          ],
+          "evidence": "Builder-side async validation dependencies now live with payload construction rather than `reth-rpc`."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/Cargo.toml",
+          "symbols": [
+            "ritual-async-fees",
+            "ritual-async-registry",
+            "ritual-precompile-codecs",
+            "ritual-tee-registry-reader"
+          ],
+          "evidence": "Verifier-side async validation dependencies now live with block verification rather than `reth-rpc`."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/ritual_async_rpc.rs",
+          "symbols": [
+            "module",
+            "RitualAsyncRpcContext",
+            "submit_async_result",
+            "submit_async_result_batch",
+            "submit_delivery_result"
+          ],
+          "evidence": "The result/delivery RPC implementation is relocated to ethereum/node and registers the active `ritual_submitAsyncResult`, `ritual_submitAsyncResultBatch`, and `ritual_submitDeliveryResult` methods."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "validate_async_payload",
+            "read_executor",
+            "verify_wallet_for_commitment"
+          ],
+          "evidence": "Async validation and fee/registry checks moved to payload/verifier/shared Ritual crates instead of living under `reth-rpc`."
+        }
+      ],
+      "equivalence_argument": "False positive as a manifest-location finding: the old `reth-rpc` direct Ritual dependency surface is intentionally absent because active RPC result/delivery behavior and validation dependencies moved to ethereum/node, payload, verifier, and shared Ritual crates. Missing observability/typed API endpoints remain tracked in their own files.",
+      "test_strategy": "manifest and RPC namespace check",
+      "negative_test_candidate": "Build or inspect `reth-rpc` expecting old `crate::ritual`, `crate::async_tx_validator`, or `reth_rpc_api::ritual` APIs; they should be absent in the destination.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Closed as relocation/structural equivalence for core result RPC and validation dependency ownership; do not treat the absence of these dependencies from `reth-rpc` as missing FSM behavior."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "False positive closed: the old `reth-rpc` Ritual manifest dependency surface is relocated, not missing for core result RPC behavior. Active result/delivery RPC lives in ethereum/node; validation lives in shared payload/verifier/codecs crates.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Do not require restoring old `reth-rpc` manifest dependencies solely for core async result behavior.",
+    "Core result/delivery RPC methods are registered from `crates/ethereum/node/src/ritual_async_rpc.rs`.",
+    "Keep separate rows open for genuinely missing user-facing typed API, observability, txpool, receipt, and response-shape behavior."
+  ]
+}

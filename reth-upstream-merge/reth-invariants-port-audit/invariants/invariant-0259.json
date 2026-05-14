@@ -1,0 +1,63 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "ExecutorRegistry can deactivate an address, but there is no TeeDA log handler that validates a deactivation owner topic and calls it.",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/service.rs",
+    "crates/ritual-spc-verification/src/error.rs"
+  ],
+  "invariant_id": "cur-2cd055f454-deactivate-events-mark-owner-inactive",
+  "invariant_index": 259,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-spc-verification/src/service.rs",
+      "crates/ritual-spc-verification/src/types.rs",
+      "crates/ritual-spc-verification/src/error.rs"
+    ],
+    "checked_queries": [
+      "ExecutorDeactivated owner topic",
+      "handle_executor_deactivated InvalidEventData",
+      "deactivate_executor topic[1]"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "handle_executor_deactivated",
+      "ExecutorDeactivated",
+      "deactivate_executor",
+      "InvalidEventData"
+    ],
+    "missing_behavior": "No audited repo handles ExecutorDeactivated logs by extracting topic[1], deactivating that owner, and rejecting missing owner topics as InvalidEventData.",
+    "related_but_insufficient_code": [
+      "ExecutorRegistry::deactivate_executor marks an existing entry inactive, but it is not connected to any log event parser in the audited repos.",
+      "VerificationError::InvalidEventData exists, but no deactivation log topic-count validation path was found."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The new deactivation handler validates topic count, extracts the indexed owner, and calls registry.deactivate_executor(&owner), with a new InvalidEventData error for malformed logs. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "3aeb9bff2387ecbd42714e9c9db11b5a0c9363ee"
+  ],
+  "statement": "ExecutorDeactivated logs with an indexed owner topic must deactivate that owner in the executor registry, and logs missing the owner topic must be rejected as invalid event data.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Register an executor in the in-memory registry, feed an ExecutorDeactivated log whose topic[1] is that address, and assert is_executor_active returns false; feed the same signature with only topic[0] and assert InvalidEventData and unchanged registry state."
+  ],
+  "summary": "Deactivation log handling is absent.",
+  "test_or_falsification_candidate": "Feed an ExecutorDeactivated log with and without topic[1]; current code has no log handler that deactivates the owner or returns InvalidEventData.",
+  "title": "Deactivate events mark owner inactive",
+  "total_invariants": 1954
+}

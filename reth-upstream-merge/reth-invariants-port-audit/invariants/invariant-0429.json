@@ -1,0 +1,67 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The normal executor path logs block hash, block number, and the verifier error before tracing and returning BlockExecutionError.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "if let Some(ref verifier) = self.verifier {\n    if let Err(e) = verifier.verify_block(block.sealed_block()) {\n        ritual_metrics::block::log_block_verify_failure(\n            &block.hash(),\n            block.number(),\n            &e,\n        );\n        tracing::error!(\n            target: \"ritual::block_verification\",\n            block_hash = %block.hash(),\n            block_number = block.number(),\n            error = ?e,\n            \"Block verification failed\"\n        );\n        return Err(BlockExecutionError::msg(format!(\n            \"Block verification failed: {:?}\",\n            e\n        )));\n    }\n}",
+      "symbols": [
+        "RitualBlockExecutor::execute_one",
+        "ritual_metrics::block::log_block_verify_failure"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The state-hook executor path has the same metric-before-error behavior, covering both consensus verification paths in the nodebuilder executor.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "if let Some(ref verifier) = self.verifier {\n    if let Err(e) = verifier.verify_block(block.sealed_block()) {\n        ritual_metrics::block::log_block_verify_failure(\n            &block.hash(),\n            block.number(),\n            &e,\n        );\n        tracing::error!(\n            target: \"ritual::block_verification\",\n            block_hash = %block.hash(),\n            block_number = block.number(),\n            error = ?e,\n            \"Block verification failed\"\n        );\n        return Err(BlockExecutionError::msg(format!(\n            \"Block verification failed: {:?}\",\n            e\n        )));\n    }\n}",
+      "symbols": [
+        "RitualBlockExecutor::execute_one_with_state_hook",
+        "ritual_metrics::block::log_block_verify_failure"
+      ]
+    }
+  ],
+  "equivalence_argument": "Both nodebuilder executor verification branches call ritual_metrics::block::log_block_verify_failure with block hash, block number, and the verifier error before returning BlockExecutionError. Nodebuilder owns this invariant because it wraps the block execution provider around consensus verification.",
+  "evidence_files": [
+    "crates/node/src/executor.rs"
+  ],
+  "invariant_id": "cur-965e4cecec-verification-failures-emit-block-metrics",
+  "invariant_index": 429,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This maps to the audited nodebuilder repo, not the port repo, because the executor path lives there.",
+  "rationale": "The primary diff inserts log_block_verify_failure in both block verification failure paths, before preserving the existing tracing error and execution failure. The commit message says the event captures error type and reason for BigQuery analysis. The primary merge rewrites both verifier failure mappings into explicit `if let Err(e)` blocks that first call the metrics logger, then emit the existing structured trace error and return the same block execution failure. Collapsed 2 closely related historical candidate statements into the latest effective formulation.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "0bb453e6770b652d7b3411cad6c5de8068fe1dff",
+    "524e9aace379ca9db38f57af6f2f41f743210119"
+  ],
+  "statement": "When consensus block verification fails in either executor path, the node must call `ritual_metrics::block::log_block_verify_failure` with the block hash, block number, and verification error before returning `BlockExecutionError`.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Use a verifier stub that returns a known error in both executor verification paths, execute a block, and assert log_block_verify_failure is called once with that block hash, number, and error before BlockExecutionError is returned.",
+    "Use a verifier stub that fails in both executor paths, instrument or mock `ritual_metrics::block::log_block_verify_failure`, and assert it receives the failing block hash, number, and error before the path returns `BlockExecutionError`."
+  ],
+  "summary": "Verification failures emit block metrics in nodebuilder.",
+  "test_or_falsification_candidate": "Use a verifier stub that returns a known error in both executor verification paths, execute a block, and assert log_block_verify_failure is called once with that block hash, number, and error before BlockExecutionError is returned.",
+  "title": "Verification failures emit block metrics",
+  "total_invariants": 1954
+}

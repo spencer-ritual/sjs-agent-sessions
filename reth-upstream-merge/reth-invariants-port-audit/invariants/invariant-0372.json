@@ -1,0 +1,63 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "Before execution, nodebuilder reads all executors from the configured TEE registry and updates the SPC verifier registry at the current block number, propagating read/update errors as block execution failures.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "let contract = std::env::var(\"TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS\").ok().and_then(|s| s.parse().ok()).unwrap_or_else(|| address!(\"9644e8562cE0Fe12b4deeC4163c064A8862Bf47F\"));\nlet executors = read_all_executors(&mut self.db, contract).map_err(|e| BlockExecutionError::msg(format!(\"Registry read failed: {:?}\", e)))?;\n...\nspc_verifier.update_registry_from_data(executor_tuples, block.number()).map_err(|e| BlockExecutionError::msg(format!(\"Registry update: {}\", e)))?;",
+      "symbols": [
+        "RitualBlockExecutor::update_executor_registry_from_block"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The registry refresh occurs at the start of block execution before transaction strategy setup and transaction execution.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "let ts_registry_start = ritual_metrics::tx::current_timestamp_micros();\nself.update_executor_registry_from_block(block)?;\n...\nlet mut strategy = self.strategy_factory.executor_for_block(&mut self.db, block);",
+      "symbols": [
+        "RitualBlockExecutor::execute_one"
+      ]
+    }
+  ],
+  "equivalence_argument": "Nodebuilder owns the execution wrapper; it refreshes the SPC verifier from on-chain TEE registry state before transaction execution and fails the block on registry read or update errors.",
+  "evidence_files": [
+    "crates/node/src/executor.rs"
+  ],
+  "invariant_id": "cur-d7e83d2f1c-block-execution-refreshes-registry-chain-registry",
+  "invariant_index": 372,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in nodebuilder dependency.",
+  "rationale": "The new `RitualBlockExecutorProvider` wraps block execution with `update_executor_registry_from_block`, reads executors via `read_all_executors`, converts them to verifier registry tuples, calls `update_registry_from_data`, and propagates errors as `BlockExecutionError`. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "2116c09809f88c91c37417b993acac65b25fc76f"
+  ],
+  "statement": "Before executing a block, the Ritual block executor must read all executors from the configured TEE service registry contract and update the SPC verifier's in-memory registry at the current block number; registry read or update failures must fail block execution.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Run `execute_one` with a mock database containing registry executor entries and a mock SPC verifier, assert `update_registry_from_data` is called before any transaction execution with the expected executor tuples and block number, and assert injected registry read/update errors cause `execute_one` to return an error."
+  ],
+  "summary": "Nodebuilder refreshes the SPC verifier registry from the on-chain TEE registry before block execution.",
+  "test_or_falsification_candidate": "Inject registry read/update failures and assert execute_one returns an error before executing transactions; with valid entries, assert update_registry_from_data receives the expected tuples and block number.",
+  "title": "Block execution refreshes SPC registry from on-chain TEE registry",
+  "total_invariants": 1954
+}

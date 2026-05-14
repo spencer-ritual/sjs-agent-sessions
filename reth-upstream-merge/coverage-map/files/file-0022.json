@@ -9,11 +9,11 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "missing",
+  "file_classification": "structural_equivalent",
   "tags": [
-    "missing",
     "high-risk",
-    "needs-review"
+    "non-exact",
+    "structural_equivalent"
   ],
   "atoms_total": 3,
   "atoms": [
@@ -32,19 +32,30 @@
         "async-fsm",
         "call-ordering"
       ],
-      "mapping_status": "missing",
-      "destinations": [],
-      "equivalence_argument": null,
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/chain-state/src/in_memory.rs",
+          "symbols": [
+            "CanonicalInMemoryStateInner::blocking_notifier"
+          ],
+          "snippet": "pub(crate) blocking_notifier: ritual_blocking_pubsub::BlockingCanonStateNotifier<N>,",
+          "evidence": "CanonicalInMemoryStateInner now stores the blocking notifier alongside the async broadcast sender."
+        }
+      ],
+      "equivalence_argument": "The blocking notifier field is restored in the v2.2 in-memory canonical state, preserving storage for synchronous canonical handlers.",
       "test_strategy": "destination_only_regression",
       "negative_test_candidate": "Register a blocking canonical-state handler and commit a chain update; the handler should be retained and callable before async broadcast.",
       "adversarial_review": {
         "required": true,
-        "status": "not_requested",
-        "review_record_id": null
+        "status": "pass",
+        "review_record_id": "review-file-0022-atom-0001"
       },
       "review_required": true,
-      "required_change": "Restore or intentionally replace storage for blocking canonical-state handlers in the v2.2 chain-state path.",
-      "notes": "No blocking notifier field or equivalent was found in the v2.2 port."
+      "required_change": null,
+      "notes": "Covered by focused ordering regression.",
+      "human_question": null
     },
     {
       "record_id": "file-0022-atom-0002",
@@ -58,9 +69,19 @@
       "semantic_claim": "CanonicalInMemoryState exposes an API to register synchronous canonical-state handlers.",
       "high_risk": false,
       "risk_tags": [],
-      "mapping_status": "missing",
-      "destinations": [],
-      "equivalence_argument": null,
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/chain-state/src/in_memory.rs",
+          "symbols": [
+            "CanonicalInMemoryState::subscribe_blocking_canon_state"
+          ],
+          "snippet": "pub fn subscribe_blocking_canon_state(&self, handler: ritual_blocking_pubsub::BlockingHandler<N>) {\n    self.inner.blocking_notifier.subscribe(handler);\n}",
+          "evidence": "CanonicalInMemoryState now exposes the synchronous handler registration API."
+        }
+      ],
+      "equivalence_argument": "The old registration API is restored at the same in-memory canonical-state boundary.",
       "test_strategy": "destination_only_regression",
       "negative_test_candidate": null,
       "adversarial_review": {
@@ -68,9 +89,10 @@
         "status": "not_requested",
         "review_record_id": null
       },
-      "review_required": true,
-      "required_change": "Decide whether the v2.2 chain-state API should expose blocking canonical-state subscription.",
-      "notes": "No subscribe_blocking_canon_state or equivalent API was found in the v2.2 port."
+      "review_required": false,
+      "required_change": null,
+      "notes": "Trait and provider forwarding are restored in adjacent atoms.",
+      "human_question": null
     },
     {
       "record_id": "file-0022-atom-0003",
@@ -87,26 +109,41 @@
         "async-fsm",
         "call-ordering"
       ],
-      "mapping_status": "missing",
-      "destinations": [],
-      "equivalence_argument": null,
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/chain-state/src/in_memory.rs",
+          "symbols": [
+            "CanonicalInMemoryState::notify_canon_state",
+            "notify_canon_state_runs_blocking_handlers_before_async_broadcast"
+          ],
+          "snippet": "let chain = event.committed();\nself.inner.blocking_notifier.notify_blocking(&chain);\nself.inner.canon_state_notification_sender.send(event).ok();",
+          "evidence": "notify_canon_state now calls blocking handlers before broadcasting async notifications, with a regression asserting async receivers do not observe the event before the blocking handler runs."
+        }
+      ],
+      "equivalence_argument": "The blocking-before-async canonical notification ordering is restored and tested.",
       "test_strategy": "destination_only_regression",
       "negative_test_candidate": "Install a blocking handler that records execution, trigger notify_canon_state, and assert the handler observes the committed chain before any async receiver is notified.",
       "adversarial_review": {
         "required": true,
-        "status": "not_requested",
-        "review_record_id": null
+        "status": "pass",
+        "review_record_id": "review-file-0022-atom-0003"
       },
       "review_required": true,
-      "required_change": "Restore or explicitly reject the old blocking-before-async canonical notification ordering requirement.",
-      "notes": "The current v2.2 notify_canon_state directly broadcasts async notifications without a blocking pre-hook."
+      "required_change": null,
+      "notes": "Focused test: cargo test -p reth-chain-state notify_canon_state_runs_blocking_handlers_before_async_broadcast --lib.",
+      "human_question": null
     }
   ],
   "high_risk_atoms_total": 2,
   "non_exact_atoms_total": 3,
-  "adversarial_reviews": [],
-  "summary": "Blocking canonical-state notification support from old chain-state is missing in the v2.2 port.",
+  "adversarial_reviews": [
+    "coverage-map/reviews/review-file-0022-atom-0001.json",
+    "coverage-map/reviews/review-file-0022-atom-0003.json"
+  ],
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
   "review_required": true,
   "status": "needs_review",
-  "notes": "This is the first real missing behavior in this batch and should be tied to downstream users of canonical-state update hooks."
+  "notes": "Updated during Core async first pass; unresolved atoms in the same feature remain separate and require active-consumer or runtime evidence."
 }

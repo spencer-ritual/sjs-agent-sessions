@@ -1,0 +1,64 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping was found: RitualNode no longer uses all default Ethereum builders directly; it installs RitualPayloadBuilderBuilder and RitualExecutorBuilder.",
+  "evidence_files": [
+    "crates/ritual-node/src/lib.rs"
+  ],
+  "invariant_id": "cur-897b017820-ritualnode-uses-ethereum-builders",
+  "invariant_index": 211,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/node/src/lib.rs",
+      "crates/node/src/payload.rs",
+      "crates/node/src/executor.rs"
+    ],
+    "checked_queries": [
+      "EthereumPayloadBuilder|EthereumExecutorBuilder|RitualPayloadBuilderBuilder|RitualExecutorBuilder|RitualNode::components"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "EthereumPoolBuilder",
+      "EthereumPayloadBuilder",
+      "EthereumNetworkBuilder",
+      "EthereumExecutorBuilder",
+      "EthereumConsensusBuilder",
+      "RitualPayloadBuilderBuilder",
+      "RitualExecutorBuilder"
+    ],
+    "missing_behavior": "Missing RitualNode::components configuration that uses EthereumPayloadBuilder and EthereumExecutorBuilder directly with no Ritual wrapper builders.",
+    "related_but_insufficient_code": [
+      "crates/node/src/lib.rs uses EthereumPoolBuilder, EthereumNetworkBuilder, and EthereumConsensusBuilder, but payload is BasicPayloadServiceBuilder<RitualPayloadBuilderBuilder> and executor is RitualExecutorBuilder.",
+      "crates/node/src/payload.rs wraps EthereumPayloadBuilder with EthEvmConfig<RitualEvmFactory>.",
+      "crates/node/src/executor.rs defines RitualExecutorBuilder with EthEvmConfig<RitualEvmFactory>, so the deleted-wrapper/all-Ethereum-builder invariant is no longer true."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The diff deletes the custom components module and changes the component builder type and construction calls from Ritual*Builder types to Ethereum*Builder types. The subject says all components were removed and eth is used for everything. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "9e6b8947e44dfd02e4e4d27b5c015e821d83921c"
+  ],
+  "statement": "RitualNode::components and Node::ComponentsBuilder must use EthereumPoolBuilder, EthereumPayloadBuilder, EthereumNetworkBuilder, EthereumExecutorBuilder, and EthereumConsensusBuilder directly instead of Ritual wrapper builders.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Instantiate RitualNode::components in a compile-time or integration test and assert the configured component builder types are the Ethereum builders, with no dependency on the deleted Ritual component modules."
+  ],
+  "summary": "RitualNode does not use all Ethereum builders directly in current nodebuilder code.",
+  "test_or_falsification_candidate": "Instantiate RitualNode::components in a compile-time assertion expecting EthereumPayloadBuilder/EthereumExecutorBuilder; current code should fail because it selects RitualPayloadBuilderBuilder/RitualExecutorBuilder.",
+  "title": "RitualNode uses Ethereum builders",
+  "total_invariants": 1954
+}

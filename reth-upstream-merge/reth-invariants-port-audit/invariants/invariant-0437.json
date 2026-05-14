@@ -1,0 +1,69 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-async/src/detector.rs",
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/transaction-pool/src/pool/async_pool.rs"
+  ],
+  "invariant_id": "cur-3aaeab8aa4-commitment-input-stores-resolved-deadline",
+  "invariant_index": 437,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/ritual-precompile-codecs/src/validation.rs"
+    ],
+    "checked_queries": [
+      "write_field_6_resolved",
+      "resolved absolute deadline",
+      "absolute Phase 2 deadline",
+      "field 6 max_poll_block",
+      "phase2_deadline_offset"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "write_field_6_resolved",
+      "phase2_deadline_offset",
+      "max_poll_block",
+      "async_commitment_parent_context",
+      "AsyncTxMetadata::awaiting_execution"
+    ],
+    "missing_behavior": "No audited v2.2-port path writes the resolved absolute Phase 2 deadline back into field 6 of precompile_input before creating the async commitment; the port continues to treat that field as an offset.",
+    "related_but_insufficient_code": [
+      "The port derives scheduled parent context for scheduled async transactions, but does not rewrite field 6 of precompile_input before commitment creation.",
+      "AsyncTxMetadata::awaiting_execution stores max_poll_block by reading phase2_deadline_offset from precompile_input, and mark_awaiting_delivery computes settlement_block + offset later.",
+      "ritual-precompile-codecs validates Phase 2 deadline as an offset greater than ttl, not as an already resolved absolute deadline."
+    ]
+  },
+  "notes": "The active port has scheduled parent-context handling, but not the field-6 mutation required by this invariant.",
+  "rationale": "The commit adds write_field_6_resolved and uses final_input in AsyncCallResult::new for scheduled two-phase calls; verifier and async pool comments and extraction functions now state that commitment precompile_input already contains the resolved absolute deadline and simply extract the raw field. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "c350fa6d4dfd02c426ef7aaed13f4548ad2005c1"
+  ],
+  "statement": "For scheduled two-phase async commitments, the detector must write the resolved absolute Phase 2 deadline back into field 6 of precompile_input before creating the AsyncCallResult, so downstream verifier, pool, contract, and executor logic read an absolute deadline.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create a scheduled two-phase commitment from input whose field 6 is an offset; inspect the commitment's precompile_input and assert field 6 contains commit_block + offset, then verify the block verifier and async pool read that field directly as the absolute deadline."
+  ],
+  "summary": "Resolved scheduled Phase 2 deadlines are not written into commitment input.",
+  "test_or_falsification_candidate": "Create a scheduled two-phase commitment from input whose field 6 is an offset; inspect the commitment's precompile_input and assert field 6 contains commit_block + offset, then verify the block verifier and async pool read that field directly as the absolute deadline.",
+  "title": "Commitment input stores resolved deadline",
+  "total_invariants": 1954
+}

@@ -9,13 +9,11 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "missing",
+  "file_classification": "structural_equivalent",
   "tags": [
-    "missing",
     "high-risk",
-    "cargo-features",
-    "async-context",
-    "needs-review"
+    "non-exact",
+    "structural_equivalent"
   ],
   "atoms_total": 4,
   "atoms": [
@@ -34,38 +32,30 @@
         "feature-gating",
         "negative-path"
       ],
-      "mapping_status": "missing",
+      "mapping_status": "structural_equivalent",
       "destinations": [
         {
           "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
           "path": "crates/ethereum/reth/Cargo.toml",
           "symbols": [
-            "[features]"
-          ],
-          "snippet": "storage-api = [\"dep:reth-storage-api\"]\ntrie = [\"dep:reth-trie\"]",
-          "evidence": "The port crate's feature table ends without any `async-context` entry, so the public feature surface is absent."
-        },
-        {
-          "repo": "/home/ritual/repos/ritual-reth-internal",
-          "path": "crates/ethereum/reth/Cargo.toml",
-          "symbols": [
-            "[features]"
+            "features.async-context"
           ],
           "snippet": "async-context = [\"evm\", \"reth-evm/async-context\", \"reth-evm-ethereum/async-context\"]",
-          "evidence": "Downstream source explicitly defines the missing feature."
+          "evidence": "reth-ethereum again exposes the public async-context Cargo feature."
         }
       ],
-      "equivalence_argument": null,
+      "equivalence_argument": "The public reth-ethereum async-context alias is restored.",
       "test_strategy": "destination_only_regression",
       "negative_test_candidate": "Run `cargo check -p reth-ethereum --features async-context` in the port repo; it should fail today with an unknown feature error, while the downstream repo accepts the feature.",
       "adversarial_review": {
         "required": true,
-        "status": "not_requested",
-        "review_record_id": null
+        "status": "pass",
+        "review_record_id": "review-file-0099-atom-0001"
       },
       "review_required": true,
-      "required_change": "Restore or intentionally replace the public `reth-ethereum/async-context` Cargo feature so the port preserves the downstream feature surface.",
-      "notes": "This is user-visible Cargo API surface, not an internal refactor."
+      "required_change": null,
+      "notes": "Feature graph check passed for reth-ethereum --features async-context.",
+      "human_question": null
     },
     {
       "record_id": "file-0099-atom-0002",
@@ -81,30 +71,31 @@
       "risk_tags": [
         "feature-gating"
       ],
-      "mapping_status": "missing",
+      "mapping_status": "structural_equivalent",
       "destinations": [
         {
           "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
           "path": "crates/ethereum/reth/Cargo.toml",
           "symbols": [
-            "evm",
-            "[features]"
+            "features.async-context",
+            "features.evm"
           ],
-          "snippet": "evm = [\"dep:reth-evm\", \"dep:reth-evm-ethereum\", \"dep:reth-revm\"]",
-          "evidence": "The port still has the optional `evm` feature, but no `async-context` alias exists to turn it on transitively."
+          "snippet": "async-context = [\"evm\", \"reth-evm/async-context\", \"reth-evm-ethereum/async-context\"]",
+          "evidence": "The restored alias includes the optional evm feature set."
         }
       ],
-      "equivalence_argument": null,
+      "equivalence_argument": "Enabling reth-ethereum/async-context again enables the optional evm feature set.",
       "test_strategy": "destination_only_regression",
       "negative_test_candidate": "Add a small workspace probe depending on `reth-ethereum` with only `features = [\"async-context\"]`; it should resolve `reth-evm` transitively downstream but cannot in the port because the feature is absent.",
       "adversarial_review": {
         "required": true,
-        "status": "not_requested",
-        "review_record_id": null
+        "status": "pass",
+        "review_record_id": "review-file-0099-atom-0002"
       },
       "review_required": true,
-      "required_change": "If `reth-ethereum/async-context` is restored, ensure it still enables the crate's optional `evm` feature set transitively.",
-      "notes": "Without this edge, any restored `async-context` alias would still be incomplete."
+      "required_change": null,
+      "notes": "Feature graph check passed for reth-ethereum --features async-context.",
+      "human_question": null
     },
     {
       "record_id": "file-0099-atom-0003",
@@ -121,38 +112,30 @@
         "async-fsm",
         "negative-path"
       ],
-      "mapping_status": "missing",
+      "mapping_status": "structural_equivalent",
       "destinations": [
         {
           "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
-          "path": "crates/evm/evm/Cargo.toml",
+          "path": "crates/ethereum/reth/Cargo.toml",
           "symbols": [
-            "[features]"
+            "features.async-context"
           ],
-          "snippet": "default = [\"std\"]\nstd = [\n    \"dep:rayon\",\n    \"reth-primitives-traits/std\",\n    \"alloy-eips/std\"",
-          "evidence": "The port's local `reth-evm` crate does not expose any `async-context` feature to forward."
-        },
-        {
-          "repo": "/home/ritual/repos/ritual-alloy-evm-internal",
-          "path": "crates/evm/Cargo.toml",
-          "symbols": [
-            "async-context"
-          ],
-          "snippet": "async-context = [\"revm-context\", \"revm/async-context\"]",
-          "evidence": "Underlying dependency support exists in the Ritual dependency stack, so the omission is not because async-context disappeared entirely."
+          "snippet": "async-context = [\"evm\", \"reth-evm/async-context\", \"reth-evm-ethereum/async-context\"]",
+          "evidence": "The restored top-level alias forwards into reth-evm/async-context."
         }
       ],
-      "equivalence_argument": null,
+      "equivalence_argument": "reth-ethereum/async-context again forwards into reth-evm/async-context.",
       "test_strategy": "destination_only_regression",
       "negative_test_candidate": "Attempt `cargo tree -e features -p reth-ethereum --features async-context` after adding the top-level feature in isolation; the port would still fail to propagate into `reth-evm` because that crate lacks its own `async-context` feature.",
       "adversarial_review": {
         "required": true,
-        "status": "not_requested",
-        "review_record_id": null
+        "status": "pass",
+        "review_record_id": "review-file-0099-atom-0003"
       },
       "review_required": true,
-      "required_change": "Restore or intentionally replace `reth-evm` async-context feature propagation before reintroducing the top-level alias.",
-      "notes": "This atom is blocked on additional feature plumbing inside the port repo's local `reth-evm` crate."
+      "required_change": null,
+      "notes": "Feature graph check passed for reth-ethereum --features async-context.",
+      "human_question": null
     },
     {
       "record_id": "file-0099-atom-0004",
@@ -169,45 +152,42 @@
         "async-fsm",
         "negative-path"
       ],
-      "mapping_status": "missing",
+      "mapping_status": "structural_equivalent",
       "destinations": [
         {
           "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
-          "path": "crates/ethereum/evm/Cargo.toml",
+          "path": "crates/ethereum/reth/Cargo.toml",
           "symbols": [
-            "[features]"
+            "features.async-context"
           ],
-          "snippet": "default = [\"std\"]\nstd = [\n    \"alloy-consensus/std\",\n    \"alloy-eips/std\"",
-          "evidence": "The port's local `reth-evm-ethereum` crate exposes `std` and `test-utils` only; there is no `async-context` feature to forward."
-        },
-        {
-          "repo": "/home/ritual/repos/ritual-reth-internal",
-          "path": "crates/ethereum/evm/Cargo.toml",
-          "symbols": [
-            "async-context"
-          ],
-          "snippet": "async-context = [\"reth-evm/async-context\"]",
-          "evidence": "Downstream local `reth-evm-ethereum` does have the forwarding feature that the port is missing."
+          "snippet": "async-context = [\"evm\", \"reth-evm/async-context\", \"reth-evm-ethereum/async-context\"]",
+          "evidence": "The restored top-level alias forwards into reth-evm-ethereum/async-context."
         }
       ],
-      "equivalence_argument": null,
+      "equivalence_argument": "reth-ethereum/async-context again forwards into reth-evm-ethereum/async-context.",
       "test_strategy": "destination_only_regression",
       "negative_test_candidate": "Compare `cargo check -p reth-evm-ethereum --features async-context` across repos; downstream should accept it, while the port should reject the missing feature.",
       "adversarial_review": {
         "required": true,
-        "status": "not_requested",
-        "review_record_id": null
+        "status": "pass",
+        "review_record_id": "review-file-0099-atom-0004"
       },
       "review_required": true,
-      "required_change": "Restore or intentionally replace `reth-evm-ethereum` async-context feature propagation before reintroducing the top-level alias.",
-      "notes": "This is a second independent propagation gap beyond the missing top-level alias."
+      "required_change": null,
+      "notes": "Feature graph check passed for reth-ethereum --features async-context.",
+      "human_question": null
     }
   ],
   "high_risk_atoms_total": 4,
   "non_exact_atoms_total": 4,
-  "adversarial_reviews": [],
-  "summary": "Downstream adds a public `reth-ethereum/async-context` feature, but the v2.2.0 port lacks the alias and both forwarded subfeatures.",
+  "adversarial_reviews": [
+    "coverage-map/reviews/review-file-0099-atom-0001.json",
+    "coverage-map/reviews/review-file-0099-atom-0002.json",
+    "coverage-map/reviews/review-file-0099-atom-0003.json",
+    "coverage-map/reviews/review-file-0099-atom-0004.json"
+  ],
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
   "review_required": true,
   "status": "needs_review",
-  "notes": "The omission is actionable: dependency repos still contain async-context support, but the port repo's local `reth-evm` and `reth-evm-ethereum` crates do not expose matching features, so this file cannot be mapped exactly."
+  "notes": "Updated during Core async first pass; unresolved atoms in the same feature remain separate and require active-consumer or runtime evidence."
 }

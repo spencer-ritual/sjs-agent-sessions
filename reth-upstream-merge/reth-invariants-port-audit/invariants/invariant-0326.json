@@ -1,0 +1,82 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "Nodebuilder reads registry state from the execution DB and updates the in-memory SPC verifier registry before block execution work continues.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "fn update_executor_registry_from_block(&mut self, block: &RecoveredBlock<...>) -> Result<(), BlockExecutionError> {\n    let contract = std::env::var(\"TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS\").ok().and_then(|s| s.parse().ok()).unwrap_or_else(|| address!(\"9644e8562cE0Fe12b4deeC4163c064A8862Bf47F\"));\n    let executors = read_all_executors(&mut self.db, contract)?;\n    spc_verifier.update_registry_from_data(executor_tuples, block.number())?;\n}",
+      "symbols": [
+        "RitualBlockExecutor::update_executor_registry_from_block",
+        "read_all_executors",
+        "update_registry_from_data"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "Both nodebuilder execution paths perform the registry update as phase 1 before executor strategy setup and transaction processing.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "self.update_executor_registry_from_block(block)?;\nlet mut strategy = self.strategy_factory.executor_for_block(&mut self.db, block);\n...\nself.update_executor_registry_from_block(block)?;\nlet mut strategy = self.strategy_factory.executor_for_block(&mut self.db, block).with_state_hook(Some(Box::new(hook)));",
+      "symbols": [
+        "RitualBlockExecutor::execute_one",
+        "RitualBlockExecutor::execute_one_with_state_hook"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The shared reader obtains executor records from contract storage through the execution database instead of an external log service.",
+      "path": "crates/ritual-tee-registry-reader/src/reader.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn read_all_executors<DB: Database>(db: &mut DB, contract: Address) -> Result<Vec<ExecutorInfo>, RegistryReadError> {\n    let count_u256 = db.storage(contract, U256::from(SLOT_SERVICE_ADDRESSES))?;\n    ...\n    match read_executor(db, contract, primary_address)? { Some(info) if info.capability.is_executor_capability() => executors.push(info), _ => continue }\n}",
+      "symbols": [
+        "read_all_executors",
+        "read_executor"
+      ]
+    }
+  ],
+  "equivalence_argument": "The current local implementation has moved registry ownership to the TEEServiceRegistry storage reader and nodebuilder execution provider. It preserves the core invariant that block execution synchronizes the in-memory verifier registry from execution DB state before transaction execution, and SPC batch sidecar verification is not run in this phase; the contract env var/name differs from the older ExecutorRegistry wording and is tracked separately by the secure-address/default gap.",
+  "evidence_files": [
+    "crates/evm/src/execute.rs",
+    "crates/evm/src/registry_db.rs",
+    "crates/node/builder/src/builder/mod.rs",
+    "crates/ritual-spc-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-ac5b84c950-block-execution-syncs-registry-execution",
+  "invariant_index": 326,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in the nodebuilder dependency with supporting storage-reader code in the port repo.",
+  "rationale": "The primary diff replaces the old SPC batch verification phase with update_executor_registry_from_block(), reads the registry contract through registry_db::read_executors_from_db(), atomically swaps the verifier registry from that data, and removes the startup/background registry service in favor of just-in-time execution-state population. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "a866782eb5685c0eced3bdfbb5403f11976d51b3"
+  ],
+  "statement": "During block execution, the node must update the in-memory executor registry by reading ExecutorRegistry contract storage from the execution database for the block being processed, using EXECUTOR_REGISTRY_CONTRACT_ADDRESS when set and the built-in default otherwise; this registry update must run before the rest of block execution in both execution paths, while SPC batch verification remains intentionally bypassed in this path.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Construct a block execution test with a mock execution database containing an ExecutorRegistry state, set EXECUTOR_REGISTRY_CONTRACT_ADDRESS to that contract, execute a block through both block execution paths, and assert the verifier registry is populated from DB storage before subsequent phases while no SPC sidecar batch verification calls are made."
+  ],
+  "summary": "Nodebuilder synchronizes the SPC executor registry from execution DB state before block execution.",
+  "test_or_falsification_candidate": "Seed a mock execution database with TEEServiceRegistry executor records, execute a block through execute_one and execute_one_with_state_hook, and assert update_registry_from_data runs before transaction processing while no SPC batch sidecar verification is invoked.",
+  "title": "Block execution syncs registry from execution DB",
+  "total_invariants": 1954
+}

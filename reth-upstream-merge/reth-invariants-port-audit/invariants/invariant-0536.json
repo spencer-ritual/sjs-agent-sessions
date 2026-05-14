@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "Block verification gates required SPC attachments through the shared allowlist predicate before enforcing proof presence and signature verification.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "calls.iter().any(|call| {\n    is_spc_block_verified_precompile(call.address) && !call.output.is_empty() && !call.proof.is_empty()\n})\n...\nlet valid = verify_signature_core(public_key, job.commit_block, job.tx_hash, job.precompile_address, ...)?;",
+      "symbols": [
+        "verify_spc_calls",
+        "is_spc_block_verified_precompile"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "The allowlist is centralized in precompile metadata, preventing verifier-local address drift.",
+      "path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn is_spc_block_verified_precompile(addr: Address) -> bool {\n    metadata_by_address(addr).is_some_and(|metadata| metadata.spc_block_verified)\n}",
+      "symbols": [
+        "is_spc_block_verified_precompile",
+        "metadata_by_address"
+      ]
+    }
+  ],
+  "equivalence_argument": "The verifier uses the shared metadata predicate for both settlement and delivery SPC attachment eligibility, while malformed allowlisted proofs still reject through proof length/signature checks.",
+  "evidence_files": [
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-586a2be459-block-verifier-uses-shared-allowlist",
+  "invariant_index": 536,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Non-allowlisted attachments are not treated as satisfying required SPC evidence.",
+  "rationale": "The commit replaces hand-written address comparisons in both extraction paths with the shared predicate and documents ignore-versus-hard-error semantics. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "b60c8e2362bf18ca9faa52d903fe69990dec7ca5"
+  ],
+  "statement": "Block verification extracts and verifies `spc_calls` and `delivery_spc_calls` only for precompiles accepted by `is_spc_block_verified_precompile`; non-allowlisted attachments are ignored, while malformed allowlisted attachments remain block-invalid.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create transactions with `spc_calls` for an allowlisted precompile and a non-allowlisted precompile; assert the former is extracted and malformed proof rejects the block, while the latter is ignored."
+  ],
+  "summary": "Block verifier uses the shared SPC allowlist.",
+  "test_or_falsification_candidate": "Create allowlisted and non-allowlisted SPC attachments and assert only allowlisted malformed attachments can make the block invalid.",
+  "title": "Block verifier uses shared SPC allowlist",
+  "total_invariants": 1954
+}

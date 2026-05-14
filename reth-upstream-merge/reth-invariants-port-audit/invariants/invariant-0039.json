@@ -1,0 +1,74 @@
+{
+  "cluster_key": "scheduler:pool-accounting:part-02",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/scheduling/src/singleton.rs",
+    "crates/transaction-pool/src/maintain.rs",
+    "crates/transaction-pool/src/pool/mod.rs",
+    "crates/transaction-pool/src/traits.rs"
+  ],
+  "invariant_id": "cur-dfbd5158e5-chain-halt-poison-eviction-clears-scheduled-pool-scheduler",
+  "invariant_index": 39,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/maintain.rs",
+      "crates/transaction-pool/src/pool/mod.rs",
+      "crates/transaction-pool/src/traits.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs"
+    ],
+    "checked_queries": [
+      "CHAIN_HALT_THRESHOLD_SECS|SynchronousScheduler|chain_halt|scheduled_pool|evict.*scheduled",
+      "evict_all_scheduled_transactions|remove_scheduled_expired_by_time|get_scheduled_transactions",
+      "SystemTime::now|UNIX_EPOCH|temporal_divergence"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "CHAIN_HALT_THRESHOLD_SECS",
+      "get_chain_halt_threshold",
+      "temporal_divergence",
+      "evict_all_scheduled_transactions",
+      "remove_scheduled_expired_by_time",
+      "get_scheduled_transactions",
+      "SynchronousScheduler",
+      "scheduled_pool"
+    ],
+    "missing_behavior": "Missing chain-halt poison recovery path that reads threshold, detects temporal divergence, evicts scheduled pool transactions, and evicts each call_id from SynchronousScheduler state.",
+    "related_but_insufficient_code": [
+      "maintain.rs explicitly says raw scheduled txpool admission is dormant and the old chain-halt scheduled-tx eviction loop is not resurrected; current tick only removes queued txs and async lifecycle entries."
+    ]
+  },
+  "notes": "Confirmed gap; parent-state obligation synthesis is not equivalent to clearing local scheduled pool state.",
+  "rationale": "The current poison-recovery behavior is the later chain-halt path, not routine age expiry. The effective invariant combines the eviction API, chain-halt trigger, seconds-based timestamp comparison, and all-scheduled eviction path.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "442733e0823bd1e9893591521d1aeb72f14fab81",
+    "1a007660dee2174e9293744a244d1f4d2c4ae676",
+    "648599b25a12265347be55d44c4b1ecf3acad5b1",
+    "9025328b5218757656b0e228494523d6fa310114"
+  ],
+  "statement": "At current tip, transaction-pool maintenance must compare wall-clock seconds to the latest block timestamp converted to seconds, and when the divergence exceeds CHAIN_HALT_THRESHOLD_SECS it must evict every scheduled transaction from the scheduled pool and evict each associated call_id from SynchronousScheduler state.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Populate the scheduled pool with multiple scheduled transactions, mock the latest header timestamp in milliseconds so seconds-based divergence exceeds CHAIN_HALT_THRESHOLD_SECS, tick maintenance, and assert each scheduled transaction is absent from the pool and each call_id is absent from SynchronousScheduler state.",
+    "Repeat with the same millisecond timestamp but no conversion to seconds; the test should fail because poison eviction would not trigger at the intended threshold."
+  ],
+  "summary": "Chain-halt poison eviction clearing scheduled pool/Scheduler calls is absent.",
+  "test_or_falsification_candidate": "Populate due scheduled calls, make latest header stale beyond threshold, tick txpool maintenance, and assert scheduled pool entries/call IDs are evicted; current port lacks the path.",
+  "title": "Chain-halt poison eviction clears scheduled pool and Scheduler calls",
+  "total_invariants": 1954
+}

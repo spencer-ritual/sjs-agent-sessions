@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "85b41ec83e0009175c328eb0b9a07c92c3008129",
+      "evidence": "The decoder prefixes has_error responses with LLM_HAS_ERROR_PREFIX and fee computation recognizes that prefix to return the constant error fee.",
+      "path": "crates/ritual-async-fees/src/llm.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if has_error {\n    let error_message = read_abi_offset(data, error_offset_index)\n        .and_then(|offset| read_abi_string(data, offset))\n        .unwrap_or_default();\n    return if error_message.is_empty() {\n        Err(LLM_HAS_ERROR_PREFIX.to_string())\n    } else {\n        Err(format!(\"{LLM_HAS_ERROR_PREFIX}: {error_message}\"))\n    };\n}\n...\nErr(err) if err.starts_with(LLM_HAS_ERROR_PREFIX) => return Ok(U256::from(LLM_ERROR_EXECUTOR_FEE_WEI));",
+      "symbols": [
+        "decode_llm_response",
+        "compute_llm_executor_fee",
+        "LLM_HAS_ERROR_PREFIX"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "85b41ec83e0009175c328eb0b9a07c92c3008129",
+      "evidence": "The constant fee value is defined and bounded against the HTTP escrow floor.",
+      "path": "crates/ritual-async-fees/src/constants.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const LLM_ERROR_EXECUTOR_FEE_WEI: u128 = 500_000_000_000;\nconst _: () = assert!(LLM_ERROR_EXECUTOR_FEE_WEI <= HTTP_EXECUTOR_BASE_FEE_WEI, ...);",
+      "symbols": [
+        "LLM_ERROR_EXECUTOR_FEE_WEI"
+      ]
+    }
+  ],
+  "equivalence_argument": "The has_error decode path is fail-open only for the explicit prefix: unrelated malformed non-error responses still return Err, while prefixed executor errors settle with the constant fee.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/llm.rs"
+  ],
+  "invariant_id": "cur-ed5deff480-error-settles-constant",
+  "invariant_index": 532,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This maps the settlement-critical prefix/fee behavior; trace-metadata variants are recorded separately as gaps for invariants 526 and 528.",
+  "rationale": "The primary diff introduces `LLM_HAS_ERROR_PREFIX`, uses it in both decode and fee matching, and adds a unit test proving `has_error=true` returns the constant fee with zero token metrics. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "80ee6bd18b97efecf7e52db818e8f3728c32e896"
+  ],
+  "statement": "When LLM response decoding observes `has_error=true`, `decode_llm_response` must return an error prefixed by `LLM_HAS_ERROR_PREFIX`, and `compute_llm_executor_fee` must recognize that prefix and return `LLM_ERROR_EXECUTOR_FEE_WEI` instead of failing settlement.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "ABI-encode an LLM delivery result with `has_error=true`, pass it to `compute_llm_executor_fee`, and assert the function succeeds with executor fee `LLM_ERROR_EXECUTOR_FEE_WEI`, zero prompt/completion token metrics, and a trace indicating the has_error path."
+  ],
+  "summary": "LLM has_error responses settle with the constant fee.",
+  "test_or_falsification_candidate": "ABI-encode an LLM delivery result with has_error=true and assert compute_llm_executor_fee returns LLM_ERROR_EXECUTOR_FEE_WEI, while malformed non-error payloads still return Err.",
+  "title": "LLM has_error settles with constant fee",
+  "total_invariants": 1954
+}

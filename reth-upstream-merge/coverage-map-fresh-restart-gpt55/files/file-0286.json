@@ -1,0 +1,87 @@
+{
+  "record_type": "file",
+  "file_index": 286,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-async-inspector/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "async-inspector",
+    "manifest",
+    "workspace-wiring",
+    "dependency-graph"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0286-atom-0001",
+      "file_index": 286,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-async-inspector/Cargo.toml",
+      "source_hunk_hint": "@@ -0,0 +1,14 @@; async inspector crate manifest plus root workspace member/dependency wiring",
+      "source_kind": "async_inspector_manifest_workspace_wiring",
+      "source_snippet": "[package]\nname = \"ritual-async-inspector\"\nversion = \"0.1.0\"\nedition = \"2021\"\ndescription = \"Shared inspector infrastructure for detecting async precompile calls\"\n\n[dependencies]\n# Minimal dependencies - NO reth-evm, NO ritual-async\nrevm = { workspace = true }\nalloy-primitives = { workspace = true }\n\n# Logging\ntracing = { workspace = true }\n\n# root Cargo.toml wiring:\n\"crates/ritual-async-inspector/\"\nritual-async-inspector = { path = \"crates/ritual-async-inspector\" }",
+      "semantic_claim": "The old divergence introduces `ritual-async-inspector` as a dependency-light shared crate for detecting async precompile calls during EVM execution. The manifest intentionally depends only on revm, alloy-primitives, and tracing through the workspace, and the root workspace wires it as a member and workspace dependency for validator and verifier consumers.",
+      "high_risk": false,
+      "risk_tags": [
+        "workspace-member",
+        "workspace-dependency",
+        "dependency-cycle-avoidance",
+        "async-inspector"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-inspector/Cargo.toml",
+          "symbols": [
+            "revm.workspace",
+            "alloy-primitives.workspace",
+            "tracing.workspace"
+          ],
+          "evidence": "The source diff adds a 14-line new manifest at diff lines 42240-42259. The destination manifest preserves the same package metadata, dependency comments, three workspace dependencies, and absence of `ritual-*` dependencies."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "Cargo.toml",
+          "symbols": [
+            "workspace.members",
+            "workspace.dependencies.ritual-async-inspector"
+          ],
+          "evidence": "The destination root Cargo.toml includes `crates/ritual-async-inspector/` in `workspace.members` and `ritual-async-inspector = { path = \"crates/ritual-async-inspector\" }` in `[workspace.dependencies]`."
+        }
+      ],
+      "equivalence_argument": "The destination keeps the manifest text and root workspace wiring required by the source divergence: same crate identity, same dependency-light inspector dependency set, same workspace membership, and same workspace dependency path. That preserves the async inspector crate's build graph role exactly.",
+      "test_strategy": "source_diff_manifest_to_destination_manifest_text_match_plus_root_workspace_wiring_read",
+      "negative_test_candidate": "Removing the root workspace dependency or adding a `ritual-*` dependency to the inspector manifest would either break workspace path resolution for users of the crate or reintroduce the dependency cycle the source manifest explicitly avoids.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers only the async inspector manifest and root workspace wiring, not any `crates/ritual-async-inspector/src/*` implementation files."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The async inspector crate manifest and root workspace wiring are exact-port preserved: package metadata, minimal workspace dependency set, explicit cycle-avoidance dependency shape, workspace member entry, and workspace dependency path all match the source divergence.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 286: A\tcrates/ritual-async-inspector/Cargo.toml.",
+    "The source file diff starts at line 42240 and the Cargo.toml hunk ends at line 42259 before the next `crates/ritual-async-inspector/src/inspector.rs` header at line 42260.",
+    "Destination `crates/ritual-async-inspector/Cargo.toml` contains the same 14-line manifest body as the source-added file.",
+    "Destination root `Cargo.toml` includes `crates/ritual-async-inspector/` in workspace members and `ritual-async-inspector = { path = \"crates/ritual-async-inspector\" }` in workspace dependencies.",
+    "No review queue entry was required because the audited manifest and workspace wiring are preserved exactly."
+  ]
+}

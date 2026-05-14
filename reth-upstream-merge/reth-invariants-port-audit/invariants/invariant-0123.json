@@ -1,0 +1,60 @@
+{
+  "cluster_key": "scheduler:receipt-rpc",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "ritual-reth-internal/crates/transaction-pool/src/blocking_handlers.rs",
+    "ritual-reth-internal/crates/ritual-scheduled-block-building/src/lib.rs"
+  ],
+  "invariant_id": "cur-ab97cc117d-revival-active-helper-guards-remain-independent",
+  "invariant_index": 123,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/blocking_handlers.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs"
+    ],
+    "checked_queries": [
+      "reviveAgentPrepared|pending AgentHeartbeat|padded address|decide_active_job_augmentation|job_exists_and_active|building_block_number"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "revival pending-tx dedup helper",
+      "decide_active_job_augmentation"
+    ],
+    "missing_behavior": "Missing revival pending-transaction dedup helper for AgentHeartbeat reviveAgentPrepared(address,bytes) with padded address validation. The active-job helper does pass the synthesized tx hash and building block to job_exists_and_active, but the revival dedup half was not found.",
+    "related_but_insufficient_code": [
+      "decide_active_job_augmentation(tx_hash, building_block_number, ...) dispatches exactly those two values to the predicate.",
+      "synthesize_heartbeat_revival_transactions skips owners with pending active jobs, but no reviveAgentPrepared pending-tx calldata matcher was found."
+    ]
+  },
+  "notes": "Confirmed gap for full invariant.",
+  "rationale": "These two candidates are current scheduler-adjacent guards but do not participate in the startup hydration lineage; keeping them distinct preserves their narrower semantics.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "d454f68d78a80b183ca151a99b43eeba29e09451",
+    "c3093cf3df81c6b0dae56f28e087b6934bccf017"
+  ],
+  "statement": "Revival deduplication only recognizes pending AgentHeartbeat reviveAgentPrepared(address,bytes) transactions with correctly padded address arguments, and active-job augmentation must pass the exact synthesized transaction hash and building block to its active-job predicate.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Place pending heartbeat reviveAgentPrepared transactions with valid and malformed padding and assert only correctly padded matches deduplicate revival synthesis.",
+    "Assert active-job predicate receives exact synthesized tx hash and building block number."
+  ],
+  "summary": "Active-job guard exists, but revival pending-tx dedup is absent.",
+  "test_or_falsification_candidate": "Active-job helper can be unit-tested today; revival pending-tx dedup helper is absent.",
+  "title": "Revival and active-job helper guards remain independent",
+  "total_invariants": 1954
+}

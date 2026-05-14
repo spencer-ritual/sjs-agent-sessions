@@ -1,0 +1,54 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "The HTTP codec implements the schema and header/body validation but uses a different accepted method range than the invariant requires.",
+  "evidence_files": [
+    "crates/ritual-precompile-codecs/src/http_call.rs"
+  ],
+  "invariant_id": "cur-b5ac3b002a-http-call-requests-validated-typed-decoding",
+  "invariant_index": 269,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-precompile-codecs/src/http_call.rs"
+    ],
+    "checked_queries": [
+      "HTTP method 0 through 6",
+      "HTTPMethod Get = 1 Options = 7",
+      "method 99 HeaderLengthMismatch",
+      "empty body None"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "HTTPCallRequest::from_abi",
+      "HTTPMethod::try_from",
+      "HeaderLengthMismatch"
+    ],
+    "missing_behavior": "HTTP method validation does not accept method value 0 and does accept method value 7, instead of accepting only values 0 through 6.",
+    "related_but_insufficient_code": [
+      "HTTPCallRequest::from_abi decodes the full ABI layout, pairs headers, rejects header length mismatch, and maps empty body to None.",
+      "HTTPMethod::try_from accepts values 1 through 7 and rejects 0, which contradicts the invariant requirement to accept only 0 through 6."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The commit adds a concrete HTTP precompile request schema and validation logic with unit tests for full decoding, method validation, and header-length mismatch. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "23bddd597d65ef0bde4768e456828b99410cd600"
+  ],
+  "statement": "HTTPCallRequest::from_abi must decode the ABI layout [executor, encrypted_secrets, ttl, url, method, header keys, header values, body], accept only HTTP method values 0 through 6, reject mismatched header key/value array lengths, pair headers in order, and represent an empty body as None.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "ABI-encode a valid HTTP call request and assert all decoded fields match, then encode method 99 and mismatched header arrays and assert InvalidFieldValue and HeaderLengthMismatch respectively; encode an empty body and assert body is None."
+  ],
+  "summary": "HTTP call decoding has the wrong accepted method range for this invariant.",
+  "test_or_falsification_candidate": "Decode HTTP call payloads with method 0, 6, and 7; current code rejects 0 and accepts 7, contrary to the invariant.",
+  "title": "HTTP call requests use validated typed ABI decoding",
+  "total_invariants": 1954
+}

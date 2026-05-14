@@ -1,0 +1,80 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The HTTP async precompile decoder uses the ABI request type and returns the executor field from the encoded request head.",
+      "path": "crates/ritual-precompile-codecs/src/validation.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "HTTP_CALL_PRECOMPILE => {\n    let request = HTTPCallRequest::from_abi(input).map_err(decode_error(\"HTTPCallRequest\"))?;\n    (request.executor, request.ttl)\n}",
+      "symbols": [
+        "try_decode_precompile_data",
+        "HTTPCallRequest::from_abi"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Payload detection rejects malformed/too-short ABI through validation/decoding and propagates the decoded executor into the generated async commitment.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "validate_async_payload(async_call.precompile_address, input, MAX_SHORT_ASYNC_TTL_BLOCKS)?;\ntry_decode_precompile_data(async_call.precompile_address, input)\n...\ndecoded.executor,",
+      "symbols": [
+        "validate_async_commitment_call",
+        "build_short_async_commitment_transaction"
+      ]
+    }
+  ],
+  "equivalence_argument": "The current detector path validates the async payload and decodes the executor through the ABI codec; malformed or too-short inputs fail before an executor address can be propagated.",
+  "evidence_files": [
+    "crates/ritual-async/src/detector.rs",
+    "crates/ritual-async/Cargo.toml",
+    "Cargo.lock"
+  ],
+  "invariant_id": "cur-7b4a0f62fa-executor-address-comes-request-head",
+  "invariant_index": 225,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-precompile-codecs/src/validation.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/rpc/rpc/src/async_tx_validator.rs"
+    ],
+    "checked_queries": [
+      "HTTPCallRequest::from_abi|try_decode_precompile_data|validate_async_payload|decoded.executor"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "try_decode_precompile_data",
+      "validate_async_payload",
+      "HTTPCallRequest::from_abi",
+      "DecodedPrecompileData"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The commit title and code comments say the HTTPCallRequest is ABI encoded with the executor address as the first tuple field, and the old RLP extraction is replaced by alloy-sol-types address decoding over the first 32 bytes. The extracted address is the required executor_address passed into AsyncCallResult and the async-exec transaction, so decoding it according to the request ABI is externally observable routing behavior. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "a91cdfbe3a317aa6fc3fc93cff53bb0c4c18b5c5"
+  ],
+  "statement": "For an HTTP async precompile input whose first ABI-encoded field is an address, async call detection must decode that first 32-byte ABI word as the executor address and propagate it into the AsyncCallResult/system async-exec transaction; inputs shorter than one ABI word must be rejected instead of producing an executor address.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Construct an HTTP_CALL_PRECOMPILE transaction input whose first ABI word encodes executor address A and whose remaining ABI tuple data is valid dynamic request payload, run the async detector path that creates AsyncCallResult, and assert result.executor_address and the generated TxAsyncExec executor_address are A. Also pass an input shorter than 32 bytes and assert detection fails instead of returning a default or truncated address."
+  ],
+  "summary": "HTTP async executor addresses come from the ABI request field and are propagated to the system transaction.",
+  "test_or_falsification_candidate": "Create an ABI HTTPCallRequest whose executor is A and assert build_short_async_commitment_transaction produces a commitment with executor_address A; pass fewer than 32 bytes and assert decoding fails.",
+  "title": "Executor address comes from ABI request head",
+  "total_invariants": 1954
+}

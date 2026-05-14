@@ -1,0 +1,78 @@
+{
+  "cluster_key": "scheduler:custom-types",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Scheduled compact codec serializes/deserializes input, origin_tx, call_id, index, initial_block, frequency, ttl, caller, commitment_tx, settlement_tx, and spc_calls.",
+      "path": "crates/storage/codecs/src/alloy/transaction/scheduled.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub(crate) struct TxScheduled { gas, max_fee_per_gas, max_priority_fee_per_gas, to, value, origin_tx, call_id, index, initial_block, frequency, ttl, caller, commitment_tx, settlement_tx, spc_calls, input }\n...\nspc_calls: if tx.spc_calls.is_empty() { None } else { Some(tx.spc_calls) }",
+      "symbols": [
+        "Compact for AlloyTxScheduled"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Regular scheduled execution transactions initialize async linkage hashes/SPC calls as None.",
+      "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "TxScheduled::new_with_options(..., call.caller, None, None, None)",
+      "symbols": [
+        "create_scheduled_execution_transaction"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port: compact codecs preserve scheduled metadata and regular scheduled tx construction starts linkage fields as None.",
+  "evidence_files": [
+    "crates/storage/codecs/src/alloy/transaction/scheduled.rs",
+    "crates/scheduling/src/transaction.rs"
+  ],
+  "invariant_id": "cur-e0a468903d-scheduled-storage-codec-preserves-scheduled-metadata",
+  "invariant_index": 131,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/storage/codecs/src/alloy/transaction/scheduled.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs"
+    ],
+    "checked_queries": [
+      "TxScheduled|origin_tx|call_id|initial_block|frequency|caller|commitment_tx|settlement_tx|spc_calls"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "Compact for AlloyTxScheduled",
+      "create_scheduled_execution_transaction"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The metadata-preservation candidates are cumulative codec fixes. Current storage-codec evidence shows origin_tx, commitment/settlement hashes, caller, timing fields, and spc_calls are encoded/decoded rather than reset.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "9e279c6f5eb77577c301eb32a7200d5e29cfe151",
+    "b9ce7ee89f348d2c0cabd1a018fe4bc1ff2cdfae",
+    "e289ac646dee992226fe617494bb5df2c8d54906",
+    "92d5e7ea6031db2ea2e4a751bf777c576976872b"
+  ],
+  "statement": "Compact storage encoding for scheduled transactions preserves input calldata, origin_tx, call_id, index, initial_block/start metadata, frequency, caller, commitment_tx, settlement_tx, and SPC calls; regular scheduled transactions created for ordinary calls initialize commitment_tx and settlement_tx as None.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Compact round-trip a scheduled tx with non-empty SPC calls and linkage hashes; assert equality.",
+    "Create normal scheduled execution tx and assert commitment_tx/settlement_tx/spc_calls are None."
+  ],
+  "summary": "Scheduled storage codec preserves all scheduled metadata.",
+  "test_or_falsification_candidate": "Scheduled compact codec round-trip test.",
+  "title": "Scheduled storage codec preserves all scheduled metadata",
+  "total_invariants": 1954
+}

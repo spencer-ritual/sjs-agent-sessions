@@ -1,0 +1,61 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "No exact mapping: current selection is parent-hash seeded but also agent-specific, so it fails the parent-hash-only formula in this invariant.",
+  "evidence_files": [
+    "crates/scheduling/src/canonical.rs"
+  ],
+  "invariant_id": "cur-b14bcc0200-revival-executor-selection-uses-parent-hash",
+  "invariant_index": 547,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-scheduled-block-building/src/lib.rs",
+      "crates/scheduling/src/canonical.rs"
+    ],
+    "checked_queries": [
+      "select_revival_executor parent_hash hash[30] hash[31]",
+      "u16::from_be_bytes hash[30] hash[31] revival executor",
+      "revival executor selection uses parent hash"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "select_revival_executor",
+      "parent_hash",
+      "agent_addr",
+      "u16::from_be_bytes"
+    ],
+    "missing_behavior": "The start index is not computed solely as u16::from_be_bytes([hash[30], hash[31]]) % len; it is XORed with the revived agent address tail bytes.",
+    "related_but_insufficient_code": [
+      "crates/ritual-scheduled-block-building/src/lib.rs computes seed = u16::from_be_bytes([hash_bytes[30] ^ agent_bytes[18], hash_bytes[31] ^ agent_bytes[19]]), then rotates and skips the excluded executor.",
+      "The current selector is deterministic and parent-hash influenced, but it is not the parent-hash-tail-only formula described by the invariant and falsification test."
+    ]
+  },
+  "notes": "This appears superseded by invariant 549, which explicitly requires agent-specific deterministic selection.",
+  "rationale": "Selection changed from block-number modulo to parent-hash tail bytes to reduce deterministic stickiness while staying reproducible across nodes. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "082a6dce20ae15a963b00d13b9881e152282cea3"
+  ],
+  "statement": "Heartbeat revival executor selection must seed its deterministic start index from the last two bytes of the parent hash and skip the previously failed executor when possible.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Given a fixed executor list, excluded executor, and parent hash, assert all nodes compute the same selected executor; change only the parent hash tail bytes and assert the starting index changes according to `u16::from_be_bytes([hash[30], hash[31]]) % len`."
+  ],
+  "summary": "Revival executor selection is not parent-hash-tail-only.",
+  "test_or_falsification_candidate": "With a nonzero agent tail, assert the selected index equals u16::from_be_bytes([hash[30], hash[31]]) % len; current code uses XOR with agent bytes.",
+  "title": "Revival executor selection uses parent hash",
+  "total_invariants": 1954
+}

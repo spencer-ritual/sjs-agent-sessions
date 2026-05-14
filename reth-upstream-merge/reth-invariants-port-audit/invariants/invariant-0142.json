@@ -1,0 +1,64 @@
+{
+  "cluster_key": "executor delivery:async-commitments-cannot-566b865d",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "The async commitment verifier calls ritual_async_registry::job_exists_and_active with the commitment origin_tx and current block; parent-state read errors become BlockVerificationError::ParentState and an active job returns InvalidAsyncCommitment.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let job_active = ritual_async_registry::job_exists_and_active(&mut db, None, commitment.origin_tx, current_block)\n    .map_err(BlockVerificationError::ParentState)?;\nif job_active { return Err(BlockVerificationError::InvalidAsyncCommitment(...)); }",
+      "symbols": [
+        "verify_async_commitments",
+        "ritual_async_registry::job_exists_and_active"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port verifier: async commitments are rejected when parent-state AsyncJobTracker already has an active job for the commitment origin transaction, and lookup errors fail block verification.",
+  "evidence_files": [
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-3f52ad246e-async-commitments-cannot-recreate-existing-jobs",
+  "invariant_index": 142,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "verify_async_commitments|job_exists_and_active|InvalidAsyncCommitment|ParentState|origin tx already has active AsyncJobTracker job"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "verify_async_commitments",
+      "ritual_async_registry::job_exists_and_active",
+      "BlockVerificationError::ParentState",
+      "BlockVerificationError::InvalidAsyncCommitment"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The verifier now opens parent state for an AsyncJobTracker job-existence check and fails the block if `job_exists` returns true or errors for the commitment origin transaction. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: It is implemented as a storage lookup helper, but the observable behavior is the consensus rejection of duplicate commitments for already-created jobs.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "9ce222c2e932ae81de65a84bf93052b451c2cc1b"
+  ],
+  "statement": "Block verification must reject an async commitment if `AsyncJobTracker` parent-state storage already contains a job for the commitment's `origin_tx`; inability to read the job existence state is also a verification failure.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Pre-populate AsyncJobTracker storage with `jobExecutor[origin_tx] != address(0)`, include an async commitment with the same `origin_tx`, and assert block verification returns `InvalidAsyncCommitment` instead of accepting the block."
+  ],
+  "summary": "Async commitments cannot recreate existing active AsyncJobTracker jobs.",
+  "test_or_falsification_candidate": "Block-verification fixture for duplicate async commitments against parent AsyncJobTracker state.",
+  "title": "Async commitments cannot recreate existing jobs",
+  "total_invariants": 1954
+}

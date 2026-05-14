@@ -1,0 +1,135 @@
+{
+  "record_type": "file",
+  "file_index": 416,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/scheduling/src/contract.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "high-risk",
+    "non-exact",
+    "needs-review",
+    "scheduled",
+    "event-monitoring"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0416-atom-0001",
+      "file_index": 416,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/scheduling/src/contract.rs",
+      "source_hunk_hint": "@@ -0,0 +1,1035 @@",
+      "source_kind": "event_decoder",
+      "source_snippet": "Event-driven contract monitoring for the scheduling service; parsing Scheduler logs into `EnhancedCallEvent` values.",
+      "semantic_claim": "The old file decodes Scheduler event logs and updates in-memory scheduler state from CallScheduled/Cancelled/Executed/Completed/failure/skip events.",
+      "high_risk": true,
+      "risk_tags": [
+        "scheduled",
+        "event-log-processing",
+        "state-transition"
+      ],
+      "mapping_status": "partial",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/lib.rs",
+          "symbols": [
+            "read_scheduled_call",
+            "read_active_scheduled_calls",
+            "compute_obligations"
+          ],
+          "evidence": "Destination avoids Scheduler event replay and reads the Scheduler contract's parent-state storage directly."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-heartbeat-tracker/src/lib.rs",
+          "symbols": [
+            "HeartbeatTracker::process_block_logs"
+          ],
+          "evidence": "Heartbeat-specific event tracking exists, but it is not the old Scheduler event monitor."
+        }
+      ],
+      "equivalence_argument": "Non-exact replacement: scheduled correctness is driven by storage scans and verifier obligations rather than by preserving the old Scheduler event decoder and internal event length state.",
+      "test_strategy": "storage-vs-event replay parity regression",
+      "negative_test_candidate": "Simulate missed Scheduler logs followed by a due call; v2.2 should still compute the obligation from parent storage.",
+      "adversarial_review": {
+        "required": true,
+        "status": "queued",
+        "review_record_id": "review-file-0416-atom-0001"
+      },
+      "review_required": true,
+      "notes": "Filename similarity was not used as evidence; no destination `contract.rs` equivalent exists for Scheduler event parsing."
+    },
+    {
+      "record_id": "file-0416-atom-0002",
+      "file_index": 416,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/scheduling/src/contract.rs",
+      "source_hunk_hint": "crates/scheduling/src/contract.rs:5-80",
+      "source_kind": "encoding_rule",
+      "source_snippet": "derive_execution_bounds(startBlock, numCalls, frequency, ttl) -> (last_execution_block, max_block_number)",
+      "semantic_claim": "The old file adapts Scheduler API migration from `(initialBlock,maxBlockNumber)` to `(startBlock,numCalls)` and derives expiry bounds.",
+      "high_risk": true,
+      "risk_tags": [
+        "scheduled",
+        "encoding",
+        "api-migration"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/lib.rs",
+          "symbols": [
+            "ScheduledCall",
+            "compute_max_block_number_u64",
+            "due_index_bounds"
+          ],
+          "evidence": "Destination models `start_block`, `num_calls`, `frequency`, and `ttl` directly and computes expiry/due windows from those fields."
+        }
+      ],
+      "equivalence_argument": "The API migration math is preserved structurally in the destination storage model, but not via the old event-derived compatibility fields.",
+      "test_strategy": "scheduled bounds regression",
+      "negative_test_candidate": "For a call with start=100, frequency=5, num_calls=3, ttl=10, assert the destination computes the same last execution and expiry window.",
+      "adversarial_review": {
+        "required": true,
+        "status": "queued",
+        "review_record_id": "review-file-0416-atom-0002"
+      },
+      "review_required": true,
+      "notes": "Structural equivalence still needs review because old exact-target event semantics and new TTL-window obligation semantics differ."
+    }
+  ],
+  "high_risk_atoms_total": 2,
+  "non_exact_atoms_total": 2,
+  "adversarial_reviews": [
+    {
+      "review_record_id": "review-file-0416-atom-0001",
+      "atom_id": "file-0416-atom-0001",
+      "status": "queued",
+      "reason": "Scheduler event decoder is not exact-preserved; storage scans replace it."
+    },
+    {
+      "review_record_id": "review-file-0416-atom-0002",
+      "atom_id": "file-0416-atom-0002",
+      "status": "queued",
+      "reason": "Scheduler API migration math is structurally, not exactly, preserved."
+    }
+  ],
+  "summary": "Scheduler event-log monitoring is not exact-preserved; v2.2 relies on Scheduler storage scans. The `startBlock/numCalls` migration math is structurally covered by the destination scheduled verification model.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": [
+    "Queue entry verified as file 416: A\tcrates/scheduling/src/contract.rs.",
+    "Source hunk begins at divergence diff line 81753.",
+    "No source repository files were modified."
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "record_type": "file",
+  "file_index": 241,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/payload/validator/src/shanghai.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "semicolon",
+    "payload-validator",
+    "shanghai",
+    "withdrawals"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The Shanghai payload validator divergence is semicolon-only rustfmt noise in existing withdrawals presence validation error returns; no validation behavior changed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 241: M\tcrates/payload/validator/src/shanghai.rs.",
+    "The isolated patch only adds semicolons to existing post-Shanghai missing-withdrawals and pre-Shanghai has-withdrawals error returns.",
+    "No Shanghai activation check or withdrawals field validation behavior changed."
+  ]
+}

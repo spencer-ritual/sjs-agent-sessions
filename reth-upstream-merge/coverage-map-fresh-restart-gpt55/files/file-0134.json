@@ -1,0 +1,33 @@
+{
+  "record_type": "file",
+  "file_index": 134,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/net/downloaders/src/file_client.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "semicolon_only",
+    "net",
+    "downloaders"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The file-client downloader divergence is semicolon-only rustfmt noise in canonicality checks, decode loop control, header error futures, and EOF handling; no file-backed client behavior changed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 134: M\tcrates/net/downloaders/src/file_client.rs.",
+    "The isolated patch only adds semicolons to true/false returns, a break, BadResponse async returns, and an EOF Ok(None) return.",
+    "No canonical-block gap detection, chunk decoding, remaining-byte handling, header lookup, bad-response path, or chunk EOF behavior changed."
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "Canonical synthesis reads HTTP_CALL executors, returns no revivals if none exist, skips owners with pending jobs, and only creates transactions after revival data and prepared input construction succeed.",
+      "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let http_executors: Vec<Address> = read_all_executors(db, tee_registry)?.into_iter().filter(|executor| executor.capability == Capability::HttpCall).map(|executor| executor.tee_address).collect();\nif http_executors.is_empty() { return Ok(Vec::new()); }\n...\nif ritual_async_registry::has_pending_job_for_sender(db, async_job_tracker, owner)? { continue; }\nlet tx = create_heartbeat_revival_transaction(agent_addr, revival_data, executor, current_block)?;",
+      "symbols": [
+        "try_synthesize_heartbeat_revival_transactions",
+        "select_revival_executor",
+        "create_heartbeat_revival_transaction"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "The scheduler reads owner, last executor, latest manifest CID, and encrypted DA config from heartbeat storage as the prerequisite revival data.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub struct HeartbeatAgentRevivalData { pub owner: Address, pub last_executor: Address, pub latest_manifest_cid: String, pub encrypted_da_config: Vec<u8> }\n...\nOk(HeartbeatAgentRevivalData { owner, last_executor, latest_manifest_cid, encrypted_da_config })",
+      "symbols": [
+        "HeartbeatAgentRevivalData",
+        "read_heartbeat_agent_revival_data"
+      ]
+    }
+  ],
+  "equivalence_argument": "Prepared revival is gated on HTTP_CALL executor availability, no pending owner job, readable revival data, and successful prepared-input construction.",
+  "evidence_files": [
+    "crates/scheduling/src/canonical.rs"
+  ],
+  "invariant_id": "cur-3274f06fd6-prepared-revival-requires-eligible-executor-pending",
+  "invariant_index": 544,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Read/build errors fail closed rather than producing unauthorized revival transactions.",
+  "rationale": "The new canonical path reads all executors from the TEE registry, filters to HTTP_CALL, chooses a deterministic executor from the block number, checks pending jobs by owner, and continues without submitting when prerequisite reads or payload construction fail. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "d454f68d78a80b183ca151a99b43eeba29e09451"
+  ],
+  "statement": "Before submitting reviveAgentPrepared for failed agents, canonical heartbeat processing must read registered TEE services, select only HTTP_CALL executor TEE addresses, skip all revival submissions if no HTTP_CALL executors are available, skip an agent when a pending AsyncJobTracker job already exists for its owner, and skip that agent on owner, revival-data, or prepared-input read/build errors.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Run heartbeat canonical processing with no HTTP executors, with a pending job for the owner, with unreadable revival data, and with valid data; assert no transaction is submitted in the first three cases and exactly a prepared revival is submitted in the valid case."
+  ],
+  "summary": "Prepared revival requires an eligible executor and no pending job.",
+  "test_or_falsification_candidate": "Run synthesis with no HTTP executors, pending owner job, unreadable data, and valid data; assert only the valid case emits a heartbeat revival transaction.",
+  "title": "Prepared revival requires eligible executor and no pending job",
+  "total_invariants": 1954
+}

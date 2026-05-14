@@ -1,0 +1,75 @@
+{
+  "record_type": "file",
+  "file_index": 196,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/node/builder/src/rpc.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "missing",
+  "tags": [
+    "missing",
+    "non-exact",
+    "node-builder",
+    "rpc",
+    "add-ons-context",
+    "spc",
+    "api-plumbing"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0196-atom-0001",
+      "file_index": 196,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/node/builder/src/rpc.rs",
+      "source_hunk_hint": "@@ -456,7 +456,14 @@",
+      "source_kind": "public_api",
+      "source_snippet": "let AddOnsContext {\n    node,\n    config,\n    beacon_engine_handle,\n    jwt_secret,\n    engine_events,\n    spc_verifier,\n} = ctx;",
+      "semantic_claim": "The old RPC add-ons launcher destructures the expanded `AddOnsContext` shape that includes `spc_verifier`, keeping RPC launch code compile-compatible with the shared verifier context API.",
+      "high_risk": false,
+      "risk_tags": [
+        "api-plumbing",
+        "add-ons-context",
+        "spc-verifier"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/node/builder/src/rpc.rs",
+          "symbols": [
+            "RethRpcAddOns::launch_add_ons"
+          ],
+          "evidence": "The destination destructures `AddOnsContext` into node, config, beacon_engine_handle, jwt_secret, and engine_events only; exact searches found no `spc_verifier` identifier in this file."
+        }
+      ],
+      "equivalence_argument": "The destination cannot preserve this destructuring because the destination `AddOnsContext` has no `spc_verifier` field. This file does not locally use the verifier, so the behavior risk is carried by the API and launch-context records rather than by the destructuring itself.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "If the destination restores an add-ons verifier API, add a compile regression for RPC add-ons launch code destructuring or otherwise consuming the replacement context field.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Low risk at this file boundary because the verifier is only destructured here; no RPC module construction or engine API behavior consumes it locally."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The old RPC add-ons launcher destructured the new `spc_verifier` field from AddOnsContext. The v2.2.0 port has no such context field and no local verifier consumption in RPC setup, so this is recorded as low-risk missing API plumbing.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 196: M\tcrates/node/builder/src/rpc.rs.",
+    "The isolated patch only expands AddOnsContext destructuring to include `spc_verifier`.",
+    "Destination rpc.rs destructures AddOnsContext without `spc_verifier` and has no exact `spc_verifier` identifier.",
+    "No local RPC module construction, Engine API setup, or Eth API setup behavior changes in this file hunk."
+  ]
+}

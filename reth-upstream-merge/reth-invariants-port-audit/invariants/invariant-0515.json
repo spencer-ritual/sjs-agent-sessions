@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "85b41ec83e0009175c328eb0b9a07c92c3008129",
+      "evidence": "The pool deadline extractor selects ABI field 5 for persistent-agent payloads and returns None when fewer than six ABI words are present, matching the 192-byte short-input rule.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "else if precompile_address == PERSISTENT_AGENT_PRECOMPILE {\n    5\n}\n...\nu64_static_head_field(precompile_input, field_index)\n...\nif input.len() < end { return None; }",
+      "symbols": [
+        "phase2_deadline_offset",
+        "u64_static_head_field"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "85b41ec83e0009175c328eb0b9a07c92c3008129",
+      "evidence": "The shared decoder routes 0x0820 through the full PersistentAgentRequest codec and returns its executor and TTL fields.",
+      "path": "crates/ritual-precompile-codecs/src/validation.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "PERSISTENT_AGENT_PRECOMPILE => {\n    let request = PersistentAgentRequest::from_abi(input)?;\n    (request.executor, request.ttl)\n}",
+      "symbols": [
+        "try_decode_precompile_data",
+        "PersistentAgentRequest::from_abi"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port renames extract_two_phase_deadline to the pool-local phase2_deadline_offset helper, but it reads the same persistent-agent max_spawn_block word at index 5 and uses full-codec decoding for executor and TTL.",
+  "evidence_files": [
+    "crates/ritual-async/src/validation.rs"
+  ],
+  "invariant_id": "cur-866a2ee54e-persistent-agent-deadline-decode-fields",
+  "invariant_index": 515,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The deadline path is owned by async-pool metadata while executor/TTL decoding is owned by the shared precompile codec.",
+  "rationale": "The tests assert deadline extraction equals `Some(4000)` from field 5, short input returns `None`, and full-codec decoding preserves executor and TTL. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "adeb1e4bb6882c87e5f4202a7fe7bed9f0a830d2"
+  ],
+  "statement": "For persistent-agent (`0x0820`) payloads, `extract_two_phase_deadline` reads `max_spawn_block` from field 5 and returns `None` for inputs shorter than 192 bytes; `try_decode_precompile_data` returns the payload executor and TTL using the full codec.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Encode a persistent-agent payload with a known `max_spawn_block`, executor, and TTL; assert extraction/decode match, then truncate below 192 bytes and assert no deadline is returned."
+  ],
+  "summary": "Persistent-agent deadline and executor/TTL decoding are preserved.",
+  "test_or_falsification_candidate": "Encode a persistent-agent payload with known max_spawn_block, executor, and TTL; assert field-5 deadline extraction and try_decode_precompile_data match, then truncate below 192 bytes and assert no deadline is returned.",
+  "title": "Persistent-agent deadline and decode fields",
+  "total_invariants": 1954
+}

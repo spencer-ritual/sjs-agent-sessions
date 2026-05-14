@@ -1,0 +1,144 @@
+{
+  "record_type": "file",
+  "file_index": 306,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-blocking-pubsub/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "blocking-pubsub",
+    "canonical-state",
+    "callbacks"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0306-atom-0001",
+      "file_index": 306,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/ritual-blocking-pubsub/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,18 @@; handler alias, notifier storage, and debug impl",
+      "source_kind": "blocking_notifier_type_surface",
+      "source_snippet": "use reth_execution_types::Chain;\nuse reth_primitives_traits::NodePrimitives;\nuse std::sync::{Arc, Mutex};\n\npub type BlockingHandler<N> = Arc<dyn Fn(&Chain<N>) + Send + Sync>;\n\npub struct BlockingCanonStateNotifier<N: NodePrimitives> {\n    handlers: Mutex<Vec<BlockingHandler<N>>>,\n}\n\nimpl<N: NodePrimitives> std::fmt::Debug for BlockingCanonStateNotifier<N> { ... }",
+      "semantic_claim": "The old divergence adds a generic blocking canonical-state notifier surface: handlers are `Arc<dyn Fn(&Chain<N>) + Send + Sync>`, stored behind a `Mutex<Vec<_>>`, and the debug representation reports only the handler count.",
+      "high_risk": false,
+      "risk_tags": [
+        "canonical-state-notification",
+        "callback-type",
+        "mutex",
+        "debug-surface"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-blocking-pubsub/src/lib.rs",
+          "symbols": [
+            "BlockingHandler",
+            "BlockingCanonStateNotifier",
+            "Debug for BlockingCanonStateNotifier"
+          ],
+          "evidence": "Destination lines 1-18 exactly match source-added diff lines 54354-54371."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/chain-state/src/notifications.rs",
+          "symbols": [
+            "subscribe_blocking_canon_state"
+          ],
+          "evidence": "Chain-state notification traits use `ritual_blocking_pubsub::BlockingHandler` as the blocking subscription type."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the public callback type, synchronization primitive, generic bounds, and non-invasive debug behavior unchanged.",
+      "test_strategy": "blocking_notifier_type_compile_and_debug_tests",
+      "negative_test_candidate": "A notifier with poisoned handler mutex should not panic when formatting debug; it should report zero handlers as preserved by the exact implementation.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0306-atom-0002",
+      "file_index": 306,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/ritual-blocking-pubsub/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +20,38 @@; constructor, subscribe, and synchronous notification",
+      "source_kind": "blocking_notifier_registration_and_dispatch",
+      "source_snippet": "impl<N: NodePrimitives> BlockingCanonStateNotifier<N> {\n    pub fn new() -> Self { Self { handlers: Mutex::new(Vec::new()) } }\n\n    pub fn subscribe(&self, handler: BlockingHandler<N>) { ... }\n\n    pub fn notify_blocking(&self, event: &Chain<N>) { ... }\n}",
+      "semantic_claim": "The old divergence adds synchronous callback registration and dispatch: `new` creates an empty handler list, `subscribe` pushes handlers while the mutex can be locked, and `notify_blocking` invokes all registered handlers in order under the same lock.",
+      "high_risk": false,
+      "risk_tags": [
+        "canonical-state-notification",
+        "synchronous-callback",
+        "subscription",
+        "dispatch-order"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-blocking-pubsub/src/lib.rs",
+          "symbols": [
+            "BlockingCanonStateNotifier::new",
+            "BlockingCanonStateNotifier::subscribe",
+            "BlockingCanonStateNotifier::notify_blocking"
+          ],
+          "evidence": "Destination lines 20-38 exactly match source-added diff lines 54373-54391."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/chain-state/src/in_memory.rs",
+          "symbols": [
+            "blocking_notifier",
+            "subscribe_blocking_canon_state",
+            "notify_blocking"
+          ],
+          "evidence": "In-memory chain state owns a `BlockingCanonStateNotifier`, subscribes handlers through it, and calls `notify_blocking` with the canonical chain update."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/provider/src/providers/blockchain_provider.rs",
+          "symbols": [
+            "subscribe_blocking_canon_state"
+          ],
+          "evidence": "Storage provider exposes the blocking handler subscription type through the provider interface."
+        }
+      ],
+      "equivalence_argument": "The destination exactly preserves callback registration and synchronous dispatch semantics, including silent no-op behavior when locking fails.",
+      "test_strategy": "blocking_canon_state_subscription_tests",
+      "negative_test_candidate": "Register two handlers, send a chain notification, and assert both handlers observe the same `Chain<N>` update exactly once and in registration order.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping; relevant usage evidence appears in chain-state and storage-provider blocking subscription surfaces."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The `ritual-blocking-pubsub` library is exact-port preserved, retaining the generic blocking canonical-state handler type plus synchronous subscription and dispatch semantics used by chain-state/provider notification surfaces.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 306: A\tcrates/ritual-blocking-pubsub/src/lib.rs.",
+    "Source-added hunk spans diff lines 54354-54391 with header `@@ -0,0 +1,38 @@`.",
+    "Destination `crates/ritual-blocking-pubsub/src/lib.rs` has 38 lines and matches the source-added file exactly.",
+    "Bounded destination usage evidence found blocking subscriptions in chain-state and storage-provider surfaces.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

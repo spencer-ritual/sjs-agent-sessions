@@ -1,0 +1,54 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "Both execution paths call the configured block verifier on the sealed block before post-execution finalization; verifier failure is converted into BlockExecutionError and aborts execution.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "if let Some(ref verifier) = self.verifier {\n    if let Err(e) = verifier.verify_block(block.sealed_block()) {\n        return Err(BlockExecutionError::msg(format!(\"Block verification failed: {:?}\", e)));\n    }\n}\nlet result = strategy.apply_post_execution_changes()?;",
+      "symbols": [
+        "RitualBlockExecutor::execute_one",
+        "RitualBlockExecutor::execute_one_with_state_hook"
+      ]
+    }
+  ],
+  "equivalence_argument": "The v2.2 nodebuilder replaces the upstream BasicBlockExecutor surface with RitualBlockExecutor, but preserves the invariant behavior: after all transactions execute and before apply_post_execution_changes, the configured verifier is invoked against the sealed block and any verifier error aborts block execution.",
+  "evidence_files": [
+    "crates/evm/src/execute.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-a00989b3ab-executor-runs-configured-block-verifier",
+  "invariant_index": 275,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to the nodebuilder dependency because the executable Ritual executor wrapper owns the verifier invocation in the v2.2 architecture.",
+  "rationale": "The primary diff adds block_verifier plumbing to the executor provider/executor and inserts verification before post-execution state finalization, making verifier failure part of block execution outcome. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "0c779a4712623025d72e069eaa6ada0c85d78fe7"
+  ],
+  "statement": "When a BasicBlockExecutor has a block_verifier configured, execute_one and execute_one_with_state_hook call verifier.verify_block on the sealed block after executing all transactions and before apply_post_execution_changes; verifier errors abort execution as BlockExecutionError.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Configure a BasicBlockExecutor with a mock verifier that returns an error, execute a block, and assert apply_post_execution_changes is not reached and execution returns a BlockExecutionError containing the verifier failure."
+  ],
+  "summary": "RitualBlockExecutor runs the configured block verifier before post-execution finalization.",
+  "test_or_falsification_candidate": "Install a verifier double in RitualBlockExecutorProvider that returns an error and assert execute_one and execute_one_with_state_hook return BlockExecutionError before finalization.",
+  "title": "Executor runs configured block verifier",
+  "total_invariants": 1954
+}

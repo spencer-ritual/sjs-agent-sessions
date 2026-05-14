@@ -9,11 +9,10 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "mapped",
+  "file_classification": "exact",
   "tags": [
-    "mapped",
-    "executor-selection",
-    "negative-path"
+    "exact",
+    "high-risk"
   ],
   "atoms_total": 3,
   "atoms": [
@@ -135,7 +134,7 @@
   "high_risk_atoms_total": 2,
   "non_exact_atoms_total": 0,
   "adversarial_reviews": [],
-  "summary": "TEE registry reader constants and address selection are exactly present in the v2.2 port.",
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
   "review_required": false,
   "status": "complete",
   "notes": "The added file is byte-for-byte present at the same path in the v2.2 port."

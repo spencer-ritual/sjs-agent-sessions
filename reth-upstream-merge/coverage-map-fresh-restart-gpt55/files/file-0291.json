@@ -1,0 +1,85 @@
+{
+  "record_type": "file",
+  "file_index": 291,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-async-registry/src/error.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "async-registry",
+    "error-type",
+    "thiserror"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0291-atom-0001",
+      "file_index": 291,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-async-registry/src/error.rs",
+      "source_hunk_hint": "@@ -0,0 +1,16 @@; AsyncJobTracker registry error enum",
+      "source_kind": "async_registry_error_enum",
+      "source_snippet": "#[derive(Debug, Error)]\npub enum RegistryError {\n    #[error(\"Database error: {0}\")]\n    DatabaseError(String),\n\n    #[error(\"Job not found: {0}\")]\n    JobNotFound(alloy_primitives::B256),\n\n    #[error(\"Invalid storage data at slot {slot}: {reason}\")]\n    InvalidStorageData { slot: alloy_primitives::U256, reason: String },\n}",
+      "semantic_claim": "The old divergence introduces the `RegistryError` enum used by AsyncJobTracker state readers to surface database failures, missing job IDs, and invalid storage decoding failures with `thiserror` display messages.",
+      "high_risk": false,
+      "risk_tags": [
+        "error-propagation",
+        "registry-storage",
+        "thiserror"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-registry/src/error.rs",
+          "symbols": [
+            "RegistryError",
+            "RegistryError::DatabaseError",
+            "RegistryError::JobNotFound",
+            "RegistryError::InvalidStorageData"
+          ],
+          "evidence": "Destination `error.rs` preserves the same 16-line new file, `thiserror::Error` derive, enum variants, payload types, and display strings."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-registry/src/lib.rs",
+          "symbols": [
+            "pub use error::RegistryError",
+            "RegistryError::DatabaseError"
+          ],
+          "evidence": "Destination registry implementation re-exports `RegistryError` and uses `DatabaseError` throughout storage-read error propagation."
+        }
+      ],
+      "equivalence_argument": "The destination keeps the exact error enum API and display payloads, so async registry callers receive the same typed failures and diagnostics as the source divergence.",
+      "test_strategy": "error_display_and_compile_surface_check",
+      "negative_test_candidate": "Formatting `RegistryError::InvalidStorageData` should include both the slot and reason; removing either payload would reduce storage decoding diagnostics.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers only the registry error type, not registry storage-reader implementation behavior."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The async registry error type is exact-port preserved, including the `thiserror` derive, database error, job-not-found, invalid-storage variants, payload types, and display strings.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 291: A\tcrates/ritual-async-registry/src/error.rs.",
+    "The source file diff starts at line 42598 and ends before the `crates/ritual-async-registry/src/lib.rs` diff header at line 42620.",
+    "Destination `crates/ritual-async-registry/src/error.rs` contains the same 16-line file body as the source-added file.",
+    "No review queue entry was required because the audited error type is preserved exactly."
+  ]
+}

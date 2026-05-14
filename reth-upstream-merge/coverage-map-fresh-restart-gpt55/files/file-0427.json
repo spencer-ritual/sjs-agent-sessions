@@ -1,0 +1,125 @@
+{
+  "record_type": "file",
+  "file_index": 427,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/stages/api/src/pipeline/mod.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "partial",
+  "tags": [
+    "partial",
+    "missing",
+    "high-risk",
+    "non-exact",
+    "needs-review",
+    "pipeline",
+    "async-context",
+    "onnx-verification",
+    "retry"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0427-atom-0001",
+      "file_index": 427,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/stages/api/src/pipeline/mod.rs",
+      "source_hunk_hint": "@@ -31,6 +31,11 @@; @@ -385,6 +391,8 @@; @@ -423,6 +431,55 @@; @@ -474,17 +537,66 @@; @@ -537,6 +649,28 @@; @@ -1079,6 +1213,102 @@",
+      "source_kind": "state_transition",
+      "source_snippet": "Adds ONNX_PIPELINE_RETRY_LIMIT=3 and ONNX_PIPELINE_RETRY_DELAY_SECS=1; retries `OnnxModelUnavailableForVerification` during `execute_ready` and `execute`; resets retry budget after successful execution; after retries returns `ControlFlow::Unwind`; tests cover retry-without-unwind and retry-limit-then-unwind.",
+      "semantic_claim": "Temporary ONNX model unavailability during staged pipeline execution should receive three bounded one-second retries before the normal unwind/bad-block path, preserving transient verifier download tolerance.",
+      "high_risk": true,
+      "risk_tags": [
+        "verifier",
+        "pipeline",
+        "sync",
+        "onnx",
+        "negative-path"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/stages/api/src/pipeline/mod.rs",
+          "symbols": [
+            "Pipeline::execute_stage_to_completion",
+            "on_stage_error",
+            "StageError::Block"
+          ],
+          "evidence": "Destination `crates/stages/api/src/pipeline/mod.rs` exists but searches found no `ONNX_PIPELINE_RETRY`, `OnnxModelUnavailableForVerification`, `Temporary ONNX`, or `async-context` handling under `crates/stages/**`."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/engine/tree/src/tree/mod.rs",
+          "symbols": [
+            "OnnxModelUnavailableForVerification"
+          ],
+          "evidence": "Destination has engine-tree handling for `OnnxModelUnavailableForVerification`, but that does not cover the staged pipeline path audited here."
+        }
+      ],
+      "equivalence_argument": "Not equivalent: engine-tree SYNCING handling exists elsewhere, but the stage pipeline still lacks the downstream bounded retry behavior and tests.",
+      "required_change": "Port the bounded ONNX-unavailable retry handling and tests into the v2.2 `Pipeline` path, or record an explicit scope decision that staged sync may unwind immediately for transient ONNX model unavailability.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "A test stage that returns `OnnxModelUnavailableForVerification` once should retry and complete without emitting `PipelineEvent::Unwind`; four consecutive misses should take at least three retry delays and then return `ControlFlow::Unwind`.",
+      "adversarial_review": {
+        "required": true,
+        "status": "queued",
+        "review_record_id": "review-file-0427-atom-0001"
+      },
+      "review_required": true,
+      "notes": "Fresh verification disproves the older structural-equivalent prior for the semantic atom: same file path exists, but the retry code is absent."
+    },
+    {
+      "record_id": "file-0427-atom-0002",
+      "file_index": 427,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/stages/api/src/pipeline/mod.rs",
+      "source_hunk_hint": "remaining hunks in diff lines 84382-84464, 84474-84482, 84552-84558, 84613-84618, 84650-84655",
+      "source_kind": "rustfmt_noise",
+      "source_snippet": "Semicolon insertions and boolean/operator wrapping around existing returns and conditions.",
+      "semantic_claim": "The remaining pipeline hunks are rustfmt-only normalization.",
+      "high_risk": false,
+      "risk_tags": [
+        "rustfmt",
+        "noise"
+      ],
+      "mapping_status": "noise",
+      "destinations": [],
+      "equivalence_argument": "Formatting-only changes have no semantic mapping requirement.",
+      "required_change": null,
+      "test_strategy": "rustfmt",
+      "negative_test_candidate": "N/A formatting-only.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Noise atom separated so the missing semantic retry path is not hidden by rustfmt churn."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [
+    {
+      "review_record_id": "review-file-0427-atom-0001",
+      "atom_id": "file-0427-atom-0001",
+      "status": "queued",
+      "reason": "Missing bounded ONNX-unavailable retry behavior in staged pipeline execution."
+    }
+  ],
+  "summary": "The semantic ONNX pipeline retry behavior is missing from the destination; unrelated hunks are rustfmt noise.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": [
+    "Queue entry verified as file-0427: M\tcrates/stages/api/src/pipeline/mod.rs.",
+    "Source semantic hunks span diff lines 84370-84757.",
+    "Destination path exists but has no ONNX retry constants, feature-gated handling, or retry tests."
+  ]
+}

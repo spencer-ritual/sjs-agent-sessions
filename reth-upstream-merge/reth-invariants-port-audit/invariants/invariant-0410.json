@@ -1,0 +1,63 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "Delivery submission rejects Fulfilled entries and only transitions AwaitingDelivery entries to DeliveryReady.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if metadata.state == AsyncState::Fulfilled {\n    return Err(AsyncPoolError::InvalidState(AsyncState::Fulfilled));\n}\nif metadata.state != AsyncState::AwaitingDelivery { return Err(...); }\n...\nmetadata.state = AsyncState::DeliveryReady;",
+      "symbols": [
+        "submit_delivery_result_with_context"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "The separate canonical Phase 1 settlement path is responsible for moving Fulfilled entries to AwaitingDelivery.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if metadata.state != AsyncState::Fulfilled { return Err(...); }\n...\nmetadata.state = AsyncState::AwaitingDelivery;",
+      "symbols": [
+        "mark_awaiting_delivery"
+      ]
+    }
+  ],
+  "equivalence_argument": "The lifecycle requires an explicit Phase 1 settlement transition before Phase 2 delivery; delivery submission no longer auto-promotes Fulfilled entries and therefore cannot race canonical settlement.",
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/async_pool.rs"
+  ],
+  "invariant_id": "cur-d78a5e0db9-delivery-results-require-canonical-phase-settlement",
+  "invariant_index": 410,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in transaction-pool lifecycle transitions.",
+  "rationale": "The merge removes the previous recovery path that auto-transitioned Fulfilled to AwaitingDelivery on delivery submission and replaces it with a rejection explaining that Phase 1 settlement must be finalized first. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "6e01d783dfe1e39e8122063a298aadc0acdf8ea3"
+  ],
+  "statement": "Submitting a Phase 2 delivery result should be accepted only when the async pool entry is already in AwaitingDelivery; a Fulfilled entry must not be auto-transitioned and should return InvalidState so executors cannot submit delivery before Phase 1 settlement is canonicalized.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Put a two-phase async entry in Fulfilled state and call submit_delivery_result, asserting InvalidState and no delivery data is stored; call mark_awaiting_delivery first, then submit delivery and assert the entry transitions to DeliveryReady."
+  ],
+  "summary": "Phase 2 delivery requires canonical AwaitingDelivery state.",
+  "test_or_falsification_candidate": "Place a two-phase async entry in Fulfilled and call submit_delivery_result_with_context; assert InvalidState(Fulfilled) and no delivery data is stored, then mark_awaiting_delivery and assert delivery succeeds.",
+  "title": "Delivery results require canonical Phase 1 settlement",
+  "total_invariants": 1954
+}

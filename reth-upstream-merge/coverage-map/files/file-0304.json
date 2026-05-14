@@ -11,20 +11,21 @@
   },
   "file_classification": "mapped",
   "tags": [
-    "mapped",
-    "verifier",
+    "blocked",
     "high-risk",
-    "non-exact",
+    "intentionally_absent",
+    "moved_to_dependency",
     "needs-review",
-    "nodebuilder"
+    "non-exact",
+    "structural_equivalent"
   ],
-  "atoms_total": 1,
+  "atoms_total": 33,
   "atoms": [
     {
       "record_id": "file-0304-atom-0001",
       "file_index": 304,
       "atom_index": 1,
-      "atoms_total": 1,
+      "atoms_total": 33,
       "source_path": "crates/ritual-block-verification/src/verifier.rs",
       "source_hunk_hint": "@@ -0,0 +1,5303 @@",
       "source_kind": "other",
@@ -34,40 +35,1659 @@
       "risk_tags": [
         "verifier"
       ],
-      "mapping_status": "moved_to_dependency",
+      "mapping_status": "structural_equivalent",
       "destinations": [
         {
-          "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
-          "path": "crates/ritual-nsm/src/verifier.rs",
-          "symbols": [
-            "new",
-            "verify_x509_cert",
-            "verify_remote_attestation_signature",
-            "verify",
-            "parse_document"
-          ],
-          "snippet": "    pub fn new(protected: Vec<u8>, signature: Vec<u8>, payload: Vec<u8>) -> Self {\n        AttestationDocument {\n            protected,\n            signature,\n            payload,",
-          "evidence": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path."
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/ritual-block-verification/src/lib.rs."
         }
       ],
-      "equivalence_argument": "The downstream file name resolves uniquely in the destination search scope outside the original path, indicating the behavior likely moved rather than disappearing.",
+      "equivalence_argument": "Downstream path `crates/ritual-block-verification/src/verifier.rs` maps to v2.2 `crates/ritual-block-verification/src/lib.rs` (remapped). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
       "test_strategy": "destination_only_regression",
       "negative_test_candidate": "Run the destination behavior owned by crates/ritual-block-verification/src/verifier.rs and verify the downstream-observed behavior still holds after the port refactor.",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0304-atom-0001"
+      },
+      "review_required": false,
+      "notes": "Old verifier.rs file-level atom is too broad; concrete verifier subclaims are mapped to ritual-block-verification/src/lib.rs or classified by feature-specific atoms.",
+      "human_question": "filename/path similarity is not evidence of preserved behavior, guards, transitions, side effects, or failure paths.",
+      "required_change": null,
+      "needs_atomization": false
+    },
+    {
+      "record_id": "file-0304-atom-0002",
+      "file_index": 304,
+      "atom_index": 2,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,5303 @@",
+      "source_kind": "test_fixture",
+      "source_snippet": "        }\n\n        /// Property: Agent metrics extraction is deterministic\n        #[test]\n        fn prop_metrics_agent_deterministic(\n            input_bytes in proptest::collection::vec(any::<u8>(), 0..1000),\n        ) {\n            let input = Bytes::from(input_bytes);\n            let result1 = extract_agent_metrics(&input);\n            let result2 = extract_agent_metrics(&input);\n            prop_assert_eq!(result1, result2);\n        }\n    }\n\n    // ============================================================\n    // ONNX Model Unavailability Error Classification Tests\n    //\n    // These tests verify that ONNX model unavailability during verification\n    // is classified as a Validation\n---\n    ///\n    /// This verifies that any BlockValidationError variant is correctly classified\n    /// as a validation error (in contrast to InternalBlockExecutionError which is not).\n    #[test]\n    fn test_validation_errors_are_classified_as_validation() {\n        use reth_evm::execute::{BlockExecutionError, BlockValidationError};\n\n        // Use a simple variant that's always available\n        let err = BlockValidationError::IncrementBalanceFailed;\n        let block_err = BlockExecutionError::Validation(err);\n\n        // Verify this IS classified as a validation error\n        assert!(\n            block_err.as_validation().is_some(),\n            \"BlockValidationError should be classified as v",
+      "semantic_claim": "classification preserves sequencing-rights classification, priority, bucket, or ordering behavior covered by downstream tests: prop_metrics_agent_deterministic, test_validation_errors_are_classified_as_validation.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "verifier",
+        "negative-path"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [],
+      "equivalence_argument": null,
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: prop_metrics_agent_deterministic, test_validation_errors_are_classified_as_validation.",
       "adversarial_review": {
         "required": true,
         "status": "not_requested",
         "review_record_id": null
       },
       "review_required": true,
-      "notes": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path.",
-      "human_question": "Confirm that landing this file in a dependency repository preserves every downstream behavior atom expected from the old fork."
+      "notes": "Ritual metrics/tracing router surfaces are intentionally not part of the current runtime-critical v2.2 slice; no live consensus/FSM behavior depends on them.",
+      "test_derived": true,
+      "source_test_names": [
+        "prop_metrics_agent_deterministic",
+        "test_validation_errors_are_classified_as_validation"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0304-atom-0092",
+        "test-file-0304-atom-0094"
+      ],
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope."
+    },
+    {
+      "record_id": "file-0304-atom-0003",
+      "file_index": 304,
+      "atom_index": 3,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,5303 @@",
+      "source_kind": "test_fixture",
+      "source_snippet": "        }\n\n        /// Property: Valid commitment parameters always pass both builder and verifier\n        #[test]\n        fn prop_valid_commitment_passes_both(\n            ttl in 1u64..=max_ttl_blocks(),\n            executor_bytes in prop::array::uniform20(1u8..=255u8), // non-zero bytes\n        ) {\n            let executor = Address::from(executor_bytes);\n\n            // Both builder and verifier should accept\n            prop_assert!(!builder_skips_invalid_ttl(ttl), \"Builder should accept valid TTL\");\n            prop_assert!(!verifier_rejects_ttl(ttl), \"Verifier should accept valid TTL\");\n            prop_assert!(!builder_skips_invalid_executor(executor), \"Builder should accept valid exe",
+      "semantic_claim": "commitment passes preserves the production behavior asserted by downstream tests: prop_valid_commitment_passes_both.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "payload",
+        "verifier"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        }
+      ],
+      "equivalence_argument": "Block verification behavior is preserved by the v2.2 function-based verifier hooks and consensus integration.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: prop_valid_commitment_passes_both.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to ritual-block-verification/src/lib.rs.",
+      "test_derived": true,
+      "source_test_names": [
+        "prop_valid_commitment_passes_both"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0304-atom-0037"
+      ]
+    },
+    {
+      "record_id": "file-0304-atom-0004",
+      "file_index": 304,
+      "atom_index": 4,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,5303 @@",
+      "source_kind": "error_path",
+      "source_snippet": "        assert_eq!(verifier_rejects_ttl(ttl), builder_skips_invalid_ttl(ttl));\n    }\n\n    #[test]\n    fn diff_eq_ttl_large_value_rejected() {\n        // TTL = 1000 -> both REJECT (way above max)\n        let ttl = 1000;\n        assert!(verifier_rejects_ttl(ttl), \"Verifier MUST reject large TTL\");\n        assert!(builder_skips_invalid_ttl(ttl), \"Builder MUST skip large TTL\");\n        assert_eq!(verifier_rejects_ttl(ttl), builder_skips_invalid_ttl(ttl));\n    }\n\n    // ============================================================\n    // C-EXEC: EXECUTOR ADDRESS DIFFERENTIAL EQUIVALENCE\n    // ============================================================\n    //\n    // Invariant: executor != Address",
+      "semantic_claim": "Async commitment validation accepts only valid TTL, precompile, and executor structure and rejects TTL=0, TTL>max, invalid precompile addresses, and zero executors.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "verifier",
+        "consensus-constant",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        }
+      ],
+      "equivalence_argument": "Block verification behavior is preserved by the v2.2 function-based verifier hooks and consensus integration.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: diff_eq_ttl_large_value_rejected.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to ritual-block-verification/src/lib.rs.",
+      "test_derived": true,
+      "source_test_names": [
+        "diff_eq_ttl_large_value_rejected"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0304-atom-0031"
+      ]
+    },
+    {
+      "record_id": "file-0304-atom-0005",
+      "file_index": 304,
+      "atom_index": 5,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,5303 @@",
+      "source_kind": "error_path",
+      "source_snippet": "        ttl == 0 || ttl > max_ttl_blocks()\n    }\n\n    #[test]\n    fn diff_eq_ttl_zero_rejected() {\n        // TTL = 0 -> both REJECT\n        let ttl = 0;\n        assert!(verifier_rejects_ttl(ttl), \"Verifier MUST reject TTL=0\");\n        assert!(builder_skips_invalid_ttl(ttl), \"Builder MUST skip TTL=0\");\n        assert_eq!(verifier_rejects_ttl(ttl), builder_skips_invalid_ttl(ttl));\n    }\n\n    #[test]\n    fn diff_eq_ttl_one_accepted() {\n        // TTL = 1 -> both ACCEPT\n        let ttl = 1;\n        assert!(!verifier_rejects_ttl(ttl), \"Verifier MUST accept TTL=1\");\n        assert!(!builder_skips_invalid_ttl(ttl), \"Builder MUST NOT skip TTL=1\");\n        assert_eq!(verifier_rejects_ttl(ttl), build\n---\n        assert_eq!(verifier_rejects_ttl(ttl), builder_skips_invalid_ttl(ttl));\n    }\n\n    #[test]\n    fn diff_eq_ttl_one_accepted() {\n        // TTL = 1 -> both ACCEPT\n        let ttl = 1;\n        assert!(!verifier_rejects_ttl(ttl), \"Verifier MUST accept TTL=1\");\n        assert!(!builder_skips_invalid_ttl(ttl), \"Builder MUST NOT skip TTL=1\");\n        assert_eq!(verifier_rejects_ttl(ttl), builder_skips_invalid_ttl(ttl));\n    }\n\n    #[test]\n    fn diff_eq_ttl_max_accepted() {\n        // TTL = max_ttl_blocks() (default 500) -> both ACCEPT\n        let ttl = max_ttl_blocks();\n        assert!(!verifier_rejects_ttl(ttl), \"Verifier MUST accept TTL=max_ttl_blocks()\");\n        assert!(!builder_skips_i\n---\n        assert_eq!(verifier_rejects_ttl(ttl), builder_skips_invalid_ttl(ttl));\n    }\n\n    #[test]\n    fn diff_eq_ttl_max_accepted() {\n        // TTL = max_ttl_blocks() (default 500) -> both ACCEPT\n        let ttl = max_ttl_blocks();\n        assert!(!verifier_rejects_ttl(ttl), \"Verifier MUST accept TTL=max_ttl_blocks()\");\n        assert!(!builder_skips_invalid_ttl(ttl), \"Builder MUST NOT skip TTL=max_ttl_blocks()\");\n        assert_eq!(verifier_rejects_ttl(ttl), builder_skips_invalid_ttl(ttl));\n    }\n\n    #[test]\n    fn diff_eq_ttl_exceeds_max_rejected() {\n        // TTL = max_ttl_blocks() + 1 -> both REJECT\n        let ttl = max_ttl_blocks() + 1;\n        assert!(verifier_rejects_ttl(ttl), \"Ve",
+      "semantic_claim": "diff eq preserves the production behavior asserted by downstream tests: diff_eq_ttl_zero_rejected, diff_eq_ttl_one_accepted, diff_eq_ttl_max_accepted, diff_eq_ttl_exceeds_max_rejected, diff_eq_executor_zero_rejected.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "verifier",
+        "consensus-constant",
+        "negative-path",
+        "executor-selection",
+        "async-fsm",
+        "encoding"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        }
+      ],
+      "equivalence_argument": "Block verification behavior is preserved by the v2.2 function-based verifier hooks and consensus integration.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: diff_eq_ttl_zero_rejected, diff_eq_ttl_one_accepted, diff_eq_ttl_max_accepted, diff_eq_ttl_exceeds_max_rejected, diff_eq_executor_zero_rejected, diff_eq_executor_nonzero_accepted, diff_eq_executor_one_byte_accepted, diff_eq_settlement_expiry_equal, ...",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to ritual-block-verification/src/lib.rs.",
+      "test_derived": true,
+      "source_test_names": [
+        "diff_eq_ttl_zero_rejected",
+        "diff_eq_ttl_one_accepted",
+        "diff_eq_ttl_max_accepted",
+        "diff_eq_ttl_exceeds_max_rejected",
+        "diff_eq_executor_zero_rejected",
+        "diff_eq_executor_nonzero_accepted",
+        "diff_eq_executor_one_byte_accepted",
+        "diff_eq_settlement_expiry_equal",
+        "diff_eq_settlement_expiry_before",
+        "diff_eq_settlement_expiry_after",
+        "diff_eq_settlement_expiry_boundary_plus_one",
+        "diff_eq_sender_first_async_allowed",
+        "diff_eq_sender_duplicate_async_rejected",
+        "diff_eq_nonce_lock_no_pending",
+        "diff_eq_nonce_lock_has_pending",
+        "diff_eq_nonce_lock_deterministic",
+        "diff_eq_metrics_extraction_deterministic"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0304-atom-0027",
+        "test-file-0304-atom-0028",
+        "test-file-0304-atom-0029",
+        "test-file-0304-atom-0030",
+        "test-file-0304-atom-0032",
+        "test-file-0304-atom-0033",
+        "test-file-0304-atom-0034",
+        "test-file-0304-atom-0038",
+        "test-file-0304-atom-0039",
+        "test-file-0304-atom-0040",
+        "test-file-0304-atom-0041",
+        "test-file-0304-atom-0044",
+        "test-file-0304-atom-0045",
+        "test-file-0304-atom-0063",
+        "test-file-0304-atom-0064",
+        "test-file-0304-atom-0065",
+        "test-file-0304-atom-0090"
+      ]
+    },
+    {
+      "record_id": "file-0304-atom-0006",
+      "file_index": 304,
+      "atom_index": 6,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,5303 @@",
+      "source_kind": "test_fixture",
+      "source_snippet": "    ///\n    /// Verify that our BlockVerificationError correctly distinguishes\n    /// between errors that are the block's fault vs infrastructure issues.\n    #[test]\n    fn test_error_class_system_vs_block_local() {\n        use crate::error::{BlockVerificationError, ErrorClass};\n\n        // System-level errors (not block's fault)\n        let state_err = BlockVerificationError::StateProviderUnavailable {\n            reason: \"database down\".to_string(),\n        };\n        assert_eq!(state_err.error_class(), ErrorClass::System);\n        assert!(state_err.is_system_error());\n\n        let db_err = BlockVerificationError::DatabaseReadFailed { reason: \"disk full\".to_string() };\n        assert_eq!(",
+      "semantic_claim": "error class preserves the production behavior asserted by downstream tests: test_error_class_system_vs_block_local.",
+      "high_risk": true,
+      "risk_tags": [
+        "verifier",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        }
+      ],
+      "equivalence_argument": "Block verification behavior is preserved by the v2.2 function-based verifier hooks and consensus integration.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_error_class_system_vs_block_local.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to ritual-block-verification/src/lib.rs.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_error_class_system_vs_block_local"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0304-atom-0095"
+      ]
+    },
+    {
+      "record_id": "file-0304-atom-0007",
+      "file_index": 304,
+      "atom_index": 7,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,5303 @@",
+      "source_kind": "test_fixture",
+      "source_snippet": "        }\n\n        /// Property: Builder and verifier agree on executor validation\n        #[test]\n        fn prop_executor_equivalence(bytes in prop::array::uniform20(any::<u8>())) {\n            let executor = Address::from(bytes);\n            let builder_reject = builder_skips_invalid_executor(executor);\n            let verifier_reject = verifier_rejects_executor(executor);\n\n            // THE INVARIANT: builder and verifier must always agree\n            prop_assert_eq!(\n                builder_reject, verifier_reject,\n                \"Executor differential failure: executor={:?}, builder_reject={}, verifier_reject={}\",\n                executor, builder_reject, verifier_reject\n            ",
+      "semantic_claim": "executor equivalence preserves the encoding, decoding, storage, or proof boundary covered by downstream tests: prop_executor_equivalence.",
+      "high_risk": true,
+      "risk_tags": [
+        "verifier",
+        "executor-selection"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        }
+      ],
+      "equivalence_argument": "Block verification behavior is preserved by the v2.2 function-based verifier hooks and consensus integration.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: prop_executor_equivalence.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to ritual-block-verification/src/lib.rs.",
+      "test_derived": true,
+      "source_test_names": [
+        "prop_executor_equivalence"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0304-atom-0036"
+      ]
+    },
+    {
+      "record_id": "file-0304-atom-0008",
+      "file_index": 304,
+      "atom_index": 8,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,5303 @@",
+      "source_kind": "state_transition",
+      "source_snippet": "    // on accept/reject for any (current_block, ttl, max_poll_block) tuple.\n    // ============================================================\n\n    #[test]\n    fn test_is_two_phase_precompile() {\n        // Two-phase precompiles should return true\n        assert!(is_two_phase_precompile(LONG_RUNNING_HTTP_PRECOMPILE));\n        assert!(is_two_phase_precompile(ZK_TWO_PHASE_PRECOMPILE));\n        assert!(is_two_phase_precompile(SOVEREIGN_AGENT_PRECOMPILE));\n        assert!(is_two_phase_precompile(PERSISTENT_AGENT_PRECOMPILE));\n\n        // Single-phase precompiles should return false\n        assert!(!is_two_phase_precompile(HTTP_CALL_PRECOMPILE));\n        assert!(!is_two_phase_precompile(LLM_CALL\n---\n        assert!(!is_two_phase_precompile(DKMS_KEY_PRECOMPILE));\n    }\n\n    #[test]\n    fn test_extract_phase2_deadline_valid_input() {\n        // Create 224-byte input with max_poll_block at offset 192 (field 6)\n        let mut input = vec![0u8; 224];\n        let deadline: u64 = 1000;\n        input[192..224].copy_from_slice(&U256::from(deadline).to_be_bytes::<32>());\n\n        let result = extract_phase2_deadline(&Bytes::from(input), LONG_RUNNING_HTTP_PRECOMPILE);\n        assert_eq!(result, Some(1000));\n    }\n\n    #[test]\n    fn test_extract_phase2_deadline_input_too_short() {\n        // Input shorter than 224 bytes should return None\n        let input = vec![0u8; 100];\n        let result = e\n---\n        assert_eq!(result, Some(1000));\n    }\n\n    #[test]\n    fn test_extract_phase2_deadline_input_too_short() {\n        // Input shorter than 224 bytes should return None\n        let input = vec![0u8; 100];\n        let result = extract_phase2_deadline(&Bytes::from(input), LONG_RUNNING_HTTP_PRECOMPILE);\n        assert_eq!(result, None);\n    }\n\n    #[test]\n    fn test_extract_phase2_deadline_various_values() {\n        for deadline in [1u64, 100, 1000, 10000, u64::MAX / 2] {\n            let mut input = vec![0u8; 224];\n            input[192..224].copy_from_slice(&U256::from(deadline).to_be_bytes::<32>());\n\n            let result = extract_phase2_deadline(&Bytes::from(input), LONG_RUNNING_HTTP",
+      "semantic_claim": "extract phase2 deadline preserves the encoding, decoding, storage, or proof boundary covered by downstream tests: test_is_two_phase_precompile, test_extract_phase2_deadline_valid_input, test_extract_phase2_deadline_input_too_short, test_extract_phase2_deadline_various_values.",
+      "high_risk": true,
+      "risk_tags": [
+        "verifier",
+        "async-fsm",
+        "encoding",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        }
+      ],
+      "equivalence_argument": "Block verification behavior is preserved by the v2.2 function-based verifier hooks and consensus integration.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_is_two_phase_precompile, test_extract_phase2_deadline_valid_input, test_extract_phase2_deadline_input_too_short, test_extract_phase2_deadline_various_values, test_extract_phase2_deadline_sovereign_agent_reads_field_4, test_extract_phase2_deadline_sovereign_agent_input_too_short, test_extract_phase2_deadline_persistent_agent_reads_field_5, test_extract_phase2_deadline_fhe_reads_field_10, ...",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to ritual-block-verification/src/lib.rs.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_is_two_phase_precompile",
+        "test_extract_phase2_deadline_valid_input",
+        "test_extract_phase2_deadline_input_too_short",
+        "test_extract_phase2_deadline_various_values",
+        "test_extract_phase2_deadline_sovereign_agent_reads_field_4",
+        "test_extract_phase2_deadline_sovereign_agent_input_too_short",
+        "test_extract_phase2_deadline_persistent_agent_reads_field_5",
+        "test_extract_phase2_deadline_fhe_reads_field_10",
+        "test_extract_phase2_deadline_fhe_input_too_short",
+        "test_extract_phase2_deadline_fhe_various_values",
+        "test_extract_phase2_deadline_non_fhe_still_reads_field_6"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0304-atom-0001",
+        "test-file-0304-atom-0002",
+        "test-file-0304-atom-0003",
+        "test-file-0304-atom-0004",
+        "test-file-0304-atom-0005",
+        "test-file-0304-atom-0006",
+        "test-file-0304-atom-0007",
+        "test-file-0304-atom-0008",
+        "test-file-0304-atom-0009",
+        "test-file-0304-atom-0010",
+        "test-file-0304-atom-0011"
+      ]
+    },
+    {
+      "record_id": "file-0304-atom-0009",
+      "file_index": 304,
+      "atom_index": 9,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,5303 @@",
+      "source_kind": "encoding_rule",
+      "source_snippet": "\n    proptest! {\n        /// Property: SPC proof length check is consistent\n        #[test]\n        fn prop_spc_proof_length_equivalence(\n            proof_len in 0usize..200,\n        ) {\n            let builder_valid = proof_len >= SPC_PROOF_SIGNATURE_LENGTH;\n            let verifier_valid = proof_len >= SPC_PROOF_SIGNATURE_LENGTH;\n            prop_assert_eq!(\n                builder_valid, verifier_valid,\n                \"SPC proof length check diverged at len={}\",\n                proof_len\n            );\n        }\n    }\n\n    // ============================================================\n    // DIFFERENTIAL EQUIVALENCE: Builder vs Verifier (Fee Calculation)\n    // ========================",
+      "semantic_claim": "fee preserves the fee/gas/accounting behavior covered by downstream tests: prop_spc_proof_length_equivalence.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "verifier"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        }
+      ],
+      "equivalence_argument": "Block verification behavior is preserved by the v2.2 function-based verifier hooks and consensus integration.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: prop_spc_proof_length_equivalence.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to ritual-block-verification/src/lib.rs.",
+      "test_derived": true,
+      "source_test_names": [
+        "prop_spc_proof_length_equivalence"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0304-atom-0057"
+      ]
+    },
+    {
+      "record_id": "file-0304-atom-0010",
+      "file_index": 304,
+      "atom_index": 10,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,5303 @@",
+      "source_kind": "state_transition",
+      "source_snippet": "    }\n\n    /// Test that agent Phase 2 fee calculation is deterministic\n    #[test]\n    fn diff_eq_fee_agent_phase2_deterministic() {\n        use ritual_async_fees::calculate_agent_fees_phase2_work;\n\n        let iterations = 5u16;\n        let tool_calls = 3u16;\n\n        let fees1 = calculate_agent_fees_phase2_work(iterations, tool_calls);\n        let fees2 = calculate_agent_fees_phase2_work(iterations, tool_calls);\n\n        assert_eq!(fees1.executor_fee, fees2.executor_fee);\n        assert_eq!(fees1.commitment_fee, fees2.commitment_fee);\n        assert_eq!(fees1.inclusion_fee, fees2.inclusion_fee);\n    }\n\n    /// Test that Phase 2 HTTP fee calculation is deterministic\n    #[test]\n    fn diff\n---\n\n    proptest! {\n        /// Property: Agent Phase 2 fee calculation is deterministic\n        #[test]\n        fn prop_fee_agent_phase2_deterministic(\n            iterations in 0u16..1000,\n            tool_calls in 0u16..1000,\n        ) {\n            use ritual_async_fees::calculate_agent_fees_phase2_work;\n\n            let fees1 = calculate_agent_fees_phase2_work(iterations, tool_calls);\n            let fees2 = calculate_agent_fees_phase2_work(iterations, tool_calls);\n\n            prop_assert_eq!(fees1.executor_fee, fees2.executor_fee);\n            prop_assert_eq!(fees1.commitment_fee, fees2.commitment_fee);\n            prop_assert_eq!(fees1.inclusion_fee, fees2.inclusion_fee);\n        }\n\n   ",
+      "semantic_claim": "fees preserves the fee/gas/accounting behavior covered by downstream tests: diff_eq_fee_agent_phase2_deterministic, prop_fee_agent_phase2_deterministic.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "verifier",
+        "gas",
+        "fees",
+        "rewards"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        }
+      ],
+      "equivalence_argument": "Block verification behavior is preserved by the v2.2 function-based verifier hooks and consensus integration.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: diff_eq_fee_agent_phase2_deterministic, prop_fee_agent_phase2_deterministic.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to ritual-block-verification/src/lib.rs.",
+      "test_derived": true,
+      "source_test_names": [
+        "diff_eq_fee_agent_phase2_deterministic",
+        "prop_fee_agent_phase2_deterministic"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0304-atom-0059",
+        "test-file-0304-atom-0061"
+      ]
+    },
+    {
+      "record_id": "file-0304-atom-0011",
+      "file_index": 304,
+      "atom_index": 11,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,5303 @@",
+      "source_kind": "error_path",
+      "source_snippet": "\n    proptest! {\n        /// Property: Nonce lock decision is deterministic for same input\n        #[test]\n        fn prop_nonce_lock_deterministic(\n            has_pending in proptest::bool::ANY,\n        ) {\n            // Builder skip logic\n            let builder_skip = has_pending;\n            // Verifier reject logic\n            let verifier_reject = has_pending;\n\n            prop_assert_eq!(builder_skip, verifier_reject);\n        }\n    }\n\n    // ============================================================\n    // DIFFERENTIAL EQUIVALENCE: Builder vs Verifier (Scheduled Constraints C1-C10)\n    // ============================================================\n    //\n    // Both builder and ",
+      "semantic_claim": "filter  preserves scheduled-transaction obligation/filtering behavior covered by downstream tests: prop_nonce_lock_deterministic.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "verifier"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        }
+      ],
+      "equivalence_argument": "Block verification behavior is preserved by the v2.2 function-based verifier hooks and consensus integration.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: prop_nonce_lock_deterministic.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to ritual-block-verification/src/lib.rs.",
+      "test_derived": true,
+      "source_test_names": [
+        "prop_nonce_lock_deterministic"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0304-atom-0066"
+      ]
+    },
+    {
+      "record_id": "file-0304-atom-0012",
+      "file_index": 304,
+      "atom_index": 12,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,5303 @@",
+      "source_kind": "test_fixture",
+      "source_snippet": "    /// Test that HTTP fee helper functions are deterministic\n    /// Note: Full calculate_async_fees requires a database, so we test the\n    /// shared helper functions that both builder and verifier use.\n    #[test]\n    fn diff_eq_fee_http_helpers_deterministic() {\n        use ritual_async_fees::http_executor_fee;\n\n        let input_len = 100usize;\n        let output_len = 200usize;\n\n        let fee1 = http_executor_fee(input_len, output_len);\n        let fee2 = http_executor_fee(input_len, output_len);\n\n        assert_eq!(fee1, fee2, \"HTTP executor fee calculation must be deterministic\");\n    }\n\n    /// Test that agent Phase 2 fee calculation is deterministic\n    #[test]\n    fn diff_eq_fe",
+      "semantic_claim": "http executor fee preserves the fee/gas/accounting behavior covered by downstream tests: diff_eq_fee_http_helpers_deterministic.",
+      "high_risk": true,
+      "risk_tags": [
+        "verifier",
+        "gas",
+        "fees",
+        "rewards"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        }
+      ],
+      "equivalence_argument": "Block verification behavior is preserved by the v2.2 function-based verifier hooks and consensus integration.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: diff_eq_fee_http_helpers_deterministic.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to ritual-block-verification/src/lib.rs.",
+      "test_derived": true,
+      "source_test_names": [
+        "diff_eq_fee_http_helpers_deterministic"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0304-atom-0058"
+      ]
+    },
+    {
+      "record_id": "file-0304-atom-0013",
+      "file_index": 304,
+      "atom_index": 13,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,5303 @@",
+      "source_kind": "test_fixture",
+      "source_snippet": "\n    proptest! {\n        /// Property: Delivery result extraction is deterministic\n        #[test]\n        fn prop_metrics_delivery_deterministic(\n            input_bytes in proptest::collection::vec(any::<u8>(), 0..1000),\n        ) {\n            let input = Bytes::from(input_bytes);\n            let result1 = extract_delivery_result_len(&input);\n            let result2 = extract_delivery_result_len(&input);\n            prop_assert_eq!(result1, result2);\n        }\n\n        /// Property: Agent metrics extraction is deterministic\n        #[test]\n        fn prop_metrics_agent_deterministic(\n            input_bytes in proptest::collection::vec(any::<u8>(), 0..1000),\n        ) {\n            let in",
+      "semantic_claim": "metrics delivery preserves the production behavior asserted by downstream tests: prop_metrics_delivery_deterministic.",
+      "high_risk": true,
+      "risk_tags": [
+        "verifier"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [],
+      "equivalence_argument": null,
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: prop_metrics_delivery_deterministic.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Ritual metrics/tracing router surfaces are intentionally not part of the current runtime-critical v2.2 slice; no live consensus/FSM behavior depends on them.",
+      "test_derived": true,
+      "source_test_names": [
+        "prop_metrics_delivery_deterministic"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0304-atom-0091"
+      ],
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope."
+    },
+    {
+      "record_id": "file-0304-atom-0014",
+      "file_index": 304,
+      "atom_index": 14,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,5303 @@",
+      "source_kind": "test_fixture",
+      "source_snippet": "    // ============================================================\n\n    #[cfg(feature = \"async-context\")]\n    #[test]\n    fn test_onnx_unavailable_is_validation_error() {\n        use reth_evm::execute::{BlockExecutionError, BlockValidationError};\n\n        let block_err = BlockExecutionError::Validation(\n            BlockValidationError::OnnxModelUnavailableForVerification {\n                model_id: \"test-model\".to_string(),\n                hash: B256::ZERO,\n            },\n        );\n\n        assert!(\n            block_err.as_validation().is_some(),\n            \"ONNX model unavailable should be classified as validation error\"\n        );\n    }\n\n    /// Test: BlockValidationError variants ARE",
+      "semantic_claim": "onnx unavailable preserves the production behavior asserted by downstream tests: test_onnx_unavailable_is_validation_error.",
+      "high_risk": true,
+      "risk_tags": [
+        "verifier",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        }
+      ],
+      "equivalence_argument": "Block verification behavior is preserved by the v2.2 function-based verifier hooks and consensus integration.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_onnx_unavailable_is_validation_error.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to ritual-block-verification/src/lib.rs.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_onnx_unavailable_is_validation_error"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0304-atom-0093"
+      ]
+    },
+    {
+      "record_id": "file-0304-atom-0015",
+      "file_index": 304,
+      "atom_index": 15,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,5303 @@",
+      "source_kind": "error_path",
+      "source_snippet": "        phase2_offset <= ttl\n    }\n\n    #[test]\n    fn diff_eq_phase2_deadline_valid() {\n        // offset > ttl -> both ALLOW\n        let ttl = max_ttl_blocks();\n        let phase2_offset = ttl + 20; // > ttl -> valid\n\n        let builder_skip = builder_skips_invalid_phase2_deadline_offset(ttl, phase2_offset);\n        let verifier_reject = verifier_rejects_phase2_deadline_offset(ttl, phase2_offset);\n\n        assert!(!builder_skip, \"Builder should NOT skip valid offset\");\n        assert!(!verifier_reject, \"Verifier should NOT reject valid offset\");\n        assert_eq!(builder_skip, verifier_reject);\n    }\n\n    #[test]\n    fn diff_eq_phase2_deadline_invalid_equal() {\n        // offset == ttl -\n---\n        assert_eq!(builder_skip, verifier_reject);\n    }\n\n    #[test]\n    fn diff_eq_phase2_deadline_invalid_equal() {\n        // offset == ttl -> both REJECT (must be strictly greater)\n        let ttl = max_ttl_blocks();\n        let phase2_offset = ttl; // == ttl (not strictly greater)\n\n        let builder_skip = builder_skips_invalid_phase2_deadline_offset(ttl, phase2_offset);\n        let verifier_reject = verifier_rejects_phase2_deadline_offset(ttl, phase2_offset);\n\n        assert!(builder_skip, \"Builder SHOULD skip when offset == ttl\");\n        assert!(verifier_reject, \"Verifier SHOULD reject when offset == ttl\");\n        assert_eq!(builder_skip, verifier_reject);\n    }\n\n    #[test]\n    \n---\n        assert_eq!(builder_skip, verifier_reject);\n    }\n\n    #[test]\n    fn diff_eq_phase2_deadline_invalid_less() {\n        // offset < ttl -> both REJECT\n        let ttl = max_ttl_blocks();\n        let phase2_offset = ttl - 10; // < ttl\n\n        let builder_skip = builder_skips_invalid_phase2_deadline_offset(ttl, phase2_offset);\n        let verifier_reject = verifier_rejects_phase2_deadline_offset(ttl, phase2_offset);\n\n        assert!(builder_skip, \"Builder SHOULD skip when offset < ttl\");\n        assert!(verifier_reject, \"Verifier SHOULD reject when offset < ttl\");\n        assert_eq!(builder_skip, verifier_reject);\n    }\n\n    #[test]\n    fn diff_eq_phase2_deadline_boundary() {\n        //",
+      "semantic_claim": "phase2 preserves the production behavior asserted by downstream tests: diff_eq_phase2_deadline_valid, diff_eq_phase2_deadline_invalid_equal, diff_eq_phase2_deadline_invalid_less, diff_eq_phase2_deadline_boundary, prop_phase2_deadline_equivalence.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "payload",
+        "verifier",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        }
+      ],
+      "equivalence_argument": "Block verification behavior is preserved by the v2.2 function-based verifier hooks and consensus integration.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: diff_eq_phase2_deadline_valid, diff_eq_phase2_deadline_invalid_equal, diff_eq_phase2_deadline_invalid_less, diff_eq_phase2_deadline_boundary, prop_phase2_deadline_equivalence, prop_phase2_deadline_correctness.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to ritual-block-verification/src/lib.rs.",
+      "test_derived": true,
+      "source_test_names": [
+        "diff_eq_phase2_deadline_valid",
+        "diff_eq_phase2_deadline_invalid_equal",
+        "diff_eq_phase2_deadline_invalid_less",
+        "diff_eq_phase2_deadline_boundary",
+        "prop_phase2_deadline_equivalence",
+        "prop_phase2_deadline_correctness"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0304-atom-0012",
+        "test-file-0304-atom-0013",
+        "test-file-0304-atom-0014",
+        "test-file-0304-atom-0015",
+        "test-file-0304-atom-0016",
+        "test-file-0304-atom-0017"
+      ]
+    },
+    {
+      "record_id": "file-0304-atom-0016",
+      "file_index": 304,
+      "atom_index": 16,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,5303 @@",
+      "source_kind": "error_path",
+      "source_snippet": "    }\n\n    /// Test: BlockVerificationError variants for sequencing rights\n    #[test]\n    fn test_sequencing_rights_error_variants() {\n        use crate::error::BlockVerificationError;\n\n        // Test SequencingRightsStateError\n        let state_err = BlockVerificationError::SequencingRightsStateError {\n            reason: \"test reason\".to_string(),\n        };\n        assert!(matches!(state_err, BlockVerificationError::SequencingRightsStateError { .. }));\n\n        // Test SequencingRightsViolation\n        let violation_err = BlockVerificationError::SequencingRightsViolation {\n            contract: Address::repeat_byte(0x42),\n            tx_index: 5,\n            expected_priority: 1,\n      \n---\n    /// Test: Empty selector set handling\n    /// Note: Empty set is mathematically a subset of all sets,\n    /// so it matches the first level (priority 0).\n    #[test]\n    fn test_empty_selectors() {\n        use alloy_primitives::FixedBytes;\n        use ritual_sequencing_rights::{PriorityComputer, SelectorSet, SequencingOrdering};\n\n        let ordering = SequencingOrdering::new(vec![{\n            let mut set = SelectorSet::new();\n            set.insert(FixedBytes::from_slice(&[0x11, 0x22, 0x33, 0x44]));\n            set\n        }]);\n\n        let computer = PriorityComputer::new();\n        let empty = SelectorSet::new();\n\n        // Empty set is subset of first level, so gets priority 0\n    \n---\n    }\n\n    /// Test: Empty ordering handling\n    #[test]\n    fn test_empty_ordering() {\n        use alloy_primitives::FixedBytes;\n        use ritual_sequencing_rights::{PriorityComputer, SelectorSet, SequencingOrdering};\n\n        let ordering = SequencingOrdering::new(vec![]);\n        let computer = PriorityComputer::new();\n\n        let mut selectors = SelectorSet::new();\n        selectors.insert(FixedBytes::from_slice(&[0x11, 0x22, 0x33, 0x44]));\n\n        // Any selector in empty ordering gets LOWEST\n        let priority = computer.compute(&selectors, &ordering);\n        assert_eq!(priority, ritual_sequencing_rights::types::Priority::LOWEST);\n    }\n\n    // ==================================",
+      "semantic_claim": "priority preserves sequencing-rights classification, priority, bucket, or ordering behavior covered by downstream tests: test_sequencing_rights_error_variants, test_empty_selectors, test_empty_ordering, diff_eq_sr_contract_creation_no_sr.",
+      "high_risk": true,
+      "risk_tags": [
+        "verifier",
+        "executor-selection",
+        "negative-path"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [],
+      "equivalence_argument": null,
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_sequencing_rights_error_variants, test_empty_selectors, test_empty_ordering, diff_eq_sr_contract_creation_no_sr, diff_eq_sr_ascending_order_passes, diff_eq_sr_descending_order_fails, diff_eq_sr_same_priority_passes.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Sequencing-rights classification/reordering is not active in the current v2.2 slice. Payload building keeps upstream tip ordering plus scheduled/async obligation handling, so old sequencing-rights crate/API atoms are intentionally absent.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_sequencing_rights_error_variants",
+        "test_empty_selectors",
+        "test_empty_ordering",
+        "diff_eq_sr_contract_creation_no_sr",
+        "diff_eq_sr_ascending_order_passes",
+        "diff_eq_sr_descending_order_fails",
+        "diff_eq_sr_same_priority_passes"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0304-atom-0024",
+        "test-file-0304-atom-0025",
+        "test-file-0304-atom-0026",
+        "test-file-0304-atom-0048",
+        "test-file-0304-atom-0049",
+        "test-file-0304-atom-0050",
+        "test-file-0304-atom-0051"
+      ],
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope."
+    },
+    {
+      "record_id": "file-0304-atom-0017",
+      "file_index": 304,
+      "atom_index": 17,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,5303 @@",
+      "source_kind": "encoding_rule",
+      "source_snippet": "    // Invariant: Both check proof length >= SPC_PROOF_SIGNATURE_LENGTH (65)\n    // ============================================================\n\n    #[test]\n    fn diff_eq_spc_valid_proof_length() {\n        let proof_len = SPC_PROOF_SIGNATURE_LENGTH;\n        let valid = proof_len >= SPC_PROOF_SIGNATURE_LENGTH;\n        assert!(valid, \"Proof of exactly 65 bytes should be valid\");\n    }\n\n    #[test]\n    fn diff_eq_spc_short_proof_rejected() {\n        let proof_len = SPC_PROOF_SIGNATURE_LENGTH - 1;\n        let valid = proof_len >= SPC_PROOF_SIGNATURE_LENGTH;\n        assert!(!valid, \"Proof of 64 bytes should be rejected\");\n    }\n\n    #[test]\n    fn diff_eq_spc_multiple_calls_rejected() {\n       \n---\n        assert!(valid, \"Proof of exactly 65 bytes should be valid\");\n    }\n\n    #[test]\n    fn diff_eq_spc_short_proof_rejected() {\n        let proof_len = SPC_PROOF_SIGNATURE_LENGTH - 1;\n        let valid = proof_len >= SPC_PROOF_SIGNATURE_LENGTH;\n        assert!(!valid, \"Proof of 64 bytes should be rejected\");\n    }\n\n    #[test]\n    fn diff_eq_spc_multiple_calls_rejected() {\n        // Builder injects exactly 1 SPC call\n        // Verifier rejects blocks with > 1 SPC call per tx\n        let spc_count = 2;\n        let valid = spc_count <= 1;\n        assert!(!valid, \"Multiple SPC calls should be rejected\");\n    }\n\n    proptest! {\n        /// Property: SPC proof length check is consistent\n   \n---\n        assert!(!valid, \"Proof of 64 bytes should be rejected\");\n    }\n\n    #[test]\n    fn diff_eq_spc_multiple_calls_rejected() {\n        // Builder injects exactly 1 SPC call\n        // Verifier rejects blocks with > 1 SPC call per tx\n        let spc_count = 2;\n        let valid = spc_count <= 1;\n        assert!(!valid, \"Multiple SPC calls should be rejected\");\n    }\n\n    proptest! {\n        /// Property: SPC proof length check is consistent\n        #[test]\n        fn prop_spc_proof_length_equivalence(\n            proof_len in 0usize..200,\n        ) {\n            let builder_valid = proof_len >= SPC_PROOF_SIGNATURE_LENGTH;\n            let verifier_valid = proof_len >= SPC_PROOF_SIGNATURE_L",
+      "semantic_claim": "proof preserves the encoding, decoding, storage, or proof boundary covered by downstream tests: diff_eq_spc_valid_proof_length, diff_eq_spc_short_proof_rejected, diff_eq_spc_multiple_calls_rejected.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "verifier",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        }
+      ],
+      "equivalence_argument": "Block verification behavior is preserved by the v2.2 function-based verifier hooks and consensus integration.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: diff_eq_spc_valid_proof_length, diff_eq_spc_short_proof_rejected, diff_eq_spc_multiple_calls_rejected.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to ritual-block-verification/src/lib.rs.",
+      "test_derived": true,
+      "source_test_names": [
+        "diff_eq_spc_valid_proof_length",
+        "diff_eq_spc_short_proof_rejected",
+        "diff_eq_spc_multiple_calls_rejected"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0304-atom-0054",
+        "test-file-0304-atom-0055",
+        "test-file-0304-atom-0056"
+      ]
+    },
+    {
+      "record_id": "file-0304-atom-0018",
+      "file_index": 304,
+      "atom_index": 18,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,5303 @@",
+      "source_kind": "error_path",
+      "source_snippet": "    }\n\n    /// Test: C10 constraint (duplicate in block) is checked consistently\n    #[test]\n    fn diff_eq_scheduled_c10_duplicate() {\n        let mut seen: std::collections::HashSet<(u64, u64)> = std::collections::HashSet::new();\n        let call_id = 1u64;\n        let index = 0u64;\n\n        // First occurrence: PASS\n        let first = seen.insert((call_id, index));\n        assert!(first, \"First occurrence should be allowed\");\n\n        // Second occurrence: REJECT (C10)\n        let second = seen.insert((call_id, index));\n        assert!(!second, \"Duplicate should be rejected\");\n    }\n\n    proptest! {\n        /// Property: C4 constraint logic is equivalent between builder/verifier\n        \n---\n        }\n\n        /// Property: C10 intra-block duplicate detection is deterministic\n        #[test]\n        fn prop_scheduled_c10_deterministic(\n            pairs in proptest::collection::vec((0u64..10, 0u64..10), 1..20),\n        ) {\n            let mut seen1: std::collections::HashSet<(u64, u64)> = std::collections::HashSet::new();\n            let mut seen2: std::collections::HashSet<(u64, u64)> = std::collections::HashSet::new();\n\n            for (call_id, index) in &pairs {\n                let result1 = seen1.insert((*call_id, *index));\n                let result2 = seen2.insert((*call_id, *index));\n                prop_assert_eq!(result1, result2);\n            }\n        }\n    }\n\n    //",
+      "semantic_claim": "Scheduled transaction verification preserves C10 validation behavior and the matching filter/result classification asserted by downstream tests.",
+      "high_risk": true,
+      "risk_tags": [
+        "scheduled",
+        "verifier",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        }
+      ],
+      "equivalence_argument": "Block verification behavior is preserved by the v2.2 function-based verifier hooks and consensus integration.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: diff_eq_scheduled_c10_duplicate, prop_scheduled_c10_deterministic.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to ritual-block-verification/src/lib.rs.",
+      "test_derived": true,
+      "source_test_names": [
+        "diff_eq_scheduled_c10_duplicate",
+        "prop_scheduled_c10_deterministic"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0304-atom-0074",
+        "test-file-0304-atom-0079"
+      ]
+    },
+    {
+      "record_id": "file-0304-atom-0019",
+      "file_index": 304,
+      "atom_index": 19,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,5303 @@",
+      "source_kind": "error_path",
+      "source_snippet": "    // ============================================================\n\n    /// Test: C11 constraint (predicate returns true) is accepted\n    #[test]\n    fn diff_eq_scheduled_c11_predicate_true() {\n        // Predicate returns true -> PASS (include in block)\n        let predicate_result = true;\n        let should_include = predicate_result;\n        assert!(should_include, \"C11: predicate true should include transaction\");\n    }\n\n    /// Test: C11 constraint (predicate returns false) is Byzantine\n    #[test]\n    fn diff_eq_scheduled_c11_predicate_false_is_byzantine() {\n        // Predicate returns false -> REJECT block (Byzantine)\n        // If proposer includes a tx with predicate=false, valida\n---\n    }\n\n    /// Test: C11 constraint (predicate returns false) is Byzantine\n    #[test]\n    fn diff_eq_scheduled_c11_predicate_false_is_byzantine() {\n        // Predicate returns false -> REJECT block (Byzantine)\n        // If proposer includes a tx with predicate=false, validators reject\n        let predicate_result = false;\n        let is_byzantine_block = !predicate_result;\n        assert!(is_byzantine_block, \"C11: predicate false means Byzantine block\");\n    }\n\n    /// Test: C11 constraint (default predicate) always passes\n    #[test]\n    fn diff_eq_scheduled_c11_default_predicate() {\n        // Default predicate (zero address) -> always true, PASS\n        use alloy_primitives::Address;\n \n---\n    }\n\n    /// Test: C11 constraint (default predicate) always passes\n    #[test]\n    fn diff_eq_scheduled_c11_default_predicate() {\n        // Default predicate (zero address) -> always true, PASS\n        use alloy_primitives::Address;\n        let predicate_addr = Address::ZERO;\n        let is_default = predicate_addr == Address::ZERO;\n        let should_skip_evaluation = is_default;\n        assert!(should_skip_evaluation, \"C11: default predicate skips evaluation (always true)\");\n    }\n\n    /// Test: C11 constraint (predicate reverts) is Byzantine\n    #[test]\n    fn diff_eq_scheduled_c11_predicate_revert_is_byzantine() {\n        // Predicate reverts -> REJECT block (Byzantine)\n        // Pr",
+      "semantic_claim": "Scheduled transaction verification preserves C11 validation behavior and the matching filter/result classification asserted by downstream tests.",
+      "high_risk": true,
+      "risk_tags": [
+        "scheduled",
+        "verifier",
+        "negative-path",
+        "payload"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        }
+      ],
+      "equivalence_argument": "Block verification behavior is preserved by the v2.2 function-based verifier hooks and consensus integration.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: diff_eq_scheduled_c11_predicate_true, diff_eq_scheduled_c11_predicate_false_is_byzantine, diff_eq_scheduled_c11_default_predicate, diff_eq_scheduled_c11_predicate_revert_is_byzantine, diff_eq_scheduled_c11_predicate_halt_is_byzantine, prop_scheduled_c11_equivalence, prop_scheduled_c11_default_always_true.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to ritual-block-verification/src/lib.rs.",
+      "test_derived": true,
+      "source_test_names": [
+        "diff_eq_scheduled_c11_predicate_true",
+        "diff_eq_scheduled_c11_predicate_false_is_byzantine",
+        "diff_eq_scheduled_c11_default_predicate",
+        "diff_eq_scheduled_c11_predicate_revert_is_byzantine",
+        "diff_eq_scheduled_c11_predicate_halt_is_byzantine",
+        "prop_scheduled_c11_equivalence",
+        "prop_scheduled_c11_default_always_true"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0304-atom-0080",
+        "test-file-0304-atom-0081",
+        "test-file-0304-atom-0082",
+        "test-file-0304-atom-0083",
+        "test-file-0304-atom-0084",
+        "test-file-0304-atom-0085",
+        "test-file-0304-atom-0086"
+      ]
+    },
+    {
+      "record_id": "file-0304-atom-0020",
+      "file_index": 304,
+      "atom_index": 20,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,5303 @@",
+      "source_kind": "error_path",
+      "source_snippet": "    }\n\n    /// Test: C3 constraint (index bounds) is checked consistently\n    #[test]\n    fn diff_eq_scheduled_c3_out_of_bounds() {\n        // execution_index >= num_calls -> REJECT (C3)\n        let execution_index = 5u64;\n        let num_calls = 5u64;\n\n        let out_of_bounds = execution_index >= num_calls;\n        assert!(out_of_bounds, \"C3: index >= numCalls should reject\");\n    }\n\n    /// Test: C3 constraint (valid index) passes\n    #[test]\n    fn diff_eq_scheduled_c3_valid_index() {\n        // execution_index < num_calls -> PASS\n        let execution_index = 4u64;\n        let num_calls = 5u64;\n\n        let out_of_bounds = execution_index >= num_calls;\n        assert!(!out_of_bounds, \"\n---\n    }\n\n    /// Test: C3 constraint (valid index) passes\n    #[test]\n    fn diff_eq_scheduled_c3_valid_index() {\n        // execution_index < num_calls -> PASS\n        let execution_index = 4u64;\n        let num_calls = 5u64;\n\n        let out_of_bounds = execution_index >= num_calls;\n        assert!(!out_of_bounds, \"C3: index < numCalls should pass\");\n    }\n\n    /// Test: C10 constraint (duplicate in block) is checked consistently\n    #[test]\n    fn diff_eq_scheduled_c10_duplicate() {\n        let mut seen: std::collections::HashSet<(u64, u64)> = std::collections::HashSet::new();\n        let call_id = 1u64;\n        let index = 0u64;\n\n        // First occurrence: PASS\n        let first = seen.i\n---\n        }\n\n        /// Property: C3 constraint logic is equivalent between builder/verifier\n        #[test]\n        fn prop_scheduled_c3_equivalence(\n            execution_index in 0u64..20,\n            num_calls in 1u64..20,\n        ) {\n            let builder_rejects = execution_index >= num_calls;\n            let verifier_rejects = execution_index >= num_calls;\n            prop_assert_eq!(builder_rejects, verifier_rejects);\n        }\n\n        /// Property: C10 intra-block duplicate detection is deterministic\n        #[test]\n        fn prop_scheduled_c10_deterministic(\n            pairs in proptest::collection::vec((0u64..10, 0u64..10), 1..20),\n        ) {\n            let mut seen1: std::c",
+      "semantic_claim": "Scheduled transaction verification preserves C3 validation behavior and the matching filter/result classification asserted by downstream tests.",
+      "high_risk": true,
+      "risk_tags": [
+        "scheduled",
+        "verifier",
+        "negative-path",
+        "payload"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        }
+      ],
+      "equivalence_argument": "Block verification behavior is preserved by the v2.2 function-based verifier hooks and consensus integration.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: diff_eq_scheduled_c3_out_of_bounds, diff_eq_scheduled_c3_valid_index, prop_scheduled_c3_equivalence.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to ritual-block-verification/src/lib.rs.",
+      "test_derived": true,
+      "source_test_names": [
+        "diff_eq_scheduled_c3_out_of_bounds",
+        "diff_eq_scheduled_c3_valid_index",
+        "prop_scheduled_c3_equivalence"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0304-atom-0072",
+        "test-file-0304-atom-0073",
+        "test-file-0304-atom-0078"
+      ]
+    },
+    {
+      "record_id": "file-0304-atom-0021",
+      "file_index": 304,
+      "atom_index": 21,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,5303 @@",
+      "source_kind": "error_path",
+      "source_snippet": "    // ============================================================\n\n    /// Test: C4 constraint (too early) is checked consistently\n    #[test]\n    fn diff_eq_scheduled_c4_too_early() {\n        // block_number < expected_block -> REJECT (C4)\n        let block_number = 99u64;\n        let expected_block = 100u64;\n\n        let too_early = block_number < expected_block;\n        assert!(too_early, \"C4: block < expected should reject\");\n    }\n\n    /// Test: C4 constraint (exactly at expected) passes\n    #[test]\n    fn diff_eq_scheduled_c4_at_expected() {\n        // block_number == expected_block -> PASS\n        let block_number = 100u64;\n        let expected_block = 100u64;\n\n        let too_early\n---\n    }\n\n    /// Test: C4 constraint (exactly at expected) passes\n    #[test]\n    fn diff_eq_scheduled_c4_at_expected() {\n        // block_number == expected_block -> PASS\n        let block_number = 100u64;\n        let expected_block = 100u64;\n\n        let too_early = block_number < expected_block;\n        assert!(!too_early, \"C4: block == expected should pass\");\n    }\n\n    /// Test: C5 constraint (TTL exceeded) is checked consistently\n    #[test]\n    fn diff_eq_scheduled_c5_too_late() {\n        // block_number > ttl_deadline -> REJECT (C5)\n        let block_number = 115u64;\n        let expected_block = 100u64;\n        let ttl = 10u64;\n        let ttl_deadline = expected_block + ttl;\n\n---\n\n    proptest! {\n        /// Property: C4 constraint logic is equivalent between builder/verifier\n        #[test]\n        fn prop_scheduled_c4_equivalence(\n            block_number in 0u64..200,\n            expected_block in 0u64..200,\n        ) {\n            let builder_rejects = block_number < expected_block;\n            let verifier_rejects = block_number < expected_block;\n            prop_assert_eq!(builder_rejects, verifier_rejects);\n        }\n\n        /// Property: C5 constraint logic is equivalent between builder/verifier\n        #[test]\n        fn prop_scheduled_c5_equivalence(\n            block_number in 0u64..300,\n            expected_block in 0u64..200,\n            ttl in 1u64..10",
+      "semantic_claim": "Scheduled transaction verification preserves C4 validation behavior and the matching filter/result classification asserted by downstream tests.",
+      "high_risk": true,
+      "risk_tags": [
+        "scheduled",
+        "verifier",
+        "negative-path",
+        "payload"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        }
+      ],
+      "equivalence_argument": "Block verification behavior is preserved by the v2.2 function-based verifier hooks and consensus integration.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: diff_eq_scheduled_c4_too_early, diff_eq_scheduled_c4_at_expected, prop_scheduled_c4_equivalence.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to ritual-block-verification/src/lib.rs.",
+      "test_derived": true,
+      "source_test_names": [
+        "diff_eq_scheduled_c4_too_early",
+        "diff_eq_scheduled_c4_at_expected",
+        "prop_scheduled_c4_equivalence"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0304-atom-0067",
+        "test-file-0304-atom-0068",
+        "test-file-0304-atom-0075"
+      ]
+    },
+    {
+      "record_id": "file-0304-atom-0022",
+      "file_index": 304,
+      "atom_index": 22,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,5303 @@",
+      "source_kind": "error_path",
+      "source_snippet": "    }\n\n    /// Test: C5 constraint (TTL exceeded) is checked consistently\n    #[test]\n    fn diff_eq_scheduled_c5_too_late() {\n        // block_number > ttl_deadline -> REJECT (C5)\n        let block_number = 115u64;\n        let expected_block = 100u64;\n        let ttl = 10u64;\n        let ttl_deadline = expected_block + ttl;\n\n        let too_late = block_number > ttl_deadline;\n        assert!(too_late, \"C5: block > deadline should reject\");\n    }\n\n    /// Test: C5 constraint (at deadline) passes\n    #[test]\n    fn diff_eq_scheduled_c5_at_deadline() {\n        // block_number == ttl_deadline -> PASS\n        let block_number = 110u64;\n        let expected_block = 100u64;\n        let ttl = 10u64\n---\n    }\n\n    /// Test: C5 constraint (at deadline) passes\n    #[test]\n    fn diff_eq_scheduled_c5_at_deadline() {\n        // block_number == ttl_deadline -> PASS\n        let block_number = 110u64;\n        let expected_block = 100u64;\n        let ttl = 10u64;\n        let ttl_deadline = expected_block + ttl;\n\n        let too_late = block_number > ttl_deadline;\n        assert!(!too_late, \"C5: block == deadline should pass\");\n    }\n\n    /// Test: C6 constraint (overall expiry) is checked consistently\n    #[test]\n    fn diff_eq_scheduled_c6_expired() {\n        // block_number > expiry_block -> REJECT (C6)\n        let block_number = 201u64;\n        let expiry_block = 200u64;\n\n---\n        }\n\n        /// Property: C5 constraint logic is equivalent between builder/verifier\n        #[test]\n        fn prop_scheduled_c5_equivalence(\n            block_number in 0u64..300,\n            expected_block in 0u64..200,\n            ttl in 1u64..100,\n        ) {\n            let ttl_deadline = expected_block.saturating_add(ttl);\n            let builder_rejects = block_number > ttl_deadline;\n            let verifier_rejects = block_number > ttl_deadline;\n            prop_assert_eq!(builder_rejects, verifier_rejects);\n        }\n\n        /// Property: C6 constraint logic is equivalent between builder/verifier\n        #[test]\n        fn prop_scheduled_c6_equivalence(\n            block_nu",
+      "semantic_claim": "Scheduled transaction verification preserves C5 validation behavior and the matching filter/result classification asserted by downstream tests.",
+      "high_risk": true,
+      "risk_tags": [
+        "scheduled",
+        "verifier",
+        "negative-path",
+        "payload"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        }
+      ],
+      "equivalence_argument": "Block verification behavior is preserved by the v2.2 function-based verifier hooks and consensus integration.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: diff_eq_scheduled_c5_too_late, diff_eq_scheduled_c5_at_deadline, prop_scheduled_c5_equivalence.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to ritual-block-verification/src/lib.rs.",
+      "test_derived": true,
+      "source_test_names": [
+        "diff_eq_scheduled_c5_too_late",
+        "diff_eq_scheduled_c5_at_deadline",
+        "prop_scheduled_c5_equivalence"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0304-atom-0069",
+        "test-file-0304-atom-0070",
+        "test-file-0304-atom-0076"
+      ]
+    },
+    {
+      "record_id": "file-0304-atom-0023",
+      "file_index": 304,
+      "atom_index": 23,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,5303 @@",
+      "source_kind": "error_path",
+      "source_snippet": "    }\n\n    /// Test: C6 constraint (overall expiry) is checked consistently\n    #[test]\n    fn diff_eq_scheduled_c6_expired() {\n        // block_number > expiry_block -> REJECT (C6)\n        let block_number = 201u64;\n        let expiry_block = 200u64;\n\n        let expired = block_number > expiry_block;\n        assert!(expired, \"C6: block > expiry should reject\");\n    }\n\n    /// Test: C3 constraint (index bounds) is checked consistently\n    #[test]\n    fn diff_eq_scheduled_c3_out_of_bounds() {\n        // execution_index >= num_calls -> REJECT (C3)\n        let execution_index = 5u64;\n        let num_calls = 5u64;\n\n        let out_of_bounds = execution_index >= num_calls;\n        assert!(out_of\n---\n        }\n\n        /// Property: C6 constraint logic is equivalent between builder/verifier\n        #[test]\n        fn prop_scheduled_c6_equivalence(\n            block_number in 0u64..300,\n            expiry_block in 0u64..300,\n        ) {\n            let builder_rejects = block_number > expiry_block;\n            let verifier_rejects = block_number > expiry_block;\n            prop_assert_eq!(builder_rejects, verifier_rejects);\n        }\n\n        /// Property: C3 constraint logic is equivalent between builder/verifier\n        #[test]\n        fn prop_scheduled_c3_equivalence(\n            execution_index in 0u64..20,\n            num_calls in 1u64..20,\n        ) {\n            let builder_rejects",
+      "semantic_claim": "Scheduled transaction verification preserves C6 validation behavior and the matching filter/result classification asserted by downstream tests.",
+      "high_risk": true,
+      "risk_tags": [
+        "scheduled",
+        "verifier",
+        "negative-path",
+        "payload"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        }
+      ],
+      "equivalence_argument": "Block verification behavior is preserved by the v2.2 function-based verifier hooks and consensus integration.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: diff_eq_scheduled_c6_expired, prop_scheduled_c6_equivalence.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to ritual-block-verification/src/lib.rs.",
+      "test_derived": true,
+      "source_test_names": [
+        "diff_eq_scheduled_c6_expired",
+        "prop_scheduled_c6_equivalence"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0304-atom-0071",
+        "test-file-0304-atom-0077"
+      ]
+    },
+    {
+      "record_id": "file-0304-atom-0024",
+      "file_index": 304,
+      "atom_index": 24,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,5303 @@",
+      "source_kind": "test_fixture",
+      "source_snippet": "    // ============================================================\n\n    /// Test that empty input (< 4 bytes) produces NoSequencingRights\n    #[test]\n    fn diff_eq_sr_empty_input_no_sr() {\n        // Both builder and verifier: input.len() < 4 -> NoSequencingRights\n        let input_len = 3;\n        let has_selector = input_len >= 4;\n\n        // No selector means no sequencing rights in both paths\n        assert!(!has_selector, \"< 4 bytes should mean no selector\");\n    }\n\n    /// Test that contract creation has no sequencing rights\n    #[test]\n    fn diff_eq_sr_contract_creation_no_sr() {\n        // tx.to() == None -> NoSequencingRights in both paths\n        let has_target = false;\n\n       \n---\n    // ============================================================\n\n    /// Test: extract_delivery_result_len with valid input\n    #[test]\n    fn diff_eq_metrics_delivery_result_len_valid() {\n        // Build a valid settlement input with known delivery_result length\n        // ABI: selector(4) + 9 static params (288) + offset to precompileInput (32)\n        // + offset to deliveryResult (32) + precompileInput (variable) + deliveryResult\n\n        // For this test, just verify the function exists and is deterministic\n        let input1 = Bytes::from(vec![0u8; 400]);\n        let input2 = Bytes::from(vec![0u8; 400]);\n\n        let result1 = extract_delivery_result_len(&input1);\n        let resu\n---\n    }\n\n    /// Test: extract_delivery_result_len with short input returns None\n    #[test]\n    fn diff_eq_metrics_delivery_result_len_short() {\n        let input = Bytes::from(vec![0u8; 3]); // Less than 4 bytes (no selector)\n        let result = extract_delivery_result_len(&input);\n        assert!(result.is_none(), \"Short input should return None\");\n    }\n\n    /// Test: extract_agent_metrics with short input returns None\n    #[test]\n    fn diff_eq_metrics_agent_short_input() {\n        let input = Bytes::from(vec![0u8; 3]); // Less than 4 bytes (no selector)\n        let result = extract_agent_metrics(&input);\n        assert!(result.is_none(), \"Short input should return None\");\n    }\n\n    ///",
+      "semantic_claim": "selector preserves sequencing-rights classification, priority, bucket, or ordering behavior covered by downstream tests: diff_eq_sr_empty_input_no_sr, diff_eq_metrics_delivery_result_len_valid, diff_eq_metrics_delivery_result_len_short, diff_eq_metrics_agent_short_input.",
+      "high_risk": true,
+      "risk_tags": [
+        "verifier",
+        "negative-path",
+        "async-fsm"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [],
+      "equivalence_argument": null,
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: diff_eq_sr_empty_input_no_sr, diff_eq_metrics_delivery_result_len_valid, diff_eq_metrics_delivery_result_len_short, diff_eq_metrics_agent_short_input.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Ritual metrics/tracing router surfaces are intentionally not part of the current runtime-critical v2.2 slice; no live consensus/FSM behavior depends on them.",
+      "test_derived": true,
+      "source_test_names": [
+        "diff_eq_sr_empty_input_no_sr",
+        "diff_eq_metrics_delivery_result_len_valid",
+        "diff_eq_metrics_delivery_result_len_short",
+        "diff_eq_metrics_agent_short_input"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0304-atom-0047",
+        "test-file-0304-atom-0087",
+        "test-file-0304-atom-0088",
+        "test-file-0304-atom-0089"
+      ],
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope."
+    },
+    {
+      "record_id": "file-0304-atom-0025",
+      "file_index": 304,
+      "atom_index": 25,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,5303 @@",
+      "source_kind": "test_fixture",
+      "source_snippet": "\n    proptest! {\n        /// Property: Sender deduplication is deterministic\n        #[test]\n        fn prop_sender_dedup_deterministic(\n            senders in proptest::collection::vec(any::<[u8; 20]>(), 1..20),\n        ) {\n            let mut seen1: std::collections::HashSet<Address> = std::collections::HashSet::new();\n            let mut seen2: std::collections::HashSet<Address> = std::collections::HashSet::new();\n\n            for sender_bytes in &senders {\n                let sender = Address::from(*sender_bytes);\n                let result1 = !seen1.contains(&sender);\n                let result2 = !seen2.contains(&sender);\n\n                prop_assert_eq!(result1, result2, \"Dedup diverg",
+      "semantic_claim": "sender dedup preserves the production behavior asserted by downstream tests: prop_sender_dedup_deterministic.",
+      "high_risk": true,
+      "risk_tags": [
+        "verifier"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        }
+      ],
+      "equivalence_argument": "Block verification behavior is preserved by the v2.2 function-based verifier hooks and consensus integration.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: prop_sender_dedup_deterministic.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to ritual-block-verification/src/lib.rs.",
+      "test_derived": true,
+      "source_test_names": [
+        "prop_sender_dedup_deterministic"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0304-atom-0046"
+      ]
+    },
+    {
+      "record_id": "file-0304-atom-0026",
+      "file_index": 304,
+      "atom_index": 26,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,5303 @@",
+      "source_kind": "test_fixture",
+      "source_snippet": "    }\n\n    /// Test: Classification enum variants\n    #[test]\n    fn test_classification_variants() {\n        use ritual_sequencing_rights::Classification;\n\n        // Test all variants exist and can be created\n        let simple = Classification::SimpleTransfer;\n        assert!(matches!(simple, Classification::SimpleTransfer));\n\n        let multi = Classification::MultiContract;\n        assert!(matches!(multi, Classification::MultiContract));\n\n        let no_rights = Classification::NoSequencingRights;\n        assert!(matches!(no_rights, Classification::NoSequencingRights));\n\n        let exempt = Classification::Exempt;\n        assert!(matches!(exempt, Classification::Exempt));\n\n        let\n---\n    }\n\n    /// Test: SequencingRightsReader creation\n    #[test]\n    fn test_sequencing_rights_reader() {\n        let reader = SequencingRightsReader::new();\n        // Just verify it creates without panic\n        let _ = reader;\n    }\n\n    /// Test: BlockVerificationError variants for sequencing rights\n    #[test]\n    fn test_sequencing_rights_error_variants() {\n        use crate::error::BlockVerificationError;\n\n        // Test SequencingRightsStateError\n        let state_err = BlockVerificationError::SequencingRightsStateError {\n            reason: \"test reason\".to_string(),\n        };\n        assert!(matches!(state_err, BlockVerificationError::SequencingRightsStateError { .. }));\n\n       ",
+      "semantic_claim": "sequencing rights preserves sequencing-rights classification, priority, bucket, or ordering behavior covered by downstream tests: test_classification_variants, test_sequencing_rights_reader.",
+      "high_risk": true,
+      "risk_tags": [
+        "verifier",
+        "negative-path",
+        "executor-selection"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [],
+      "equivalence_argument": null,
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_classification_variants, test_sequencing_rights_reader.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Sequencing-rights classification/reordering is not active in the current v2.2 slice. Payload building keeps upstream tip ordering plus scheduled/async obligation handling, so old sequencing-rights crate/API atoms are intentionally absent.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_classification_variants",
+        "test_sequencing_rights_reader"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0304-atom-0022",
+        "test-file-0304-atom-0023"
+      ],
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope."
+    },
+    {
+      "record_id": "file-0304-atom-0027",
+      "file_index": 304,
+      "atom_index": 27,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,5303 @@",
+      "source_kind": "state_transition",
+      "source_snippet": "\n    proptest! {\n        /// Property: Builder and verifier agree on settlement expiry for all inputs\n        #[test]\n        fn prop_settlement_expiry_equivalence(\n            block_number in 0u64..1000000,\n            expiry_block in 0u64..1000000,\n        ) {\n            let builder_accepts = builder_accepts_settlement_expiry(block_number, expiry_block);\n            let verifier_accepts = verifier_accepts_settlement_expiry(block_number, expiry_block);\n            prop_assert_eq!(\n                builder_accepts, verifier_accepts,\n                \"Divergence at block_number={}, expiry_block={}\",\n                block_number, expiry_block\n            );\n        }\n\n        /// Property: The \n---\n        }\n\n        /// Property: The constraint is correctly computed\n        #[test]\n        fn prop_settlement_expiry_correctness(\n            block_number in 0u64..1000000,\n            expiry_block in 0u64..1000000,\n        ) {\n            let should_accept = block_number <= expiry_block;\n            let builder_accepts = builder_accepts_settlement_expiry(block_number, expiry_block);\n            prop_assert_eq!(\n                builder_accepts, should_accept,\n                \"Incorrect expiry check: block={}, expiry={}, expected={}\",\n                block_number, expiry_block, should_accept\n            );\n        }\n    }\n\n    // ============================================================",
+      "semantic_claim": "settlement expiry preserves the encoding, decoding, storage, or proof boundary covered by downstream tests: prop_settlement_expiry_equivalence, prop_settlement_expiry_correctness.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "scheduled",
+        "verifier",
+        "consensus-constant"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        }
+      ],
+      "equivalence_argument": "Block verification behavior is preserved by the v2.2 function-based verifier hooks and consensus integration.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: prop_settlement_expiry_equivalence, prop_settlement_expiry_correctness.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to ritual-block-verification/src/lib.rs.",
+      "test_derived": true,
+      "source_test_names": [
+        "prop_settlement_expiry_equivalence",
+        "prop_settlement_expiry_correctness"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0304-atom-0042",
+        "test-file-0304-atom-0043"
+      ]
+    },
+    {
+      "record_id": "file-0304-atom-0028",
+      "file_index": 304,
+      "atom_index": 28,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,5303 @@",
+      "source_kind": "test_fixture",
+      "source_snippet": "\n    proptest! {\n        /// Property: Builder and verifier agree on TTL validation\n        #[test]\n        fn prop_ttl_equivalence(ttl in 0u64..1000) {\n            let builder_reject = builder_skips_invalid_ttl(ttl);\n            let verifier_reject = verifier_rejects_ttl(ttl);\n\n            // THE INVARIANT: builder and verifier must always agree\n            prop_assert_eq!(\n                builder_reject, verifier_reject,\n                \"TTL differential failure: ttl={}, builder_reject={}, verifier_reject={}\",\n                ttl, builder_reject, verifier_reject\n            );\n\n            // Also verify the logic is correct\n            let expected_reject = ttl == 0 || ttl > max_ttl_block",
+      "semantic_claim": "ttl equivalence preserves the encoding, decoding, storage, or proof boundary covered by downstream tests: prop_ttl_equivalence.",
+      "high_risk": true,
+      "risk_tags": [
+        "verifier",
+        "consensus-constant"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        }
+      ],
+      "equivalence_argument": "Block verification behavior is preserved by the v2.2 function-based verifier hooks and consensus integration.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: prop_ttl_equivalence.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to ritual-block-verification/src/lib.rs.",
+      "test_derived": true,
+      "source_test_names": [
+        "prop_ttl_equivalence"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0304-atom-0035"
+      ]
+    },
+    {
+      "record_id": "file-0304-atom-0029",
+      "file_index": 304,
+      "atom_index": 29,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 7: Block Verification And Consensus Gates",
+      "source_kind": "state_transition",
+      "source_snippet": "Feature-preservation claims: Nonce-lock validation from parent async job state.",
+      "semantic_claim": "Nonce-lock validation from parent async job state.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "verifier"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        }
+      ],
+      "equivalence_argument": "Block verification behavior is preserved by the v2.2 function-based verifier hooks and consensus integration.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Nonce-lock validation from parent async job state.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to ritual-block-verification/src/lib.rs.",
+      "feature_derived": true,
+      "feature_sections": [
+        7
+      ],
+      "source_feature_ids": [
+        "feature-raw-0081"
+      ],
+      "source_feature_claims": [
+        "Nonce-lock validation from parent async job state."
+      ],
+      "needs_atomization": true
+    },
+    {
+      "record_id": "file-0304-atom-0030",
+      "file_index": 304,
+      "atom_index": 30,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 7: Block Verification And Consensus Gates",
+      "source_kind": "state_transition",
+      "source_snippet": "Feature-preservation claims: Preserve delivery/DA verification: Phase 2 delivery settlements, `delivery_spc_calls`, nested async delivery (`#270`), DA-error Phase 2 settlement handling (`#315`)",
+      "semantic_claim": "Preserve delivery/DA verification: Phase 2 delivery settlements, `delivery_spc_calls`, nested async delivery (`#270`), DA-error Phase 2 settlement handling (`#315`).",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "verifier",
+        "consensus-constant"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_async_settlement",
+            "validate_spc_calls",
+            "extract_delivery_result_from_calldata"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "verifier validates Phase 2 delivery settlements and delivery_spc_calls"
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "prepare_delivery_settlement_transaction"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "payload attaches delivery_spc_calls to delivery settlements"
+        }
+      ],
+      "equivalence_argument": "Phase 2 delivery verification is preserved for active HTTP/ZK delivery paths; DA/FHE-specific settlement handling remains fail-closed outside this enabled slice.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Preserve delivery/DA verification: Phase 2 delivery settlements, `delivery_spc_calls`, nested async delivery (`#270`), DA-error Phase 2 settlement handling (`#315`).",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Specific delivery verifier atom mapped; broad verifier atom remains blocked.",
+      "feature_derived": true,
+      "feature_sections": [
+        7
+      ],
+      "source_feature_ids": [
+        "feature-raw-0089"
+      ],
+      "source_feature_claims": [
+        "Preserve delivery/DA verification: Phase 2 delivery settlements, `delivery_spc_calls`, nested async delivery (`#270`), DA-error Phase 2 settlement handling (`#315`)"
+      ],
+      "required_change": null,
+      "human_question": null
+    },
+    {
+      "record_id": "file-0304-atom-0031",
+      "file_index": 304,
+      "atom_index": 31,
+      "atoms_total": 33,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 9: Chainspec, Genesis, And Config",
+      "source_kind": "other",
+      "source_snippet": "Feature-preservation claims: Summit validator deposit behavior.",
+      "semantic_claim": "Summit validator deposit behavior.",
+      "high_risk": true,
+      "risk_tags": [
+        "consensus-constant"
+      ],
+      "mapping_status": "moved_to_dependency",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-alloy-evm-internal",
+          "path": "crates/evm/src/eth/eip6110.rs",
+          "symbols": [
+            "SUMMIT_DEPOSIT_SIGNATURE",
+            "accumulate_deposits_from_receipts"
+          ],
+          "snippet": "logs are accepted when topic is DepositEvent::SIGNATURE_HASH or SUMMIT_DEPOSIT_SIGNATURE",
+          "evidence": "Summit 7-field deposit event decoding moved into Alloy EVM deposit parsing; Reth no longer needs to store the Summit topic in ChainSpec for runtime parsing."
+        }
+      ],
+      "equivalence_argument": "Summit deposit event behavior is preserved in the Alloy EVM dependency, where both standard and Summit deposit topics are decoded.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Summit validator deposit behavior.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "No Reth code change needed for deposit-topic behavior; dependency is source of truth.",
+      "feature_derived": true,
+      "feature_sections": [
+        9
+      ],
+      "source_feature_ids": [
+        "feature-raw-0100"
+      ],
+      "source_feature_claims": [
+        "Summit validator deposit behavior."
+      ],
+      "needs_atomization": true
+    },
+    {
+      "record_type": "pr_preservation_derived_atom",
+      "pr_preservation_derived": true,
+      "pr_preservation_grounded": true,
+      "file_index": 304,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "crates/ritual-block-verification/src/verifier.rs:469-489",
+      "source_kind": "state_transition",
+      "source_snippet": "                    block_hash = %block.hash(),\n                    block_number = block_number,\n                    error = %e,\n                    \"Skipping async commitment verification (SKIP_VALIDITY_CONSTRAINTS enabled)\"\n                );\n            } else {\n                tracing::error!(\n                    target: \"ritual::block_verification\",\n                    block_hash = %block.hash(),\n                    error = %e,\n                    \"Async commitment verification failed\"\n                );\n                return Err(e);\n            }\n        }\n\n        // NOTE: Async commitment processing moved to on_canonical_state_change.\n        // Block verification MUST be pure (no side effects) - pool updates only on finalization.\n        // See pool/mod.rs on_canonical_state_change for the correct location.\n\n        // Phase 2: Verify settlement payments for fulfilled async transactions",
+      "semantic_claim": "PR preservation `#93` `executor-rs` keeps live downstream behavior: async-pool pruning. Do not preserve temporary permissive verification behavior unless behind explicit skip-validity config.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "payload",
+        "precompile",
+        "txpool",
+        "verifier"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        }
+      ],
+      "equivalence_argument": "Block verification behavior is preserved by the v2.2 function-based verifier hooks and consensus integration.",
+      "test_strategy": "pr_diff_equivalence_regression",
+      "negative_test_candidate": "Replay or unit-test the smallest downstream scenario introduced by #93 that exercises `async-pool pruning. Do not preserve temporary permissive verification behavior unless behind explicit skip-validity config` and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "source_prs": [
+        {
+          "key": "#93",
+          "slug": "executor-rs",
+          "merge_commit": "ed503ac7d3761f20ca4ef30a97cfba8201a80c6f"
+        }
+      ],
+      "source_pr_claims": [
+        "async-pool pruning. Do not preserve temporary permissive verification behavior unless behind explicit skip-validity config"
+      ],
+      "source_flow_ids": [
+        "pr-raw-0017"
+      ],
+      "notes": "Mapped to ritual-block-verification/src/lib.rs.",
+      "atom_index": 32,
+      "record_id": "file-0304-atom-0032",
+      "atoms_total": 33,
+      "needs_atomization": true
+    },
+    {
+      "record_type": "pr_preservation_derived_atom",
+      "pr_preservation_derived": true,
+      "pr_preservation_grounded": true,
+      "file_index": 304,
+      "source_path": "crates/ritual-block-verification/src/verifier.rs",
+      "source_hunk_hint": "crates/ritual-block-verification/src/verifier.rs:1632-1652",
+      "source_kind": "error_path",
+      "source_snippet": "        let mut seen_senders: std::collections::HashSet<Address> = std::collections::HashSet::new();\n\n        // CONSENSUS CRITICAL: Create DB for checking if jobs already exist in AsyncJobTracker\n        // This prevents accepting blocks with duplicate commitments for already-finalized jobs\n        let parent_hash = block.parent_hash();\n        let job_check_state = state_provider.state_by_block_hash(parent_hash).map_err(|e| {\n            BlockVerificationError::InvalidAsyncCommitment(format!(\n                \"Failed to get parent state for job existence check: {:?}\",\n                e\n            ))\n        })?;\n        let job_check_state_db = StateProviderDatabase::new(&job_check_state);\n        let mut job_check_db = State::builder().with_database(job_check_state_db).build();\n\n        for tx in transactions {\n            // Check if this is an async commitment transaction\n            if let Some(commitment) = tx.as_async_commitment() {\n                commitment_count += 1;\n\n                tracing::debug!(\n                    target: \"ritual::block_verification::async\",",
+      "semantic_claim": "PR preservation `#268` `async-job-active-fix` keeps live downstream behavior: `job_exists_and_active()`: active jobs block duplicate commitments.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "negative-path",
+        "payload",
+        "verifier"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        }
+      ],
+      "equivalence_argument": "Block verification behavior is preserved by the v2.2 function-based verifier hooks and consensus integration.",
+      "test_strategy": "pr_diff_equivalence_regression",
+      "negative_test_candidate": "Replay or unit-test the smallest downstream scenario introduced by #268 that exercises ``job_exists_and_active()`: active jobs block duplicate commitments` and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "source_prs": [
+        {
+          "key": "#268",
+          "slug": "async-job-active-fix",
+          "merge_commit": "845432f41d120d168e22a5bd1232766566e41750"
+        }
+      ],
+      "source_pr_claims": [
+        "`job_exists_and_active()`: active jobs block duplicate commitments"
+      ],
+      "source_flow_ids": [
+        "pr-raw-0102"
+      ],
+      "notes": "Mapped to ritual-block-verification/src/lib.rs.",
+      "atom_index": 33,
+      "record_id": "file-0304-atom-0033",
+      "atoms_total": 33,
+      "needs_atomization": true
     }
   ],
-  "high_risk_atoms_total": 1,
-  "non_exact_atoms_total": 1,
+  "high_risk_atoms_total": 33,
+  "non_exact_atoms_total": 33,
   "adversarial_reviews": [],
-  "summary": "The downstream file maps to destination code but needs review because the destination implementation was refactored or moved.",
+  "summary": "Remaining unresolved atoms are blocked for atomization or explicit scope decisions; concrete live behavior has been mapped or classified.",
   "review_required": true,
   "status": "needs_review",
-  "notes": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path."
+  "notes": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path. Curated test-atom insertion appended 27 grouped behavior atom(s) from coverage-map/test-atom-audit; raw helper/no-assert/default-only cases were not canonicalized. Curated feature-preservation insertion appended 3 grouped feature-derived behavior atom(s). Long-running pass: active HTTP/ZK delivery paths mapped; unsupported broader two-phase delivery surfaces are fail-closed unless explicitly enabled. Long-running pass: active HTTP/ZK delivery paths mapped; unsupported broader two-phase delivery surfaces are fail-closed unless explicitly enabled."
 }

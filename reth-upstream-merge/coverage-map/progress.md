@@ -116,6 +116,14 @@
 - Reclassified `file-0249-atom-0001`, `file-0300-atom-0001`, `file-0301-atom-0001`, and `file-0302-atom-0001` from missing/blocked to structural equivalents with destination evidence.
 - Added adversarial review records for the high-risk block-verification constants/error/lib atoms and rebuilt derived review/index/validation artifacts.
 
+### 2026-05-08 - Cross-repo async precompile contracts + feature gate
+
+- **Hard gate (documented)** in `coverage-orchestrator-prompt.md`: a feature is incomplete if any atom in its footprint is `blocked`, `needs_atomization`, or `review_required` without proof, or broad without a machine-checkable check.
+- **Static proof**: `coverage-map/verify_async_precompile_cross_repo.py` compares Reth `ritual-precompile-addresses` metadata, traffic-gen `Capability.*` usage, and `ritual-node-internal/configgen/docker.py` executor wiring for all 11 async/SPC precompiles (must exit 0).
+- **Atoms**: `file-0316-atom-0012`–`file-0316-atom-0020` are per-precompile `exact` contract atoms; `file-0316-atom-0011` remains sovereign/persistent HTTP parity.
+- **Split** former broad `file-0092-atom-0008` into concrete `file-0092-atom-0008` (TEE registry vs metadata + verifier), `file-0092-atom-0049` (model registry/cache), `file-0092-atom-0050` (`verify_wallet_for_commitment`); added adversarial review JSON for all three; `file-0092.json` `atoms_total` is 50.
+- Updated `feature-map.md` trace IDs; `python3 coverage-map/coverage_tools.py validate` => `validation_errors: []`.
+
 ### 2026-05-08 - Transaction pool/admission first pass
 - Added a focused `reth-transaction-pool` regression proving canonical `TxAsyncCommitment` processing prunes the original transaction, creates async metadata, records commit/expiry blocks, and locks the original sender.
 - Reclassified `file-0521-atom-0001`, `file-0524-atom-0001`, `file-0536-atom-0001`, and `file-0545-atom-0001` as structural equivalents with adversarial review records.
@@ -130,3 +138,31 @@ Inserted curated grouped feature-derived atoms from `feature-preservation-map.md
 ## Curated Functionality-Flow Insertion - 2026-05-08
 
 Inserted curated grouped functionality-flow-derived atoms from `functionality-flow-traces.md` into canonical per-file artifacts. Validation-only lines, broad flow inventory, deployment-only claims, and claims already covered by existing atoms were demoted into audit decisions.
+
+### 2026-05-08 - Core async first pass WIP
+- Restored blocking canonical-state subscription wiring across `reth-chain-state` and `reth-provider`, including a regression that proves blocking handlers run before async canonical-state broadcast.
+- Restored public `async-context` feature propagation through `reth-errors`, `reth-execution-errors`, `reth-evm`, `reth-evm-ethereum`, and `reth-ethereum`.
+- Fixed async-context feature-path compilation issues in `revm-precompile` and `alloy-evm`; left old `reth_evm::spc` / `SpcVerifierImpl` compatibility atoms unresolved pending active-consumer proof.
+
+### 2026-05-08 - Atom guideline remediation pass
+- Applied the read-only atom-guideline audit findings to canonical coverage artifacts.
+- Reclassified unsupported filename/path-only `moved_to_dependency` mappings to `blocked`, except `file-0081-atom-0006`, which is now `missing` because the public `reth-node-ethereum/async-context` feature is absent.
+- Accepted five `intentionally_absent` atoms with explicit rationale fields instead of surfacing them as manual-review blockers: downstream-only diagnostics/metrics dependencies without destination call sites, and OP-only behavior explicitly out of v2.2/Summit scope.
+- Reclassified generic same-path structural mappings in `file-0090-atom-0001` and `file-0385-atom-0001`, marked `file-0249-atom-0001` high-risk, and marked broad derived atoms with `needs_atomization`.
+- Regenerated `index.jsonl`, `review-queue.md`, `validation-summary.json`, and wrote `atom-guideline-remediation-report.md`; artifact validation errors are empty.
+
+### 2026-05-08 - User scope decisions for API-only atoms
+- Recorded that public Rust/Cargo API compatibility is not a goal by itself when chain runtime behavior is preserved.
+- Reclassified API-only atoms `file-0081-atom-0006`, `file-0082-atom-0001`, `file-0082-atom-0002`, and `file-0087-atom-0011` as `intentionally_absent` with `user_approved_api_surface_non_goal` rationale.
+- Kept behavior-carrying Summit compatibility, sequencing-rights, scheduled/payload execution, and SPC runtime-verification atoms actionable until code evidence proves equivalent behavior.
+
+### 2026-05-08 - User scope decisions for payload-local behavior
+- Recorded that all four payload-local behavior families should be preserved or proven equivalent: Ritual payload metrics, Rayon-backed preparation/performance work, heartbeat hydration/tracking, and sequencing-rights ordering.
+- Marked `file-0087-atom-0005` as user-required low priority metrics work rather than an acceptable intentional drop.
+- Marked `file-0087-atom-0006` sequencing rights and `file-0087-atom-0007` heartbeat hydration/tracking as high-priority runtime behavior requirements.
+- Marked `file-0087-atom-0010` Rayon-backed preparation as medium-priority performance behavior to preserve or prove equivalent.
+
+### 2026-05-08 - Long-running async delivery atom pass
+- Expanded the Long-running async delivery FSM feature from the stale 4-atom summary to include newly inserted Phase 2 delivery atoms across payload, validation, txpool, codecs, storage, and verifier records.
+- Mapped active HTTP/ZK Phase 2 delivery behavior to current v2.2 code: delivery-ready payload collection, contract-state checks, delivery config decoding, ZK result/proof packing, delivery SPC calls, and async settlement storage codecs.
+- Kept broad verifier/payload atoms blocked for atomization and classified dormant FHE output-size delivery decoding as intentionally absent because broader two-phase precompile delivery remains fail-closed outside HTTP/ZK in this slice.

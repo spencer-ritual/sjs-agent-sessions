@@ -1,0 +1,72 @@
+{
+  "cluster_key": "scheduler:locks-observability",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "Parent-state heartbeat reviveAgent authorization is partially present, but HeartbeatTracker hydration skip/defaultTimeout semantics are not preserved.",
+  "evidence_files": [
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/ritual-heartbeat-tracker/src/lib.rs",
+    "crates/ritual-scheduled-verification/src/lib.rs"
+  ],
+  "invariant_id": "cur-73ef235e96-heartbeat-revival-validity-uses-parent-state",
+  "invariant_index": 38,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ritual-heartbeat-tracker/src/lib.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs",
+      "crates/ethereum/payload/src/lib.rs"
+    ],
+    "checked_queries": [
+      "checkAndRevive|reviveAgent|HeartbeatTracker|defaultTimeout|FAILED",
+      "read_heartbeat_default_timeout|sync_from_storage|HeartbeatTracker",
+      "failed to read heartbeat agent|default_timeout"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "verify_heartbeat_scheduled_transactions",
+      "validate_heartbeat_authorization_set",
+      "try_synthesize_heartbeat_revival_transactions",
+      "synthesize_heartbeat_revival_transactions",
+      "read_heartbeat_default_timeout",
+      "HeartbeatTracker::sync_from_storage",
+      "checkAndRevive",
+      "reviveAgent"
+    ],
+    "missing_behavior": "HeartbeatTracker::sync_from_storage does not skip individual agents whose address/state/liveness reads fail and does not initialize synced heartbeat_timeout_blocks from contract defaultTimeout when readable.",
+    "related_but_insufficient_code": [
+      "Block verification recomputes expected reviveAgent txs from parent state and rejects unauthorized included heartbeat tx hashes. However HeartbeatTracker::sync_from_storage propagates per-agent read errors and does not call read_heartbeat_default_timeout."
+    ]
+  },
+  "notes": "Confirmed gap for the full invariant.",
+  "rationale": "The heartbeat candidates describe current parent-state validity checks for heartbeat scheduled transactions plus storage-sync behavior that avoids unsafe silent fallbacks.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "396438683921f506765f6fab3da8d512bb4bd1d9",
+    "082a6dce20ae15a963b00d13b9881e152282cea3",
+    "2bf4d074a996aa57adbdc2638beeceb5ae7a6994"
+  ],
+  "statement": "Heartbeat scheduled transaction verification must use parent-state heartbeat contract data to reject checkAndRevive when shouldCheck is false, reject reviveAgent when the agent is not FAILED, reject reviveAgent unless the scheduled caller equals the failed agent's owner, and reject reviveAgent before checkAndRevive in the same block; HeartbeatTracker storage sync must error on failed agent-count reads, skip agents whose address/state reads fail, and initialize timeout from defaultTimeout when readable.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "With mocked parent state, assert checkAndRevive fails when no check is due, reviveAgent fails for non-FAILED agents, reviveAgent fails when caller is not the parent-state owner, and reviveAgent before checkAndRevive is rejected.",
+    "Mock HeartbeatTracker storage reads so agent count fails, a single agent address/state fails, and defaultTimeout succeeds; assert sync returns Err for count failure, skips bad individual agents, and uses defaultTimeout for synced entries."
+  ],
+  "summary": "Heartbeat revival parent-state authorization is partial, but tracker hydration skip/defaultTimeout behavior is absent.",
+  "test_or_falsification_candidate": "Mock heartbeat DB with multiple agents, one per-agent read failure, and defaultTimeout non-200; current port should return Err and use per-agent liveness timeout rather than defaultTimeout.",
+  "title": "Heartbeat revival validity uses parent state",
+  "total_invariants": 1954
+}

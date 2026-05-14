@@ -1,0 +1,62 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping was found: current RPC result submission does not bypass verification; it requires a canonical AsyncJobTracker job, matching request context, registry synchronization, and verifier success.",
+  "evidence_files": [
+    "crates/rpc/rpc/src/ritual.rs"
+  ],
+  "invariant_id": "cur-1bcb8db91d-executor-verification-bypass",
+  "invariant_index": 227,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/rpc/rpc/src/ritual.rs",
+      "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "crates/ritual-spc-verification/src/verifier.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs"
+    ],
+    "checked_queries": [
+      "verify_async_execution|verification disabled|return Ok\\(true\\)|Executor verification disabled|load_spc_job_from_contract|verify_single"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "verify_async_execution",
+      "submit_async_result",
+      "SpcVerifier::verify_single",
+      "load_spc_job_from_contract"
+    ],
+    "missing_behavior": "Missing unconditional verification bypass that returns success for arbitrary transaction hash and executor without metadata/proof validation.",
+    "related_but_insufficient_code": [
+      "ritual_async_rpc::submit_async_result returns failure if AsyncJobTracker context cannot be loaded.",
+      "build_spc_verification_request rejects mismatched precompile address, block number, input hash, or executor.",
+      "SpcVerifier::verify_single rejects unregistered or inactive executors and verifies signatures or sidecar responses before pool update."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The primary diff inserts an unconditional early return Ok(true) with an explicit log message that verification is disabled, so callers observe successful verification regardless of the data that the previous code would have checked. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "5823517df6f3dc72f3bc5ac9e9365bd8f2760305"
+  ],
+  "statement": "The ritual RPC executor verification path returns success for any tx hash and executor without loading async transaction metadata or performing executor/proof validation.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call verify_async_execution with a nonexistent transaction hash or invalid executor and assert that the method returns Ok(true) and does not fail because metadata is missing."
+  ],
+  "summary": "The RPC executor verification bypass is absent from the current port.",
+  "test_or_falsification_candidate": "Call submitAsyncResult with a nonexistent tx hash or invalid executor; current code should fail while loading job context or verifier registry instead of returning success.",
+  "title": "RPC executor verification bypass",
+  "total_invariants": 1954
+}

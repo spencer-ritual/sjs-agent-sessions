@@ -1,0 +1,120 @@
+{
+  "cluster_key": "scheduler:scheduled-execution-index-25e0e8fb",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Obligation synthesis derives due execution indices from Scheduler state, bounds them by num_calls, and skips already executed indices.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "due_index_bounds clamps max_due_index to num_calls - 1; compute_obligations emits ScheduledObligation { call_id, index } only for unexecuted due indices.",
+      "symbols": [
+        "due_index_bounds",
+        "compute_obligations",
+        "ScheduledObligation"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Each obligation becomes exactly one TxScheduled carrying the same call_id and execution index in calldata and metadata.",
+      "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "executeCall { callId: U256::from(obligation.call_id), executionIndex: U256::from(obligation.index) }; TxScheduled::new_with_options(... obligation.call_id, obligation.index, ...).",
+      "symbols": [
+        "create_scheduled_execution_transaction",
+        "create_scheduled_execution_transaction_from_state"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Payload building deduplicates scheduled work by (call_id, execution_index).",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let mut included_scheduled_indices = HashSet::<(u64, u64)>::new(); ... contains/insert key",
+      "symbols": [
+        "included_scheduled_indices",
+        "PayloadCandidate::Scheduled"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Verifier rejects duplicate, out-of-bounds, and already-executed scheduled indices.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "seen_in_block.insert((call_id, execution_index)); execution_index >= call.num_calls; already_executed",
+      "symbols": [
+        "verify_scheduled_transactions_full_with_predicate_evaluator",
+        "DuplicateInBlock",
+        "IndexOutOfBounds",
+        "AlreadyExecuted"
+      ]
+    }
+  ],
+  "equivalence_argument": "Structural mapping from old canonical per-index scheduling to v2 parent-state obligation synthesis: due indices are bounded, materialized once into TxScheduled, deduplicated in payload building, and rejected by the verifier if duplicate/out-of-bounds/replayed.",
+  "evidence_files": [
+    "crates/scheduling/src/canonical.rs"
+  ],
+  "invariant_id": "cur-578add5257-scheduled-execution-index",
+  "invariant_index": 23,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/scheduling/src/canonical.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs",
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "execution_index|fired_count|num_calls",
+      "compute_obligations|due_index_bounds|ScheduledObligation",
+      "included_scheduled_indices|PayloadCandidate::Scheduled|TxScheduled"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "should_fire_at_block",
+      "due_index_bounds",
+      "compute_obligations",
+      "ScheduledObligation",
+      "included_scheduled_indices",
+      "verify_scheduled_transactions_full_with_predicate_evaluator"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "Old crates/scheduling/src/canonical.rs is absent; live owner is scheduled verification/block-building/payload code."
+    ]
+  },
+  "notes": "Mapped structurally in the port.",
+  "rationale": "The packet contains one high-confidence canonical scheduling candidate. Neighbor candidates provide the surrounding scheduled transaction pipeline, but none supersede the duplicate-prevention rule that canonical processing gates submission by current execution index and fired count.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "41c8572f4e28ba0d6419018ef9bb859190b2c7ac"
+  ],
+  "statement": "Canonical scheduling processing must submit a scheduled transaction only when the current execution index equals the call's current fired count, and it must not emit more than num_calls executions for that call.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "For a call with start_block S, frequency F, and num_calls N, process canonical blocks across multiple periods and assert exactly one transaction is submitted for each execution index 0 through N-1.",
+    "Reprocess or duplicate a block for an already-fired index and process blocks after N executions; assert no duplicate or out-of-bounds scheduled transaction is submitted."
+  ],
+  "summary": "One scheduled transaction per execution index is preserved through obligation synthesis, payload deduplication, and verifier rejection.",
+  "test_or_falsification_candidate": "Create Scheduler storage with start/frequency/num_calls and executed bitmap, then assert only unexecuted due indices < num_calls are emitted and duplicates/out-of-bounds/replays are rejected.",
+  "title": "One scheduled tx per execution index",
+  "total_invariants": 1954
+}

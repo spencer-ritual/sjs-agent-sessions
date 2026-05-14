@@ -1,0 +1,423 @@
+{
+  "record_type": "file",
+  "file_index": 292,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-async-registry/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "async-registry",
+    "async-job-tracker",
+    "settlement",
+    "nonce-lock",
+    "spc-verification",
+    "tee-registry"
+  ],
+  "atoms_total": 7,
+  "atoms": [
+    {
+      "record_id": "file-0292-atom-0001",
+      "file_index": 292,
+      "atom_index": 1,
+      "atoms_total": 7,
+      "source_path": "crates/ritual-async-registry/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,120 @@; public modules, default tracker address, and registry data shapes",
+      "source_kind": "async_registry_public_api_and_data_shapes",
+      "source_snippet": "pub mod error;\npub mod slots;\n\npub use error::RegistryError;\npub use slots::*;\n\npub fn get_async_job_tracker_address() -> Address { ... }\n\npub struct AsyncJob { ... }\npub struct SpcVerificationJobData { ... }\npub struct SettlementData { ... }",
+      "semantic_claim": "The old divergence exposes the async registry modules, re-exports `RegistryError` and slot helpers, provides the default/env AsyncJobTracker address, and defines canonical `AsyncJob`, `SpcVerificationJobData`, and `SettlementData` shapes for contract-backed async state reads.",
+      "high_risk": true,
+      "risk_tags": [
+        "public-api",
+        "address-default",
+        "registry-data-shapes",
+        "consensus-sensitive"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-registry/src/lib.rs",
+          "symbols": [
+            "get_async_job_tracker_address",
+            "AsyncJob",
+            "SpcVerificationJobData",
+            "SettlementData"
+          ],
+          "evidence": "Read-only audit reconstructed the source-added hunk as 85,325 bytes / 2,223 lines and confirmed the destination file is byte-for-byte equal."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async/src/detector.rs",
+          "symbols": [
+            "get_async_job_tracker_address"
+          ],
+          "evidence": "Destination async detector consumes the default AsyncJobTracker address boundary."
+        }
+      ],
+      "equivalence_argument": "The destination has no rewrite or drift: public fields, default address behavior, module exports, and shared data shapes are byte-identical to the source-added file.",
+      "test_strategy": "byte_comparison_plus_downstream_import_check",
+      "negative_test_candidate": "Unset `ASYNC_JOB_TRACKER_ADDRESS` and verify the default tracker address plus downstream struct field compatibility remain stable.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "High-risk because this is consensus/payment-facing state shape, but no adversarial review is required for exact mapping."
+    },
+    {
+      "record_id": "file-0292-atom-0002",
+      "file_index": 292,
+      "atom_index": 2,
+      "atoms_total": 7,
+      "source_path": "crates/ritual-async-registry/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +122,276 @@; read_jobs_for_settlement minimal settlement storage reader",
+      "source_kind": "settlement_job_reader",
+      "source_snippet": "pub fn read_jobs_for_settlement<DB: Database>(\n    db: &mut DB,\n    contract: Option<Address>,\n    job_ids: &[B256],\n) -> Result<HashMap<B256, SettlementData>, RegistryError> { ... }",
+      "semantic_claim": "`read_jobs_for_settlement` batch-reads minimal AsyncJobTracker settlement data, skips missing jobs with zero executor, reads precompile/executor/validator/sender, hashes and sizes for input and origin RLP, commit block, Phase 1 settled state, and expiry block, while preserving overflow and storage-read error handling.",
+      "high_risk": true,
+      "risk_tags": [
+        "settlement",
+        "storage-reader",
+        "phase1-settled",
+        "expiry",
+        "payment-sensitive"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-registry/src/lib.rs",
+          "symbols": [
+            "read_jobs_for_settlement",
+            "SettlementData"
+          ],
+          "evidence": "Destination preserves the same storage slot reads, missing-job continuation behavior, `try_into` overflow handling, debug/warn logging, and returned map construction."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "read_jobs_for_settlement"
+          ],
+          "evidence": "Destination payload builder settlement paths use the preserved settlement reader."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "read_jobs_for_settlement"
+          ],
+          "evidence": "Destination verifier settlement paths use the same preserved reader."
+        }
+      ],
+      "equivalence_argument": "Exact byte equality preserves source settlement semantics, including which storage values are authoritative and how missing or malformed jobs are surfaced.",
+      "test_strategy": "registry_settlement_reader_unit_tests",
+      "negative_test_candidate": "Create jobs with executor set/missing, `phase1Settled` toggled, oversized `inputSize`, and expired/unexpired `expiryBlock`; verify returned `SettlementData` and missing-job behavior.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping despite high consensus/payment risk."
+    },
+    {
+      "record_id": "file-0292-atom-0003",
+      "file_index": 292,
+      "atom_index": 3,
+      "atoms_total": 7,
+      "source_path": "crates/ritual-async-registry/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +32,51 @@, +278,607 @@, +679,740 @@; nonce-lock and fulfillment predicates",
+      "source_kind": "nonce_lock_and_fulfillment_predicates",
+      "source_snippet": "pub fn has_pending_job_for_sender<DB: Database>(...) -> Result<bool, RegistryError> { ... }\npub fn batch_sender_pending_job_counts<DB: Database>(...) -> Result<HashMap<Address, u64>, RegistryError> { ... }\npub fn batch_jobs_exist<DB: Database>(...) -> Result<HashSet<B256>, RegistryError> { ... }\npub fn batch_senders_all_phase1_settled<DB: Database>(...) -> Result<HashSet<Address>, RegistryError> { ... }\npub fn should_skip_sender_locked_tx<DB: Database>(...) -> Result<bool, RegistryError> { ... }",
+      "semantic_claim": "The old divergence adds single and batch predicates for pending sender jobs, job existence, all-jobs-settled/unlocked checks, and builder-side `should_skip_sender_locked_tx`, mirroring verifier nonce-lock logic: no jobs allows, all settled or expired allows, fulfillment allows, otherwise a locked sender is skipped/rejected.",
+      "high_risk": true,
+      "risk_tags": [
+        "nonce-lock",
+        "payload-builder",
+        "verifier-equivalence",
+        "fulfillment"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-registry/src/lib.rs",
+          "symbols": [
+            "has_pending_job_for_sender",
+            "batch_sender_pending_job_counts",
+            "batch_jobs_exist",
+            "batch_senders_all_phase1_settled",
+            "read_sender_job_count",
+            "is_sender_all_phase1_settled",
+            "job_exists",
+            "should_skip_sender_locked_tx"
+          ],
+          "evidence": "Destination preserves the same predicate ordering, storage slot reads, expired-job unlocking behavior, fulfillment allowance, and debug logging."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "should_skip_sender_locked_tx"
+          ],
+          "evidence": "Destination payload builder uses the preserved sender-lock predicate."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/nonce_lock.rs",
+          "symbols": [
+            "batch_sender_pending_job_counts",
+            "batch_senders_all_phase1_settled",
+            "batch_jobs_exist"
+          ],
+          "evidence": "Destination nonce-lock verifier uses the preserved batch helpers."
+        }
+      ],
+      "equivalence_argument": "The destination keeps the source builder/verifier predicate boundary exactly, preserving the intended equivalence between builder skip logic and verifier rejection logic.",
+      "test_strategy": "nonce_lock_differential_tests",
+      "negative_test_candidate": "Exercise senders with mixed settled, unsettled, and expired jobs, a fulfillment transaction hash equal to a job id, and an unrelated transaction hash from a locked sender.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping; high risk reflects consensus sensitivity, not merge uncertainty."
+    },
+    {
+      "record_id": "file-0292-atom-0004",
+      "file_index": 292,
+      "atom_index": 4,
+      "atoms_total": 7,
+      "source_path": "crates/ritual-async-registry/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +609,677 @@, +742,826 @@; expiry-aware job existence and expiry readers",
+      "source_kind": "active_job_and_expiry_readers",
+      "source_snippet": "pub fn job_exists_and_active<DB: Database>(...) -> Result<bool, RegistryError> { ... }\npub fn read_expiry_block<DB: Database>(...) -> Result<Option<u64>, RegistryError> { ... }\npub fn batch_read_expiry_blocks<DB: Database>(...) -> Result<HashMap<B256, u64>, RegistryError> { ... }",
+      "semantic_claim": "`job_exists_and_active` treats a job as active only when executor is nonzero and `expiryBlock > current_block_number`; `read_expiry_block` and `batch_read_expiry_blocks` expose expiry state while omitting zero expiry values.",
+      "high_risk": true,
+      "risk_tags": [
+        "expiry",
+        "commitment-duplication",
+        "builder-verifier-boundary"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-registry/src/lib.rs",
+          "symbols": [
+            "job_exists_and_active",
+            "read_expiry_block",
+            "batch_read_expiry_blocks"
+          ],
+          "evidence": "Destination preserves the strict `expiry_block <= current_block_number` inactive boundary and zero-expiry omission behavior."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "job_exists_and_active"
+          ],
+          "evidence": "Destination payload builder uses the preserved active-job predicate."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "job_exists_and_active"
+          ],
+          "evidence": "Destination verifier paths use the same expiry-aware existence check."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the source boundary between expired jobs that may be recommitted and active jobs that still block duplicate commitments.",
+      "test_strategy": "expiry_boundary_unit_tests",
+      "negative_test_candidate": "Check zero executor, zero expiry, expiry at current block, one block before, and one block after current block.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Settlement expiry accept/reject uses a distinct `current_block > expiry_block` rule in tests; this atom covers active-job duplication semantics."
+    },
+    {
+      "record_id": "file-0292-atom-0005",
+      "file_index": 292,
+      "atom_index": 5,
+      "atoms_total": 7,
+      "source_path": "crates/ritual-async-registry/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +828,924 @@; read_jobs_for_spc_verification",
+      "source_kind": "spc_verification_job_reader",
+      "source_snippet": "pub fn read_jobs_for_spc_verification<DB: Database>(\n    db: &mut DB,\n    contract: Option<Address>,\n    job_ids: &[B256],\n) -> Result<HashMap<B256, SpcVerificationJobData>, RegistryError> { ... }",
+      "semantic_claim": "`read_jobs_for_spc_verification` batch-reads canonical SPC context from AsyncJobTracker, returning commit block, tx hash, precompile address, input hash, previous block hash/number/timestamp, and executor address, and hard-errors when a referenced job is missing.",
+      "high_risk": true,
+      "risk_tags": [
+        "spc-verification",
+        "parent-block-context",
+        "input-hash",
+        "missing-job-fail-closed"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-registry/src/lib.rs",
+          "symbols": [
+            "read_jobs_for_spc_verification",
+            "SpcVerificationJobData"
+          ],
+          "evidence": "Destination preserves missing-job hard error, hash-only input semantics, executor lookup, precompile read, and previous-block context reads."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "read_jobs_for_spc_verification"
+          ],
+          "evidence": "Destination payload builder uses the preserved SPC registry reader."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc/src/ritual.rs",
+          "symbols": [
+            "read_jobs_for_spc_verification",
+            "SpcVerificationJobData"
+          ],
+          "evidence": "Destination Ritual RPC path uses the preserved SPC job data shape and reader."
+        }
+      ],
+      "equivalence_argument": "The destination keeps source fail-closed missing-job behavior and exactly the same canonical context fields needed by SPC verification.",
+      "test_strategy": "spc_registry_reader_tests",
+      "negative_test_candidate": "A missing job should return an error; an existing job should return all previous-block fields and the input hash without reading dynamic input bytes.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping; high risk reflects verification sensitivity."
+    },
+    {
+      "record_id": "file-0292-atom-0006",
+      "file_index": 292,
+      "atom_index": 6,
+      "atoms_total": 7,
+      "source_path": "crates/ritual-async-registry/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +926,1011 @@; TEE registry payment address lookup",
+      "source_kind": "tee_payment_address_lookup",
+      "source_snippet": "pub fn get_tee_registry_address() -> Address { ... }\nfn tee_service_record_slot(primary_address: Address) -> U256 { ... }\npub fn get_payment_address_for_tee<DB: Database>(...) -> Result<Option<Address>, RegistryError> { ... }",
+      "semantic_claim": "The old divergence adds TEE registry storage reads for settlement payment routing: default/env TEE registry address, `serviceRecords[tee_address]` slot computation at slot 2, and payment address lookup returning `None` when the record is zero.",
+      "high_risk": true,
+      "risk_tags": [
+        "tee-registry",
+        "payment-address",
+        "storage-slot",
+        "settlement-payment"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-registry/src/lib.rs",
+          "symbols": [
+            "get_tee_registry_address",
+            "tee_service_record_slot",
+            "get_payment_address_for_tee"
+          ],
+          "evidence": "Destination preserves the default registry address, slot-2 mapping layout, zero-record behavior, address extraction, and storage-read error propagation."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "get_payment_address_for_tee"
+          ],
+          "evidence": "Destination payload settlement path uses the preserved payment address lookup."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "get_payment_address_for_tee"
+          ],
+          "evidence": "Destination verifier settlement path uses the same TEE payment lookup."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the source payment routing semantics and storage layout, including unknown-TEE handling and default registry address fallback.",
+      "test_strategy": "tee_registry_lookup_unit_tests",
+      "negative_test_candidate": "Check a registered TEE with nonzero payment address, an unknown TEE with zero storage, and an env override for the registry contract address.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping despite payment sensitivity."
+    },
+    {
+      "record_id": "file-0292-atom-0007",
+      "file_index": 292,
+      "atom_index": 7,
+      "atoms_total": 7,
+      "source_path": "crates/ritual-async-registry/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1013,2223 @@; inline mock DB, unit tests, property tests, and performance smoke tests",
+      "source_kind": "inline_tests_and_differential_harness",
+      "source_snippet": "#[cfg(test)]\nmod tests {\n    struct MockDatabase { ... }\n    #[test] fn test_slot_calculations() { ... }\n    #[test] fn test_job_exists_and_active_boundary_exact() { ... }\n    fn assert_builder_verifier_equivalence(...) { ... }\n    proptest! { ... }\n}",
+      "semantic_claim": "The old divergence adds inline tests covering slot determinism, empty/missing/partial reads, expiry boundaries, Phase 1 settled behavior, builder/verifier nonce-lock equivalence, property fuzzing, performance smoke tests, and settlement expiry equivalence.",
+      "high_risk": false,
+      "risk_tags": [
+        "tests",
+        "differential-harness",
+        "property-tests",
+        "expiry-boundaries"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-registry/src/lib.rs",
+          "symbols": [
+            "MockDatabase",
+            "SenderLockState",
+            "JobExpiryState",
+            "prop_builder_verifier_equivalence",
+            "prop_settlement_expiry_equivalence"
+          ],
+          "evidence": "Destination preserves the entire inline test module byte-for-byte, including mock database setup, deterministic tests, property-based tests, and performance smoke tests."
+        }
+      ],
+      "equivalence_argument": "The destination preserves the source coverage intent exactly; all tests exercise the same public helpers and boundary conditions.",
+      "test_strategy": "cargo test -p ritual-async-registry",
+      "negative_test_candidate": "Run `cargo test -p ritual-async-registry`; failures would indicate source-level behavior or environment issues, not merge-preservation drift, because the test module is exact.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Test atom only; high-risk behavior is covered by earlier functional atoms."
+    }
+  ],
+  "high_risk_atoms_total": 6,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The AsyncJobTracker registry implementation is exact-port preserved byte-for-byte across public data/API shapes, settlement reads, nonce-lock and fulfillment predicates, active/expiry readers, SPC verification reads, TEE payment-address lookup, and inline differential/property tests.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 292: A\tcrates/ritual-async-registry/src/lib.rs.",
+    "Source hunk begins at diff line 42620 with `@@ -0,0 +1,2223 @@` and ends before the `crates/ritual-async-registry/src/slots.rs` diff header.",
+    "Read-only audit reconstructed the source hunk as 85,325 bytes / 2,223 lines and confirmed byte-for-byte equality with destination `crates/ritual-async-registry/src/lib.rs`.",
+    "Bounded destination usage evidence found registry readers in payload building, block verification, nonce-lock verification, and Ritual RPC paths.",
+    "No review queue entry was required because all atoms are exact mappings; high-risk tags reflect consensus/payment sensitivity only."
+  ]
+}

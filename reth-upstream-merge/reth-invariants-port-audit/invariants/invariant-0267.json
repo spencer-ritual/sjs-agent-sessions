@@ -1,0 +1,58 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "The RPC endpoint exists, but it reads already-created async metadata and contract jobs instead of simulating pending pool transactions, and its response omits executor.",
+  "evidence_files": [
+    "crates/rpc/rpc-api/src/ritual.rs",
+    "crates/rpc/rpc/src/ritual.rs"
+  ],
+  "invariant_id": "cur-642dee4507-pending-async-jobs-discoverable",
+  "invariant_index": 267,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/rpc/rpc-api/src/ritual.rs",
+      "crates/ethereum/node/src/ritual_async_rpc.rs"
+    ],
+    "checked_queries": [
+      "ritual_getPendingAsyncJobs simulate pending pool",
+      "PendingAsyncJob executor",
+      "best block header async jobs",
+      "get_pending_async_jobs all_async_metadata"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "ritual_getPendingAsyncJobs",
+      "get_pending_async_jobs",
+      "PendingAsyncJob",
+      "all_async_metadata",
+      "read_jobs_for_spc_verification"
+    ],
+    "missing_behavior": "The endpoint does not simulate pending pool transactions against the best block header and does not return the discovered executor field required by the invariant.",
+    "related_but_insufficient_code": [
+      "crates/ethereum/node/src/ritual_async_rpc.rs registers ritual_getPendingAsyncJobs and returns tx_hash, precompile_address, input, and block metadata from pool async metadata plus AsyncJobTracker state.",
+      "crates/rpc/rpc-api/src/ritual.rs PendingAsyncJob has no executor field."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The commit adds public RPC types and method for pending async jobs and implements transaction-pool simulation to populate the response. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "8eda63a0f16fede053410c2e4436a9efc1caedb9"
+  ],
+  "statement": "`ritual_getPendingAsyncJobs` must simulate pending pool transactions against the best block header and return discovered async precompile jobs with transaction hash, precompile address, input, executor, and block metadata.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Put a transaction that triggers an async precompile into the pool, call `ritual_getPendingAsyncJobs`, and assert the response includes one job with the expected hash, precompile address, input, executor, and total count."
+  ],
+  "summary": "Pending async jobs RPC exists but does not perform the required simulation or expose executor.",
+  "test_or_falsification_candidate": "Add a pending transaction that has not yet produced async metadata, call ritual_getPendingAsyncJobs, and assert the current endpoint cannot discover it by simulation or return an executor field.",
+  "title": "Pending async jobs discoverable by RPC",
+  "total_invariants": 1954
+}

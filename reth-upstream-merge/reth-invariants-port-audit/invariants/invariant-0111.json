@@ -1,0 +1,63 @@
+{
+  "cluster_key": "scheduler:receipt-rpc",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Compact helper struct mirrors current TxScheduled metadata and to/from_compact maps all listed fields, with empty spc_calls restored to None.",
+      "path": "crates/storage/codecs/src/alloy/transaction/scheduled.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub(crate) struct TxScheduled { gas, max_fee_per_gas, max_priority_fee_per_gas, to, value, origin_tx, call_id, index, initial_block, frequency, ttl, caller, commitment_tx, settlement_tx, spc_calls, input }\n...\norigin_tx: self.origin_tx, call_id: self.call_id, index: self.index, initial_block: self.initial_block, frequency: self.frequency, ttl: self.ttl, caller: self.caller, commitment_tx: self.commitment_tx, settlement_tx: self.settlement_tx, spc_calls: self.spc_calls.clone().unwrap_or_default()",
+      "symbols": [
+        "TxScheduled compact helper",
+        "Compact for AlloyTxScheduled"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port: TxScheduled compact encoding/decoding preserves current scheduled metadata including ttl and optional async/SPC fields.",
+  "evidence_files": [
+    "ritual-reth-internal/crates/storage/codecs/src/alloy/transaction/scheduled.rs",
+    "ritual-reth-internal/crates/rpc/rpc/src/eth/helpers/call.rs"
+  ],
+  "invariant_id": "cur-ff8c1b6be9-scheduled-compact-codecs-preserve-current-metadata",
+  "invariant_index": 111,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/storage/codecs/src/alloy/transaction/scheduled.rs"
+    ],
+    "checked_queries": [
+      "TxScheduled|Compact for AlloyTxScheduled|origin_tx|call_id|initial_block|frequency|ttl|spc_calls"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "Compact for AlloyTxScheduled",
+      "TxScheduled"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The packet candidate names max_block, but the current codec evidence shows ttl/expiry-derived metadata instead; the refined invariant tracks the current struct fields present at repository tip.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "6a9f77b96eed26824974dc167b056301c0870e29"
+  ],
+  "statement": "Compact serialization for TxScheduled must round-trip the current scheduled metadata fields, including gas, EIP-1559 fees, target, value, input, origin_tx, call_id, index, initial_block, frequency, ttl, caller, optional async linkage hashes, and spc_calls.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Compact round-trip a TxScheduled with non-default origin/call/index/frequency/ttl/caller/commitment/settlement/spc_calls and assert equality."
+  ],
+  "summary": "Scheduled compact codecs preserve current metadata.",
+  "test_or_falsification_candidate": "The generated compact arbitrary tests plus a hand-written optional-field round-trip should catch metadata loss.",
+  "title": "Scheduled transaction compact codecs preserve current metadata",
+  "total_invariants": 1954
+}

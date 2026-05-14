@@ -9,14 +9,11 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "mapped",
+  "file_classification": "structural_equivalent",
   "tags": [
-    "mapped",
-    "verifier",
     "high-risk",
     "non-exact",
-    "reth-port",
-    "nodebuilder"
+    "structural_equivalent"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -66,7 +63,7 @@
         "status": "pass",
         "review_record_id": "review-file-0302-atom-0001"
       },
-      "review_required": false,
+      "review_required": true,
       "notes": "Resolved the blocked atom by identifying the v2.2 function API and nodebuilder integration that replace the old trait-object wrapper.",
       "required_change": null,
       "human_question": null
@@ -77,8 +74,8 @@
   "adversarial_reviews": [
     "coverage-map/reviews/review-file-0302-atom-0001.json"
   ],
-  "summary": "The old block-verifier module surface is preserved behaviorally through v2.2 function-based verifier hooks plus nodebuilder-owned EVM replay integration.",
-  "review_required": false,
-  "status": "complete",
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": true,
+  "status": "needs_review",
   "notes": "Reclassified from blocked after reviewing the same-path verifier crate and nodebuilder integration surface."
 }

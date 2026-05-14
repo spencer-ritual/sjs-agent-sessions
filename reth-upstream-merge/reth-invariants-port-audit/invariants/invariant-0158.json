@@ -1,0 +1,88 @@
+{
+  "cluster_key": "executor delivery:async-settlement-uses-cef9913b",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The registry reader exposes contract-derived settlement fields including precompile address, commit block, phase1Settled, expiry, sender, hashes, and sizes.",
+      "path": "crates/ritual-async-registry/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub struct SettlementData {\n    pub executor_address: Address,\n    pub commitment_validator: Address,\n    pub precompile_address: Address,\n    pub input_hash: B256,\n    pub input_size: u64,\n    pub tx_rlp_hash: B256,\n    pub tx_rlp_size: u64,\n    pub commit_block: u64,\n    pub is_phase1_settled: bool,\n    pub expiry_block: u64,\n    pub sender: Address,\n}",
+      "symbols": [
+        "SettlementData",
+        "read_jobs_for_settlement"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Phase 1 settlement compares pool metadata to contract data and encodes payment fields from contract_job, rejecting stale or missing contract state.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if metadata.precompile_address != contract_job.precompile_address { return Err(...); }\nif metadata.commit_block != contract_job.commit_block { return Err(...); }\nif input_hash != contract_job.input_hash { return Err(...); }\n...\ncontract_job.sender, executor.payment_address, contract_job.commitment_validator",
+      "symbols": [
+        "prepare_fulfilled_async_settlement"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Phase 2 delivery uses contract phase state, expiry, precompile address, and commit block for eligibility, fee inputs, and SPC call construction.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if !contract_job.is_phase1_settled { return Err(\"job is not phase1 settled\".to_string()); }\nif current_block > contract_job.expiry_block { return Err(...); }\n...\nlet blocks_polled = current_block.checked_sub(contract_job.commit_block)?;\n...\nSpcCall::new(contract_job.precompile_address, metadata.precompile_input.clone(), raw_delivery_result.clone(), delivery_proof.clone(), contract_job.commit_block)",
+      "symbols": [
+        "prepare_delivery_settlement_transaction"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port splits responsibilities consistently with the invariant: AsyncJobTracker contract state supplies identity, lifecycle, commit block, expiry, and settlement payment fields, while pool metadata supplies the locally stored bytes/proofs only after hash, size, commitment, and SPC parity checks against contract_job.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-async-registry/src/lib.rs"
+  ],
+  "invariant_id": "cur-aba53ad61c-async-settlement-uses-contract-data",
+  "invariant_index": 158,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-async-registry/src/lib.rs"
+    ],
+    "checked_queries": [
+      "read_jobs_for_settlement|SettlementData|is_phase1_settled|expiry_block|input_hash|tx_rlp_hash|contract_job"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "SettlementData",
+      "read_jobs_for_settlement",
+      "prepare_fulfilled_async_settlement",
+      "prepare_delivery_settlement_transaction"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The primary diff repeatedly marks contract job data as the single source of truth and routes settlement fee calculation, SPC metadata, delivery packing, and expiry checks through SettlementData read from AsyncJobTracker. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: The pool still supplies result/proof/input bytes because the contract stores hashes and sizes; this split could change with future storage optimizations.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "6706374cca0350567678f0a8fd73be0f6dfae9f5"
+  ],
+  "statement": "When building Phase 1 or Phase 2 async settlement transactions, commit_block, precompile_address, phase1Settled, and expiry_block must come from AsyncJobTracker contract state, not async pool metadata; jobs missing from contract state, already settled for Phase 1, not settled for Phase 2, or expired by contract expiry_block must be skipped.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create pool metadata whose precompile_address or commit_block disagrees with AsyncJobTracker state; assert settlement building uses the contract values, and assert it skips when contract job is missing, expired, already Phase 1 settled, or not Phase 1 settled for Phase 2 delivery."
+  ],
+  "summary": "Phase 1 and Phase 2 settlement paths use contract job state as the source of truth.",
+  "test_or_falsification_candidate": "Create AsyncJobTracker fixtures for missing, expired, already Phase 1 settled, not Phase 1 settled for delivery, and pool/contract mismatch cases; assert builders skip or reject according to contract state and never derive commit_block or precompile_address from pool metadata alone.",
+  "title": "Async settlement uses contract job data",
+  "total_invariants": 1954
+}

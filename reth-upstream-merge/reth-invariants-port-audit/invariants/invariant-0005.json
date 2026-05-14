@@ -1,0 +1,67 @@
+{
+  "cluster_key": "scheduler:chain-halt-eviction-9c70da63",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/transaction-pool/src/maintain.rs"
+  ],
+  "invariant_id": "cur-daefd947f4-chain-halt-eviction-takes-priority-over-scheduled-eviction",
+  "invariant_index": 5,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/maintain.rs",
+      "crates/transaction-pool/src/traits.rs",
+      "crates/transaction-pool/src/pool/mod.rs",
+      "crates/scheduling/**",
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs"
+    ],
+    "checked_queries": [
+      "chain_halt|CHAIN_HALT|halted chain",
+      "remove_scheduled_expired_by_time|scheduled.*evict|scheduled.*expire",
+      "filter_scheduled_transactions|should_remove_from_pool"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "get_chain_halt_threshold",
+      "CHAIN_HALT_THRESHOLD_SECS",
+      "chain_halt_detected",
+      "evict_all_scheduled_transactions",
+      "remove_scheduled_expired_by_time",
+      "cleanup_expired_scheduled"
+    ],
+    "missing_behavior": "Missing transaction-pool maintenance rule that detects chain halt, evicts scheduled transactions as poisonous, records chain_halt_detected, and suppresses scheduled age eviction on the same tick.",
+    "related_but_insufficient_code": [
+      "Current maintain.rs explicitly says raw scheduled txpool admission is dormant and the old chain-halt scheduled-tx eviction loop is intentionally not resurrected. Scheduled verification expiry exists but is block/state filtering, not txpool chain-halt maintenance ordering."
+    ]
+  },
+  "notes": "Confirmed gap; current maintenance intentionally omits old raw scheduled txpool chain-halt loop.",
+  "rationale": "The only direct candidate in this cluster states an explicit maintenance-loop ordering invariant: chain-halt detection is performed before scheduled age eviction, and scheduled age eviction is skipped on ticks where halt handling evicts scheduled transactions as poisonous. The bounded neighbor candidates describe broader scheduled transaction support but do not refine or supersede this maintenance ordering rule.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "561415fb149a5d219ca342eba2901f9efc1d7580"
+  ],
+  "statement": "On each transaction-pool maintenance tick, chain-halt detection must run before scheduled age eviction; when chain-halt handling detects a halted chain and evicts scheduled transactions as poisonous, scheduled age eviction must not also run during that same tick.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Drive a maintenance tick with a latest header timestamp old enough to exceed the chain-halt threshold and with scheduled transactions present; assert that chain-halt scheduled eviction runs and remove_scheduled_expired_by_time is not invoked on that tick.",
+    "Drive a maintenance tick where the latest header timestamp does not exceed the chain-halt threshold; assert that scheduled age eviction remains eligible to run according to its normal maintenance interval."
+  ],
+  "summary": "Chain-halt priority over scheduled age eviction is absent from the audited port.",
+  "test_or_falsification_candidate": "Drive txpool maintenance with a stale latest header and scheduled tx present; current port exposes no chain-halt scheduled eviction path.",
+  "title": "Chain-halt eviction takes priority over scheduled age eviction",
+  "total_invariants": 1954
+}

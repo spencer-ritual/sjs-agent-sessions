@@ -1,0 +1,79 @@
+{
+  "cluster_key": "block building:backfill-execution-invokes-1fa65cb8",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "ExecutionStage stores an optional blocking handler and invokes it once per executed block with a Chain built from the executed block, receipts, and requests.",
+      "path": "crates/stages/stages/src/stages/execution/mod.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn with_blocking_handler(mut self, handler: Arc<dyn Fn(&Chain<E::Primitives>) + Send + Sync>) -> Self { self.blocking_handler = Some(handler); self }\n...\nlet chain = Chain::new(vec![block.clone()], execution_outcome, BTreeMap::new());\nblocking_handler(&chain);",
+      "symbols": [
+        "ExecutionStage::with_blocking_handler",
+        "ExecutionStage::execute"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "Pipeline construction wires the configured handler into the execution stage.",
+      "path": "crates/node/builder/src/setup.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if let Some(handler) = blocking_handler {\n    execution_stage = execution_stage.with_blocking_handler(handler);\n}",
+      "symbols": [
+        "build_networked_pipeline",
+        "ExecutionStage::with_blocking_handler"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "The engine launcher creates a pool side-effect handler and passes it into the backfill pipeline.",
+      "path": "crates/node/builder/src/launch/engine.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let blocking_handler = Arc::new(move |chain: &Chain<PrimitivesTy<T::Types>>| {\n    blocking_pool.on_blocking_canonical_state_change(chain.tip());\n});\n...\nSome(blocking_handler),",
+      "symbols": [
+        "EngineNodeLauncher::launch_node",
+        "on_blocking_canonical_state_change"
+      ]
+    }
+  ],
+  "equivalence_argument": "Backfill execution invokes the configured blocking handler for each executed block using a Chain built from execution output.",
+  "evidence_files": [
+    "crates/stages/stages/src/stages/execution.rs",
+    "crates/node/builder/src/launch/engine.rs",
+    "crates/node/builder/src/setup.rs"
+  ],
+  "invariant_id": "cur-66c7a9f628-backfill-execution-invokes-blocking-handler",
+  "invariant_index": 550,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The handler is optional and only active when the launcher wires it into the pipeline.",
+  "rationale": "The diff adds with_blocking_handler to ExecutionStage, threads the handler through pipeline construction, creates a backfill handler in EngineNodeLauncher, and calls the handler after block execution. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Block Building",
+  "source_commits": [
+    "d08bea8763e87abdcd0f3974b7757d585be4e9ad"
+  ],
+  "statement": "When a blocking handler is configured on ExecutionStage, backfill execution must call it for each executed block using a Chain built from the block and execution result receipts/requests.",
+  "status": "current",
+  "subsystem": "block building",
+  "suggested_falsification_tests": [
+    "Run an execution stage with a test blocking handler over two blocks and assert the handler is called once per block with the expected block number/hash and receipts/requests-derived Chain."
+  ],
+  "summary": "Backfill execution invokes the blocking handler.",
+  "test_or_falsification_candidate": "Run ExecutionStage with a test blocking handler over two blocks and assert two calls with matching block/receipts data.",
+  "title": "Backfill execution invokes blocking handler",
+  "total_invariants": 1954
+}

@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The nodebuilder executor explicitly logs block hash, block number, and verification error, then returns BlockExecutionError on verifier failure.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "if let Some(ref verifier) = self.verifier {\n    if let Err(e) = verifier.verify_block(block.sealed_block()) {\n        ritual_metrics::block::log_block_verify_failure(&block.hash(), block.number(), &e);\n        tracing::error!(target: \"ritual::block_verification\", block_hash = %block.hash(), block_number = block.number(), error = ?e, \"Block verification failed\");\n        return Err(BlockExecutionError::msg(format!(\"Block verification failed: {:?}\", e)));\n    }\n}",
+      "symbols": [
+        "RitualBlockExecutor::execute_one",
+        "BlockVerifierTrait::verify_block"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The state-hook execution path has the same explicit rejection and logging behavior.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "if let Some(ref verifier) = self.verifier {\n    if let Err(e) = verifier.verify_block(block.sealed_block()) {\n        tracing::error!(target: \"ritual::block_verification\", block_hash = %block.hash(), block_number = block.number(), error = ?e, \"Block verification failed\");\n        return Err(BlockExecutionError::msg(format!(\"Block verification failed: {:?}\", e)));\n    }\n}",
+      "symbols": [
+        "RitualBlockExecutor::execute_one_with_state_hook"
+      ]
+    }
+  ],
+  "equivalence_argument": "In the v2.2 architecture the block executor lives in nodebuilder; both executor paths reject verifier errors with BlockExecutionError and structured error logging before finalization.",
+  "evidence_files": [
+    "crates/evm/src/execute.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-3f4246e995-block-verification-failures-explicit-rejections",
+  "invariant_index": 359,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in dependency because nodebuilder owns the Ritual block executor paths.",
+  "rationale": "The old code already mapped verification errors to BlockExecutionError, but the commit explicitly centralizes handling and adds top-level error logging so verification failures are not silent. The same helper is used by both executor paths. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "012098e574f481422b03d7bce452ff96d678f10c"
+  ],
+  "statement": "If block verification fails during either block executor path, execution must return a BlockExecutionError and emit an error log including block number, block hash, and the verification error before rejecting the block.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Install a block verifier stub that returns an error in both execute paths, execute a block, and assert the returned error contains Block verification failed while captured logs include target ritual::block_verification, block_number, block_hash, and the original error."
+  ],
+  "summary": "Nodebuilder turns block-verifier failures into explicit logged BlockExecutionError rejections.",
+  "test_or_falsification_candidate": "Install a verifier stub that fails in execute_one and execute_one_with_state_hook and assert BlockExecutionError plus ritual::block_verification logs include block hash, block number, and the original error.",
+  "title": "Block verification failures are explicit rejections",
+  "total_invariants": 1954
+}

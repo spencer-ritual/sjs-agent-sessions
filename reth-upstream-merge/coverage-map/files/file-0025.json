@@ -9,10 +9,10 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "missing",
+  "file_classification": "structural_equivalent",
   "tags": [
-    "missing",
-    "needs-review"
+    "non-exact",
+    "structural_equivalent"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -28,9 +28,19 @@
       "semantic_claim": "Test canonical-state subscription fixtures implement the blocking subscription API as a no-op.",
       "high_risk": false,
       "risk_tags": [],
-      "mapping_status": "missing",
-      "destinations": [],
-      "equivalence_argument": null,
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/chain-state/src/test_utils.rs",
+          "symbols": [
+            "TestCanonStateSubscriptions::subscribe_blocking_canon_state"
+          ],
+          "snippet": "fn subscribe_blocking_canon_state(&self, _handler: ritual_blocking_pubsub::BlockingHandler<Self::Primitives>) {\n    // No-op implementation for test provider.\n}",
+          "evidence": "Test canonical-state subscriptions now implement the blocking trait method as a no-op."
+        }
+      ],
+      "equivalence_argument": "The test fixture adapter is restored because the trait method is restored.",
       "test_strategy": "destination_only_regression",
       "negative_test_candidate": null,
       "adversarial_review": {
@@ -38,16 +48,17 @@
         "status": "not_requested",
         "review_record_id": null
       },
-      "review_required": true,
-      "required_change": "If blocking canonical-state subscription is restored, update chain-state test fixtures to satisfy the trait.",
-      "notes": "Formatting-only timestamp wrapping and Mutex unwrap changes were ignored."
+      "review_required": false,
+      "required_change": null,
+      "notes": "Fixture-only atom for restored chain-state trait surface.",
+      "human_question": null
     }
   ],
   "high_risk_atoms_total": 0,
   "non_exact_atoms_total": 1,
   "adversarial_reviews": [],
-  "summary": "The test fixture implementation for blocking canonical-state subscription is missing in the v2.2 port.",
-  "review_required": true,
-  "status": "needs_review",
-  "notes": "Fixture atom depends on the broader chain-state blocking subscription decision."
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Updated during Core async first pass; unresolved atoms in the same feature remain separate and require active-consumer or runtime evidence."
 }

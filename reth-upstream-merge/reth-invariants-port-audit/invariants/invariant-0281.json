@@ -1,0 +1,53 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "System calls are executed with nonce 0, zero fee fields, no chain ID, a 30M gas limit, temporary block basefee 0, nonce checks disabled, and the original block/config values restored afterward.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "let tx = TxEnv { nonce: 0, gas_limit: 30_000_000, gas_price: 0, chain_id: None, gas_priority_fee: None, ... };\ncore::mem::swap(&mut self.inner.data.ctx.block_mut().gas_limit, &mut gas_limit);\ncore::mem::swap(&mut self.inner.data.ctx.block_mut().basefee, &mut basefee);\ncore::mem::swap(&mut self.inner.data.ctx.cfg_mut().disable_nonce_check, &mut disable_nonce_check);\nlet mut res = self.transact_raw(tx);\n... swap back ...",
+      "symbols": [
+        "RitualEvm::transact_system_call"
+      ]
+    }
+  ],
+  "equivalence_argument": "The implementation directly sets the required TxEnv fields and uses swaps around execution so the relaxed system-call environment is temporary and normal block/config values are restored after the call.",
+  "evidence_files": [
+    "crates/node/src/executor.rs",
+    "crates/node/src/async_evm.rs"
+  ],
+  "invariant_id": "cur-c9aa573006-system-calls-bypass-normal-nonce-checks",
+  "invariant_index": 281,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to nodebuilder custom EVM system-call implementation.",
+  "rationale": "The commit replaces a simple u64::MAX raw transaction with the upstream-style environment swaps and explicit TxEnv fields for system calls. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "449a4b3a189acdaa0056ef7879c81e3ef6c432ae"
+  ],
+  "statement": "AsyncEthEvm transact_system_call must execute the system call with nonce 0, gas_price 0, no chain_id, no priority fee, a 30,000,000 gas limit, temporary block basefee 0, temporary block gas limit at least the tx gas limit, and nonce checks disabled, then restore the previous block/config values after execution.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Execute a system call from an account with nonce mismatch and no balance while block basefee is nonzero; assert it succeeds if the target contract permits it, and assert the EVM context's original basefee, gas_limit, and nonce-check flag are restored afterward."
+  ],
+  "summary": "Ritual system calls bypass normal fee and nonce checks and restore context afterward.",
+  "test_or_falsification_candidate": "Execute a system call from a nonce-mismatched account with nonzero block basefee and assert it succeeds while the original basefee, gas limit, and nonce-check flag are restored.",
+  "title": "System calls bypass normal fee and nonce checks",
+  "total_invariants": 1954
+}

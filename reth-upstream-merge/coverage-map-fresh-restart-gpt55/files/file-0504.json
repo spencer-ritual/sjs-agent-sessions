@@ -1,0 +1,71 @@
+{
+  "record_type": "file",
+  "file_index": 504,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/storage/provider/src/test_utils/mock.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "storage",
+    "test-utils",
+    "blocking-pubsub"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0504-atom-0001",
+      "file_index": 504,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/storage/provider/src/test_utils/mock.rs",
+      "source_hunk_hint": "@@ -401,7 +401,7 @@ impl<ChainSpec: EthChainSpec + 'static> TransactionsProvider",
+      "source_kind": "provider_test_stub",
+      "source_snippet": "                    return Ok(Some((tx.clone(), meta)));\n                return Ok(Some(block.header.number));\n    fn subscribe_blocking_canon_state(&self, _handler: ritual_blocking_pubsub::BlockingHandler<T>) {\n    }",
+      "semantic_claim": "The storage provider mock implements a no-op `subscribe_blocking_canon_state` for tests.",
+      "high_risk": false,
+      "risk_tags": [
+        "test-utils",
+        "canonical-state"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/provider/src/test_utils/mock.rs",
+          "symbols": [
+            "subscribe_blocking_canon_state",
+            "BlockingHandler"
+          ],
+          "evidence": "Destination mock provider contains the no-op blocking subscription method."
+        }
+      ],
+      "equivalence_argument": "Exact no-op test stub is present in the destination.",
+      "test_strategy": "compile provider mock CanonStateSubscriptions impl",
+      "negative_test_candidate": "Tests using blocking subscriptions should compile with the mock provider.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": ""
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "Mock provider blocking canonical-state subscription stub is exact-port preserved.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0504: M\tcrates/storage/provider/src/test_utils/mock.rs.",
+    "Source diff lines 89132-89164; first hunk `@@ -401,7 +401,7 @@ impl<ChainSpec: EthChainSpec + 'static> TransactionsProvider`.",
+    "Fresh destination evidence was checked against /home/ritual/repos/ritual-reth-internal-v2.2.0-port."
+  ]
+}

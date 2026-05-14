@@ -11,7 +11,12 @@
   },
   "file_classification": "noise",
   "tags": [
-    "noise"
+    "async-fsm",
+    "encoding",
+    "noise",
+    "payload",
+    "txpool",
+    "verifier"
   ],
   "atoms_total": 0,
   "atoms": [],

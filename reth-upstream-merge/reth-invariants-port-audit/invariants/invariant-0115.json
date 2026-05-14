@@ -1,0 +1,80 @@
+{
+  "cluster_key": "scheduler:receipt-rpc",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "sync_from_storage reads count, each agent address, and liveness; errors include index/agent context; it replaces agents, sets last_synced_block, and marks hydrated.",
+      "path": "crates/ritual-heartbeat-tracker/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let count = read_heartbeat_agent_count(db, contract)?;\nlet mut hydrated_agents = HashMap::with_capacity(count as usize);\nfor i in 0..count { let agent = read_heartbeat_agent_at(db, contract, i).map_err(...)?; let liveness = read_heartbeat_agent_liveness(db, contract, agent).map_err(...)?; hydrated_agents.insert(agent, AgentEntry { ... }); }\nself.agents = hydrated_agents;\nself.last_synced_block = current_block;\nself.hydrated = true;",
+      "symbols": [
+        "HeartbeatTracker::sync_from_storage"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Heartbeat storage helpers expose the count, indexed agent address, and liveness-critical fields used by hydration.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn read_heartbeat_agent_count<DB: Database>(...) -> Result<u64, String>\npub fn read_heartbeat_agent_at<DB: Database>(...) -> Result<Address, String>\npub fn read_heartbeat_agent_liveness<DB: Database>(...) -> Result<HeartbeatAgentLiveness, String>",
+      "symbols": [
+        "read_heartbeat_agent_count",
+        "read_heartbeat_agent_at",
+        "read_heartbeat_agent_liveness"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port: heartbeat hydration replaces memory from on-chain liveness state and fails on read errors.",
+  "evidence_files": [
+    "ritual-reth-internal/crates/ritual-heartbeat-tracker/src/lib.rs",
+    "ritual-reth-internal/crates/ritual-scheduled-verification/src/lib.rs"
+  ],
+  "invariant_id": "cur-7c6b13850c-heartbeat-hydration-mirrors-chain-liveness-storage",
+  "invariant_index": 115,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-heartbeat-tracker/src/lib.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "sync_from_storage|read_heartbeat_agent_count|read_heartbeat_agent_at|read_heartbeat_agent_liveness|hydrated"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "HeartbeatTracker::sync_from_storage",
+      "read_heartbeat_agent_count",
+      "read_heartbeat_agent_at",
+      "read_heartbeat_agent_liveness"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The later heartbeat candidate refines the earlier field-preservation invariant with full replacement and error handling semantics.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "5d0f30edbed7d1ceb780cb1cd4b42a45e9636666",
+    "a282e7db397a0b1b870949e88bb45e38b2a6b101"
+  ],
+  "statement": "HeartbeatTracker storage hydration must read the on-chain agent count, each agent address, and each agent liveness record, replace the in-memory map with exact hydrated records, set last_synced_block and hydrated=true, and return an error on any agent read failure.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Mock two agents in heartbeat storage; assert sync_from_storage replaces stale tracker entries and sets hydrated/last_synced_block.",
+    "Make one agent read fail and assert sync_from_storage returns Err without silently partial-hydrating."
+  ],
+  "summary": "Heartbeat hydration mirrors chain liveness storage.",
+  "test_or_falsification_candidate": "HeartbeatTracker::sync_from_storage unit test for replacement and error propagation.",
+  "title": "Heartbeat hydration mirrors on-chain liveness storage",
+  "total_invariants": 1954
+}

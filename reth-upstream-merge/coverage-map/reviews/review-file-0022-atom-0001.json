@@ -1,0 +1,9 @@
+{
+  "record_type": "adversarial_review",
+  "record_id": "review-file-0022-atom-0001",
+  "atom_record_id": "file-0022-atom-0001",
+  "review_result": "pass",
+  "falsification_attempt": "Covered by focused ordering regression.",
+  "missed_risks": [],
+  "notes": "The blocking notifier field is restored in the v2.2 in-memory canonical state, preserving storage for synchronous canonical handlers."
+}

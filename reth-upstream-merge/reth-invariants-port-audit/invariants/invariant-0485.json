@@ -1,0 +1,68 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "FHE payload validation shares the 10 KiB input cap and base executor/TTL validation path.",
+      "path": "crates/ritual-precompile-codecs/src/validation.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const MAX_ASYNC_INPUT_SIZE: usize = 10 * 1024;\n...\nif input.len() > MAX_ASYNC_INPUT_SIZE { return Err(PayloadValidationError::InputTooLarge { ... }); }\n...\nFHE_PRECOMPILE => validate_fhe_call_payload(input, max_ttl),\n...\nvalidate_executor_request_payload(input, max_ttl)?;",
+      "symbols": [
+        "MAX_ASYNC_INPUT_SIZE",
+        "validate_async_payload",
+        "validate_fhe_call_payload"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "Async detection records FHE because FHE is in the canonical async/SPC precompile metadata matrix.",
+      "path": "crates/ritual-async-inspector/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if !is_known_async_precompile(target) {\n    return;\n}\nself.has_async_call = true;\nself.precompile_address = Some(target);",
+      "symbols": [
+        "AsyncPrecompileInspector::observe_call",
+        "is_known_async_precompile"
+      ]
+    }
+  ],
+  "equivalence_argument": "The validation router applies the global 10 KiB cap before dispatching and routes FHE through validate_fhe_call_payload, which delegates to the shared executor request validation for nonzero executor and TTL bounds.",
+  "evidence_files": [
+    "crates/ritual-async/src/validation.rs",
+    "crates/ritual-async/src/detector.rs",
+    "crates/ritual-async-fees/src/constants.rs"
+  ],
+  "invariant_id": "cur-d280325261-payloads-share-async-validity-bounds",
+  "invariant_index": 485,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This maps the bounded validation/detection invariant, not broader FHE wallet or delivery support.",
+  "rationale": "The diff adds validate_fhe_call_payload with the same executor and TTL checks as other async payloads, and raises the global async input limit from 5 KiB to 10 KiB specifically because FHE DA-layer inputs are around 7 KiB. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "7b3a20cc665d054a7b03f06da1cadfbfd11ca492"
+  ],
+  "statement": "FHE async payload validation must decode the base executor fields, reject zero executor addresses, reject ttl == 0, reject ttl greater than max_ttl_blocks(), and async detection must allow inputs up to 10 KiB while rejecting larger inputs.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create FHE ABI inputs with zero executor, ttl 0, ttl max_ttl_blocks()+1, valid ttl/executor, a 7 KiB payload, and an over-10 KiB payload; assert validation/detection rejects only the invalid address, invalid TTLs, and over-limit input."
+  ],
+  "summary": "FHE payload validation shares the async size, executor, and TTL bounds.",
+  "test_or_falsification_candidate": "Create FHE ABI inputs with zero executor, ttl 0, ttl max_ttl_blocks()+1, valid ttl/executor, a 7 KiB payload, and an over-10 KiB payload; assert validation/detection rejects only the invalid address, invalid TTLs, and over-limit input.",
+  "title": "FHE payloads share async validity bounds",
+  "total_invariants": 1954
+}

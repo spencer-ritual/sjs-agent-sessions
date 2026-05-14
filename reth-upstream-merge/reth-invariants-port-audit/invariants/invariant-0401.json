@@ -1,0 +1,64 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "The codec type is exported from the shared precompile-codecs crate.",
+      "path": "crates/ritual-precompile-codecs/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub use llm_call::LLMCallRequest;",
+      "symbols": [
+        "LLMCallRequest"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "The decoder extracts executor, secrets, ttl, secret signatures, user key, messages_json, and model from ABI positions used for LLM validation.",
+      "path": "crates/ritual-precompile-codecs/src/llm_call.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub struct LLMCallRequest { pub executor: Address, pub encrypted_secrets: Vec<Bytes>, pub ttl: u64, pub secret_signature: Vec<Bytes>, pub user_public_key: Bytes, pub messages_json: String, pub model: String, ... }\n...\nexecutor: address_token(&tokens[0], \"executor\")?, ... messages_json: string_token(&tokens[5], \"messages_json\")?, model: string_token(&tokens[6], \"model\")?",
+      "symbols": [
+        "LLMCallRequest::from_abi"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port keeps LLM validation fields in a dedicated codec object and re-exports it for validators, matching the required ABI field extraction contract.",
+  "evidence_files": [
+    "crates/ritual-precompile-codecs/src/lib.rs",
+    "crates/ritual-precompile-codecs/src/llm_call.rs"
+  ],
+  "invariant_id": "cur-305e86a2d5-call-codec-exposes-validation-fields",
+  "invariant_index": 401,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in ritual-precompile-codecs.",
+  "rationale": "The primary diff adds and re-exports LLMCallRequest, and its decoder is explicitly scoped to the fields needed for RPC-level validation of LLM requests. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "d710dd149783d6143f6ae5a028986f498826adb7"
+  ],
+  "statement": "The ritual-precompile-codecs crate must provide an LLMCallRequest decoder that extracts executor, encrypted_secrets, ttl, secret_signature, user_public_key, messages_json, and model from ABI-encoded LLM precompile input for validation.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "ABI-encode an LLM call with the first seven fields populated and assert LLMCallRequest::from_abi returns those exact executor, ttl, secret_signature, user_public_key, messages_json, and model values; pass malformed or insufficient ABI data and assert DecodeFailed/CodecError."
+  ],
+  "summary": "The LLM validation codec is present and exported.",
+  "test_or_falsification_candidate": "ABI-encode an LLM request with distinct first-seven validation fields and assert LLMCallRequest::from_abi returns them exactly.",
+  "title": "LLM call codec exposes validation fields",
+  "total_invariants": 1954
+}

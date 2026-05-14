@@ -1,0 +1,68 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: Phase 1 async results use canonical contract context, but Phase 2 delivery results do not.",
+  "evidence_files": [
+    "crates/rpc/rpc/src/ritual.rs",
+    "crates/rpc/rpc/Cargo.toml"
+  ],
+  "invariant_id": "cur-dba2af55cc-result-verification-uses-asyncjobtracker-context",
+  "invariant_index": 504,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/ritual-async-registry/src/lib.rs"
+    ],
+    "checked_queries": [
+      "RPC delivery result AsyncJobTracker context",
+      "load_spc_job_from_contract submitDeliveryResult",
+      "delivery result canonical job metadata"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "load_spc_job_from_contract",
+      "build_spc_verification_request",
+      "submit_async_result",
+      "submit_delivery_result",
+      "AsyncDeliverySubmission"
+    ],
+    "missing_behavior": "RPC delivery result submission does not load the canonical AsyncJobTracker job, compare pool/request metadata to contract data, or verify the delivery SPC proof before updating the pool.",
+    "related_but_insufficient_code": [
+      "crates/ethereum/node/src/ritual_async_rpc.rs implements canonical AsyncJobTracker verification for submit_async_result.",
+      "The same file's submit_delivery_result only forwards tx_hash, result, proof, and zk_proof to the pool."
+    ]
+  },
+  "notes": "The invariant explicitly covers both async result and delivery result submissions.",
+  "rationale": "RPC verification now depends on StateProviderFactory, reads jobs via read_jobs_for_spc_verification, builds SpcVerificationRequest from contract fields, compares pool metadata and request fields to contract job data, and treats request.executor as non-authoritative. The RPC path no longer reconstructs verification context from request fields or header lookups; it reads AsyncJobTracker, compares request/pool metadata to contract values, and passes contract job fields into SPC verification. The primary diff adds StateProviderFactory and ritual_async_registry, replaces executor extraction/header-derived verification context with load_spc_job_from_contract, checks pool/contract consistency, compares request input by hash, and passes contract_job into verify_result for both Phase 1 and Phase 2 RPC submissions. Collapsed 3 closely related historical candidate statements into the latest effective formulation.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "8ba7c3628bb51a5346db6a31592b9562045d178d",
+    "3e50b10f76a692e4d7267885e25260da8042f171",
+    "074503b1e7362e3764c92701d1532805b72f760a"
+  ],
+  "statement": "RPC async result and delivery result submissions should load the canonical job from AsyncJobTracker, reject submissions when pool metadata diverges from the contract's precompile address, commit block, or input hash, and verify SPC proofs using contract-sourced executor, precompile, commit block, and previous block context rather than request-supplied or locally derived context.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Submit async and delivery results where request or pool metadata disagrees with AsyncJobTracker for precompile address, commit block, input hash, or executor; assert RPC returns success=false and does not update the async pool with the result.",
+    "Submit async results where request precompile, block number, input bytes, executor, or pool metadata diverges from the AsyncJobTracker job; each should return success=false without updating the pool. A matching request with a valid SPC proof should update the pool to Fulfilled.",
+    "Submit async or delivery results through RPC with mismatched precompile address, block number, input hash, executor, or stale pool metadata relative to AsyncJobTracker; assert the response is unsuccessful and the pool entry remains awaiting execution/delivery. Submit matching data with a valid SPC proof and assert it is accepted."
+  ],
+  "summary": "RPC delivery submissions do not use AsyncJobTracker context.",
+  "test_or_falsification_candidate": "Submit a delivery result after mutating AsyncJobTracker precompile, commit block, input hash, or executor and assert RPC rejects it without pool mutation.",
+  "title": "RPC result verification uses AsyncJobTracker context",
+  "total_invariants": 1954
+}

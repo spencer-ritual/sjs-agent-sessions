@@ -1,0 +1,70 @@
+{
+  "cluster_key": "scheduler:payload-building:part-01",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/node/core/src/args/payload_builder.rs",
+    "crates/node/core/src/cli/config.rs",
+    "crates/ethereum/node/src/payload.rs",
+    "crates/ethereum/payload/src/config.rs",
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-f675369d83-payload-byte-limits-estimated-plus-sizes",
+  "invariant_index": 92,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/node/core/src/args/payload_builder.rs",
+      "crates/node/core/src/cli/config.rs",
+      "crates/ethereum/node/src/payload.rs",
+      "crates/ethereum/payload/src/config.rs",
+      "crates/ethereum/payload/src/lib.rs"
+    ],
+    "checked_queries": [
+      "builder.max-block-size|max_block_size_bytes|estimated_block_size_with_candidate|1800|1024|type-specific log|log estimate"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "PayloadBuilderArgs::max_block_size_bytes",
+      "EthereumBuilderConfig::max_block_size_bytes",
+      "estimated_block_size_with_candidate"
+    ],
+    "missing_behavior": "Missing full estimated-size policy: CLI/config/limit propagation and skip checks exist, but transaction contribution is only RLP length plus a fixed 1024 overhead, with no tx.size() plus type-specific log estimates such as 1800/1024/0.",
+    "related_but_insufficient_code": [
+      "builder.max-block-size is present and constrained positive.",
+      "EthereumBuilderConfig carries max_block_size_bytes and payload builder enforces block_size_limit.",
+      "No type-specific log-estimate function/constants were found."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The CLI/config, estimator, empirical estimate, and enforcement candidates form one current payload-size policy.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "d612619a2a4ad94b6c82fc8a2f3c5db6806e8640",
+    "8b674cc82e611cfbbda2989d86ae40a3dbe32cd2",
+    "4da0ca9f1266e4fb15c12cfd203ca259b2415787",
+    "b25c0dc716fc286e2cd2444d1f07b5fcf445200e"
+  ],
+  "statement": "The payload builder must accept an optional positive builder.max-block-size byte limit, propagate it into EthereumBuilderConfig, estimate transaction contribution as tx.size() plus type-specific log estimates, and skip async commitment, scheduled, async-exec, settlement, and regular transactions whose estimated size would exceed the configured limit; with no limit, byte-size checks must not reject transactions.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Boundary tests for scheduled, async commitment, settlement pair, delivery, and regular txs using type-specific log estimates.",
+    "With no configured limit before Osaka, byte-size checks should not reject."
+  ],
+  "summary": "Payload byte limit plumbing exists, but type-specific log-size estimates are missing.",
+  "test_or_falsification_candidate": "Search for type-specific size/log-estimate constants; current port uses length plus fixed 1024 overhead.",
+  "title": "Payload byte limits use estimated transaction plus log sizes",
+  "total_invariants": 1954
+}

@@ -1,0 +1,71 @@
+{
+  "record_type": "file",
+  "file_index": 529,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/transaction-pool/src/pool/async_pool_removal_tests.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "structural_equivalent",
+  "tags": [
+    "structural_equivalent",
+    "txpool",
+    "tests"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0529-atom-0001",
+      "file_index": 529,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/transaction-pool/src/pool/async_pool_removal_tests.rs",
+      "source_hunk_hint": "@@ -0,0 +1,453 @@",
+      "source_kind": "test_coverage",
+      "source_snippet": "#[cfg(test)]\nmod tests {\n    use crate::{\n        blobstore::NoopBlobStore,\n        pool::{txpool::TxPool, PoolInner},\n        test_utils::{MockOrdering, MockTransaction, MockTransactionValidator},\n        EthPooledTransaction, PoolConfig, ValidPoolTransaction,\n    };\n    use alloy_eips::eip2718::ASYNC_COMMITMENT_TX_TYPE_ID;\n    use alloy_primitives::{Address, Bytes, TxHash, B256, U256};",
+      "semantic_claim": "The old added async_pool_removal_tests exercise async transaction global mapping and removal during block finalization.",
+      "high_risk": false,
+      "risk_tags": [
+        "txpool",
+        "tests",
+        "async"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/async_pool.rs",
+          "symbols": [
+            "cleanup_expired_releases_sender_locks",
+            "fulfilled_original_transactions_convert_and_filter_expired_entries"
+          ],
+          "evidence": "Destination has inline async pool tests for sender-lock cleanup, fulfilled conversion, delivery transitions, and invalid states; the old standalone test file is absent."
+        }
+      ],
+      "equivalence_argument": "Behavioral test intent is covered by refactored inline unit tests, not by exact file preservation.",
+      "test_strategy": "cargo test -p reth-transaction-pool async_pool",
+      "negative_test_candidate": "Removing async metadata should release sender locks and filter expired entries.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": ""
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Old async-pool removal tests are covered by destination inline async-pool tests rather than the same test file.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0529: A\tcrates/transaction-pool/src/pool/async_pool_removal_tests.rs.",
+    "Source diff lines 92717-93175; first hunk `@@ -0,0 +1,453 @@`.",
+    "Fresh destination evidence was checked against /home/ritual/repos/ritual-reth-internal-v2.2.0-port."
+  ]
+}

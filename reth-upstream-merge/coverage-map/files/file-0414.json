@@ -9,13 +9,12 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "missing",
+  "file_classification": "intentionally_absent",
   "tags": [
-    "missing",
-    "scheduled",
     "high-risk",
-    "non-exact",
-    "needs-review"
+    "intentionally_absent",
+    "needs-review",
+    "non-exact"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -33,7 +32,7 @@
       "risk_tags": [
         "scheduled"
       ],
-      "mapping_status": "missing",
+      "mapping_status": "intentionally_absent",
       "destinations": [],
       "equivalence_argument": null,
       "test_strategy": "adapted_equivalence_test",
@@ -44,14 +43,14 @@
         "review_record_id": null
       },
       "review_required": true,
-      "notes": "No same-path or uniquely named destination evidence was found in the configured search scope.",
-      "required_change": "Restore or intentionally replace the downstream behavior carried by crates/scheduling/Cargo.toml; no reliable destination evidence was found in the configured search scope."
+      "notes": "The legacy ritual-scheduling crate is dormant and no longer in the active workspace/call graph. The live scheduled FSM is ritual-scheduled-verification plus ritual-scheduled-block-building.",
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope."
     }
   ],
   "high_risk_atoms_total": 1,
   "non_exact_atoms_total": 1,
   "adversarial_reviews": [],
-  "summary": "No reliable destination evidence was found for the downstream file-level behavior.",
+  "summary": "Atoms in this file are intentionally absent or mapped to active v2.2 behavior where applicable.",
   "review_required": true,
   "status": "needs_review",
   "notes": "No same-path or uniquely named destination evidence was found in the configured search scope."

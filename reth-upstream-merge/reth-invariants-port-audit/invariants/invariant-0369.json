@@ -1,0 +1,76 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Encrypted-output mode is determined from the request input user_public_key field at ABI word 4, not from executor output heuristics.",
+      "path": "crates/ritual-async-fees/src/llm.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn has_encrypted_output(input: &Bytes) -> bool {\n    let data = input.as_ref();\n    if data.len() < 5 * 32 { return false; }\n    let Ok(offset) = read_abi_offset(data, 4) else { return false };\n    read_abi_bytes(data, offset).is_ok_and(|bytes| !bytes.is_empty())\n}",
+      "symbols": [
+        "has_encrypted_output"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "The shared fee calculator passes the input-derived encrypted flag to LLM pricing.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if precompile_address == LLM_CALL_PRECOMPILE {\n    let is_encrypted = has_encrypted_output(input);\n    compute_llm_executor_fee(db, model_registry_contract, output, is_encrypted, model_cache)?\n}",
+      "symbols": [
+        "calculate_async_fees"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Payload settlement construction uses the same shared input-driven calculation as verification.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let fees = calculate_async_fees(db, get_model_registry_address(), contract_job.precompile_address, &metadata.precompile_input, Some(execution_result), model_cache)?;",
+      "symbols": [
+        "prepare_fulfilled_async_settlement"
+      ]
+    }
+  ],
+  "equivalence_argument": "Both builder and verifier call calculate_async_fees with the original precompile input, and that function derives encrypted mode from user_public_key before decoding output.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ritual-async-fees/src/llm.rs",
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-60f3c5c165-encrypted-output-pricing-input-driven",
+  "invariant_index": 369,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to the port async-fees and payload settlement paths.",
+  "rationale": "The diff adds has_encrypted_output(input), routes calculate_async_fees through it, and replaces the payload builder's bespoke HTTP/LLM fee calculation with calculate_async_fees to match verifier behavior. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "7f14acaf54fc712a1de6191a623f01c02f97e87e"
+  ],
+  "statement": "Async fee calculation must determine encrypted-output mode from the request input's non-empty user_public_key field, not by heuristically inspecting executor output; block building must use calculate_async_fees, the same fee function as verification, for settlement amounts.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "For the same executor output bytes, build two inputs that differ only by empty versus non-empty user_public_key; assert calculate_async_fees chooses the corresponding plaintext/encrypted LLM decode path. Then compare settlement fees produced by payload building and block verification for the same fulfilled async transaction and assert they are identical."
+  ],
+  "summary": "Encrypted-output LLM pricing mode is derived from request input and shared by builder/verifier pricing.",
+  "test_or_falsification_candidate": "Use identical executor output with inputs that differ only by empty versus non-empty user_public_key and assert calculate_async_fees selects plaintext versus encrypted pricing accordingly.",
+  "title": "Encrypted-output pricing is input-driven",
+  "total_invariants": 1954
+}

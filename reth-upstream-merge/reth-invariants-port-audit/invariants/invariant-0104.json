@@ -1,0 +1,58 @@
+{
+  "cluster_key": "scheduler:scheduler-address-externally-bcb71cfe",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/scheduling/src/singleton.rs",
+    "crates/scheduling/src/contract.rs"
+  ],
+  "invariant_id": "cur-c5ee05ab6f-synchronousscheduler-exposes-configured-scheduler-address",
+  "invariant_index": 104,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/scheduling/src/singleton.rs",
+      "crates/scheduling/src/contract.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "SynchronousScheduler|get_scheduler_address|scheduler_contract|SchedulerContract::address|struct SchedulerContract|fn address\\("
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "SynchronousScheduler::get_scheduler_address",
+      "SchedulerContract::address"
+    ],
+    "missing_behavior": "Missing SynchronousScheduler/SchedulerContract instance API that exposes the constructed scheduler address. The port has a global/env get_scheduler_address helper and optional address parameters, but no SynchronousScheduler object returning its stored SchedulerContract address.",
+    "related_but_insufficient_code": [
+      "ritual_scheduled_verification::get_scheduler_address returns env/default address, which covers global default lookup but not the initialized SynchronousScheduler instance invariant."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "Current local evidence shows get_scheduler_address returning self.scheduler_contract.address(), and SchedulerContract::address() returns the stored address field.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "de50d7bdec3acac937d6b42706c02de48215d7ea"
+  ],
+  "statement": "SynchronousScheduler::get_scheduler_address must return the scheduler contract address that the scheduler was initialized or constructed with.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Construct a scheduler with a non-default SchedulerContract address and assert get_scheduler_address returns that stored address."
+  ],
+  "summary": "SynchronousScheduler configured-address accessor is absent.",
+  "test_or_falsification_candidate": "Search for SynchronousScheduler and SchedulerContract::address in local repos; both are absent.",
+  "title": "SynchronousScheduler exposes configured scheduler address",
+  "total_invariants": 1954
+}

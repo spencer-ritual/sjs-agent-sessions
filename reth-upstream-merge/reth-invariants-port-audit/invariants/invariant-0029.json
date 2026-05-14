@@ -1,0 +1,79 @@
+{
+  "cluster_key": "scheduler:locks-observability",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-metrics/src/tx.rs",
+    "crates/ritual-metrics/src/lib.rs",
+    "crates/ritual-metrics/src/scheduling.rs",
+    "crates/scheduling/src/contract.rs",
+    "crates/node/core/src/args/log.rs"
+  ],
+  "invariant_id": "cur-6296489688-scheduler-observability-includes-timing-bounds",
+  "invariant_index": 29,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-metrics/src/scheduling.rs",
+      "crates/ritual-metrics/src/tx.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/node/core/src/args/log.rs",
+      "ritual-reth-nodebuilder-internal/crates/node/src/executor.rs"
+    ],
+    "checked_queries": [
+      "scheduled_storage_access|scheduled_event_discovery|scheduled_event_processing|scheduled_state",
+      "log_tx_verify_start|log_tx_verify_end|tx_verify|max_block",
+      "target: \"ritual::scheduling\"",
+      "target: \"ritual::scheduled\"|obligation_count|slots_scanned"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "SchedulerContract::process_block",
+      "log_scheduler_state_stats",
+      "log_storage_access",
+      "log_event_discovery",
+      "log_event_processing",
+      "log_block_processing",
+      "log_tx_verify_start",
+      "log_tx_verify_end",
+      "max_block",
+      "expiry_block"
+    ],
+    "missing_behavior": "No audited repo actively emits scheduled verification start/end logs with max_block-equivalent bounds plus Scheduler processing ritual::scheduling storage/event/state/block timing logs.",
+    "related_but_insufficient_code": [
+      "ritual-metrics defines some scheduler debug helpers but callsite search found no active users; tx_verify logging exists but start lacks scheduled bounds and end uses expiry_block under different semantics; replacement ritual::scheduled logs do not emit the required old ritual::scheduling event set."
+    ]
+  },
+  "notes": "Confirmed gap; related helpers/logs are insufficient because the invariant is about emitted observability.",
+  "rationale": "These candidates are observability-only but current: scheduled transaction verification logs include max_block, and scheduler processing emits structured ritual::scheduling telemetry for storage, event, state, and block phases.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "2f901763a3648fcaa5cd4230b03990ef184fccbd",
+    "6683ef8ff804ade1c166b6dfae21cd300b353f77"
+  ],
+  "statement": "Scheduler and scheduled-transaction processing should emit structured telemetry that includes scheduled transaction max_block during verification and ritual::scheduling debug logs for storage access timing, event discovery/processing timing, scheduler state counts, and block processing timing.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Verify a scheduled transaction with a tracing subscriber enabled and assert start/end verification logs include max_block matching scheduled_tx.max_block.",
+    "Run SchedulerContract::process_block with ritual::scheduling tracing enabled and assert scheduled_storage_access, scheduled_event_discovery, scheduled_event_processing when applicable, scheduled_state, and scheduled_block_processing events include the current block number."
+  ],
+  "summary": "Scheduler observability timing/bounds invariant is not fully emitted in the audited repos.",
+  "test_or_falsification_candidate": "Enable tracing through scheduled verification and due obligation processing; assert required tx_verify max_block and ritual::scheduling events exist. Expected to fail on audited revisions.",
+  "title": "Scheduler observability includes timing and bounds",
+  "total_invariants": 1954
+}

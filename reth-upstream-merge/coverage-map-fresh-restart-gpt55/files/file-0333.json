@@ -1,0 +1,160 @@
+{
+  "record_type": "file",
+  "file_index": 333,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-scheduled-verification/src/predicate.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "scheduled-verification",
+    "predicate",
+    "c11"
+  ],
+  "atoms_total": 3,
+  "atoms": [
+    {
+      "record_id": "file-0333-atom-0001",
+      "file_index": 333,
+      "atom_index": 1,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-scheduled-verification/src/predicate.rs",
+      "source_hunk_hint": "@@ -0,0 +1,99 @@; C11 predicate constants, result enum, and storage read",
+      "source_kind": "scheduled_predicate_storage_read",
+      "source_snippet": "pub const MAX_PREDICATE_GAS: u64 = 100_000;\npub const MAX_BLOCK_PREDICATE_GAS: u64 = 10_000_000;\npub const NO_PREDICATE: Address = Address::ZERO;\npub enum PredicateResult { True, False, Reverted, OutOfGas }\npub fn read_call_predicate<DB: Database>(...) -> Result<Address, SchedulerError> { ... }",
+      "semantic_claim": "The old divergence adds C11 predicate gas budgets, the zero-address no-predicate sentinel, the predicate evaluation result enum, and Scheduler storage reading for `callPredicates[callId]`.",
+      "high_risk": false,
+      "risk_tags": [
+        "predicate",
+        "c11",
+        "storage-read",
+        "gas-budget"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/predicate.rs",
+          "symbols": [
+            "MAX_PREDICATE_GAS",
+            "MAX_BLOCK_PREDICATE_GAS",
+            "NO_PREDICATE",
+            "PredicateResult",
+            "read_call_predicate"
+          ],
+          "evidence": "Destination lines 1-99 exactly match source-added diff lines 66129-66227."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the C11 predicate sentinel, result taxonomy, gas limits, and storage slot read behavior unchanged.",
+      "test_strategy": "predicate_storage_read_and_sentinel_tests",
+      "negative_test_candidate": "A zero predicate address should be treated as no custom predicate rather than a failed predicate.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0333-atom-0002",
+      "file_index": 333,
+      "atom_index": 2,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-scheduled-verification/src/predicate.rs",
+      "source_hunk_hint": "@@ -0,0 +101,167 @@; shouldExecute calldata/result helpers",
+      "source_kind": "scheduled_predicate_abi_helpers",
+      "source_snippet": "pub fn encode_should_execute_call(caller: Address, call_id: u64, execution_index: u64) -> Bytes { ... }\npub fn decode_should_execute_result(output: &[u8]) -> Option<bool> { ... }\npub fn is_default_predicate(predicate: Address) -> bool { ... }",
+      "semantic_claim": "The old divergence adds ABI helpers for C11 `shouldExecute(address,uint256,uint256)` calls, bool result decoding, and default predicate detection.",
+      "high_risk": false,
+      "risk_tags": [
+        "predicate",
+        "abi-encoding",
+        "abi-decoding",
+        "c11"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/predicate.rs",
+          "symbols": [
+            "encode_should_execute_call",
+            "decode_should_execute_result",
+            "is_default_predicate"
+          ],
+          "evidence": "Destination lines 101-167 exactly match source-added diff lines 66229-66295."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the predicate function selector, ABI argument encoding, bool decoding, and zero-address default semantics.",
+      "test_strategy": "predicate_abi_helper_tests",
+      "negative_test_candidate": "A predicate return word equal to `2` should decode as invalid (`None`) rather than true.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0333-atom-0003",
+      "file_index": 333,
+      "atom_index": 3,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-scheduled-verification/src/predicate.rs",
+      "source_hunk_hint": "@@ -0,0 +169,235 @@; predicate helper tests",
+      "source_kind": "scheduled_predicate_tests",
+      "source_snippet": "#[cfg(test)]\nmod tests {\n    #[test] fn test_encode_should_execute_call() { ... }\n    #[test] fn test_decode_should_execute_result() { ... }\n    #[test] fn test_is_default_predicate() { ... }\n    #[test] fn test_no_predicate_address() { ... }\n}",
+      "semantic_claim": "The old divergence adds predicate helper tests covering function selector/argument encoding, bool result decoding, default predicate detection, and zero-address sentinel access.",
+      "high_risk": false,
+      "risk_tags": [
+        "tests",
+        "predicate",
+        "abi"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/predicate.rs",
+          "symbols": [
+            "test_encode_should_execute_call",
+            "test_decode_should_execute_result",
+            "test_is_default_predicate",
+            "test_no_predicate_address"
+          ],
+          "evidence": "Destination lines 169-235 exactly match source-added diff lines 66297-66363."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps local tests for the predicate ABI and sentinel semantics.",
+      "test_strategy": "cargo test -p ritual-scheduled-verification predicate",
+      "negative_test_candidate": "Changing the `shouldExecute` selector should fail the encode helper test.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Test atom only."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The scheduled predicate helper module is exact-port preserved, including C11 gas budgets, predicate storage reads, no-predicate sentinel, shouldExecute ABI helpers, result decoding, and tests.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 333: A\tcrates/ritual-scheduled-verification/src/predicate.rs.",
+    "Source-added hunk spans diff lines 66129-66363 with header `@@ -0,0 +1,235 @@`; the next diff starts at line 66364.",
+    "Destination `crates/ritual-scheduled-verification/src/predicate.rs` has 235 lines and matches the source-added file exactly.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

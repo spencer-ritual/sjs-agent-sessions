@@ -1,0 +1,104 @@
+{
+  "cluster_key": "executor delivery:audio-phase-uses-34b4d515",
+  "confidence": "high",
+  "destinations": [
+    {
+      "evidence": "The shared fee crate now calculates audio Phase 2 fees from delivery_result slot 6 outputDurationMs, rounded-up seconds, and model-specific audio pricing.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "calculate_audio_fees_phase2_from_delivery(...)",
+      "symbols": [
+        "calculate_audio_fees_phase2",
+        "calculate_audio_fees_phase2_from_delivery",
+        "extract_audio_duration_from_delivery"
+      ]
+    },
+    {
+      "evidence": "The payload builder now supports AUDIO_CALL_PRECOMPILE in the delivery path and calls the shared audio Phase 2 fee helper.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "contract_job.precompile_address == AUDIO_CALL_PRECOMPILE ... calculate_audio_fees_phase2_from_delivery(...)",
+      "symbols": [
+        "prepare_delivery_settlement_transaction",
+        "is_supported_two_phase_precompile"
+      ]
+    },
+    {
+      "evidence": "The block verifier now supports AUDIO_CALL_PRECOMPILE as a two-phase delivery precompile and validates delivery settlement fees with the same shared audio Phase 2 fee helper.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "metadata.address == AUDIO_CALL_PRECOMPILE ... calculate_audio_fees_phase2_from_delivery(...)",
+      "symbols": [
+        "verify_settlements",
+        "is_supported_two_phase_precompile"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port for builder/verifier parity: both sides now price audio Phase 2 delivery settlements through the shared duration-based helper, so malformed duration extraction fails instead of falling back to generic byte-length pricing.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-5b12f6afad-audio-phase-uses-duration-pricing",
+  "invariant_index": 164,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs"
+    ],
+    "checked_queries": [
+      "calculate_audio_fees_phase2|extract_audio_duration_from_delivery|outputDurationSeconds|outputDurationMs|AUDIO_CALL_PRECOMPILE",
+      "calculate_async_fees_phase2\\(|extract_delivery_result_from_calldata"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "prepare_delivery_settlement_transaction",
+      "verify_settlement_payments",
+      "extract_delivery_result_from_calldata",
+      "calculate_async_fees_phase2",
+      "calculate_audio_fees_phase2"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "Payload building passes delivery result length, not decoded audio duration, to calculate_async_fees_phase2.",
+      "Block verification extracts delivery result bytes and also passes result.len() to calculate_async_fees_phase2.",
+      "calculate_async_fees_phase2 has no AUDIO_CALL_PRECOMPILE branch and no calculate_audio_fees_phase2 helper exists."
+    ]
+  },
+  "notes": "Mapped after local parity fix. The catalog wording was corrected to current downstream outputDurationMs/rounded-seconds semantics.",
+  "rationale": "The payload builder adds audio duration extraction from delivery_result slot 6 and uses calculate_audio_fees_phase2. Block verification mirrors this by extracting duration from settlement input and calculating the same audio fees, rejecting malformed inputs. Later downstream changes clarified that slot 6 stores milliseconds and pricing uses rounded-up seconds with model-specific audio pricing. The durable behavior is builder/verifier parity for duration-based audio Phase 2 fees rather than byte length or image dimensions.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "5e7da3f8e2216f6d0c0b8e688c3a21f556a18241",
+    "c0f40d9bad9895158f4c7911be1d42d6e9c6cb42",
+    "cf054db8d52e8aa30b18aebbabbc4e50cff2d5b7",
+    "033d7bf239f9363e85c53c63f007887b10209923",
+    "8aa848f34c3f6d6543a3731eb6a436cf361e287d"
+  ],
+  "statement": "For audio Phase 2 delivery settlements, payload building and block verification must extract outputDurationMs from the delivery result, convert it to rounded-up pricing seconds, and calculate fees using calculate_audio_fees_phase2.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Build an audio Phase 2 settlement whose delivery result encodes a known millisecond duration and assert payload settlement fees equal calculate_audio_fees_phase2 for the rounded pricing duration. Then verify a block containing that settlement succeeds, while a malformed or too-short delivery result causes block verification to reject it."
+  ],
+  "summary": "Audio Phase 2 duration pricing is mapped in both builder and verifier paths.",
+  "test_or_falsification_candidate": "Focused fee-crate tests cover calculate_audio_fees_phase2, and cargo check validates that both payload builder and block verifier use the shared audio delivery fee helper.",
+  "title": "Audio Phase 2 uses duration pricing",
+  "total_invariants": 1954
+}

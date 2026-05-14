@@ -1,0 +1,83 @@
+{
+  "cluster_key": "scheduler:async-pool-expiry-73d89691",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "The port has MaintainPoolConfig::max_async_tx_lifetime, defaults it through MAX_ASYNC_TRANSACTION_LIFETIME, and cleanup_expired_async_by_time uses config.max_async_tx_lifetime. The default is 200 seconds, matching current downstream after bfe39a8aedc1 superseded the earlier 45-second default.",
+      "path": "crates/transaction-pool/src/maintain.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const MAX_ASYNC_TRANSACTION_LIFETIME: Duration = Duration::from_secs(200);\n...\nmax_async_tx_lifetime: MAX_ASYNC_TRANSACTION_LIFETIME,\n...\npool.cleanup_expired_async_by_time(config.max_async_tx_lifetime)",
+      "symbols": [
+        "MAX_ASYNC_TRANSACTION_LIFETIME",
+        "MaintainPoolConfig::max_async_tx_lifetime",
+        "cleanup_expired_async_by_time"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port after catalog correction: async pool maintenance uses an async-specific lifetime independent from the general queued transaction lifetime, and the port's 200-second default matches current downstream. The previously recorded 45-second default was historical and superseded by bfe39a8aedc1.",
+  "evidence_files": [
+    "crates/transaction-pool/src/maintain.rs"
+  ],
+  "invariant_id": "cur-c27ceb219c-async-pool-expiry-uses-async-specific-lifetime",
+  "invariant_index": 2,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/maintain.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/node/builder/src/components/pool.rs",
+      "crates/node/core/src/args/txpool.rs",
+      "ritual-node-internal/configgen/core.py",
+      "ritual-node-internal/configgen/docker.py"
+    ],
+    "checked_queries": [
+      "MAX_ASYNC_TRANSACTION_LIFETIME|max_async_tx_lifetime|async.*lifetime",
+      "Duration::from_secs(45)|Duration::from_secs(200)",
+      "txpool.lifetime|pool_timeout|max_lifetime"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "MAX_ASYNC_TRANSACTION_LIFETIME",
+      "max_async_tx_lifetime",
+      "MaintainPoolConfig",
+      "cleanup_expired_async_by_time",
+      "txpool.lifetime"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "The earlier audit treated the 45-second default as current. Downstream commit bfe39a8aedc1 increased the default to 200 seconds while preserving async-specific cleanup, so the 200-second port behavior is sufficient for the current invariant."
+    ]
+  },
+  "notes": "Resolved as stale audit metadata: the async-specific lifetime behavior remains current, but the 45-second default in the original gap entry was superseded by the 200-second downstream default.",
+  "rationale": "The packet contains one high-confidence candidate for the cluster. It directly states that async transaction maintenance gained MAX_ASYNC_TRANSACTION_LIFETIME, a max_async_tx_lifetime config field, and removal logic that uses the async-specific lifetime. Later downstream commit bfe39a8aedc1 supersedes only the old 45-second default by increasing the default to 200 seconds; it preserves the async-specific lifetime behavior and keeps it independent from the general queued transaction lifetime.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "0e7e1665a2f101021b1d180bf8f0912609b8519e",
+    "bfe39a8aedc1148d2a20fcc4fc68402c81596444"
+  ],
+  "statement": "Pool maintenance for async transactions must evict by the configured async-specific lifetime, independently from the general queued transaction lifetime. The historical 45-second default was superseded by bfe39a8aedc1; current downstream defaults the async-specific lifetime to 200 seconds for sovereign-agent Phase 1 processing.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Configure pool maintenance with max_tx_lifetime greater than 200 seconds and max_async_tx_lifetime equal to 200 seconds; insert an async transaction older than 200 seconds and a normal queued transaction of the same age, then assert maintenance removes only the async transaction by the async lifetime.",
+    "Configure max_async_tx_lifetime to a value different from the default and assert remove_async_expired_by_time uses that configured value rather than MAX_QUEUED_TRANSACTION_LIFETIME or max_tx_lifetime."
+  ],
+  "summary": "Mapped after correcting stale default metadata: async-specific cleanup exists and current downstream default is 200 seconds.",
+  "test_or_falsification_candidate": "A unit test asserting MaintainPoolConfig::default().max_async_tx_lifetime == Duration::from_secs(200) should pass, and a configured non-default lifetime should control cleanup_expired_async_by_time independently from max_tx_lifetime.",
+  "title": "Async pool expiry uses async-specific lifetime",
+  "total_invariants": 1954
+}

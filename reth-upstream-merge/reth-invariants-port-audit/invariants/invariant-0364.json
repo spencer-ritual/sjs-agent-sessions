@@ -1,0 +1,52 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "The reader decodes inline Solidity bytes length from the least-significant byte and reads data from the same slot, while long bytes use value >> 1 semantics and keccak256(slot) storage words.",
+      "path": "crates/ritual-tee-registry-reader/src/reader.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let base_bytes = pk_length_value.to_be_bytes::<32>();\nlet last_byte = base_bytes[31];\nif last_byte & 1 == 0 {\n    let len = (last_byte / 2) as usize;\n    ...\n    Ok(base_bytes[..len].to_vec())\n} else {\n    let len_times_2_plus_1 = pk_length_value.to::<usize>();\n    let len = (len_times_2_plus_1 - 1) / 2;\n    let data_start = U256::from_be_slice(keccak256(slot_bytes).as_slice());\n}",
+      "symbols": [
+        "read_public_key_from_slot"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port implements the Solidity bytes distinction in the renamed TEE registry reader: short inline public keys use the low byte of the slot word, and separate-storage keys derive length from the encoded value and read from keccak256(slot).",
+  "evidence_files": [
+    "crates/ritual-executor-registry-reader/src/reader.rs"
+  ],
+  "invariant_id": "cur-02f8af235b-inline-public-length-uses-byte",
+  "invariant_index": 364,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to ritual-tee-registry-reader, the port replacement for the earlier executor registry reader path.",
+  "rationale": "The commit message identifies the inline storage decoding bug, and the diff changes length extraction from byte(31) to byte(0) with tests for inline and separate Solidity bytes storage modes. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "76a9ce9e272d3409f0ba964a2585ecaeea65d167"
+  ],
+  "statement": "Executor registry reader must decode inline Solidity bytes public keys by reading length*2 from the least significant byte of the storage word and then returning the first len data bytes from that same slot; separate-storage bytes must continue to use value >> 1 and keccak256(slot) data words.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Populate a mock database with an executor public key encoded as inline Solidity bytes with length*2 in the least significant byte and assert read_executor_public_keys returns the exact key; also test an incorrectly high-byte-only length word does not decode as a valid key, and verify a >31-byte key stored in separate storage still round-trips."
+  ],
+  "summary": "Inline and long public-key bytes are decoded with the expected Solidity storage rules.",
+  "test_or_falsification_candidate": "Store an inline public key with length*2 in the low byte and assert it round-trips; store a long key in keccak256(slot) storage and assert it also round-trips while high-byte-only length does not.",
+  "title": "Inline public key length uses low byte",
+  "total_invariants": 1954
+}

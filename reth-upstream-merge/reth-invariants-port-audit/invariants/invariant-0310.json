@@ -1,0 +1,67 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The RPC handler synchronizes verifier context, requires a successful SPC verification result, and only then submits the async result to the pool as fulfilled.",
+      "path": "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "match context.spc_verifier.verify_single(&spc_request).await {\n    Ok(result) if result.is_valid => {}\n    Ok(_) => return failed_async_response(...),\n    Err(VerificationError::InvalidRequest(err)) => return failed_async_response(...),\n    Err(err) => return failed_async_response(...),\n}\nlet submission = AsyncResultSubmission { ... };\nlet result = context.pool.submit_async_result(submission);",
+      "symbols": [
+        "submit_async_result",
+        "SpcVerifier::verify_single",
+        "submit_async_result_batch"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Block verification reconstructs expected SPC data from AsyncJobTracker state and rejects the block if signature verification errors or returns false.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let valid = verify_signature_core(\n    public_key, job.commit_block, job.tx_hash, job.precompile_address,\n    &spc_call.input, &spc_call.output, job.previous_block_hash,\n    job.previous_block_number, job.previous_block_timestamp, \"\", &spc_call.proof,\n)?;\nif !valid {\n    return Err(BlockVerificationError::InvalidSpc(format!(\"signature invalid for job {}\", settlement.origin_tx)));\n}",
+      "symbols": [
+        "verify_spc_calls",
+        "verify_signature_core",
+        "BlockVerifier::verify_block"
+      ]
+    }
+  ],
+  "equivalence_argument": "RPC fulfillment and block validation use the same SPC signature primitive and both fail closed before state transition or block acceptance when executor proof verification fails.",
+  "evidence_files": [
+    "docs/async-transaction-fsm.md"
+  ],
+  "invariant_id": "cur-b2c17725be-executor-proofs-gate-fulfillment-block-acceptance",
+  "invariant_index": 310,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped through port RPC submitAsyncResult and block-verification SPC checks.",
+  "rationale": "The FSM documentation marks immediate verification as critical and separately describes post-execution SPC verification as a condition for block acceptance. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "19610d09c74769d871ca8cddf7276fac4fc5711f"
+  ],
+  "statement": "Async executor results must be signature-verified against the registered executor public key before the RPC handler moves a transaction to fulfilled, and validators must reject a proposed block if any attached SPC proof fails verification.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Submit an async result signed by an unregistered or wrong executor key and assert ritual_submitAsyncResult rejects it without moving the transaction to fulfilled; separately propose a block containing an SPC call with an invalid proof and assert validation rejects the block."
+  ],
+  "summary": "Executor proofs gate both RPC fulfillment and validator block acceptance.",
+  "test_or_falsification_candidate": "Submit an async result signed by an unregistered/wrong executor and assert RPC rejection; construct a settlement block with invalid SPC proof and assert block verification rejects it.",
+  "title": "Executor proofs gate fulfillment and block acceptance",
+  "total_invariants": 1954
+}

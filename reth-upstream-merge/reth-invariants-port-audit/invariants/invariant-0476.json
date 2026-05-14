@@ -1,0 +1,68 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-async-fees/src/wallet.rs",
+    "crates/ritual-precompile-codecs/src/dkms_key.rs"
+  ],
+  "invariant_id": "cur-5dac64b7da-dkms-precompile-uses-http-style-executor",
+  "invariant_index": 476,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-async-fees/src/wallet.rs",
+      "crates/ritual-async-fees/src/constants.rs",
+      "crates/ritual-precompile-codecs/src/dkms_key.rs"
+    ],
+    "checked_queries": [
+      "http_executor_fee(input_len, 20)",
+      "DKMS precompile HTTP-style executor fee",
+      "calculate_dkms_fees DKMS_EXECUTOR_FEE_WEI",
+      "dkms_escrow_lockup http_executor_fee"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "DKMS_KEY_PRECOMPILE",
+      "http_executor_fee",
+      "DKMS_OUTPUT_SIZE_BYTES",
+      "DKMS_EXECUTOR_FEE_WEI",
+      "calculate_dkms_fees",
+      "dkms_escrow_lockup"
+    ],
+    "missing_behavior": "Wallet fee calculation for DKMS_KEY_PRECOMPILE does not use http_executor_fee(input_len, 20); it uses the fixed DKMS executor fee and dkms_escrow_lockup.",
+    "related_but_insufficient_code": [
+      "crates/ritual-async-fees/src/lib.rs defines DKMS_OUTPUT_SIZE_BYTES = 20 but calculate_dkms_fees uses dkms_executor_fee() from DKMS_EXECUTOR_FEE_WEI.",
+      "crates/ritual-async-fees/src/wallet.rs returns verify_fixed_fee_wallet_lock with dkms_escrow_lockup(input_len) for DKMS_KEY_PRECOMPILE.",
+      "crates/ritual-precompile-codecs/src/dkms_key.rs provides the DKMS ABI codec but no fee calculation."
+    ]
+  },
+  "notes": "This older HTTP-style DKMS pricing invariant is superseded by the fixed-fee DKMS behavior present in the port.",
+  "rationale": "The merge keeps the dev-side DKMS_KEY_PRECOMPILE branch in wallet pricing and adds a DKMS key precompile codec module in the same primary merge. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "461be023360a5d344ec75e03a75edcbc6ff6dbdb"
+  ],
+  "statement": "Wallet fee calculation for DKMS_KEY_PRECOMPILE must use HTTP-style executor fee pricing based on input length and a fixed 20-byte output size.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Validate a DKMS key async request and assert required fee/lockup equals http_executor_fee(input_len, 20), and that the DKMS codec round-trips the request format used by that precompile."
+  ],
+  "summary": "DKMS wallet pricing is fixed-fee, not HTTP-style.",
+  "test_or_falsification_candidate": "Validate a DKMS key async request and assert required fee/lockup equals http_executor_fee(input_len, 20), and that the DKMS codec round-trips the request format used by that precompile.",
+  "title": "DKMS key precompile uses HTTP-style executor fee",
+  "total_invariants": 1954
+}

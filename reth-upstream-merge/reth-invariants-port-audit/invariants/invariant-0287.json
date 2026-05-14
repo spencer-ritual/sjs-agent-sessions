@@ -1,0 +1,64 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "The compact codec mirrors the current alloy TxAsyncCommitment fields, but the current consensus transaction type and codec do not contain program_counter or caller_address, so the Atlas-required full payload is not round-tripped.",
+  "evidence_files": [
+    "crates/storage/codecs/src/alloy/transaction/async_commitment.rs"
+  ],
+  "invariant_id": "cur-bbee351c4c-async-commitment-codec-preserves-fields",
+  "invariant_index": 287,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/storage/codecs/src/alloy/transaction/async_commitment.rs",
+      "crates/consensus/src/transaction/async_commitment.rs",
+      "crates/ethereum/payload/src/ritual_async.rs"
+    ],
+    "checked_queries": [
+      "TxAsyncCommitment compact program_counter caller_address",
+      "async commitment codec preserves all fields",
+      "caller_address program_counter consensus transaction"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "TxAsyncCommitment",
+      "AlloyTxAsyncCommitment",
+      "program_counter",
+      "caller_address",
+      "origin_tx_rlp",
+      "precompile_input"
+    ],
+    "missing_behavior": "TxAsyncCommitment compact encoding cannot preserve program_counter or caller_address because those fields are absent from the current transaction type and codec.",
+    "related_but_insufficient_code": [
+      "crates/storage/codecs/src/alloy/transaction/async_commitment.rs copies gas, gas_price, to, value, origin_tx, precompile fields, ttl, executor_address, commitment_validator, origin_tx_rlp, and input.",
+      "ritual-alloy-internal/crates/consensus/src/transaction/async_commitment.rs defines the current transaction with origin_tx_rlp and validator fields but no program_counter or caller_address fields."
+    ]
+  },
+  "notes": "Confirmed gap relative to the Atlas statement; the current type schema has been narrowed.",
+  "rationale": "The new compact helper is explicitly documented as a 1:1 mirror of alloy_consensus::transaction::TxAsyncCommitment and copies every field in both serialization directions. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "4572196e75a786b76753489370333931236250b8"
+  ],
+  "statement": "Compact encoding for TxAsyncCommitment must round-trip the full async commitment payload, including gas fields, original transaction data, precompile fields, commit/TTL blocks, executor and validator addresses, program_counter, caller_address, and input bytes.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Generate TxAsyncCommitment values with distinct program_counter, caller_address, orig_tx_rlp, precompile_input, and input values; compact-encode and decode them and assert every field equals the original."
+  ],
+  "summary": "Async commitment compact encoding lacks program_counter and caller_address preservation.",
+  "test_or_falsification_candidate": "Attempt to construct a TxAsyncCommitment with distinct program_counter and caller_address and round-trip through the compact codec; current types have no fields to encode or assert.",
+  "title": "Async commitment codec preserves all fields",
+  "total_invariants": 1954
+}

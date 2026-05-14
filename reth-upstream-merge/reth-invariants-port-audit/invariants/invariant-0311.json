@@ -1,0 +1,62 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-e38bfc329c-http-executor-fees-revised-byte-pricing",
+  "invariant_index": 311,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-async-fees/src/constants.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-async-fees/src/http.rs"
+    ],
+    "checked_queries": [
+      "25_000_000_000_000",
+      "3_500_000_000",
+      "HTTP executor fees use revised byte pricing",
+      "http_executor_fee"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "HTTP_EXECUTOR_BASE_FEE_WEI",
+      "HTTP_EXECUTOR_FEE_PER_INPUT_BYTE_WEI",
+      "HTTP_EXECUTOR_FEE_PER_OUTPUT_BYTE_WEI",
+      "http_executor_fee"
+    ],
+    "missing_behavior": "HTTP executor fee calculation does not use the revised byte pricing values 25,000,000,000,000 wei base and 3,500,000,000 wei per input/output byte.",
+    "related_but_insufficient_code": [
+      "Current port constants are HTTP_EXECUTOR_BASE_FEE_WEI = 2_500_000_000_000 and per-byte constants = 350_000_000.",
+      "http_executor_fee correctly applies base + input bytes + output bytes, but with the wrong revised constant values for this invariant."
+    ]
+  },
+  "notes": "Same confirmed pricing gap as invariant 308, expressed by the duplicate revised-pricing invariant.",
+  "rationale": "The primary merge changes the HTTP executor base, input-byte, and output-byte fee constants from the prior larger values to the new AWS-referenced pricing constants, directly altering executor payment calculation. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "54019aaf452301f210041dc44e1b5241f9a7a61f"
+  ],
+  "statement": "HTTP async executor fee calculation must use a base fee of 25,000,000,000,000 wei plus 3,500,000,000 wei per input byte and 3,500,000,000 wei per output byte.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Compute the HTTP executor fee for a known input/output byte length and assert it equals `25_000_000_000_000 + input_len * 3_500_000_000 + output_len * 3_500_000_000` wei."
+  ],
+  "summary": "HTTP revised byte pricing is not implemented with the invariant-required values.",
+  "test_or_falsification_candidate": "Assert http_executor_fee(input_len, output_len) equals 25_000_000_000_000 + 3_500_000_000*(input_len+output_len); current code should fail.",
+  "title": "HTTP executor fees use revised byte pricing",
+  "total_invariants": 1954
+}

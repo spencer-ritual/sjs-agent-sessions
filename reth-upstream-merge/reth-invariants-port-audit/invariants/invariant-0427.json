@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "The verifier enforces inclusive TTL bounds, rejects unsupported precompile metadata, and rejects zero executor addresses before accepting an async commitment as structurally valid.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "fn validate_commitment_structure(\n    commitment: &TxAsyncCommitment,\n) -> Result<&'static AsyncPrecompileMetadata, BlockVerificationError> {\n    if commitment.ttl == 0 || commitment.ttl > MAX_SHORT_ASYNC_TTL_BLOCKS {\n        return Err(BlockVerificationError::InvalidAsyncCommitment(format!(\n            \"TTL {} outside async commitment bounds 1..={}\",\n            commitment.ttl, MAX_SHORT_ASYNC_TTL_BLOCKS\n        )));\n    }\n    let metadata = async_commitment_metadata(commitment.precompile_address, \"async commitment\")\n        .map_err(BlockVerificationError::InvalidAsyncCommitment)?;\n    if commitment.executor_address.is_zero() {\n        return Err(BlockVerificationError::InvalidAsyncCommitment(\n            \"executor address cannot be zero\".to_string(),\n        ));\n    }",
+      "symbols": [
+        "validate_commitment_structure",
+        "async_commitment_metadata"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "After structural checks, the verifier validates and decodes the precompile payload and rejects executor or TTL drift between the payload and commitment fields.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "validate_async_payload(\n    commitment.precompile_address,\n    commitment.precompile_input.as_ref(),\n    MAX_SHORT_ASYNC_TTL_BLOCKS,\n)\n.map_err(|err| {\n    BlockVerificationError::InvalidAsyncCommitment(format!(\n        \"invalid async commitment precompile input for {} ({}): {err}\",\n        commitment.precompile_address,\n        metadata.capability_tag.name()\n    ))\n})?;\n...\nif decoded.executor != commitment.executor_address {\n    return Err(BlockVerificationError::InvalidAsyncCommitment(format!(\n        \"async request executor {} does not match commitment executor {}\",\n        decoded.executor, commitment.executor_address\n    )));\n}\nif decoded.ttl != commitment.ttl {\n    return Err(BlockVerificationError::InvalidAsyncCommitment(format!(\n        \"async request TTL {} does not match commitment TTL {}\",\n        decoded.ttl, commitment.ttl\n    )));\n}",
+      "symbols": [
+        "validate_async_payload",
+        "try_decode_precompile_data"
+      ]
+    }
+  ],
+  "equivalence_argument": "The standalone commitment-validator crate from the source invariant is ported inline into block verification. Although the v2 port reports the zero-executor rejection as InvalidAsyncCommitment text rather than a ZeroExecutorAddress enum variant, the consensus behavior is preserved: zero executor commitments fail structural validation before reaching the rest of block verification as valid commitments.",
+  "evidence_files": [
+    "crates/ritual-async-commitment-validator/src/lib.rs"
+  ],
+  "invariant_id": "cur-bad7ddd637-commitment-executor-address-cannot-zero",
+  "invariant_index": 427,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The behavior is inline in the verifier rather than exposed as the old crate/error type.",
+  "rationale": "The commit message states that a zero executor address would allow anyone to claim execution fees, and the validator now returns a dedicated ZeroExecutorAddress error before accepting the commitment structure. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "e90d9369d0c25f2d0c0e6f792c25bd9f16139833"
+  ],
+  "statement": "validate_commitment_structure must reject any async commitment whose executor_address is 0x0000000000000000000000000000000000000000 with ZeroExecutorAddress, preventing zero-address commitments from reaching block verification as valid commitments.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Construct an async commitment with a valid precompile address, valid TTL, but executor_address equal to Address::ZERO and assert validate_commitment_structure returns ZeroExecutorAddress; repeat with a nonzero executor address and otherwise identical fields and assert that this check passes."
+  ],
+  "summary": "Zero executor async commitments are rejected structurally.",
+  "test_or_falsification_candidate": "Construct an async commitment with a valid precompile address, valid TTL, but executor_address equal to Address::ZERO and assert validate_commitment_structure returns ZeroExecutorAddress; repeat with a nonzero executor address and otherwise identical fields and assert that this check passes.",
+  "title": "Commitment executor address cannot be zero",
+  "total_invariants": 1954
+}

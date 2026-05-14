@@ -9,19 +9,20 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "missing",
+  "file_classification": "intentionally_absent",
   "tags": [
-    "missing",
-    "non-exact",
-    "needs-review"
+    "high-risk",
+    "intentionally_absent",
+    "needs-review",
+    "non-exact"
   ],
-  "atoms_total": 1,
+  "atoms_total": 2,
   "atoms": [
     {
       "record_id": "file-0336-atom-0001",
       "file_index": 336,
       "atom_index": 1,
-      "atoms_total": 1,
+      "atoms_total": 2,
       "source_path": "crates/ritual-sequencing-rights/src/bucket.rs",
       "source_hunk_hint": "@@ -0,0 +1,604 @@",
       "source_kind": "other",
@@ -29,26 +30,73 @@
       "semantic_claim": "The downstream diff for crates/ritual-sequencing-rights/src/bucket.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
       "high_risk": false,
       "risk_tags": [],
-      "mapping_status": "missing",
+      "mapping_status": "intentionally_absent",
       "destinations": [],
       "equivalence_argument": null,
       "test_strategy": "not_needed",
       "negative_test_candidate": null,
       "adversarial_review": {
         "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Sequencing-rights classification/reordering is not active in the current v2.2 slice. Payload building keeps upstream tip ordering plus scheduled/async obligation handling, so old sequencing-rights crate/API atoms are intentionally absent.",
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope."
+    },
+    {
+      "record_id": "file-0336-atom-0002",
+      "file_index": 336,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/ritual-sequencing-rights/src/bucket.rs",
+      "source_hunk_hint": "@@ -0,0 +1,604 @@",
+      "source_kind": "test_fixture",
+      "source_snippet": "        bytes.iter().map(|&b| make_selector(b)).collect()\n    }\n\n    #[test]\n    fn test_bucket_sort() {\n        let ordering = SequencingOrdering::new(vec![\n            make_set(&[0x11]), // Priority 0\n            make_set(&[0x22]), // Priority 1\n        ]);\n\n        let contract = Address::repeat_byte(0x42);\n        let bucket = Bucket::new(contract, ordering);\n\n        // Verify bucket was created correctly\n        assert_eq!(bucket.contract, contract);\n        assert!(bucket.transactions.is_empty());\n    }\n\n    #[test]\n    fn test_partition_reassemble() {\n        let partition = Partition::new();\n\n---\n        assert!(bucket.transactions.is_empty());\n    }\n\n    #[test]\n    fn test_partition_reassemble() {\n        let partition = Partition::new();\n\n        // Empty partition should produce empty result\n        let result = partition.reassemble(0);\n        assert!(result.is_empty());\n    }\n\n    // =========================================================================\n    // Extended Bucket Tests (from test matrix)\n    // =========================================================================\n\n    /// O-1: Empty bucket should pass verification\n    #[test]\n    fn test_empty_bucket_passes_verification() {\n        let ordering = SequencingOrdering::new(vec![make_set(&[0x11])]);\n        let \n---\n    // =========================================================================\n\n    /// O-1: Empty bucket should pass verification\n    #[test]\n    fn test_empty_bucket_passes_verification() {\n        let ordering = SequencingOrdering::new(vec![make_set(&[0x11])]);\n        let contract = Address::repeat_byte(0x42);\n        let bucket = Bucket::new(contract, ordering);\n\n        // Empty bucket should verify successfully\n        assert!(bucket.verify().is_ok());\n    }\n\n    /// Test bucket with single transaction passes\n    #[test]\n    fn test_single_tx_bucket_passes() {\n        let ordering = SequencingOrdering::new(vec![make_set(&[0x11])]);\n        let contract = Address::repeat_byte(0x42);\n",
+      "semantic_claim": "bucket preserves sequencing-rights classification, priority, bucket, or ordering behavior covered by downstream tests: test_bucket_sort, test_partition_reassemble, test_empty_bucket_passes_verification, test_single_tx_bucket_passes.",
+      "high_risk": true,
+      "risk_tags": [
+        "executor-selection",
+        "negative-path",
+        "verifier"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [],
+      "equivalence_argument": null,
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_bucket_sort, test_partition_reassemble, test_empty_bucket_passes_verification, test_single_tx_bucket_passes, test_same_priority_passes, test_large_bucket_construction.",
+      "adversarial_review": {
+        "required": true,
         "status": "not_requested",
         "review_record_id": null
       },
       "review_required": true,
-      "notes": "No same-path or uniquely named destination evidence was found in the configured search scope.",
-      "required_change": "Restore or intentionally replace the downstream behavior carried by crates/ritual-sequencing-rights/src/bucket.rs; no reliable destination evidence was found in the configured search scope."
+      "notes": "Sequencing-rights classification/reordering is not active in the current v2.2 slice. Payload building keeps upstream tip ordering plus scheduled/async obligation handling, so old sequencing-rights crate/API atoms are intentionally absent.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_bucket_sort",
+        "test_partition_reassemble",
+        "test_empty_bucket_passes_verification",
+        "test_single_tx_bucket_passes",
+        "test_same_priority_passes",
+        "test_large_bucket_construction"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0336-atom-0003",
+        "test-file-0336-atom-0004",
+        "test-file-0336-atom-0005",
+        "test-file-0336-atom-0006",
+        "test-file-0336-atom-0008",
+        "test-file-0336-atom-0014"
+      ],
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope."
     }
   ],
-  "high_risk_atoms_total": 0,
-  "non_exact_atoms_total": 1,
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 2,
   "adversarial_reviews": [],
-  "summary": "No reliable destination evidence was found for the downstream file-level behavior.",
+  "summary": "Atoms in this file are intentionally absent or mapped to active v2.2 behavior where applicable.",
   "review_required": true,
   "status": "needs_review",
-  "notes": "No same-path or uniquely named destination evidence was found in the configured search scope."
+  "notes": "No same-path or uniquely named destination evidence was found in the configured search scope. Curated test-atom insertion appended 1 grouped behavior atom(s) from coverage-map/test-atom-audit; raw helper/no-assert/default-only cases were not canonicalized."
 }

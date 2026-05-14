@@ -1,0 +1,79 @@
+{
+  "cluster_key": "precompile pricing:addresses:part-01",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "No complete implementation mapping was found in the audited local repo set: Missing the full bounded static commitment envelope for commit block, expiry, and historical lookback, and no stored commitment block/target-block comparison is available for the verifier to enforce.",
+  "evidence_files": [
+    "crates/ritual-async-commitment-validator/src/lib.rs",
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/ritual-async-inspector/src/utils.rs"
+  ],
+  "invariant_id": "cur-8bbad6e2b0-async-commitment-validation-binds-supported-precompile-metadata-replay",
+  "invariant_index": 180,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ritual-block-verification/src/constants.rs",
+      "crates/ritual-precompile-codecs/src/validation.rs",
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "ritual-alloy-internal/crates/consensus/src/transaction/async_commitment.rs"
+    ],
+    "checked_queries": [
+      "ASYNC_MAX_BLOCK_LOOKBACK|InvalidPrecompileAddress|validate_commitment_structure|commit_block >=|historical lookback|current_block - commit_block",
+      "validate_commitment_structure|MAX_SHORT_ASYNC_TTL_BLOCKS|validate_async_payload|try_decode_precompile_data",
+      "struct TxAsyncCommitment|commit_block|ttl|precompile_address|precompile_input"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "validate_commitment_structure",
+      "validate_async_payload",
+      "MAX_SHORT_ASYNC_TTL_BLOCKS",
+      "TxAsyncCommitment",
+      "validate_parent_state_async_replay",
+      "ASYNC_MAX_BLOCK_LOOKBACK"
+    ],
+    "missing_behavior": "Missing the full bounded static commitment envelope for commit block, expiry, and historical lookback, and no stored commitment block/target-block comparison is available for the verifier to enforce.",
+    "related_but_insufficient_code": [
+      "No local crate exists at crates/ritual-async-commitment-validator/src/lib.rs in the port checkout.",
+      "crates/ritual-block-verification/src/lib.rs validate_commitment_structure checks TTL bounds, supported metadata, payload decoding, executor, and TTL equality, but it has no commit_block/current-block/historical-lookback envelope.",
+      "ritual-alloy-internal/crates/consensus/src/transaction/async_commitment.rs explicitly notes the simulation block is inferred at verification time and the transaction stores no commit_block.",
+      "crates/ethereum/payload/src/lib.rs replays parent-state async calls and checks count/address/input equivalence, but not a stored target or commitment block lookback bound."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The structural validator and block verifier candidates define both the static acceptance envelope and the stateful replay check that ties commitments to actual async precompile calls.",
+  "record_type": "invariant_mapping",
+  "section": "Precompile Pricing",
+  "source_commits": [
+    "71f85f72be02503cc0cf3722cfbf9bf61b86a8d0",
+    "71f85f72be02503cc0cf3722cfbf9bf61b86a8d0",
+    "46e380eba499cc234824f437293841b123fe45ef",
+    "b22df7d2808abddcdf190bed2f8dbfc2592e56df",
+    "b22df7d2808abddcdf190bed2f8dbfc2592e56df"
+  ],
+  "statement": "Async commitments must pass bounded static checks for TTL, commit block, expiry, historical lookback, and supported async precompile address, then re-simulate the origin transaction at the commitment block and reject unless the detected target block, precompile address, and input match the commitment metadata.",
+  "status": "current",
+  "subsystem": "precompile pricing",
+  "suggested_falsification_tests": [
+    "Construct `TxAsyncCommitment` values with TTL 0, TTL 31, an unsupported precompile address, and valid HTTP/LLM commitments with TTL 1 and 30; assert only the supported address plus in-range TTL cases pass `validate_commitment_structure`.",
+    "Provide a state/env where the origin transaction calls an async precompile, then validate commitments with matching metadata, a different precompile address, different precompile input, and an origin transaction that makes no async call; assert only the matching re-simulation case returns `Ok(())`.",
+    "Validate commitments targeting each of the four named precompile constants and one arbitrary address; assert the named constants pass and the arbitrary address returns InvalidPrecompileAddress.",
+    "Construct blocks containing `TxAsyncCommitment` transactions with TTL 0, TTL above `ASYNC_MAX_BLOCK_LOOKBACK`, unsupported precompile address, `commit_block >= current_block`, `current_block - commit_block > ttl`, and `current_block - commit_block > 100`; assert each configured verifier rejects with `InvalidAsyncCommitment`, while a TTL within bounds and HTTP/LLM precompile proceeds to consistency validation.",
+    "Create an origin transaction that calls the HTTP or LLM precompile with a target block and input, build a matching commitment, and assert validation succeeds against historical state. Then mutate `commit_block`, `precompile_address`, or `precompile_input`, or use an origin transaction with no async call, and assert validation rejects with the corresponding mismatch/no-detection error."
+  ],
+  "summary": "Commitment validation has TTL/address/input replay checks but lacks the full commit-block and lookback envelope, so this is a confirmed gap.",
+  "test_or_falsification_candidate": "Construct a commitment whose origin transaction would only match outside the allowed historical window or with a future/stale commit block; current local commitment format and verifier lack the fields/checks needed to reject on that basis alone.",
+  "title": "Async commitment validation binds supported precompile metadata to replay",
+  "total_invariants": 1954
+}

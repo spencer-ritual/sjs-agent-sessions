@@ -1,0 +1,194 @@
+{
+  "record_type": "file",
+  "file_index": 340,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-sequencing-rights/src/priority.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "sequencing-rights",
+    "priority"
+  ],
+  "atoms_total": 4,
+  "atoms": [
+    {
+      "record_id": "file-0340-atom-0001",
+      "file_index": 340,
+      "atom_index": 1,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-sequencing-rights/src/priority.rs",
+      "source_hunk_hint": "@@ -0,0 +1,91 @@; priority computer and dispatch",
+      "source_kind": "sequencing_priority_computer_dispatch",
+      "source_snippet": "pub struct PriorityComputer<'a, S> { reader: SequencingRightsReader<'a, S> }\nimpl<'a, S: StateProvider> PriorityComputer<'a, S> { pub fn compute_priority(...) -> Result<u32, SequencingRightsError> { ... } }",
+      "semantic_claim": "The old divergence adds `PriorityComputer`, which reads sequencing ordering from contract state and dispatches priority computation by ordering mode.",
+      "high_risk": false,
+      "risk_tags": [
+        "priority",
+        "sequencing-ordering",
+        "contract-state"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-sequencing-rights/src/priority.rs",
+          "symbols": [
+            "PriorityComputer",
+            "PriorityComputer::compute_priority"
+          ],
+          "evidence": "Destination lines 1-91 exactly match source-added diff lines 68366-68456."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the contract-state read and per-ordering dispatch behavior unchanged.",
+      "test_strategy": "priority_computer_dispatch_tests",
+      "negative_test_candidate": "A contract read failure should propagate rather than assign default priority.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0340-atom-0002",
+      "file_index": 340,
+      "atom_index": 2,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-sequencing-rights/src/priority.rs",
+      "source_hunk_hint": "@@ -0,0 +93,176 @@; ordering-specific priority rules",
+      "source_kind": "sequencing_priority_ordering_rules",
+      "source_snippet": "fn compute_time_based_priority(&self, _tx: &Recovered<TransactionSigned>) -> u32 { 0 }\nfn compute_fee_based_priority(&self, tx: &Recovered<TransactionSigned>) -> u32 { ... }\nfn compute_custom_priority(...) -> Result<u32, SequencingRightsError> { ... }",
+      "semantic_claim": "The old divergence implements the initial ordering semantics: time-based priority preserves pool order via zero priority, fee-based priority uses effective tip conversion, and custom priority is fail-closed until the custom contract path is implemented.",
+      "high_risk": false,
+      "risk_tags": [
+        "priority",
+        "time-based",
+        "fee-based",
+        "custom-ordering"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-sequencing-rights/src/priority.rs",
+          "symbols": [
+            "PriorityComputer::compute_time_based_priority",
+            "PriorityComputer::compute_fee_based_priority",
+            "PriorityComputer::compute_custom_priority"
+          ],
+          "evidence": "Destination lines 93-176 exactly match source-added diff lines 68458-68541."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the consensus behavior for all declared ordering modes, including custom-priority fail-closed behavior.",
+      "test_strategy": "priority_ordering_mode_tests",
+      "negative_test_candidate": "A very large effective tip should saturate at `u32::MAX`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0340-atom-0003",
+      "file_index": 340,
+      "atom_index": 3,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-sequencing-rights/src/priority.rs",
+      "source_hunk_hint": "@@ -0,0 +178,303 @@; priority unit tests",
+      "source_kind": "sequencing_priority_unit_tests",
+      "source_snippet": "#[cfg(test)]\nmod tests { #[test] fn test_fee_based_priority() { ... } #[test] fn test_fee_priority_saturation() { ... } #[test] fn test_time_based_priority_zero() { ... } #[test] fn test_priority_ordering_enum() { ... } }",
+      "semantic_claim": "The old divergence adds unit tests covering fee priority extraction and saturation, time-based zero priority, and sequencing ordering enum variants.",
+      "high_risk": false,
+      "risk_tags": [
+        "tests",
+        "priority",
+        "fee-saturation"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-sequencing-rights/src/priority.rs",
+          "symbols": [
+            "test_fee_based_priority",
+            "test_fee_priority_saturation",
+            "test_time_based_priority_zero"
+          ],
+          "evidence": "Destination lines 178-303 exactly match source-added diff lines 68543-68668."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps regression coverage for priority computations.",
+      "test_strategy": "cargo test -p ritual-sequencing-rights priority",
+      "negative_test_candidate": "A transaction without tip should compute fee priority 0.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Test atom only."
+    },
+    {
+      "record_id": "file-0340-atom-0004",
+      "file_index": 340,
+      "atom_index": 4,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-sequencing-rights/src/priority.rs",
+      "source_hunk_hint": "@@ -0,0 +305,414 @@; priority property tests",
+      "source_kind": "sequencing_priority_property_tests",
+      "source_snippet": "proptest! { #[test] fn prop_fee_priority_bounded(tip in 0u128..u128::MAX) { ... } #[test] fn prop_time_priority_always_zero(...) { ... } #[test] fn prop_fee_priority_monotonic(...) { ... } }",
+      "semantic_claim": "The old divergence adds property tests for bounded fee priorities, constant time-based priority, monotonicity under saturation, and ordering determinism.",
+      "high_risk": false,
+      "risk_tags": [
+        "property-tests",
+        "priority",
+        "determinism"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-sequencing-rights/src/priority.rs",
+          "symbols": [
+            "prop_fee_priority_bounded",
+            "prop_time_priority_always_zero",
+            "prop_fee_priority_monotonic"
+          ],
+          "evidence": "Destination lines 305-414 exactly match source-added diff lines 68670-68779."
+        }
+      ],
+      "equivalence_argument": "Exact mapping keeps randomized guards for priority invariants.",
+      "test_strategy": "cargo test -p ritual-sequencing-rights priority::tests::prop_",
+      "negative_test_candidate": "Increasing effective tip below saturation must not decrease computed priority.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Property test atom only."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The sequencing-rights priority computer is exact-port preserved, including ordering dispatch, fee/time/custom priority behavior, and tests.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 340: A\tcrates/ritual-sequencing-rights/src/priority.rs.",
+    "Source-added hunk spans diff lines 68366-68779 with header `@@ -0,0 +1,414 @@`.",
+    "Destination `crates/ritual-sequencing-rights/src/priority.rs` has 414 lines and matches the source-added file exactly.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

@@ -1,0 +1,114 @@
+{
+  "record_type": "file",
+  "file_index": 346,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-spc-verification/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "structural-equivalent",
+    "spc-verification",
+    "manifest",
+    "workspace-wiring"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0346-atom-0001",
+      "file_index": 346,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/ritual-spc-verification/Cargo.toml",
+      "source_hunk_hint": "@@ -0,0 +1,51 @@; package metadata and runtime/core dependencies",
+      "source_kind": "spc_verification_manifest_core_dependencies",
+      "source_snippet": "[package]\nname = \"ritual-spc-verification\"\n...\n[dependencies]\ntokio = { workspace = true, features = [\"full\"] }\nfutures.workspace = true\nreqwest = { workspace = true, features = [\"json\"] }\nserde = { workspace = true, features = [\"derive\"] }\nserde_json.workspace = true\nthiserror.workspace = true\ntracing.workspace = true\nalloy-primitives = { workspace = true, features = [\"serde\"] }\nalloy-consensus.workspace = true\n...",
+      "semantic_claim": "The old divergence adds the SPC verification crate manifest with package metadata and the async, HTTP, serialization, error, logging, Alloy primitive/consensus, signature, state-provider, metrics, parallelism, and EVM dependencies required by proof verification.",
+      "high_risk": false,
+      "risk_tags": [
+        "manifest",
+        "spc-verification",
+        "workspace-normalization",
+        "dependencies"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/Cargo.toml",
+          "symbols": [
+            "package ritual-spc-verification",
+            "dependencies"
+          ],
+          "evidence": "Destination preserves the crate metadata and the dependencies used by the ported implementation: reqwest, tokio, serde, serde_json, thiserror, tracing, alloy-primitives, alloy-consensus, ritual-spc-signature, reth-primitives-traits, reth-storage-api, ritual-metrics, and rayon. It omits old unused broader provider/EVM/futures dependencies that are not required by the destination source files."
+        }
+      ],
+      "equivalence_argument": "The destination manifest keeps the dependencies needed by the v2.2.0 implementation while removing old broad dependencies that were not consumed after the port was narrowed around storage/provider traits and the extracted SPC signature crate.",
+      "test_strategy": "cargo check -p ritual-spc-verification",
+      "negative_test_candidate": "Remove `ritual-spc-signature` and confirm verifier code no longer compiles.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Non-exact dependency set due to v2.2.0 crate-boundary normalization."
+    },
+    {
+      "record_id": "file-0346-atom-0002",
+      "file_index": 346,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/ritual-spc-verification/Cargo.toml",
+      "source_hunk_hint": "@@ -0,0 +52,76 @@; dev dependencies and feature flags",
+      "source_kind": "spc_verification_manifest_dev_features",
+      "source_snippet": "[dev-dependencies]\ntokio-test = \"0.4\"\ntracing-test = \"0.2\"\n\n[features]\ndefault = []\nmock-server = [\"mockito\"]",
+      "semantic_claim": "The old divergence adds test-support dependencies and a mock-server feature for integration testing the SPC verification crate.",
+      "high_risk": false,
+      "risk_tags": [
+        "dev-dependencies",
+        "features",
+        "tests"
+      ],
+      "mapping_status": "partial",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/Cargo.toml",
+          "symbols": [
+            "dev-dependencies",
+            "features"
+          ],
+          "evidence": "Destination keeps `tokio` dev support with macros/rt/time and default feature declaration, but does not preserve the old `mockito`, `tokio-test`, `tracing-test`, or `mock-server` manifest entries."
+        }
+      ],
+      "equivalence_argument": "The destination source tree does not include the old mock-server integration-test surface, so the missing dev-only feature entries do not affect runtime SPC verification behavior.",
+      "test_strategy": "cargo test -p ritual-spc-verification",
+      "negative_test_candidate": "If mock-server integration tests are reintroduced, feature resolution should fail until the missing optional dependency is restored.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Partial coverage is limited to dev/test-only manifest support."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 2,
+  "adversarial_reviews": [],
+  "summary": "The SPC verification manifest is structurally mapped to the v2.2.0 port with a narrowed runtime dependency set and partial omission of old mock-server dev support.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 346: A\tcrates/ritual-spc-verification/Cargo.toml.",
+    "Source-added hunk spans diff lines 73358-73434 with header `@@ -0,0 +1,76 @@`.",
+    "Destination `crates/ritual-spc-verification/Cargo.toml` has 50 lines and preserves the runtime dependency surface used by the destination source.",
+    "No review queue entry required because non-exactness is manifest dependency normalization and dev-only mock feature omission."
+  ]
+}

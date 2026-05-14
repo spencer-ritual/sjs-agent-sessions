@@ -1,0 +1,34 @@
+{
+  "record_type": "file",
+  "file_index": 264,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/prune/prune/src/segments/user/transaction_lookup.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "semicolon",
+    "prune",
+    "transaction-lookup"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The transaction-lookup pruning divergence is rustfmt-only noise: semicolons on existing returns plus range and test arithmetic line wrapping.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 264: M\tcrates/prune/prune/src/segments/user/transaction_lookup.rs.",
+    "The isolated patch only adds semicolons to existing no-work and inconsistent-data returns.",
+    "The transaction range expression and test arithmetic are rewrapped without changing operands or precedence.",
+    "No transaction lookup range bounding, hash-count validation, limiter, or expected last-pruned transaction behavior changed."
+  ]
+}

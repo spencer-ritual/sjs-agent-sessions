@@ -1,0 +1,68 @@
+{
+  "cluster_key": "scheduler:missed-scheduled-windows-8b3bcc3a",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/scheduling/src/canonical.rs"
+  ],
+  "invariant_id": "cur-ca24e3812d-missed-canonical-scheduler-windows-caught",
+  "invariant_index": 12,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs",
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "ritual-alloy-internal/crates/consensus/src/transaction/scheduled.rs"
+    ],
+    "checked_queries": [
+      "fired_count|current_index|missed.*window|catch.*up",
+      "current_index == fired_count|should_fire_at_block|SynchronousScheduler",
+      "due_index_bounds|compute_obligations|ScheduledObligation"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "process_canonical_state_change",
+      "SynchronousScheduler",
+      "should_fire_at_block",
+      "fired_count",
+      "current_index",
+      "due_index_bounds",
+      "compute_obligations",
+      "verify_scheduled_censorship"
+    ],
+    "missing_behavior": "No audited repo preserves a canonical scheduler rule that suppresses missed historical windows and fires only the current/next execution index; the port catches up unexecuted due indices inside TTL.",
+    "related_but_insufficient_code": [
+      "The live port uses due_index_bounds and compute_obligations to enumerate all unexecuted due indices inside the TTL window; payload synthesis and block verification consume that multi-index obligation set. No fired_count/current_index exact-target gate was found."
+    ]
+  },
+  "notes": "Confirmed gap based on subagent negative search and parent evidence for due-window enumeration.",
+  "rationale": "The cluster has one candidate and no bounded successor or conflicting candidate. The candidate explains that the canonical scheduler intentionally requires the current execution index to exactly match fired_count, so skipped historical windows remain missed instead of being emitted as a catch-up burst. Because the cited commit is documentation-only, the invariant is current but medium-confidence as lineage evidence.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "68c3db5015c4ca2b615f6053b48fac13a5c5cbc7"
+  ],
+  "statement": "Canonical scheduling emits a scheduled call only when the current execution index exactly equals fired_count; if fired_count is behind the current index because prior execution windows were missed, those windows remain missed and are not implicitly caught up in a burst.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Configure a canonical scheduled call with fired_count lower than the current execution index, run canonical scheduling for the current block, and assert that no transactions are emitted for the skipped indices.",
+    "Configure the same call so fired_count exactly equals the current execution index, run canonical scheduling, and assert that only the single due execution is emitted and fired_count advances normally."
+  ],
+  "summary": "Canonical scheduler missed-window suppression is absent; the port enumerates bounded due windows instead.",
+  "test_or_falsification_candidate": "Create a schedule with missed earlier indices still inside TTL at block 130; current port due_index_bounds can return multiple indices, while the invariant expects no catch-up burst.",
+  "title": "Missed canonical scheduler windows are not caught up",
+  "total_invariants": 1954
+}

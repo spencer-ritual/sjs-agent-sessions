@@ -1,0 +1,157 @@
+{
+  "record_type": "file",
+  "file_index": 318,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-precompile-codecs/src/dkms_key.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "precompile-codecs",
+    "dkms",
+    "abi"
+  ],
+  "atoms_total": 3,
+  "atoms": [
+    {
+      "record_id": "file-0318-atom-0001",
+      "file_index": 318,
+      "atom_index": 1,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-precompile-codecs/src/dkms_key.rs",
+      "source_hunk_hint": "@@ -0,0 +1,64 @@; DKMS request struct and ABI type metadata",
+      "source_kind": "dkms_key_request_shape",
+      "source_snippet": "pub struct DkmsKeyRequest {\n    pub executor: Address,\n    pub encrypted_secrets: Vec<Bytes>,\n    pub ttl: u64,\n    pub secret_signature: Vec<Bytes>,\n    pub user_public_key: Bytes,\n    pub owner: Address,\n    pub key_index: u64,\n    pub key_format: u8,\n}\n\npub fn abi_types() -> Vec<&'static str> { ... }",
+      "semantic_claim": "The old divergence adds the DKMS key request codec shape, extending the base executor request fields with owner, key index, and key format, plus ABI type metadata for the eight-field request.",
+      "high_risk": false,
+      "risk_tags": [
+        "dkms",
+        "abi-layout",
+        "executor-request",
+        "precompile-codecs"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/dkms_key.rs",
+          "symbols": [
+            "DkmsKeyRequest",
+            "DkmsKeyRequest::abi_types"
+          ],
+          "evidence": "Destination lines 1-64 exactly match source-added diff lines 56818-56881."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the DKMS ABI field ordering and public request shape unchanged.",
+      "test_strategy": "dkms_key_request_shape_tests",
+      "negative_test_candidate": "A decoder expecting any field order other than the preserved eight-field ABI should fail to decode the DKMS request correctly.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0318-atom-0002",
+      "file_index": 318,
+      "atom_index": 2,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-precompile-codecs/src/dkms_key.rs",
+      "source_hunk_hint": "@@ -0,0 +66,225 @@; full ABI decode and encode implementation",
+      "source_kind": "dkms_key_full_abi_codec",
+      "source_snippet": "pub fn from_abi(data: &[u8]) -> Result<Self, CodecError> { ... }\n\npub fn to_abi(&self) -> Vec<u8> { ... }",
+      "semantic_claim": "The old divergence adds full DKMS key request ABI decoding and encoding, including bytes-array extraction for secrets/signatures, address conversion, u64/u8 overflow rejection for TTL/key fields, typed field errors, and exact `ethabi` token reconstruction.",
+      "high_risk": false,
+      "risk_tags": [
+        "dkms",
+        "abi-decoding",
+        "abi-encoding",
+        "overflow-checks",
+        "field-validation"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/dkms_key.rs",
+          "symbols": [
+            "DkmsKeyRequest::from_abi",
+            "DkmsKeyRequest::to_abi"
+          ],
+          "evidence": "Destination lines 66-225 exactly match source-added diff lines 56883-57042."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves DKMS decode/encode field extraction, integer bounds checks, error messages, and token layout.",
+      "test_strategy": "dkms_key_abi_roundtrip_tests",
+      "negative_test_candidate": "A DKMS payload with `key_format` greater than `u8::MAX` should return `CodecError::InvalidFieldValue` rather than truncating.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0318-atom-0003",
+      "file_index": 318,
+      "atom_index": 3,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-precompile-codecs/src/dkms_key.rs",
+      "source_hunk_hint": "@@ -0,0 +227,272 @@; efficient base-field extractors",
+      "source_kind": "dkms_key_base_field_extractors",
+      "source_snippet": "pub fn extract_ttl(data: &[u8]) -> Result<u64, CodecError> { ... }\npub fn extract_executor(data: &[u8]) -> Result<Address, CodecError> { ... }\npub fn extract_executor_and_ttl(data: &[u8]) -> Result<(Address, u64), CodecError> { ... }",
+      "semantic_claim": "The old divergence adds efficient DKMS base-field extractors that delegate to `ExecutorRequest::decode_base_fields` to retrieve TTL, executor, or both without constructing the full DKMS-specific request.",
+      "high_risk": false,
+      "risk_tags": [
+        "dkms",
+        "field-extraction",
+        "ttl",
+        "executor"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/dkms_key.rs",
+          "symbols": [
+            "DkmsKeyRequest::extract_ttl",
+            "DkmsKeyRequest::extract_executor",
+            "DkmsKeyRequest::extract_executor_and_ttl"
+          ],
+          "evidence": "Destination lines 227-272 exactly match source-added diff lines 57044-57089."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps fast-path extraction behavior aligned with the shared executor base-field decoder.",
+      "test_strategy": "dkms_key_fast_field_extractor_tests",
+      "negative_test_candidate": "Malformed base executor fields should cause all DKMS fast extractors to return the shared base decode error.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The DKMS key precompile codec is exact-port preserved, including request shape, full ABI decode/encode logic, overflow-safe field extraction, and efficient base-field extractors.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 318: A\tcrates/ritual-precompile-codecs/src/dkms_key.rs.",
+    "Source-added hunk spans diff lines 56818-57089 with header `@@ -0,0 +1,272 @@`; the next diff starts at line 57090.",
+    "Destination `crates/ritual-precompile-codecs/src/dkms_key.rs` has 272 lines and matches the source-added content exactly.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

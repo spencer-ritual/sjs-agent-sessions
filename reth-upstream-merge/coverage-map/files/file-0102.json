@@ -9,12 +9,11 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "missing",
+  "file_classification": "structural_equivalent",
   "tags": [
-    "missing",
     "high-risk",
-    "async-context",
-    "needs-review"
+    "non-exact",
+    "structural_equivalent"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -33,45 +32,39 @@
         "async-fsm",
         "negative-path"
       ],
-      "mapping_status": "missing",
+      "mapping_status": "structural_equivalent",
       "destinations": [
         {
           "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
           "path": "crates/evm/execution-errors/Cargo.toml",
           "symbols": [
-            "[features]"
-          ],
-          "snippet": "[features]\ndefault = [\"std\"]\nstd = [\n    \"alloy-primitives/std\",\n    \"alloy-rlp/std\",\n    \"thiserror/std\",\n    \"nybbles/std\",\n    \"reth-storage-errors/std\",\n    \"alloy-evm/std\",\n]",
-          "evidence": "The port crate defines only `default` and `std`; it does not re-export `async-context` at all."
-        },
-        {
-          "repo": "/home/ritual/repos/ritual-alloy-evm-internal",
-          "path": "crates/evm/Cargo.toml",
-          "symbols": [
             "features.async-context"
           ],
-          "snippet": "async-context = [\"revm-context\", \"revm/async-context\"]",
-          "evidence": "Underlying dependency support still exists in the Ritual alloy-evm dependency, so the missing link is specifically this crate's absent feature forwarding."
+          "snippet": "async-context = [\"alloy-evm/async-context\"]",
+          "evidence": "reth-execution-errors now forwards async-context into alloy-evm."
         }
       ],
-      "equivalence_argument": null,
+      "equivalence_argument": "The downstream async-context feature re-export is restored on reth-execution-errors.",
       "test_strategy": "destination_only_regression",
       "negative_test_candidate": "In the port repo, add a minimal feature-resolution check that enables `reth-errors/async-context` or `reth-evm/async-context` from a small crate. It should fail today because `crates/errors/Cargo.toml` and `crates/evm/Cargo.toml` do not define those features, and `crates/evm/execution-errors/Cargo.toml` does not forward `alloy-evm/async-context`.",
       "adversarial_review": {
         "required": true,
-        "status": "not_requested",
-        "review_record_id": null
+        "status": "pass",
+        "review_record_id": "review-file-0102-atom-0001"
       },
       "review_required": true,
-      "required_change": "Restore or intentionally replace the `reth-execution-errors` async-context feature re-export so downstream async error-feature propagation can traverse this crate boundary.",
-      "notes": "Exact search found this feature only in the downstream source crate. The port crate omits it even though the dependency repo still supports `alloy-evm`'s `async-context` feature."
+      "required_change": null,
+      "notes": "Feature graph check passed for reth-execution-errors --features async-context.",
+      "human_question": null
     }
   ],
   "high_risk_atoms_total": 1,
   "non_exact_atoms_total": 1,
-  "adversarial_reviews": [],
-  "summary": "The downstream-only `async-context` feature re-export on `reth-execution-errors` is absent from the v2.2.0 port, leaving the async error-feature propagation chain unported.",
+  "adversarial_reviews": [
+    "coverage-map/reviews/review-file-0102-atom-0001.json"
+  ],
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
   "review_required": true,
   "status": "needs_review",
-  "notes": "Searches across the port and dependency repos found no exact or near-exact replacement in `reth-execution-errors`. `alloy-evm` still defines `async-context`, but the ported Reth crate family no longer re-exports it here, so this atom remains missing."
+  "notes": "Updated during Core async first pass; unresolved atoms in the same feature remain separate and require active-consumer or runtime evidence."
 }

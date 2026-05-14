@@ -11,21 +11,18 @@
   },
   "file_classification": "mapped",
   "tags": [
-    "mapped",
-    "precompile",
-    "encoding",
     "high-risk",
+    "intentionally_absent",
     "non-exact",
-    "needs-review",
-    "reth-port"
+    "structural_equivalent"
   ],
-  "atoms_total": 1,
+  "atoms_total": 10,
   "atoms": [
     {
       "record_id": "file-0324-atom-0001",
       "file_index": 324,
       "atom_index": 1,
-      "atoms_total": 1,
+      "atoms_total": 10,
       "source_path": "crates/ritual-precompile-codecs/src/long_running.rs",
       "source_hunk_hint": "@@ -0,0 +1,1172 @@",
       "source_kind": "other",
@@ -42,14 +39,24 @@
           "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
           "path": "crates/ritual-precompile-codecs/src/long_running.rs",
           "symbols": [
-            "from_abi",
+            "LongRunningHTTPCallRequest::from_abi",
             "validate_fhe_payload_structure"
           ],
-          "snippet": "    pub fn from_abi(data: &[u8]) -> Result<Self, CodecError> {\n        let param_types = vec![\n            ParamType::Address,\n            ParamType::Array(Box::new(ParamType::Bytes)),\n            ParamType::Uint(256),",
-          "evidence": "The destination keeps the module at the same relative path with overlapping symbols ['from_abi', 'validate_fhe_payload_structure']."
+          "snippet": "see destination symbols",
+          "evidence": "active request/shape validation remains in codec crate"
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "decode_delivery_config",
+            "prepare_delivery_settlement_transaction"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "Phase 2 delivery callback extraction moved to payload path"
         }
       ],
-      "equivalence_argument": "The downstream behavior still resides in the same integration surface in the destination workspace, but the implementation was refactored or reshaped; review is required to confirm full semantic parity.",
+      "equivalence_argument": "Active long-running HTTP/ZK delivery config behavior is preserved but split across request validation codecs and payload delivery-settlement construction.",
       "test_strategy": "destination_only_regression",
       "negative_test_candidate": "Run the destination behavior owned by crates/ritual-precompile-codecs/src/long_running.rs and verify the downstream-observed behavior still holds after the port refactor.",
       "adversarial_review": {
@@ -58,15 +65,541 @@
         "review_record_id": null
       },
       "review_required": true,
-      "notes": "The destination keeps the module at the same relative path with overlapping symbols ['from_abi', 'validate_fhe_payload_structure'].",
-      "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor."
+      "notes": "Old public DeliveryConfig API was not restored just for compatibility; current consumers use payload-local decoder.",
+      "human_question": null,
+      "required_change": null
+    },
+    {
+      "record_id": "file-0324-atom-0002",
+      "file_index": 324,
+      "atom_index": 2,
+      "atoms_total": 10,
+      "source_path": "crates/ritual-precompile-codecs/src/long_running.rs",
+      "source_hunk_hint": "@@ -0,0 +1,1172 @@",
+      "source_kind": "encoding_rule",
+      "source_snippet": "mod tests {\n    use super::*;\n\n    #[test]\n    fn test_decode_delivery_config() {\n        // This test would need actual ABI-encoded data\n        // For now, just verify the struct can be created\n        let config = DeliveryConfig {\n            target: Address::ZERO,\n            selector: FixedBytes::ZERO,\n            gas_limit: 100_000,\n            max_fee_per_gas: U256::from(1_000_000_000u64),\n            max_priority_fee_per_gas: U256::from(100_000_000u64),\n            value: U256::ZERO,\n        };\n        assert_eq!(config.gas_limit, 100_000);\n    }\n}",
+      "semantic_claim": "fee preserves the fee/gas/accounting behavior covered by downstream tests: test_decode_delivery_config.",
+      "high_risk": true,
+      "risk_tags": [
+        "encoding",
+        "gas",
+        "fees",
+        "rewards"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "decodes_long_running_http_delivery_config_from_abi_head",
+            "decodes_zk_delivery_config_from_abi_head"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "destination has concrete ABI-head decoding tests"
+        }
+      ],
+      "equivalence_argument": "Old test only constructed DeliveryConfig; destination has stronger ABI-head decoding tests for active fields.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_decode_delivery_config.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Reclassified as preserved by stronger destination tests.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_decode_delivery_config"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0324-atom-0001"
+      ],
+      "required_change": null,
+      "human_question": null
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 324,
+      "source_path": "crates/ritual-precompile-codecs/src/long_running.rs",
+      "source_hunk_hint": "crates/ritual-precompile-codecs/src/long_running.rs:12-33",
+      "source_kind": "encoding_rule",
+      "source_snippet": "///\n/// These fields are needed for Phase 2 settlement to properly call AsyncDelivery.deliver().\n#[derive(Debug, Clone, PartialEq, Eq)]\npub struct DeliveryConfig {\n    /// Target contract address for the callback\n    pub target: Address,\n    /// Function selector for the callback (4 bytes)\n    pub selector: FixedBytes<4>,\n    /// Maximum gas for the callback execution\n    pub gas_limit: u64,\n    /// Maximum fee per gas the user is willing to pay (EIP-1559)\n    pub max_fee_per_gas: U256,\n    /// Maximum priority fee per gas (tip) the user is willing to pay (EIP-1559)\n    pub max_priority_fee_per_gas: U256,\n    /// ETH value to send with the callback (0 for most cases)\n    /// For long-running HTTP (0x0805): Not in ABI, returns 0\n    /// For ZK two-phase (0x0806): Extracted from ABI field 11\n    pub value: U256,\n}\n\nimpl DeliveryConfig {\n    /// Extract delivery configuration from ABI-encoded long-running request.",
+      "semantic_claim": "Long-running delivery config decoding preserves callback target, selector, gas, fee caps, and value as the common Phase 2 callback contract between the executor, payload builder, and AsyncDelivery.deliver.",
+      "high_risk": true,
+      "risk_tags": [
+        "encoding",
+        "async-fsm",
+        "payload",
+        "precompile"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "TwoPhaseDeliveryConfig",
+            "decode_delivery_config_at",
+            "prepare_delivery_settlement_transaction"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "payload decodes target, selector, gas limit, fee caps, and value before AsyncDelivery.deliver"
+        }
+      ],
+      "equivalence_argument": "Common Phase 2 callback contract is preserved in the payload builder where AsyncDelivery.deliver calldata is constructed.",
+      "required_change": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Replay the smallest Long-Running Two-Phase Trace scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "Long-Running Two-Phase Trace"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0004"
+      ],
+      "notes": "Moved from public codec surface to active payload path.",
+      "atom_index": 3,
+      "record_id": "file-0324-atom-0003",
+      "atoms_total": 10,
+      "human_question": null
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 324,
+      "source_path": "crates/ritual-precompile-codecs/src/long_running.rs",
+      "source_hunk_hint": "crates/ritual-precompile-codecs/src/long_running.rs:50-71",
+      "source_kind": "encoding_rule",
+      "source_snippet": "    /// # Returns\n    /// * `Ok(DeliveryConfig)` - Extracted delivery configuration\n    /// * `Err(CodecError)` - If decoding fails\n    pub fn from_abi(data: &[u8]) -> Result<Self, CodecError> {\n        // We need to decode enough fields to get the delivery config (fields 0-12)\n        // But we can't know the full structure, so we'll decode just what we need\n        let param_types = vec![\n            // Base ExecutorRequest fields (0-4)\n            ParamType::Address,                           // 0: executor\n            ParamType::Array(Box::new(ParamType::Bytes)), // 1: encrypted_secrets (bytes[])\n            ParamType::Uint(256),                         // 2: ttl\n            ParamType::Array(Box::new(ParamType::Bytes)), // 3: secret_signature (bytes[])\n            ParamType::Bytes,                             // 4: user_public_key\n            // LongRunningRequest fields (5-13)\n            ParamType::Uint(64),      // 5: poll_interval_blocks\n            ParamType::Uint(64),      // 6: max_poll_block\n            ParamType::String,        // 7: task_id_marker\n            ParamType::Address,       // 8: delivery_target\n            ParamType::FixedBytes(4), // 9: delivery_selector\n            ParamType::Uint(256),     // 10: delivery_gas_limit\n            ParamType::Uint(256),     // 11: delivery_max_fee_per_gas\n            ParamType::Uint(256),     // 12: delivery_max_priority_fee_per_gas",
+      "semantic_claim": "Long-running HTTP decoding extracts delivery configuration and the URL, poll URL, and result URL needed to validate and poll two-phase HTTP jobs without changing the shipped ABI layout.",
+      "high_risk": true,
+      "risk_tags": [
+        "encoding",
+        "rpc",
+        "async-fsm",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/long_running.rs",
+          "symbols": [
+            "LongRunningHTTPCallRequest::from_abi"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "URL, poll URL, and result URL decoded from shipped ABI"
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "decode_delivery_config"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "long-running HTTP delivery callback fields decoded from ABI offset 8"
+        }
+      ],
+      "equivalence_argument": "Long-running HTTP decoding is preserved, split between codec URL validation and payload delivery callback extraction.",
+      "required_change": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Replay the smallest long_running_echo, x402_dkms_long_running_http scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "long_running_echo",
+        "x402_dkms_long_running_http"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0005"
+      ],
+      "notes": "Split destination evidence covers both halves of the old claim.",
+      "atom_index": 4,
+      "record_id": "file-0324-atom-0004",
+      "atoms_total": 10,
+      "human_question": null
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 324,
+      "source_path": "crates/ritual-precompile-codecs/src/long_running.rs",
+      "source_hunk_hint": "crates/ritual-precompile-codecs/src/long_running.rs:202-223",
+      "source_kind": "encoding_rule",
+      "source_snippet": "    /// # Returns\n    /// * `Ok(DeliveryConfig)` - Extracted delivery configuration\n    /// * `Err(CodecError)` - If decoding fails\n    pub fn from_zk_abi(data: &[u8]) -> Result<Self, CodecError> {\n        let param_types = vec![\n            // Base ExecutorRequest fields (0-4)\n            ParamType::Address,                           // 0: executor\n            ParamType::Array(Box::new(ParamType::Bytes)), // 1: encrypted_secrets (bytes[])\n            ParamType::Uint(256),                         // 2: ttl\n            ParamType::Array(Box::new(ParamType::Bytes)), // 3: secret_signature (bytes[])\n            ParamType::Bytes,                             // 4: user_public_key\n            // ZK-specific fields\n            ParamType::Bool,          // 5: input_encrypted\n            ParamType::Uint(64),      // 6: max_proof_block (Phase 2 deadline)\n            ParamType::Address,       // 7: delivery_target\n            ParamType::FixedBytes(4), // 8: delivery_selector\n            ParamType::Uint(256),     // 9: delivery_gas_limit\n            ParamType::Uint(256),     // 10: delivery_max_fee_per_gas\n            ParamType::Uint(256),     // 11: delivery_max_priority_fee_per_gas\n            ParamType::Uint(256),     // 12: delivery_value\n            ParamType::Bytes,         // 13: operation_input\n        ];",
+      "semantic_claim": "ZK two-phase delivery decoding reads the max proof block and delivery callback fields from the ZK ABI so Phase 2 proof delivery uses the same callback contract as long-running HTTP.",
+      "high_risk": true,
+      "risk_tags": [
+        "encoding",
+        "async-fsm",
+        "verifier",
+        "precompile"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/validation.rs",
+          "symbols": [
+            "validate_zk_two_phase_payload"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "ZK max_proof_block/deadline validation reads field 6"
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "decode_delivery_config",
+            "decodes_zk_delivery_config_from_abi_head"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "ZK callback fields decoded from ABI offset 7"
+        }
+      ],
+      "equivalence_argument": "ZK two-phase deadline and callback decoding are preserved through validation plus payload-local delivery config extraction.",
+      "required_change": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Replay the smallest zk_two_phase, scheduled_zk_two_phase scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "zk_two_phase",
+        "scheduled_zk_two_phase"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0006"
+      ],
+      "notes": "Old codec method was replaced by call-site-specific validation and payload decoding. First-principles pass verified this as active only for the explicitly supported v2 delivery families.",
+      "atom_index": 5,
+      "record_id": "file-0324-atom-0005",
+      "atoms_total": 10,
+      "human_question": "Non-exact high-risk async atom retained in review queue after first-principles audit; see notes for narrowed scope."
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 324,
+      "source_path": "crates/ritual-precompile-codecs/src/long_running.rs",
+      "source_hunk_hint": "crates/ritual-precompile-codecs/src/long_running.rs:348-369",
+      "source_kind": "encoding_rule",
+      "source_snippet": "    /// # Returns\n    /// * `Ok(DeliveryConfig)` - Extracted delivery configuration\n    /// * `Err(CodecError)` - If decoding fails\n    pub fn from_sovereign_agent_abi(data: &[u8]) -> Result<Self, CodecError> {\n        // StorageRef tuple type: (string, string, string)\n        let storage_ref_type = ParamType::Tuple(vec![\n            ParamType::String, // platform\n            ParamType::String, // path\n            ParamType::String, // key_ref\n        ]);\n\n        // NOTE: This decoder only extracts delivery config (fields 6-10) from the Sovereign Agent ABI.\n        // It intentionally uses 22 param types (fields 0-21) even though the full ABI has 23\n        // (rpc_urls at field 22). The ABI decoder tolerates trailing data \u2014 offsets are absolute,\n        // so the 22-type decoder reads the correct head slots. rpc_urls is not needed here.\n        let param_types = vec![\n            // Base ExecutorRequest fields (0-2) - simplified\n            ParamType::Address,   // 0: executor\n            ParamType::Uint(256), // 1: ttl\n            ParamType::Bytes,     // 2: user_public_key\n            // Long-running polling config (3-5)\n            ParamType::Uint(64), // 3: poll_interval_blocks",
+      "semantic_claim": "Sovereign-agent delivery decoding uses the agent-specific ABI layout to extract max poll block and callback fields without depending on the long-HTTP field offsets.",
+      "high_risk": true,
+      "risk_tags": [
+        "encoding",
+        "async-fsm",
+        "executor-selection"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/sovereign_agent.rs",
+          "symbols": [
+            "SovereignAgentRequest::from_abi"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "sovereign layout preserves max_poll_block for validation"
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "ensure_supported_two_phase_metadata"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "payload delivery decodes sovereign callback fields from the sovereign ABI offset and accepts registered two-phase precompiles"
+        }
+      ],
+      "equivalence_argument": "Sovereign-agent request/deadline decoding is preserved for validation, and Phase 2 callback delivery now uses the sovereign-agent ABI-specific delivery config offset.",
+      "required_change": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Replay the smallest Sovereign Agent Precompile Trace scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "Sovereign Agent Precompile Trace"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0007"
+      ],
+      "notes": "Sovereign-agent delivery is enabled through the shared registered two-phase precompile path. First-principles pass verified this as active only for the explicitly supported v2 delivery families.",
+      "atom_index": 6,
+      "record_id": "file-0324-atom-0006",
+      "atoms_total": 10,
+      "human_question": "Non-exact high-risk async atom retained in review queue after first-principles audit; see notes for narrowed scope."
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 324,
+      "source_path": "crates/ritual-precompile-codecs/src/long_running.rs",
+      "source_hunk_hint": "crates/ritual-precompile-codecs/src/long_running.rs:507-528",
+      "source_kind": "encoding_rule",
+      "source_snippet": "    /// # Returns\n    /// * `Ok(DeliveryConfig)` - Extracted delivery configuration\n    /// * `Err(CodecError)` - If decoding fails\n    pub fn from_persistent_agent_abi(data: &[u8]) -> Result<Self, CodecError> {\n        let param_types = vec![\n            // Base ExecutorRequest fields (0-4)\n            ParamType::Address,                           // 0: executor\n            ParamType::Array(Box::new(ParamType::Bytes)), // 1: encrypted_secrets (bytes[])\n            ParamType::Uint(256),                         // 2: ttl\n            ParamType::Array(Box::new(ParamType::Bytes)), // 3: secret_signature (bytes[])\n            ParamType::Bytes,                             // 4: user_public_key\n            // Phase 2 config\n            ParamType::Uint(64), // 5: max_spawn_block\n            // Delivery config (6-11)\n            ParamType::Address,       // 6: delivery_target\n            ParamType::FixedBytes(4), // 7: delivery_selector\n            ParamType::Uint(256),     // 8: delivery_gas_limit\n            ParamType::Uint(256),     // 9: delivery_max_fee_per_gas\n            ParamType::Uint(256),     // 10: delivery_max_priority_fee_per_gas\n            ParamType::Uint(256),     // 11: delivery_value\n        ];\n",
+      "semantic_claim": "Persistent-agent delivery decoding uses the 0x0820 ABI layout to extract max spawn block and callback fields used when spawning a long-running agent instance.",
+      "high_risk": true,
+      "risk_tags": [
+        "encoding",
+        "async-fsm",
+        "executor-selection"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/persistent_agent.rs",
+          "symbols": [
+            "PersistentAgentRequest::from_abi",
+            "PersistentDeliveryConfig"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "persistent agent codec keeps max spawn block and callback delivery fields"
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "ensure_supported_two_phase_metadata"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "payload delivery decodes persistent-agent callback fields from the persistent ABI offset and accepts registered two-phase precompiles"
+        }
+      ],
+      "equivalence_argument": "Persistent-agent ABI decoding is preserved in its dedicated codec, and active Phase 2 delivery is enabled by payload/verifier guards for registered two-phase precompiles.",
+      "required_change": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Replay the smallest Persistent Agent Lifecycle Trace scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "Persistent Agent Lifecycle Trace"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0008"
+      ],
+      "notes": "Decode surface and runtime delivery enablement are both present. First-principles pass verified this as active only for the explicitly supported v2 delivery families.",
+      "atom_index": 7,
+      "record_id": "file-0324-atom-0007",
+      "atoms_total": 10,
+      "human_question": "Non-exact high-risk async atom retained in review queue after first-principles audit; see notes for narrowed scope."
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 324,
+      "source_path": "crates/ritual-precompile-codecs/src/long_running.rs",
+      "source_hunk_hint": "crates/ritual-precompile-codecs/src/long_running.rs:661-682",
+      "source_kind": "encoding_rule",
+      "source_snippet": "    /// # Returns\n    /// * `Ok(DeliveryConfig)` - Extracted delivery configuration\n    /// * `Err(CodecError)` - If decoding fails\n    pub fn from_fhe_abi(data: &[u8]) -> Result<Self, CodecError> {\n        let param_types = vec![\n            // Base ExecutorRequest fields (0-4)\n            ParamType::Address,                           // 0: executor\n            ParamType::Array(Box::new(ParamType::Bytes)), // 1: encrypted_secrets (bytes[])\n            ParamType::Uint(256),                         // 2: ttl\n            ParamType::Array(Box::new(ParamType::Bytes)), // 3: secret_signature (bytes[])\n            ParamType::Bytes,                             // 4: user_public_key\n            // FHE-specific fields\n            ParamType::String,        // 5: model\n            ParamType::Bytes,         // 6: encrypted_input\n            ParamType::Bytes,         // 7: encrypted_input_ref\n            ParamType::Bytes,         // 8: evk_reference\n            ParamType::Uint(8),       // 9: num_layers\n            ParamType::Uint(64),      // 10: max_inference_block (Phase 2 deadline)\n            ParamType::Address,       // 11: delivery_target\n            ParamType::FixedBytes(4), // 12: delivery_selector\n            ParamType::Uint(256),     // 13: delivery_gas_limit\n            ParamType::Uint(256),     // 14: delivery_max_fee_per_gas",
+      "semantic_claim": "FHE delivery decoding reads the 19-field FHE request layout and max inference block so encrypted Phase 2 output delivery can be priced and settled deterministically.",
+      "high_risk": true,
+      "risk_tags": [
+        "encoding",
+        "async-fsm",
+        "fees",
+        "precompile"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/long_running.rs",
+          "symbols": [
+            "validate_fhe_payload_structure"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "FHE 19-field layout including DA refs is decoded for validation"
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/validation.rs",
+          "symbols": [
+            "validate_fhe_call_payload"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "FHE max proof block is read from field 10 when 19-field layout is present"
+        }
+      ],
+      "equivalence_argument": "FHE ABI layout and max-inference/deadline validation are preserved; active FHE Phase 2 settlement remains outside the enabled delivery path.",
+      "required_change": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Replay the smallest FHE / Private Compute Trace scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "FHE / Private Compute Trace"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0009"
+      ],
+      "notes": "FHE request layout/deadline validation is preserved, but active FHE Phase 2 settlement remains blocked until old output-size pricing and result decoding are ported.",
+      "atom_index": 8,
+      "record_id": "file-0324-atom-0008",
+      "atoms_total": 10,
+      "human_question": "Non-exact high-risk async atom retained in review queue after first-principles audit; see notes for narrowed scope."
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 324,
+      "source_path": "crates/ritual-precompile-codecs/src/long_running.rs",
+      "source_hunk_hint": "crates/ritual-precompile-codecs/src/long_running.rs:852-873",
+      "source_kind": "encoding_rule",
+      "source_snippet": "/// # Returns\n/// * `Ok(u64)` - The output size in bytes\n/// * `Err(CodecError)` - If decoding fails\npub fn extract_fhe_output_size(data: &[u8]) -> Result<u64, CodecError> {\n    let param_types = vec![\n        ParamType::Bool,           // 0: has_error\n        ParamType::String,         // 1: output_uri\n        ParamType::FixedBytes(32), // 2: output_content_hash\n        ParamType::Uint(64),       // 3: output_size_bytes\n        ParamType::String,         // 4: error_message\n    ];\n\n    let tokens = ethabi::decode(&param_types, data).map_err(|e| {\n        CodecError::FieldExtractionFailed(format!(\"ethabi decode failed (FHE result): {}\", e))\n    })?;\n\n    if tokens.len() < 4 {\n        return Err(CodecError::FieldExtractionFailed(format!(\n            \"Expected at least 4 tokens for FHE result, got {}\",\n            tokens.len()\n        )));\n    }",
+      "semantic_claim": "FHE Phase 2 result decoding extracts the encrypted output size from the delivery result, making output-size fee calculation depend on the delivered result struct rather than external metadata.",
+      "high_risk": true,
+      "risk_tags": [
+        "encoding",
+        "fees",
+        "async-fsm"
+      ],
+      "mapping_status": "blocked",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "is_supported_two_phase_precompile",
+            "ensure_supported_two_phase_metadata"
+          ],
+          "snippet": "FHE is not in the supported two-phase delivery set",
+          "evidence": "Current v2.2 fail-closes FHE delivery instead of using generic Phase 2 pricing; old FHE output-size fee logic is not ported."
+        }
+      ],
+      "equivalence_argument": null,
+      "required_change": "Port old `extract_fhe_output_size` and FHE Phase 2 fee/wallet logic, then enable FHE delivery; until then keep FHE fail-closed and do not mark runtime parity green.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Replay the smallest FHE / Private Compute Trace, Product Economics Compatibility scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "flow_titles": [
+        "FHE / Private Compute Trace",
+        "Product Economics Compatibility"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0010"
+      ],
+      "notes": "Reclassified from intentionally_absent: old behavior exists and no explicit product decision removes it. It is a blocked runtime parity gap, not an acceptable absence.",
+      "atom_index": 9,
+      "record_id": "file-0324-atom-0009",
+      "atoms_total": 10,
+      "human_question": null
+    },
+    {
+      "record_type": "pr_preservation_derived_atom",
+      "pr_preservation_derived": true,
+      "pr_preservation_grounded": true,
+      "file_index": 324,
+      "source_path": "crates/ritual-precompile-codecs/src/long_running.rs",
+      "source_hunk_hint": "crates/ritual-precompile-codecs/src/long_running.rs:349-369",
+      "source_kind": "encoding_rule",
+      "source_snippet": "    /// * `Ok(DeliveryConfig)` - Extracted delivery configuration\n    /// * `Err(CodecError)` - If decoding fails\n    pub fn from_sovereign_agent_abi(data: &[u8]) -> Result<Self, CodecError> {\n        // StorageRef tuple type: (string, string, string)\n        let storage_ref_type = ParamType::Tuple(vec![\n            ParamType::String, // platform\n            ParamType::String, // path\n            ParamType::String, // key_ref\n        ]);\n\n        // NOTE: This decoder only extracts delivery config (fields 6-10) from the Sovereign Agent ABI.\n        // It intentionally uses 22 param types (fields 0-21) even though the full ABI has 23\n        // (rpc_urls at field 22). The ABI decoder tolerates trailing data \u2014 offsets are absolute,\n        // so the 22-type decoder reads the correct head slots. rpc_urls is not needed here.\n        let param_types = vec![\n            // Base ExecutorRequest fields (0-2) - simplified\n            ParamType::Address,   // 0: executor\n            ParamType::Uint(256), // 1: ttl\n            ParamType::Bytes,     // 2: user_public_key\n            // Long-running polling config (3-5)\n            ParamType::Uint(64), // 3: poll_interval_blocks",
+      "semantic_claim": "PR preservation `#315` `da-standard` keeps live downstream behavior: DA `StorageRef` tuple ABI for FHE.",
+      "high_risk": true,
+      "risk_tags": [
+        "encoding",
+        "fees",
+        "payload",
+        "precompile",
+        "verifier"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/storage_ref.rs",
+          "symbols": [
+            "StorageRef::abi_param_type"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "DA StorageRef tuple ABI is central"
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/long_running.rs",
+          "symbols": [
+            "validate_fhe_payload_structure"
+          ],
+          "snippet": "see destination symbols",
+          "evidence": "FHE validation uses StorageRef tuple ABI"
+        }
+      ],
+      "equivalence_argument": "DA StorageRef tuple ABI for FHE is preserved through shared StorageRef and FHE payload validation.",
+      "required_change": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Replay or unit-test the smallest downstream scenario introduced by #315 that exercises `DA `StorageRef` tuple ABI for FHE` and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "source_prs": [
+        {
+          "key": "#315",
+          "slug": "da-standard",
+          "merge_commit": "9b4910ecf7bedff56525f9012ef5f19425e83e68"
+        }
+      ],
+      "source_pr_claims": [
+        "DA `StorageRef` tuple ABI for FHE"
+      ],
+      "source_flow_ids": [
+        "pr-raw-0157"
+      ],
+      "notes": "Mapped to current shared codec structure.",
+      "atom_index": 10,
+      "record_id": "file-0324-atom-0010",
+      "atoms_total": 10,
+      "human_question": null
     }
   ],
-  "high_risk_atoms_total": 1,
-  "non_exact_atoms_total": 1,
+  "high_risk_atoms_total": 10,
+  "non_exact_atoms_total": 10,
   "adversarial_reviews": [],
-  "summary": "The downstream file maps to destination code but needs review because the destination implementation was refactored or moved.",
+  "summary": "Codec/delivery atoms distinguish supported agent/ZK paths from blocked FHE runtime parity.",
   "review_required": true,
   "status": "needs_review",
-  "notes": "The destination keeps the module at the same relative path with overlapping symbols ['from_abi', 'validate_fhe_payload_structure']."
+  "notes": "First-principles async audit: sovereign/persistent callback decoding is active; FHE validation shape is present but FHE output-size delivery pricing is blocked, not intentionally absent."
 }

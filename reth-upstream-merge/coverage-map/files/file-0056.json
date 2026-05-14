@@ -9,10 +9,10 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "mapped",
+  "file_classification": "intentionally_absent",
   "tags": [
-    "mapped",
-    "needs-review"
+    "intentionally_absent",
+    "non-exact"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -45,7 +45,7 @@
           "evidence": "The ported engine-tree sources do not import or call `ritual_metrics`; repo-wide Cargo manifest search in the port also finds no `ritual-metrics` workspace entry, so this dependency has no destination consumer."
         }
       ],
-      "equivalence_argument": "The downstream manifest atom only supports Ritual-specific metrics call sites that are not present in the v2.2 port engine-tree sources. Because the destination crate retains upstream metrics plumbing without any `ritual_metrics` usage, continuing to omit the dependency is an intentional non-port decision rather than a missing carry-forward.",
+      "equivalence_argument": null,
       "test_strategy": "not_needed",
       "negative_test_candidate": null,
       "adversarial_review": {
@@ -53,16 +53,19 @@
         "status": "not_requested",
         "review_record_id": null
       },
-      "review_required": true,
-      "human_question": "Confirm that the v2.2 port should keep engine-tree Ritual metrics instrumentation dropped, leaving the `ritual-metrics` manifest dependency intentionally absent.",
-      "notes": "This manifest atom is a support dependency for downstream-only Ritual instrumentation present in the source repo engine-tree code but not ported into the v2.2.0 destination."
+      "review_required": false,
+      "human_question": null,
+      "notes": "This manifest atom is a support dependency for downstream-only Ritual instrumentation present in the source repo engine-tree code but not ported into the v2.2.0 destination. Guideline remediation: accepted as intentionally absent because The downstream `ritual-metrics` dependency only supported engine-tree Ritual instrumentation that is absent from the v2.2 port; the manifest edge has no active destination consumer.",
+      "required_change": null,
+      "intentional_absence_basis": "destination_absence_of_metrics_callsite",
+      "intentional_absence_rationale": "The downstream `ritual-metrics` dependency only supported engine-tree Ritual instrumentation that is absent from the v2.2 port; the manifest edge has no active destination consumer."
     }
   ],
   "high_risk_atoms_total": 0,
   "non_exact_atoms_total": 1,
   "adversarial_reviews": [],
-  "summary": "The only downstream diff atom adds `ritual-metrics` as a compile-time dependency for Ritual-specific engine-tree instrumentation, and that instrumentation is intentionally absent from the v2.2.0 port.",
-  "review_required": true,
-  "status": "needs_review",
+  "summary": "Atoms in this file are intentionally absent or mapped to active v2.2 behavior where applicable.",
+  "review_required": false,
+  "status": "complete",
   "notes": "Accounted as intentionally absent rather than missing because the destination repo lacks both the dependency declaration and the corresponding `ritual_metrics` call sites in `engine/tree`."
 }

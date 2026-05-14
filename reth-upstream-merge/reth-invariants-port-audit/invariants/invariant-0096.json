@@ -1,0 +1,108 @@
+{
+  "cluster_key": "scheduler:payload-building:part-01",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Engine launch installs a blocking handler for the networked pipeline that calls the pool canonical-state side-effect hook on the backfilled tip.",
+      "path": "crates/node/builder/src/launch/engine.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let blocking_pool = ctx.components().pool().clone();\nlet blocking_handler = Arc::new(move |chain| { blocking_pool.on_blocking_canonical_state_change(chain.tip()); });\n... build_networked_pipeline(..., Some(blocking_handler))",
+      "symbols": [
+        "EngineNodeLauncher::launch_node",
+        "build_networked_pipeline",
+        "on_blocking_canonical_state_change"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Execution stage runs the blocking handler after block execution during staged backfill.",
+      "path": "crates/stages/stages/src/stages/execution/mod.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if let Some(blocking_handler) = &self.blocking_handler { let chain = Chain::new(...); blocking_handler(&chain); }",
+      "symbols": [
+        "ExecutionStage::with_blocking_handler",
+        "blocking_handler"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Port scheduler address helper parses SCHEDULER_ADDRESS and falls back to 0x56e776BAE2DD60664b69Bd5F865F1180ffB7D58B.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "std::env::var(\"SCHEDULER_ADDRESS\").ok().and_then(|addr_str| addr_str.parse().ok()).unwrap_or_else(|| address!(\"56e776BAE2DD60664b69Bd5F865F1180ffB7D58B\"))",
+      "symbols": [
+        "get_scheduler_address"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "Nodebuilder add-ons use the same env override and fallback Scheduler address.",
+      "path": "crates/node/src/addons.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "let scheduler_address = std::env::var(\"SCHEDULER_ADDRESS\").map(|addr| addr.parse().expect(\"Invalid scheduler address format\")).unwrap_or(address!(\"56e776BAE2DD60664b69Bd5F865F1180ffB7D58B\"));",
+      "symbols": [
+        "RitualAddOns::default"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped across port and nodebuilder: staged backfill has a blocking canonical-state handler, and Scheduler address selection is env-overridable with aligned fallback.",
+  "evidence_files": [
+    "crates/node/builder/src/launch/engine.rs",
+    "bin/src/main.rs",
+    "crates/node/src/addons.rs"
+  ],
+  "invariant_id": "cur-d56d942a7c-backfill-scheduler-configuration-keep-scheduler-state-available",
+  "invariant_index": 96,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/node/builder/src/launch/engine.rs",
+      "crates/stages/stages/src/stages/execution/mod.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/node/src/addons.rs"
+    ],
+    "checked_queries": [
+      "with_blocking_handler|on_blocking_canonical_state_change|SCHEDULER_ADDRESS|56e776BAE2DD60664b69Bd5F865F1180ffB7D58B"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+    ],
+    "checked_symbols": [
+      "with_blocking_handler",
+      "on_blocking_canonical_state_change",
+      "get_scheduler_address",
+      "RitualAddOns::default"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in port and nodebuilder.",
+  "rationale": "These candidates are not the core payload inclusion path but preserve scheduler state availability and address correctness needed by downstream scheduled payload behavior.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "2874dce8b93fbb4b3455ae6e9f6eae560ea438b0",
+    "39366e33b967e62d2cb080240f8c44a5a2eee6fe"
+  ],
+  "statement": "Pipeline backfill must install a blocking handler that processes canonical state transactions for the backfilled chain tip, and scheduler initialization must use the secure-deployer default Scheduler address when SCHEDULER_ADDRESS is unset while still allowing the environment override.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Run staged backfill over a block with canonical async/scheduled side effects and assert pool on_blocking_canonical_state_change is called.",
+    "Unset and set SCHEDULER_ADDRESS in port/nodebuilder address helpers and assert fallback/override alignment."
+  ],
+  "summary": "Backfill blocking handler and scheduler address override/fallback are mapped.",
+  "test_or_falsification_candidate": "Backfill execution stage should call blocking handler for each executed block tip; Scheduler address override tests should match across port and nodebuilder.",
+  "title": "Backfill and scheduler configuration keep scheduler state available",
+  "total_invariants": 1954
+}

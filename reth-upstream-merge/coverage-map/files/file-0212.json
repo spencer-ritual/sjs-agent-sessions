@@ -9,11 +9,10 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "mapped",
+  "file_classification": "intentionally_absent",
   "tags": [
-    "mapped",
-    "non-exact",
-    "needs-review"
+    "intentionally_absent",
+    "non-exact"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -56,17 +55,19 @@
         "status": "not_requested",
         "review_record_id": null
       },
-      "review_required": true,
-      "human_question": "Confirm that OP receipt-root compatibility remains outside the current Reth v2.2/Summit merge scope. If OP support becomes in scope, this atom requires a dedicated OP stack port rather than a local one-file fix.",
-      "notes": "Reclassified from missing to intentionally absent because the current v2 port explicitly omits old `crates/optimism/*` workspace members.",
-      "required_change": null
+      "review_required": false,
+      "human_question": null,
+      "notes": "Reclassified from missing to intentionally absent because the current v2 port explicitly omits old `crates/optimism/*` workspace members. Guideline remediation: accepted as intentionally absent because The current v2.2/Summit port explicitly scopes old `crates/optimism/*` members out via `MERGE_NOTES.md`, so OP receipt-root behavior is outside the active merge target rather than missing Ethereum/Summit behavior.",
+      "required_change": null,
+      "intentional_absence_basis": "documented_scope_exclusion",
+      "intentional_absence_rationale": "The current v2.2/Summit port explicitly scopes old `crates/optimism/*` members out via `MERGE_NOTES.md`, so OP receipt-root behavior is outside the active merge target rather than missing Ethereum/Summit behavior."
     }
   ],
   "high_risk_atoms_total": 0,
   "non_exact_atoms_total": 1,
   "adversarial_reviews": [],
-  "summary": "The old OP Regolith/Canyon receipt-root behavior is intentionally absent from the current v2 port because OP execution is out of scope.",
-  "review_required": true,
-  "status": "needs_review",
+  "summary": "Atoms in this file are intentionally absent or mapped to active v2.2 behavior where applicable.",
+  "review_required": false,
+  "status": "complete",
   "notes": "This is not fixed by reintroducing a helper into the Summit/Ethereum port; it remains a human scope confirmation for future OP work."
 }

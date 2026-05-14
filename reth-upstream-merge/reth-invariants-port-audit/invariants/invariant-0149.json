@@ -1,0 +1,100 @@
+{
+  "cluster_key": "executor delivery:async-phase-collection-f7c88d44",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "evidence": "The port payload builder now checks the global build deadline before calling the fulfilled async and delivery-ready pool collection methods, returning empty vectors when the deadline has already elapsed.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let fulfilled_async_entries = if Instant::now() > global_deadline { Vec::new() } else { ... };\nlet delivery_ready_async_entries = if Instant::now() > global_deadline { Vec::new() } else { ... };",
+      "symbols": [
+        "default_ethereum_payload",
+        "get_fulfilled_original_async_commitment_transactions",
+        "get_delivery_ready_original_async_transactions"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port after the local parity fix: Phase B fulfilled async collection and Phase C delivery-ready collection are skipped before pool reads and settlement preparation when the payload build deadline has elapsed.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-c4df27af45-async-phase-collection-skipped-deadline",
+  "invariant_index": 149,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/transaction-pool/src/pool/mod.rs",
+      "crates/transaction-pool/src/traits.rs"
+    ],
+    "checked_queries": [
+      "Phase B|Phase C|fulfilled async collection|delivery-ready settlement collection",
+      "Instant::now\\(\\) > global_deadline",
+      "fulfilled_async_entries|delivery_ready_async_entries"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "get_fulfilled_original_async_commitment_transactions",
+      "get_delivery_ready_original_async_transactions",
+      "fulfilled_async_entries",
+      "delivery_ready_async_entries",
+      "global_deadline"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      {
+        "evidence": "Before the local parity fix, the builder loaded fulfilled async entries without checking Instant::now() > global_deadline first. The local fix adds that pre-collection guard.",
+        "path": "crates/ethereum/payload/src/lib.rs",
+        "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+        "symbols": [
+          "get_fulfilled_original_async_commitment_transactions"
+        ]
+      },
+      {
+        "evidence": "Before the local parity fix, the builder loaded delivery-ready entries without a pre-collection deadline guard. The local fix adds that guard.",
+        "path": "crates/ethereum/payload/src/lib.rs",
+        "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+        "symbols": [
+          "get_delivery_ready_original_async_transactions"
+        ]
+      },
+      {
+        "evidence": "The pool remains deadline-agnostic; the deadline policy is now enforced by the payload builder before calling pool collection.",
+        "path": "crates/transaction-pool/src/pool/mod.rs",
+        "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+        "symbols": [
+          "fulfilled_async_entries",
+          "delivery_ready_async_entries"
+        ]
+      }
+    ]
+  },
+  "notes": "Mapped after local parity fix: later sequencing/execution checks remain, and Phase B/C collection now short-circuits before expensive pool reads and settlement preparation when the deadline is exceeded.",
+  "rationale": "The primary merge adds explicit global_deadline checks before Phase B fulfilled async collection and Phase C delivery settlement collection, returning empty vectors with warnings if the deadline is exceeded. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: The phase labels and exact cutoff locations are builder-internal; the load-bearing behavior is avoiding deadline overruns while preserving later inclusion opportunities.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "e6b74758dfacc7e9bc2bb6d147920b75f5ab74c1"
+  ],
+  "statement": "If the payload build deadline is already exceeded, the builder should skip fulfilled async collection and delivery-ready settlement collection before doing their expensive work, leaving those transactions for a later block.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Set a payload build deadline in the past, run payload building with fulfilled async and delivery-ready jobs available, and assert both collections are skipped and no settlement/origin entries from those phases are included in that payload."
+  ],
+  "summary": "Phase B/C async collection is deadline-skipped before pool reads and settlement preparation.",
+  "test_or_falsification_candidate": "Set a payload build deadline in the past, run payload building with fulfilled async and delivery-ready jobs available, and assert both collections are skipped and no settlement/origin entries from those phases are included in that payload.",
+  "title": "Async Phase B/C collection can be skipped at deadline",
+  "total_invariants": 1954
+}

@@ -1,0 +1,75 @@
+{
+  "cluster_key": "scheduler:payload-building:part-02",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ethereum/payload/src/config.rs",
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ethereum/payload/src/unified_execution.rs",
+    "crates/ritual-scheduled-verification/src/lib.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-2ffb9b030a-payload-verifier-deadlines-avoid-asymmetric-obligation-membership",
+  "invariant_index": 81,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/config.rs",
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "RETH_BUILD_DEADLINE_MS|DEFAULT_BUILD_DEADLINE_MS|global_deadline|compute_obligations|deadline|verifier timeout|RETH_MAX_OBLIGATIONS_PER_BLOCK"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "EthereumBuilderConfig::new",
+      "DEFAULT_BUILD_DEADLINE_MS",
+      "default_ethereum_payload",
+      "compute_obligations"
+    ],
+    "missing_behavior": "Missing the exact deadline invariant: default is 300ms instead of 500ms, scheduled obligation scanning is not deadline-threaded, and deterministic obligation caps required by the invariant are absent.",
+    "related_but_insufficient_code": [
+      "The payload builder does establish global_deadline and checks it before sequencing-rights reordering and transaction execution.",
+      "Block verification appears not to use a verifier-specific timeout, but the associated deterministic cap/default-500/deadline-threading requirements are incomplete."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "This collapses start-of-build deadline creation, the current 500ms default, deadline-aware scheduled scanning and execution, sequencing-rights simulation, post-revival gating, and the repeated removal of verifier-only deadlines.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "89cd52b77012d1080e82094b1678654809fed3d7",
+    "8663a6b1a411f398908cc36ad99451e77b4f5aa1",
+    "975e5a6268a89c0afc669f26ef82c58b534c5ce1",
+    "e6b74758dfacc7e9bc2bb6d147920b75f5ab74c1",
+    "5001bdc5031accdf061ba21a523148c65eb12c1a",
+    "bff8c746275b1757d6472e94e4cf0ffe01024b69",
+    "51695d57f4acc60f13a954d3404cb3224498743a",
+    "b974fa58605342b18354a1089fde1b1f624de99f",
+    "0579c20011c1ffddd0f8ef1fe6d9f2265fa1dde0"
+  ],
+  "statement": "Payload building must establish one global deadline at the beginning of default_ethereum_payload using RETH_BUILD_DEADLINE_MS with a 500ms default, thread that deadline through scheduled obligation scanning, transaction execution, sequencing-rights reordering, and the post-checkAndRevive phase boundary, while block verification must compute scheduled obligations without a verifier-specific timeout and rely on deterministic obligation caps for boundedness.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "With RETH_BUILD_DEADLINE_MS unset, assert EthereumBuilderConfig::new().build_deadline == 500ms; current code returns 300ms.",
+    "Create an expensive scheduled obligation scan and assert payload build deadline is honored during scanning and post-checkAndRevive boundary.",
+    "Create more obligations than the deterministic cap and assert builder/verifier membership remains symmetric."
+  ],
+  "summary": "Payload has a global deadline, but the invariant is not fully satisfied.",
+  "test_or_falsification_candidate": "Unset RETH_BUILD_DEADLINE_MS and assert the required 500ms default; current port has DEFAULT_BUILD_DEADLINE_MS = 300.",
+  "title": "Payload and verifier deadlines avoid asymmetric obligation membership",
+  "total_invariants": 1954
+}

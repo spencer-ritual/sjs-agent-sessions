@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "910f91cf4b627222a8222f3976af0db517075458",
+      "evidence": "The DKMS decode arm uses the DKMS request codec and returns that request executor and TTL.",
+      "path": "crates/ritual-precompile-codecs/src/validation.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "DKMS_KEY_PRECOMPILE => {\n    let request = DkmsKeyRequest::from_abi(input).map_err(decode_error(\"DkmsKeyRequest\"))?;\n    (request.executor, request.ttl)\n}",
+      "symbols": [
+        "try_decode_precompile_data",
+        "DkmsKeyRequest::from_abi"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "910f91cf4b627222a8222f3976af0db517075458",
+      "evidence": "The dedicated DKMS codec defines the DKMS ABI and validates integer widths for ttl, key_index, and key_format.",
+      "path": "crates/ritual-precompile-codecs/src/dkms_key.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let param_types = vec![\n    ParamType::Address,\n    ParamType::Array(Box::new(ParamType::Bytes)),\n    ParamType::Uint(256),\n    ParamType::Array(Box::new(ParamType::Bytes)),\n    ParamType::Bytes,\n    ParamType::Address,\n    ParamType::Uint(256),\n    ParamType::Uint(8),\n];\nif tokens.len() != 8 { return Err(...); }\nexecutor: address_token(&tokens[0], \"executor\")?,\nttl: u64_token(&tokens[2], \"ttl\")?,\nowner: address_token(&tokens[5], \"owner\")?,\nkey_index: u64_token(&tokens[6], \"key_index\")?,\nkey_format: u8_token(&tokens[7], \"key_format\")?,",
+      "symbols": [
+        "DkmsKeyRequest::from_abi",
+        "DkmsKeyRequest::extract_executor_and_ttl"
+      ]
+    }
+  ],
+  "equivalence_argument": "For current extraction, DKMS_KEY_PRECOMPILE is handled by a dedicated DkmsKeyRequest branch before the generic ExecutorRequest fallback, so executor and TTL come from the DKMS request decode.",
+  "evidence_files": [
+    "crates/ritual-async/src/detector.rs",
+    "crates/ritual-async/src/validation.rs"
+  ],
+  "invariant_id": "cur-396f5feceb-dkms-detector-extracts-executor-dkms",
+  "invariant_index": 470,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The codec has since evolved to the eight-field base-plus-DKMS ABI, but the dedicated DKMS extraction path remains present.",
+  "rationale": "DKMS has a different ABI from ExecutorRequest, so builder detection and validation helpers need the dedicated decoder to keep executor/TTL extraction correct. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "7dfa01a1a08526afad2a775501ccfe555cb0a648"
+  ],
+  "statement": "Async precompile data extraction for DKMS_KEY_PRECOMPILE must decode DkmsKeyRequest and return that request's executor and ttl rather than using the generic ExecutorRequest decoder.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Provide a valid DKMS ABI payload whose layout would not decode as a generic ExecutorRequest and assert detector extraction and try_decode_precompile_data return the DKMS executor and ttl; corrupt the DKMS ABI and assert a DkmsKeyRequest decode error."
+  ],
+  "summary": "DKMS executor and TTL extraction uses the DKMS codec.",
+  "test_or_falsification_candidate": "Provide a valid DKMS ABI payload whose layout would not decode as a generic ExecutorRequest and assert detector extraction and try_decode_precompile_data return the DKMS executor and ttl; corrupt the DKMS ABI and assert a DkmsKeyRequest decode error.",
+  "title": "DKMS detector extracts executor and TTL from DKMS ABI",
+  "total_invariants": 1954
+}

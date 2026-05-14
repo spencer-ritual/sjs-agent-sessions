@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-async/src/wallet.rs"
+  ],
+  "invariant_id": "cur-7777516d23-wallet-escrow-uses-layer-lockup",
+  "invariant_index": 407,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/wallet.rs",
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-async-fees/src/constants.rs"
+    ],
+    "checked_queries": [
+      "FHE_PRECOMPILE wallet",
+      "fhe_escrow",
+      "max_layer lockup",
+      "FHE_LAYER_FEE_WEI",
+      "calculate_fhe"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "verify_wallet_for_commitment",
+      "FHE_PRECOMPILE",
+      "fhe_escrow_lockup",
+      "max_layer"
+    ],
+    "missing_behavior": "Verifier wallet checks do not recognize FHE and therefore cannot require max-layer FHE escrow.",
+    "related_but_insufficient_code": [
+      "crates/ritual-async-fees/src/wallet.rs has wallet escrow branches for LLM, HTTP/long-running HTTP, DKMS, ZK, sovereign agent, and persistent agent, but no FHE_PRECOMPILE branch.",
+      "crates/ritual-async-fees/src/lib.rs has no FHE max-layer or layer-priced escrow helper.",
+      "Dependency search found no FHE escrow or layer lockup owner in nodebuilder, alloy, alloy-evm, revm, revm-inspectors, or node."
+    ]
+  },
+  "notes": "FHE metadata exists, but the wallet lockup calculation is absent.",
+  "rationale": "The commit message says FHE was falling through to HTTP escrow, and the diff adds an explicit FHE_PRECOMPILE branch that calls fhe_escrow_lockup(FHE_MAX_LAYERS). No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "2b97b01a11de7cf1d2cbcb381ed03f20855769f7"
+  ],
+  "statement": "Wallet escrow validation for FHE_PRECOMPILE async calls must use fhe_escrow_lockup(FHE_MAX_LAYERS) instead of falling through to HTTP byte-based executor fee estimation.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create an AsyncCallResult with precompile_address set to FHE_PRECOMPILE and run wallet balance/lock validation with controlled balances. Assert the required lockup equals fhe_escrow_lockup(FHE_MAX_LAYERS) and differs from the HTTP fallback for the same input/output lengths."
+  ],
+  "summary": "FHE wallet escrow is not ported.",
+  "test_or_falsification_candidate": "Run verify_wallet_for_commitment for FHE_PRECOMPILE with otherwise sufficient state; current code returns unsupported instead of applying max-layer FHE escrow.",
+  "title": "FHE wallet escrow uses max-layer lockup",
+  "total_invariants": 1954
+}

@@ -1,0 +1,33 @@
+{
+  "record_type": "file",
+  "file_index": 150,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/net/eth-wire/src/multiplex.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "semicolon_only",
+    "net",
+    "eth-wire"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The eth-wire multiplex divergence is rustfmt-only: capability errors, protocol proxy validation, poll returns, and reserved-message error formatting changed syntactically without changing routing behavior.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 150: M\tcrates/net/eth-wire/src/multiplex.rs.",
+    "The isolated patch only adds semicolons or reformats return delimiters in capability-sharing checks, send/mask/unmask empty-message errors, stream polling, connection errors, dispatch break paths, unknown reserved message errors, and readiness errors.",
+    "No capability matching, protocol channel creation, message ID masking/unmasking, primary stream draining, out-buffer sending, delegated message routing, disconnect propagation, or pending/ready behavior changed."
+  ]
+}

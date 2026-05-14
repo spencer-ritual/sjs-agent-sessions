@@ -1,0 +1,74 @@
+{
+  "record_type": "file",
+  "file_index": 354,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-tee-registry-reader/src/constants.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "tee-registry-reader",
+    "constants"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0354-atom-0001",
+      "file_index": 354,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-tee-registry-reader/src/constants.rs",
+      "source_hunk_hint": "@@ -0,0 +1,27 @@; registry constants and env address helper",
+      "source_kind": "tee_registry_reader_constants",
+      "source_snippet": "pub const MAX_SERVICES: usize = 10_000;\npub const MAX_PUBLIC_KEY_LEN: usize = 128;\npub const DEFAULT_TEE_SERVICE_REGISTRY: Address = address!(\"9644e8562cE0Fe12b4deeC4163c064A8862Bf47F\");\npub fn get_tee_registry_address() -> Address { ... }",
+      "semantic_claim": "The old divergence adds safety bounds for registry reads, the default TEEServiceRegistry address, and an environment override helper.",
+      "high_risk": false,
+      "risk_tags": [
+        "constants",
+        "dos-bounds",
+        "registry-address"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-tee-registry-reader/src/constants.rs",
+          "symbols": [
+            "MAX_SERVICES",
+            "MAX_PUBLIC_KEY_LEN",
+            "DEFAULT_TEE_SERVICE_REGISTRY",
+            "get_tee_registry_address"
+          ],
+          "evidence": "Destination lines 1-27 exactly match source-added diff lines 75236-75263."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the constants and environment lookup behavior.",
+      "test_strategy": "tee_registry_constants_tests",
+      "negative_test_candidate": "Invalid or absent `TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS` should fall back to the default registry address.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The TEE registry reader constants module is exact-port preserved.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 354: A\tcrates/ritual-tee-registry-reader/src/constants.rs.",
+    "Destination file has 27 lines and matches the source-added content exactly.",
+    "No review queue entry required because the atom is exact."
+  ]
+}

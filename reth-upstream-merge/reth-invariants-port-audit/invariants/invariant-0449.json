@@ -1,0 +1,69 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/rpc/rpc/src/async_tx_validator.rs",
+    "crates/rpc/rpc/src/eth/helpers/transaction.rs"
+  ],
+  "invariant_id": "cur-da12d6590f-performs-full-async-state-validation",
+  "invariant_index": 449,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/rpc/rpc/src/async_tx_validator.rs",
+      "crates/rpc/rpc/src/eth/helpers/transaction.rs",
+      "crates/ritual-precompile-codecs/src/validation.rs",
+      "crates/ritual-async-fees/src/wallet.rs"
+    ],
+    "checked_queries": [
+      "validate_target_block",
+      "target block",
+      "executor registration and capability",
+      "LLM model registration",
+      "two-phase deadline sufficiency",
+      "wallet balance/lock check"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "validate_rpc_async_admission",
+      "validate_detected_async_call",
+      "validate_executor",
+      "verify_wallet_for_commitment",
+      "validate_target_block"
+    ],
+    "missing_behavior": "RPC async admission does not perform the invariant-required target-block validation as part of full async state validation.",
+    "related_but_insufficient_code": [
+      "RPC admission performs simulation, shared payload validation, TEE executor capability validation, and wallet balance/lock validation.",
+      "LLM model existence is reached through wallet fee estimation for LLM calls, not through a separate complete target-block validation sequence.",
+      "No target-block validation or current-block/range check was found in the active RPC admission code."
+    ]
+  },
+  "notes": "Submit an otherwise valid async RPC transaction with a future or too-old target block encoded in the first ABI parameter; the current admission path has no target-block range check to reject it.",
+  "rationale": "validate_detected_async now sequences the same stateful validations described in the diff comments, and run_validation builds an AsyncDetectionResult from simulated precompile details before invoking it. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "7084b9e331ab9b4ed7b74587d71d6051ab20c5d4"
+  ],
+  "statement": "After an async call is detected at RPC, validation must check target block, executor registration and capability, LLM model registration for LLM calls, user wallet balance and lock duration, and two-phase deadline sufficiency before accepting the transaction.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Submit async RPC transactions with an unregistered executor, missing LLM model, insufficient wallet balance/lock duration, and invalid two-phase deadline, and assert each is rejected and removed from the pool even when static payload decoding succeeds."
+  ],
+  "summary": "RPC state validation is present but lacks target-block coverage.",
+  "test_or_falsification_candidate": "Submit async RPC transactions with an unregistered executor, missing LLM model, insufficient wallet balance/lock duration, and invalid two-phase deadline, and assert each is rejected and removed from the pool even when static payload decoding succeeds.",
+  "title": "RPC performs full async state validation",
+  "total_invariants": 1954
+}

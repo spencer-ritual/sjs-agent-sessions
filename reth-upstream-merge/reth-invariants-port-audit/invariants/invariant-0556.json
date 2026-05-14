@@ -1,0 +1,53 @@
+{
+  "cluster_key": "block building:block-size-checks-f9834d05",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "Candidate block-size accounting uses checked additions and maps overflow to usize::MAX, which is then rejected by the configured/Osaka size-limit checks rather than wrapping.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "fn estimated_block_size_with_candidate(...) -> usize {\n    block_transactions_rlp_length\n        .checked_add(candidate_rlp_length)\n        .and_then(|size| size.checked_add(withdrawals_rlp_length))\n        .and_then(|size| size.checked_add(1024))\n        .unwrap_or(usize::MAX)\n}\n...\nif let Some(limit) = block_size_limit.filter(|limit| estimated_block_size_with_tx > *limit) { ... }",
+      "symbols": [
+        "estimated_block_size_with_candidate",
+        "effective_block_size_limit"
+      ]
+    }
+  ],
+  "equivalence_argument": "The old can_fit_transaction fail-closed behavior is preserved structurally by the shared estimated_block_size_with_candidate helper: any addition overflow becomes usize::MAX, so size-limit predicates reject the candidate.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-f4991bd32e-block-size-checks-fail-closed-overflow",
+  "invariant_index": 556,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The implementation name changed from a boolean helper to an estimated-size helper, but the rejection behavior is equivalent.",
+  "rationale": "The can_fit_transaction helper now uses current_size.checked_add(tx_size).map(...).unwrap_or(false), preventing overflow from making an oversized transaction appear to fit. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Block Building",
+  "source_commits": [
+    "5dd7b80ed9ce31ab9956c6f329238c891435dfd1"
+  ],
+  "statement": "Block size fit checks should use checked addition and return false on overflow instead of wrapping current_size + tx_size.",
+  "status": "current",
+  "subsystem": "block building",
+  "suggested_falsification_tests": [
+    "Set current_size near usize::MAX and tx_size large enough to overflow; assert can_fit_transaction returns false for a configured max block size rather than wrapping and returning true."
+  ],
+  "summary": "Block-size fit checks fail closed on overflow.",
+  "test_or_falsification_candidate": "Set current RLP length near usize::MAX with a block-size limit active and assert the candidate is skipped because the estimate saturates to usize::MAX.",
+  "title": "Block size fit checks fail closed on overflow",
+  "total_invariants": 1954
+}

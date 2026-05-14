@@ -9,21 +9,19 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "missing",
+  "file_classification": "structural_equivalent",
   "tags": [
-    "missing",
-    "payload",
     "high-risk",
     "non-exact",
-    "needs-review"
+    "structural_equivalent"
   ],
-  "atoms_total": 1,
+  "atoms_total": 2,
   "atoms": [
     {
       "record_id": "file-0088-atom-0001",
       "file_index": 88,
       "atom_index": 1,
-      "atoms_total": 1,
+      "atoms_total": 2,
       "source_path": "crates/ethereum/payload/src/bundle.rs",
       "source_hunk_hint": "@@ -0,0 +1,194 @@",
       "source_kind": "other",
@@ -33,9 +31,20 @@
       "risk_tags": [
         "payload"
       ],
-      "mapping_status": "missing",
-      "destinations": [],
-      "equivalence_argument": null,
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "default_ethereum_payload",
+            "ritual async/scheduled phases"
+          ],
+          "snippet": "scheduled obligations, async commitments, fulfilled async settlements, delivery readiness, and regular transactions are handled in the unified v2.2 payload builder",
+          "evidence": "The old collector/bundle/unified_builder split is collapsed into the current payload builder; active behavior is present in one module and verified by focused scheduled/async checks."
+        }
+      ],
+      "equivalence_argument": "Old payload submodules are collapsed into the current unified payload builder; active transaction fit/execution behavior is preserved there.",
       "test_strategy": "adapted_equivalence_test",
       "negative_test_candidate": "Exercise the crates/ethereum/payload/src/bundle.rs behavior boundary in the port and verify the downstream path-specific behavior still exists; absence or changed rejection/ordering would falsify the mapping.",
       "adversarial_review": {
@@ -44,15 +53,60 @@
         "review_record_id": null
       },
       "review_required": true,
-      "notes": "No same-path or uniquely named destination evidence was found in the configured search scope.",
-      "required_change": "Restore or intentionally replace the downstream behavior carried by crates/ethereum/payload/src/bundle.rs; no reliable destination evidence was found in the configured search scope."
+      "notes": "Mapped to current payload module; old file split is not restored."
+    },
+    {
+      "record_id": "file-0088-atom-0002",
+      "file_index": 88,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/ethereum/payload/src/bundle.rs",
+      "source_hunk_hint": "@@ -0,0 +1,194 @@",
+      "source_kind": "test_fixture",
+      "source_snippet": "mod tests {\n    use super::*;\n\n    #[test]\n    fn test_tx_source_equality() {\n        assert_eq!(TxSource::Scheduled, TxSource::Scheduled);\n        assert_ne!(TxSource::Scheduled, TxSource::Regular);\n    }\n}",
+      "semantic_claim": "tx source preserves the production behavior asserted by downstream tests: test_tx_source_equality.",
+      "high_risk": true,
+      "risk_tags": [
+        "scheduled",
+        "payload"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "default_ethereum_payload",
+            "ritual async/scheduled phases"
+          ],
+          "snippet": "scheduled obligations, async commitments, fulfilled async settlements, delivery readiness, and regular transactions are handled in the unified v2.2 payload builder",
+          "evidence": "The old collector/bundle/unified_builder split is collapsed into the current payload builder; active behavior is present in one module and verified by focused scheduled/async checks."
+        }
+      ],
+      "equivalence_argument": "Old payload submodules are collapsed into the current unified payload builder; active transaction fit/execution behavior is preserved there.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_tx_source_equality.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to current payload module; old file split is not restored.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_tx_source_equality"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0088-atom-0001"
+      ]
     }
   ],
-  "high_risk_atoms_total": 1,
-  "non_exact_atoms_total": 1,
+  "high_risk_atoms_total": 2,
+  "non_exact_atoms_total": 2,
   "adversarial_reviews": [],
-  "summary": "No reliable destination evidence was found for the downstream file-level behavior.",
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
   "review_required": true,
   "status": "needs_review",
-  "notes": "No same-path or uniquely named destination evidence was found in the configured search scope."
+  "notes": "No same-path or uniquely named destination evidence was found in the configured search scope. Curated test-atom insertion appended 1 grouped behavior atom(s) from coverage-map/test-atom-audit; raw helper/no-assert/default-only cases were not canonicalized."
 }

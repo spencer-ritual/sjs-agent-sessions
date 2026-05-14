@@ -1,0 +1,52 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "After system-call execution, returned state is filtered to retain only the called contract address, dropping caller and beneficiary touches.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "if let Ok(res) = &mut res {\n    res.state.retain(|addr, _| *addr == contract);\n}\nres",
+      "symbols": [
+        "RitualEvm::transact_system_call"
+      ]
+    }
+  ],
+  "equivalence_argument": "The state-retention filter is applied after the temporary system-call execution and before returning ResultAndState, so the output state surface is contract-only even if revm touched caller or beneficiary accounts internally.",
+  "evidence_files": [
+    "crates/node/src/executor.rs"
+  ],
+  "invariant_id": "cur-ca1f4924ff-system-call-state-output-contract-only",
+  "invariant_index": 282,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to the nodebuilder RitualEvm system-call cleanup.",
+  "rationale": "The hunk explicitly retains only entries whose address equals the target contract to match upstream's system-call cleanup behavior. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "449a4b3a189acdaa0056ef7879c81e3ef6c432ae"
+  ],
+  "statement": "After transact_system_call completes, its ResultAndState must retain only state changes for the called contract address, dropping touched caller and block beneficiary accounts from the returned state.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Run a system call that touches only target storage and inspect ResultAndState; assert it contains the target contract state but not the caller or block beneficiary accounts even if revm touched them internally."
+  ],
+  "summary": "System-call ResultAndState is filtered to the target contract only.",
+  "test_or_falsification_candidate": "Run a system call that causes caller/beneficiary touches and assert ResultAndState contains only the target contract address.",
+  "title": "System call state output is contract-only",
+  "total_invariants": 1954
+}

@@ -9,14 +9,11 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "mapped",
+  "file_classification": "structural_equivalent",
   "tags": [
-    "mapped",
-    "async-fsm",
-    "txpool",
     "high-risk",
     "non-exact",
-    "reth-port"
+    "structural_equivalent"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -64,7 +61,7 @@
         "status": "pass",
         "review_record_id": "review-file-0545-atom-0001"
       },
-      "review_required": false,
+      "review_required": true,
       "notes": "The old test constructed a pre-v2 TxAsync transaction inclusion path. The current v2.2 behavior under test is canonical TxAsyncCommitment finalization into async lifecycle metadata, which is the active txpool invariant.",
       "human_question": null,
       "required_change": null
@@ -75,8 +72,8 @@
   "adversarial_reviews": [
     "coverage-map/reviews/review-file-0545-atom-0001.json"
   ],
-  "summary": "The old async_exec integration test is replaced by focused v2.2 txpool regression coverage plus gold1p async/precompile traffic evidence.",
-  "review_required": false,
-  "status": "complete",
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": true,
+  "status": "needs_review",
   "notes": "The old test constructed a pre-v2 TxAsync transaction inclusion path. The current v2.2 behavior under test is canonical TxAsyncCommitment finalization into async lifecycle metadata, which is the active txpool invariant."
 }

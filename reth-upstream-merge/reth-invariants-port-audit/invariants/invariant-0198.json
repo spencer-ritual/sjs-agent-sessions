@@ -1,0 +1,61 @@
+{
+  "cluster_key": "executor delivery:delivery-settlement-collection-eaed4f0e",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping was found: delivery-ready entries are collected directly from the pool without a pre-collection deadline guard or RETH_MAX_DELIVERY_PER_BLOCK cap.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-c0e00637b2-delivery-settlement-collection-bounded",
+  "invariant_index": 198,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/transaction-pool/src/pool/mod.rs",
+      "crates/transaction-pool/src/lib.rs"
+    ],
+    "checked_queries": [
+      "RETH_MAX_DELIVERY_PER_BLOCK|MAX_DELIVERY_PER_BLOCK|delivery_ready.*take",
+      "global_deadline|get_delivery_ready_original_async_transactions"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "RETH_MAX_DELIVERY_PER_BLOCK",
+      "get_delivery_ready_original_async_transactions",
+      "global_deadline"
+    ],
+    "missing_behavior": "Missing Phase C skip when the build deadline has already elapsed and missing configurable cap/default 64 on delivery-ready transaction collection.",
+    "related_but_insufficient_code": [
+      "crates/ethereum/payload/src/lib.rs defines global_deadline and later checks it before sequencing/execution, but still calls pool.get_delivery_ready_original_async_transactions(current_block) unconditionally.",
+      "crates/transaction-pool/src/pool/mod.rs returns all delivery-ready originals for the current block with no max argument or env cap.",
+      "The only take(max) hits are ordinary transaction-pool APIs unrelated to delivery-ready async settlement collection."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The diff mirrors the fulfilled-async guard for Phase C because each delivery entry performs contract reads, expiry checks, and settlement creation. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "bff8c746275b1757d6472e94e4cf0ffe01024b69"
+  ],
+  "statement": "If the payload build deadline has elapsed before Phase C, delivery settlement collection is skipped; otherwise delivery-ready transactions are capped by `RETH_MAX_DELIVERY_PER_BLOCK`, defaulting to 64.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Set `RETH_MAX_DELIVERY_PER_BLOCK=1` with multiple delivery-ready jobs and assert only one delivery settlement is collected; force the global deadline expired and assert Phase C returns no delivery-ready transactions."
+  ],
+  "summary": "Delivery settlement collection is currently unbounded by the requested deadline/cap behavior.",
+  "test_or_falsification_candidate": "Set RETH_MAX_DELIVERY_PER_BLOCK=1 with multiple DeliveryReady jobs; current local collection has no env-var cap to enforce one entry.",
+  "title": "Delivery settlement collection is bounded",
+  "total_invariants": 1954
+}

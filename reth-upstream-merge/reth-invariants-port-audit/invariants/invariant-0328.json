@@ -1,0 +1,74 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "",
+  "evidence_files": [
+    "crates/evm/src/execute.rs",
+    "crates/ritual-async/src/detector.rs",
+    "crates/ritual-async/src/wallet.rs",
+    "crates/ritual-spc-verification/src/types.rs"
+  ],
+  "invariant_id": "cur-d305810a56-secure-deployment-addresses-defaults",
+  "invariant_index": 328,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-tee-registry-reader/src/constants.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-spc-verification/src/types.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-async-registry/src/lib.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-async-fees/src/wallet.rs",
+      "ritual-reth-nodebuilder-internal/crates/node/src/executor.rs",
+      "all audited dependency repos searched for the three addresses and env vars"
+    ],
+    "checked_queries": [
+      "E7fb2698439326890ae9c8d2fd51D11F461D1c28",
+      "C069FFCa0389f44eCA2C626e55491b0ab045AEF5",
+      "532F0dF0896F353d8C3DD8cc134e8129DA2a3948",
+      "EXECUTOR_REGISTRY_CONTRACT_ADDRESS",
+      "TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "0xE7fb2698439326890ae9c8d2fd51D11F461D1c28",
+      "0xC069FFCa0389f44eCA2C626e55491b0ab045AEF5",
+      "0x532F0dF0896F353d8C3DD8cc134e8129DA2a3948",
+      "EXECUTOR_REGISTRY_CONTRACT_ADDRESS",
+      "TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS",
+      "RITUAL_WALLET_ADDRESS",
+      "ASYNC_JOB_TRACKER_ADDRESS"
+    ],
+    "missing_behavior": "The audited local code does not default executor registry/SPC components to ExecutorRegistry 0xE7fb2698439326890ae9c8d2fd51D11F461D1c28 when env overrides are absent or invalid; it uses the older TEE service registry default/env var instead.",
+    "related_but_insufficient_code": [
+      "AsyncJobTracker defaults to 0xC069FFCa0389f44eCA2C626e55491b0ab045AEF5 in ritual-async-registry.",
+      "Ritual wallet defaults to 0x532F0dF0896F353d8C3DD8cc134e8129DA2a3948 in ritual-async-fees wallet code.",
+      "TEE registry/SPC paths default to 0x9644e8562cE0Fe12b4deeC4163c064A8862Bf47F via TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS, and exact searches found no 0xE7fb... ExecutorRegistry default in audited repos."
+    ]
+  },
+  "notes": "Confirmed gap because one required secure deployment default is absent even though the other two addresses are present.",
+  "rationale": "The commit message says addresses changed after secure deployer migration, and the primary diff updates the fallback addresses used by execution registry sync, async job tracking, ritual wallet selection, and SPC verification registry config. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "3d4a973874642bb2842ea45ff5ec14c16c928382"
+  ],
+  "statement": "When address environment overrides are absent or invalid, async/SPC components must default to ExecutorRegistry 0xE7fb2698439326890ae9c8d2fd51D11F461D1c28, AsyncJobTracker 0xC069FFCa0389f44eCA2C626e55491b0ab045AEF5, and Ritual wallet 0x532F0dF0896F353d8C3DD8cc134e8129DA2a3948.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Run unit tests with EXECUTOR_REGISTRY_CONTRACT_ADDRESS, ASYNC_JOB_TRACKER_CONTRACT_ADDRESS, and RITUAL_WALLET_ADDRESS unset, and assert the relevant helpers/configs return the three new addresses. Also set EXECUTOR_REGISTRY_CONTRACT_ADDRESS to an invalid value and assert SPC config falls back to the new ExecutorRegistry address."
+  ],
+  "summary": "The AsyncJobTracker and wallet defaults are present, but the ExecutorRegistry 0xE7fb default is missing locally.",
+  "test_or_falsification_candidate": "Unset EXECUTOR_REGISTRY_CONTRACT_ADDRESS and TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS, then call the local registry address helpers and assert they return 0xE7fb...; current code would return 0x9644... for the executor/TEE registry path.",
+  "title": "Secure deployment addresses are the defaults",
+  "total_invariants": 1954
+}

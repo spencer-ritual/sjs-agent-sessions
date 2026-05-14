@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Fee calculation is precompile-aware and uses input/output sizing plus LLM metrics instead of nominal fixed fee components.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let input_len = input.len();\nlet output_len = extract_output_length(output);\nlet executor_fee = if precompile_address == LLM_CALL_PRECOMPILE {\n    compute_llm_executor_fee(db, model_registry_contract, output, is_encrypted, model_cache)?\n} else if precompile_address == HTTP_CALL_PRECOMPILE || precompile_address == LONG_RUNNING_HTTP_PRECOMPILE {\n    http_executor_fee(input_len, output_len)\n} else { return Err(...); };\nlet commitment_fee = async_commitment_fee(input_len);\nlet inclusion_fee = async_inclusion_fee(input_len, output_len);",
+      "symbols": [
+        "calculate_async_fees",
+        "calculate_calldata_gas"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Wallet gating uses the same precompile-specific sizing model before allowing async commitment inclusion.",
+      "path": "crates/ritual-async-fees/src/wallet.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let executor_fee = if precompile_address == LLM_CALL_PRECOMPILE {\n    llm_executor_deposit_estimate_for_model(db, get_model_registry_address(), &model_name)?\n} else if precompile_address == HTTP_CALL_PRECOMPILE || precompile_address == LONG_RUNNING_HTTP_PRECOMPILE {\n    http_executor_fee(input_len, HTTP_CALL_MAX_OUTPUT_BYTES)\n} else { ... };\nlet total_required_fees = executor_fee + commitment_fee + inclusion_fee + callback_fee;",
+      "symbols": [
+        "verify_wallet_for_commitment"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port factors dynamic fee logic into ritual-async-fees and shares it between payload settlement creation, wallet gating, and verifier parity.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-async/src/wallet.rs"
+  ],
+  "invariant_id": "cur-65812471bf-async-fees-precompile-specific-sizing",
+  "invariant_index": 304,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in the shared port async-fees crate.",
+  "rationale": "The payload builder now passes AsyncCallResult into wallet balance checks, replaces fixed fee constants in settlement creation with byte-based HTTP fees and LLM metric-based executor fees, and logs the computed fee components. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "c3f166adeed58a8a9763889f21953a08f87eb938"
+  ],
+  "statement": "Wallet gating and settlement transactions for async calls should compute executor, commitment, and inclusion fees from the async result's precompile address, input size, and output size, using LLM response metrics for LLM executor fees when available instead of fixed nominal 0.01 ETH fee components.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create async HTTP and LLM results with distinct input/output sizes and, for LLM, a decodable executor response; assert wallet gating and create_settlement_transaction compute different total fee amounts according to the byte-based or LLM metric formula and no longer use three fixed 0.01 ETH components."
+  ],
+  "summary": "Async fees are sized by precompile type, input/output length, and LLM metrics.",
+  "test_or_falsification_candidate": "Create HTTP and LLM async results with distinct input/output sizes and assert wallet gating and settlement fee creation produce different dynamic totals rather than fixed 0.01 ETH components.",
+  "title": "Async fees use precompile-specific sizing",
+  "total_invariants": 1954
+}

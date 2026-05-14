@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Receipts default executor_address to None and populate it from async commitment/settlement transaction variants only.",
+      "path": "crates/rpc/rpc-eth-types/src/receipt.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "executor_address: None,\n...\nif let Some(async_commitment) = transaction.as_async_commitment().map(|tx| tx.tx()) {\n    ...\n    receipt.executor_address = Some(async_commitment.executor_address);\n}\n...\nif let Some(async_settlement) = transaction.as_async_settlement().map(|tx| tx.tx()) {\n    receipt.executor_address = Some(async_settlement.executor_address);\n}",
+      "symbols": [
+        "build_receipt",
+        "TransactionReceipt.executor_address"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port receipt builder uses the renamed async commitment variant but preserves the AsyncExec receipt behavior: async receipts carry executor_address while ordinary receipts remain null.",
+  "evidence_files": [
+    "crates/rpc/rpc-eth-types/src/receipt.rs",
+    "crates/rpc/rpc/src/otterscan.rs"
+  ],
+  "invariant_id": "cur-b78cf3ffff-asyncexec-receipts-include-executor-address",
+  "invariant_index": 226,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/rpc/rpc-eth-types/src/receipt.rs",
+      "crates/rpc/rpc/src/otterscan.rs"
+    ],
+    "checked_queries": [
+      "executor_address|as_async_commitment|TransactionReceipt|otterscan"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "build_receipt",
+      "as_async_commitment",
+      "executor_address"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The commit title explicitly says the receipt should gain executor_address for AsyncExec transactions, and the primary diff threads async_exec.executor_address into the TransactionReceipt while extending the non-AsyncExec tuple and Otterscan fallback with None. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "418a42a0af85521cadbd7ca3186839b57122c427"
+  ],
+  "statement": "When the RPC receipt builder receives an AsyncExec transaction, the returned transaction receipt must set executor_address to that AsyncExec transaction's executor_address; receipts for non-AsyncExec transactions must leave executor_address null.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Construct or fetch a receipt for an AsyncExec transaction with a known executor_address and assert the RPC receipt's executor_address equals that address; also fetch a normal transaction receipt and an Otterscan synthesized receipt path and assert executor_address is null."
+  ],
+  "summary": "Async commitment receipts include executor_address and non-async receipts default it to null.",
+  "test_or_falsification_candidate": "Build a receipt for a TxAsyncCommitment with executor A and assert RPC executor_address is A; build a normal transaction receipt and assert executor_address is null.",
+  "title": "AsyncExec receipts include executor address",
+  "total_invariants": 1954
+}

@@ -1,0 +1,99 @@
+{
+  "cluster_key": "scheduler:payload-building:part-03",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Shared helpers implement the required max-block formula, zero-call behavior, and u32 saturation.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn compute_max_block_number_u64(start_block: u32, frequency: u32, num_calls: u32, ttl: u32) -> u64 {\n    if num_calls == 0 { return 0; }\n    (start_block as u64).saturating_add((frequency as u64).saturating_mul(num_calls as u64 - 1)).saturating_add(ttl as u64)\n}\npub fn compute_max_block_number_u32_saturating(...) -> u32 { ... }",
+      "symbols": [
+        "compute_max_block_number_u64",
+        "compute_max_block_number_u32_saturating"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Verification uses the shared u64 helper for full-width scheduled call expiry.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn expiry_block(&self) -> u64 {\n    compute_max_block_number_u64(self.start_block, self.frequency, self.num_calls, self.ttl)\n}",
+      "symbols": [
+        "ScheduledCall::expiry_block"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Builder consumers share the same scheduled-verification math surface rather than duplicating arithmetic.",
+      "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "compute_buildable_obligations delegates due-window logic to ritual_scheduled_verification::due_index_bounds.",
+      "symbols": [
+        "compute_buildable_obligations",
+        "due_index_bounds"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in port shared scheduled-verification helpers and builder consumers.",
+  "evidence_files": [
+    "crates/ritual-scheduled-verification/src/lib.rs",
+    "crates/ritual-scheduled-block-building/src/lib.rs",
+    "crates/scheduling/src/singleton.rs"
+  ],
+  "invariant_id": "cur-ba3a3a6c40-scheduled-block-uses-shared-formula",
+  "invariant_index": 60,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs",
+      "crates/scheduling/src/singleton.rs"
+    ],
+    "checked_queries": [
+      "compute_max_block_number|expiry_block|num_calls == 0|saturating"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "compute_max_block_number_u64",
+      "compute_max_block_number_u32_saturating",
+      "expiry_block",
+      "due_index_bounds"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "Old crates/scheduling singleton is absent; current shared formula lives in ritual-scheduled-verification."
+    ]
+  },
+  "notes": "Mapped structurally.",
+  "rationale": "The candidate introduces shared max-block helpers and rewires verification, block-building, and hydration consumers to the same arithmetic.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "8027129eae5b008828ad71940ed7a0ee79143220"
+  ],
+  "statement": "Scheduled call max-block derivation uses start_block + frequency * (num_calls - 1) + ttl, returns 0 when num_calls is 0, preserves full u64 values for verification, and uses the shared saturating u32 helper for builder and hydration consumers.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Compare ScheduledCall::expiry_block, scheduled block-building max block, and hydration max_block_number for normal, zero-call, and overflow-sized inputs; assert all use the shared formula and u32 consumers saturate to u32::MAX."
+  ],
+  "summary": "Scheduled max block uses one shared formula in the port.",
+  "test_or_falsification_candidate": "Compare helper outputs for normal, zero-call, and overflow-sized inputs; u64 verification should preserve full value and u32 consumers should saturate.",
+  "title": "Scheduled max block uses one shared formula",
+  "total_invariants": 1954
+}

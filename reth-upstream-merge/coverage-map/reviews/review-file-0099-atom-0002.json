@@ -1,0 +1,9 @@
+{
+  "record_type": "adversarial_review",
+  "record_id": "review-file-0099-atom-0002",
+  "atom_record_id": "file-0099-atom-0002",
+  "review_result": "pass",
+  "falsification_attempt": "Feature graph check passed for reth-ethereum --features async-context.",
+  "missed_risks": [],
+  "notes": "Enabling reth-ethereum/async-context again enables the optional evm feature set."
+}

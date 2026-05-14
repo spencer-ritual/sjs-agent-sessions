@@ -1,0 +1,76 @@
+{
+  "record_type": "file",
+  "file_index": 163,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/net/network/src/metrics.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "partial",
+  "tags": [
+    "partial",
+    "non-exact",
+    "network",
+    "metrics",
+    "observability",
+    "transaction-types"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0163-atom-0001",
+      "file_index": 163,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/net/network/src/metrics.rs",
+      "source_hunk_hint": "@@ -349,6 +349,15 @@; @@ -371,6 +380,18 @@; @@ -391,6 +412,18 @@; @@ -404,5 +437,8 @@",
+      "source_kind": "other",
+      "source_snippet": "pub(crate) scheduled: Histogram,\npub(crate) async_commitment: Histogram,\npub(crate) async_settlement: Histogram,\n\npub(crate) scheduled: usize,\npub(crate) async_commitment: usize,\npub(crate) async_settlement: usize,\npub(crate) passkey: usize,\n\nTxType::Scheduled => { self.scheduled += 1; }\nTxType::AsyncCommitment => { self.async_commitment += 1; }\nTxType::AsyncSettlement => { self.async_settlement += 1; }\nTxType::Passkey => { self.passkey += 1; }\n\nself.scheduled.record(tx_types_counter.scheduled as f64);\nself.async_commitment.record(tx_types_counter.async_commitment as f64);\nself.async_settlement.record(tx_types_counter.async_settlement as f64);",
+      "semantic_claim": "The old network metrics code distinguishes announced scheduled, async commitment, async settlement, and passkey transaction types in TxTypesCounter, and records scheduled/async commitment/async settlement as separate announcement histograms.",
+      "high_risk": false,
+      "risk_tags": [
+        "observability",
+        "network-announcements",
+        "transaction-type-metrics"
+      ],
+      "mapping_status": "partial",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/net/network/src/metrics.rs",
+          "symbols": [
+            "AnnouncedTxTypesMetrics",
+            "TxTypesCounter::increase_by_tx_type",
+            "AnnouncedTxTypesMetrics::update_eth68_announcement_metrics"
+          ],
+          "evidence": "The destination has an `other` histogram/counter and explicitly maps TxType::Scheduled, TxType::AsyncCommitment, TxType::AsyncSettlement, and TxType::Passkey into `other`, then records `other`. It does not expose separate scheduled, async_commitment, or async_settlement histograms."
+        }
+      ],
+      "equivalence_argument": "The destination preserves coarse accounting that a non-standard Ritual transaction type was announced, but loses the old per-type separation for scheduled, async commitment, and async settlement announcements. Passkey is counted in both source and destination, but neither old source nor destination records a dedicated passkey histogram in this file.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "If per-type network announcement observability remains required, add a metrics regression that announces scheduled, async commitment, and async settlement transaction hashes and asserts separate metric series rather than only the aggregate `other` bucket.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Low risk because this is observability granularity, not transaction validity, propagation, pool admission, or verification behavior."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The old network metrics added separate announced transaction-type counters and histograms for Ritual-specific scheduled and async transaction classes. The v2.2.0 port partially covers this with an aggregate `other` bucket for scheduled, async commitment, async settlement, and passkey transaction types, but does not preserve per-type announcement metrics.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 163: M\tcrates/net/network/src/metrics.rs.",
+    "The isolated patch adds scheduled, async_commitment, and async_settlement histograms; adds scheduled, async_commitment, async_settlement, and passkey counters; increments all four custom TxType variants; and records the three non-passkey custom counters.",
+    "Destination metrics.rs has an `other` histogram/counter, maps TxType::Scheduled, TxType::AsyncCommitment, TxType::AsyncSettlement, and TxType::Passkey into `other`, and records that aggregate.",
+    "No exact destination evidence was found for separate scheduled, async_commitment, or async_settlement announcement histograms."
+  ]
+}

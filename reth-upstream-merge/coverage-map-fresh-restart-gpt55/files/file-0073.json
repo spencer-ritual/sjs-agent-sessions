@@ -1,0 +1,78 @@
+{
+  "record_type": "file",
+  "file_index": 73,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/errors/src/error.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "non-exact",
+    "reth-port",
+    "test-build-size-guard"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0073-atom-0001",
+      "file_index": 73,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/errors/src/error.rs",
+      "source_hunk_hint": "@@ -51,6 +51,9 @@ impl RethError",
+      "source_kind": "build_guard",
+      "source_snippet": "RethError and BlockExecutionError sizes vary based on async-context; do not assert their exact 56-byte sizes.",
+      "semantic_claim": "The exact 56-byte compile-time size assertions for RethError and BlockExecutionError are relaxed because enabling async-context changes the reachable BlockExecutionError layout, while the other fixed-size error assertions remain enforced.",
+      "high_risk": false,
+      "risk_tags": [
+        "test-build-size-guard"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/errors/src/error.rs",
+          "symbols": [
+            "size_asserts",
+            "static_assert_max_size",
+            "RethError",
+            "BlockExecutionError"
+          ],
+          "snippet": "static_assert_max_size!(RethError, 64);\nstatic_assert_max_size!(BlockExecutionError, 64);\nstatic_assert_size!(ConsensusError, 48);\nstatic_assert_size!(DatabaseError, 32);\nstatic_assert_size!(ProviderError, 48);",
+          "evidence": "The destination does not remove the two guards exactly; it preserves the intended tolerance with <=64-byte assertions that accept both 56-byte and async-context 64-byte layouts."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/errors/Cargo.toml",
+          "symbols": [
+            "features.async-context"
+          ],
+          "snippet": "async-context = [\"reth-execution-errors/async-context\"]",
+          "evidence": "The feature graph makes the async-context size variation reachable from this crate."
+        }
+      ],
+      "equivalence_argument": "The source makes the two size checks feature-tolerant by dropping exact 56-byte assertions. The destination is behaviorally equivalent for the build guard because it permits the documented 56/64-byte variation while still rejecting unintended growth beyond 64 bytes.",
+      "test_strategy": "compile_guard_only",
+      "negative_test_candidate": "A compile check of reth-errors with async-context enabled would fail if RethError or BlockExecutionError still required exactly 56 bytes; a larger-than-64-byte future growth should fail the destination max-size guard.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact searches found no remaining static_assert_size!(RethError, 56) or static_assert_size!(BlockExecutionError, 56) in the destination."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The compile/build-size guard change is mapped: the v2.2.0 port keeps a non-exact but equivalent <=64-byte guard for RethError and BlockExecutionError under async-context.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Low-risk build-size guard; destination remains stricter than the source removal because it still rejects growth beyond 64 bytes."
+}

@@ -1,0 +1,167 @@
+{
+  "record_type": "file",
+  "file_index": 323,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-precompile-codecs/src/llm_call.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "precompile-codecs",
+    "llm-call",
+    "storage-ref"
+  ],
+  "atoms_total": 3,
+  "atoms": [
+    {
+      "record_id": "file-0323-atom-0001",
+      "file_index": 323,
+      "atom_index": 1,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-precompile-codecs/src/llm_call.rs",
+      "source_hunk_hint": "@@ -0,0 +1,33 @@; validation-focused LLM request shape",
+      "source_kind": "llm_call_validation_request_shape",
+      "source_snippet": "pub struct LLMCallRequest {\n    pub executor: Address,\n    pub encrypted_secrets: Vec<Bytes>,\n    pub ttl: u64,\n    pub secret_signature: Vec<Bytes>,\n    pub user_public_key: Bytes,\n    pub messages_json: String,\n    pub model: String,\n    pub convo_history: StorageRef,\n}",
+      "semantic_claim": "The old divergence adds a validation-focused LLM call request codec shape that decodes the full ABI but retains only base executor fields, `messages_json`, `model`, and `convo_history` storage reference for RPC-level validation.",
+      "high_risk": false,
+      "risk_tags": [
+        "llm-call",
+        "validation",
+        "storage-ref",
+        "request-shape"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/llm_call.rs",
+          "symbols": [
+            "LLMCallRequest"
+          ],
+          "evidence": "Destination lines 1-33 exactly match source-added diff lines 57981-58013."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the validation-facing LLM request shape and retained field set unchanged.",
+      "test_strategy": "llm_call_request_shape_tests",
+      "negative_test_candidate": "Downstream validation should not require full LLM processing fields beyond the preserved `messages_json`, `model`, and `convo_history` fields.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0323-atom-0002",
+      "file_index": 323,
+      "atom_index": 2,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-precompile-codecs/src/llm_call.rs",
+      "source_hunk_hint": "@@ -0,0 +35,217 @@; 30-field LLM ABI decoder and message heuristic",
+      "source_kind": "llm_call_full_abi_decoder_and_message_validation",
+      "source_snippet": "pub fn from_abi(data: &[u8]) -> Result<Self, CodecError> {\n    // Full 30-field ABI: base fields, LLM params, pii_enabled, convo_history\n    // retain executor, secrets, ttl, user_public_key, messages_json, model, convo_history\n}\n\npub fn has_valid_messages(&self) -> bool { ... }",
+      "semantic_claim": "The old divergence adds full 30-field LLM ABI decoding, extracting strict base executor fields, messages JSON, model, and the final `StorageRef` conversation history tuple, while intentionally not storing `pii_enabled`; it also adds a lightweight non-empty messages-array heuristic.",
+      "high_risk": false,
+      "risk_tags": [
+        "llm-call",
+        "abi-decoding",
+        "storage-ref",
+        "messages-validation",
+        "rpc-validation"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/llm_call.rs",
+          "symbols": [
+            "LLMCallRequest::from_abi",
+            "LLMCallRequest::has_valid_messages"
+          ],
+          "evidence": "Destination lines 35-217 exactly match source-added diff lines 58015-58197."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/storage_ref.rs",
+          "symbols": [
+            "StorageRef::abi_param_type",
+            "StorageRef::from_token"
+          ],
+          "evidence": "The LLM decoder uses the shared `StorageRef` ABI tuple helper for `convo_history` at index 29."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the 30-field ABI layout, retained validation fields, omitted `pii_enabled` behavior, storage-ref decoding, and lightweight message validation semantics.",
+      "test_strategy": "llm_call_decoder_and_message_validation_tests",
+      "negative_test_candidate": "An LLM payload with `messages_json == \"[]\"` should decode but return `has_valid_messages() == false`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0323-atom-0003",
+      "file_index": 323,
+      "atom_index": 3,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-precompile-codecs/src/llm_call.rs",
+      "source_hunk_hint": "@@ -0,0 +219,361 @@; LLM codec unit tests",
+      "source_kind": "llm_call_codec_tests",
+      "source_snippet": "#[cfg(test)]\nmod tests {\n    fn create_llm_request_payload(...) -> Vec<u8> { ... }\n    #[test] fn test_valid_llm_request() { ... }\n    #[test] fn test_empty_model() { ... }\n    #[test] fn test_empty_messages() { ... }\n    #[test] fn test_malformed_abi() { ... }\n    #[test] fn test_convo_history_roundtrip() { ... }\n}",
+      "semantic_claim": "The old divergence adds LLM codec tests covering valid 30-field payload decoding, empty model retention, empty messages heuristic failure, malformed ABI rejection, and `StorageRef` conversation-history roundtrip decoding.",
+      "high_risk": false,
+      "risk_tags": [
+        "tests",
+        "llm-call",
+        "storage-ref",
+        "abi-decoding"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/llm_call.rs",
+          "symbols": [
+            "test_valid_llm_request",
+            "test_empty_model",
+            "test_empty_messages",
+            "test_malformed_abi",
+            "test_convo_history_roundtrip"
+          ],
+          "evidence": "Destination lines 219-361 exactly match source-added diff lines 58199-58341."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the LLM codec regression coverage embedded in the source file.",
+      "test_strategy": "cargo test -p ritual-precompile-codecs llm_call",
+      "negative_test_candidate": "A payload with a GCS `convo_history` storage ref should roundtrip into the preserved `StorageRef` fields.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Test atom only."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The LLM call precompile codec is exact-port preserved, including validation-focused request shape, 30-field ABI decoding, storage-reference conversation history decoding, messages heuristic validation, and unit tests.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 323: A\tcrates/ritual-precompile-codecs/src/llm_call.rs.",
+    "Source-added hunk spans diff lines 57981-58341 with header `@@ -0,0 +1,361 @@`; the next diff starts at line 58342.",
+    "Destination `crates/ritual-precompile-codecs/src/llm_call.rs` has 361 lines and matches the source-added content exactly.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

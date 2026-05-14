@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "The current executor path updates registry state before execution but does not run SPC batch proof verification as a pre-execution gate.",
+  "evidence_files": [
+    "crates/evm/src/execute.rs"
+  ],
+  "invariant_id": "cur-41bd576139-configured-verifier-gates-block-execution",
+  "invariant_index": 238,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/evm/evm/src/execute.rs",
+      "crates/node/src/executor.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ethereum/node/src/spc.rs"
+    ],
+    "checked_queries": [
+      "perform_spc_batch_verification",
+      "verify_spc_calls_batch",
+      "verify_batch",
+      "execute_one spc_verifier",
+      "apply_pre_execution_changes"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "perform_spc_batch_verification",
+      "verify_spc_calls_batch",
+      "SpcVerifier::verify_batch",
+      "RitualBlockExecutor::execute_one",
+      "BlockVerifier::verify_block"
+    ],
+    "missing_behavior": "No audited executor path runs configured SPC batch verification before pre-execution changes and transaction execution, and no verifier failure can stop the block at that pre-execution point.",
+    "related_but_insufficient_code": [
+      "ritual-reth-nodebuilder-internal/crates/node/src/executor.rs updates the registry and then calls apply_pre_execution_changes, with a metric comment \"No SPC verification performed\".",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-block-verification/src/lib.rs verifies SPC signatures only through the optional block verifier after transactions have executed."
+    ]
+  },
+  "notes": "Confirmed gap; registry refresh and post-transaction block verification are related but do not satisfy the pre-execution batch gate.",
+  "rationale": "The executor provider now carries an optional `spc_verifier`, passes it into created executors, and the block executor calls `verify_spc_calls_batch` before constructing the execution strategy. The failure branch logs the verification error and immediately returns it, which makes verification a precondition for execution when configured. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "5a0dfef28903491fbf13317a6ec1464d6da4a0f7"
+  ],
+  "statement": "When a BasicBlockExecutor has an SPC verifier configured, it must run SPC batch verification for the block before pre-execution changes and transaction execution, and any verifier error or failed proof must make block execution return an error instead of executing the block.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Instantiate a BasicBlockExecutor with a mock SPC verifier that returns a batch failure for a block containing an SPC call; assert that `execute_one` returns a `BlockExecutionError` and that the strategy's pre-execution or transaction execution hooks are not invoked."
+  ],
+  "summary": "Configured SPC batch verification is not a pre-execution block gate.",
+  "test_or_falsification_candidate": "Configure a verifier that always fails, execute a block with SPC calls, and assert execution stops before apply_pre_execution_changes; the current executor reaches setup without such a verifier call.",
+  "title": "Configured SPC verifier gates block execution",
+  "total_invariants": 1954
+}

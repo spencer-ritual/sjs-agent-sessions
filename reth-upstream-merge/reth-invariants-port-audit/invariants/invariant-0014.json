@@ -1,0 +1,70 @@
+{
+  "cluster_key": "scheduler:passkey-originals-convert-cfd5f01e",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "get_fulfilled_original_transactions converts each fulfilled entry by passing metadata.original_tx into convert_original_to_signed, and that conversion match includes OriginalTransaction::Passkey(signed_tx) => signed_tx.clone().into() alongside Legacy, Eip1559, Scheduled, and AsyncSettlement.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn get_fulfilled_original_transactions(\n    &self,\n    current_block: u64,\n) -> Result<Vec<(Arc<ValidPoolTransaction<EthPooledTransaction<TransactionSigned>>>, AsyncTxMetadata<T>)>, AsyncConversionError> {\n    self.fulfilled_entries(current_block)\n        .into_iter()\n        .map(|metadata| {\n            let tx_signed = Self::convert_original_to_signed(&metadata.original_tx);\n            let pool_tx = Self::convert_signed_to_pool_tx(tx_signed)?;\n            Ok((pool_tx, metadata))\n        })\n        .collect()\n}\n\nfn convert_original_to_signed(original_tx: &OriginalTransaction) -> TransactionSigned {\n    match original_tx {\n        OriginalTransaction::Legacy(signed_tx) => signed_tx.clone().into(),\n        OriginalTransaction::Eip1559(signed_tx) => signed_tx.clone().into(),\n        OriginalTransaction::Scheduled(signed_tx) => signed_tx.clone().into(),\n        OriginalTransaction::Passkey(signed_tx) => signed_tx.clone().into(),\n        OriginalTransaction::AsyncSettlement(signed_tx) => signed_tx.clone().into(),\n    }\n}",
+      "symbols": [
+        "AsyncPool::get_fulfilled_original_transactions",
+        "AsyncPool::convert_original_to_signed",
+        "OriginalTransaction::Passkey"
+      ]
+    }
+  ],
+  "equivalence_argument": "This is an exact in-port mapping for the fulfilled-original conversion boundary: passkey originals flow through the same conversion path as the other original transaction variants and produce a TransactionSigned before being wrapped back into a pool transaction.",
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/async_pool.rs"
+  ],
+  "invariant_id": "cur-bbd9fcfd1c-passkey-async-originals-convert-back-signed",
+  "invariant_index": 14,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/consensus/src/transaction/async_commitment.rs"
+    ],
+    "checked_queries": [
+      "OriginalTransaction::Passkey|get_fulfilled_original_transactions|Passkey"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+    ],
+    "checked_symbols": [
+      "get_fulfilled_original_transactions",
+      "convert_original_to_signed",
+      "OriginalTransaction::Passkey"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "ritual-alloy-internal/crates/consensus/src/transaction/async_commitment.rs decodes passkey originals, but the required fulfilled-original conversion is implemented in the port pool code."
+    ]
+  },
+  "notes": "Mapped directly in the port evidence file; Alloy only supplies related passkey original decoding.",
+  "rationale": "The primary candidate directly identifies the conversion match arm that clones OriginalTransaction::Passkey into TransactionSigned alongside the already-supported Legacy, EIP-1559, and Scheduled originals. None of the bounded scheduler neighbors supersede or obsolete this passkey-specific async-pool requirement.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "0b7927bf49ec809d7c1b992691159bd553adee00"
+  ],
+  "statement": "At current tip, a fulfilled async pool entry whose original transaction is OriginalTransaction::Passkey must convert back into the corresponding TransactionSigned when fulfilled originals are returned, just as Legacy, EIP-1559, and Scheduled originals do.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Insert a fulfilled async pool entry whose original_tx is Passkey and assert get_fulfilled_original_transactions converts and returns the corresponding TransactionSigned instead of failing conversion.",
+    "Populate fulfilled async pool entries for Passkey and Scheduled originals together and assert both variants are returned as TransactionSigned without dropping or misclassifying the passkey original."
+  ],
+  "summary": "Fulfilled passkey async originals convert back to TransactionSigned in the port async pool.",
+  "test_or_falsification_candidate": "Insert a fulfilled async pool entry whose original_tx is OriginalTransaction::Passkey and assert get_fulfilled_original_transactions returns a TransactionSigned-backed pool transaction rather than dropping it or failing conversion.",
+  "title": "Passkey async originals convert back to signed transactions",
+  "total_invariants": 1954
+}

@@ -1,0 +1,63 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "The current verifier is not an HTTP-only pass and does not skip non-HTTP SPC block-verified precompiles.",
+  "evidence_files": [
+    "crates/evm/src/execute.rs"
+  ],
+  "invariant_id": "cur-7ed9647c89-http-calls-verified-here",
+  "invariant_index": 250,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs",
+      "crates/evm/evm/src/execute.rs"
+    ],
+    "checked_queries": [
+      "HTTP_CALL_PRECOMPILE continue non-http",
+      "call.address != HTTP_CALL_PRECOMPILE",
+      "ALL_SPC_BLOCK_VERIFIED_PRECOMPILE_ADDRESSES",
+      "is_spc_block_verified_precompile"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "HTTP_CALL_PRECOMPILE",
+      "ALL_SPC_BLOCK_VERIFIED_PRECOMPILE_ADDRESSES",
+      "verify_spc_calls",
+      "is_spc_block_verified_precompile"
+    ],
+    "missing_behavior": "There is no block execution pass that skips non-HTTP SPC calls before HTTP verifier submission; the current verifier treats non-HTTP SPC block-verified precompiles as verification candidates.",
+    "related_but_insufficient_code": [
+      "crates/ritual-precompile-addresses/src/lib.rs lists 11 SPC block-verified precompile addresses including non-HTTP precompiles.",
+      "crates/ritual-block-verification/src/lib.rs verify_spc_calls accepts metadata for job.precompile_address and verifies matching SPC calls; it does not contain an HTTP-only skip branch."
+    ]
+  },
+  "notes": "Confirmed gap relative to the HTTP-only execution-pass invariant.",
+  "rationale": "The diff adds an explicit address check for `0x0801` with `continue` for all other SPC call addresses before executor extraction and verification request construction. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "580552d9b9271e7bd69cad3afb86f684db5e4f44"
+  ],
+  "statement": "During this block execution SPC verification pass, SPC calls whose address is not HTTP precompile `0x0000000000000000000000000000000000000801` are skipped rather than submitted to the HTTP verifier path.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Include an SPC call to a non-HTTP precompile address in a transaction and assert this execution path does not call executor-address extraction or submit an SPC verification request for it."
+  ],
+  "summary": "Non-HTTP SPC calls are not skipped by the current verification path.",
+  "test_or_falsification_candidate": "Include a non-HTTP SPC block-verified precompile in a settlement block and assert the old HTTP-only execution verifier skips it; current verification treats non-HTTP precompiles as candidates.",
+  "title": "Non-HTTP SPC calls are not verified here",
+  "total_invariants": 1954
+}

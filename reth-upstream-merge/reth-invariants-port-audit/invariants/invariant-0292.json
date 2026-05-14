@@ -1,0 +1,52 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The SPC signature payload serializes precompile address, previous block hash, and transaction hash with lowercase {:x} formatting, producing hex strings without a 0x prefix.",
+      "path": "crates/ritual-spc-signature/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "ordered_map.insert(\"precompile_address\", serde_json::Value::String(format!(\"{precompile_address:x}\")));\nordered_map.insert(\"previous_block_hash\", serde_json::Value::String(format!(\"{previous_block_hash:x}\")));\nordered_map.insert(\"tx_hash\", serde_json::Value::String(format!(\"{tx_hash:x}\")));",
+      "symbols": [
+        "verify_signature_core"
+      ]
+    }
+  ],
+  "equivalence_argument": "The signature reconstruction path builds the JSON payload with unprefixed lowercase hex for the address/hash fields before hashing it with keccak256, matching the executor byte string expected by direct SPC verification.",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-be83856372-verification-payload-hashes-omit-prefixes",
+  "invariant_index": 292,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in the shared port signature reconstruction crate used by the verifier.",
+  "rationale": "The primary diff changes formatting from Display-style strings to `{:x}` for those fields and comments that this matches executor behavior, directly affecting the bytes used for signature verification. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "2ed378507d50bda70c0f2e09c07cd4ccc973cf99"
+  ],
+  "statement": "SPC verifier message reconstruction must serialize precompile address, previous block hash, and transaction hash as lowercase hex strings without a `0x` prefix so the validator verifies the same bytes as the executor signed.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Build an SPC verification request with known address and hash values, reconstruct the verification payload, and assert the JSON contains unprefixed hex strings for `precompile_address`, `previous_block_hash`, and `tx_hash`; then verify a signature produced over that exact executor-style JSON succeeds while a `0x`-prefixed payload fails."
+  ],
+  "summary": "SPC signature payload hashes and addresses are serialized without 0x prefixes.",
+  "test_or_falsification_candidate": "Build an SPC verification payload with known address/hash values and assert the JSON contains lowercase unprefixed hex for precompile_address, previous_block_hash, and tx_hash; a 0x-prefixed signed payload should fail.",
+  "title": "SPC verification payload hashes omit hex prefixes",
+  "total_invariants": 1954
+}

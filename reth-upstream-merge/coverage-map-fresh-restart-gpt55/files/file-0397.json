@@ -1,0 +1,30 @@
+{
+  "record_type": "file",
+  "file_index": 397,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/rpc/rpc/src/debug.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "Only rustfmt semicolon and match-expression punctuation normalization is present.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0397: M\tcrates/rpc/rpc/src/debug.rs.",
+    "Old divergence hunks at diff lines 78751-78846 are semicolon-only punctuation changes.",
+    "No behavior-bearing atom is introduced."
+  ]
+}

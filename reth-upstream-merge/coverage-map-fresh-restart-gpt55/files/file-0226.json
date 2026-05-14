@@ -1,0 +1,88 @@
+{
+  "record_type": "file",
+  "file_index": 226,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/optimism/rpc/src/eth/ext.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "missing",
+  "tags": [
+    "missing",
+    "non-exact",
+    "optimism",
+    "rpc",
+    "transaction-decode",
+    "error-detail"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0226-atom-0001",
+      "file_index": 226,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/optimism/rpc/src/eth/ext.rs",
+      "source_hunk_hint": "@@ -119,8 +119,10 @@",
+      "source_kind": "rpc_error_detail",
+      "source_snippet": "let recovered_tx = recover_raw_transaction(&bytes).map_err(|e| {\n    OpEthApiError::Eth(reth_rpc_eth_types::EthApiError::FailedToDecodeSignedTransaction(\n        e.to_string(),\n    ))\n})?;",
+      "semantic_claim": "The old Optimism RPC conditional transaction endpoint preserves the underlying raw transaction decode error string when mapping `recover_raw_transaction` failures to `FailedToDecodeSignedTransaction`.",
+      "high_risk": false,
+      "risk_tags": [
+        "rpc",
+        "observability",
+        "error-detail"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/optimism/rpc/src/eth/ext.rs",
+          "evidence": "No exact destination Optimism RPC extension endpoint exists at this path."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc-eth-types/src/utils.rs",
+          "symbols": [
+            "recover_raw_transaction"
+          ],
+          "evidence": "Destination generic raw transaction recovery still maps decode errors to `EthApiError::FailedToDecodeSignedTransaction` without carrying the decode error string."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc-eth-types/src/error/mod.rs",
+          "symbols": [
+            "EthApiError::FailedToDecodeSignedTransaction"
+          ],
+          "evidence": "Destination `FailedToDecodeSignedTransaction` is a unit variant with the static message `failed to decode signed transaction`."
+        }
+      ],
+      "equivalence_argument": "The destination preserves generic decode-failure rejection, but does not preserve the old OP RPC error detail string. This is behaviorally narrower error reporting rather than a consensus or execution semantic change.",
+      "test_strategy": "rpc_error_regression",
+      "negative_test_candidate": "Submit malformed raw transaction bytes to the conditional transaction RPC path and assert whether the response includes the underlying decode error string or only the static failed-decode message.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "The second hunk in this file only rewraps a max-bound condition and is rustfmt noise."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The old OP RPC extension included raw transaction decode error details in `FailedToDecodeSignedTransaction`. The v2.2.0 port has generic raw transaction recovery but uses a stringless failed-decode error, so this non-high-risk error-detail atom is missing.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 226: M\tcrates/optimism/rpc/src/eth/ext.rs.",
+    "The behavior-bearing hunk changes `map_err(|_| ...)` to `map_err(|e| ... e.to_string() ...)`.",
+    "Destination exact path `crates/optimism/rpc/src/eth/ext.rs` is absent.",
+    "Destination generic `recover_raw_transaction` and `EthApiError::FailedToDecodeSignedTransaction` do not carry decode error detail.",
+    "The condition hunk for exceeded block number or timestamp is line-wrap-only rustfmt noise."
+  ]
+}

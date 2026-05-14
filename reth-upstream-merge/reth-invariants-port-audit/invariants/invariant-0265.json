@@ -1,0 +1,67 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "Some labels exist, but the full required label set is not logged because low-level signature errors are returned as strings without corresponding log_tx_error labels.",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-97ef244d57-verifier-logs-specific-failure-labels",
+  "invariant_index": 265,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-spc-verification/src/verifier.rs",
+      "crates/ritual-spc-signature/src/lib.rs"
+    ],
+    "checked_queries": [
+      "spc_invalid_signature_length",
+      "spc_json_serialization_failed",
+      "spc_signature_parsing_failed",
+      "spc_pubkey_recovery_failed",
+      "log_tx_error signature parsing failed"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "log_tx_error",
+      "spc_executor_inactive",
+      "spc_executor_not_registered",
+      "spc_invalid_signature_length",
+      "spc_json_serialization_failed",
+      "spc_signature_parsing_failed",
+      "spc_pubkey_recovery_failed",
+      "spc_signature_verification_failed"
+    ],
+    "missing_behavior": "The verifier does not call log_tx_error with spc_invalid_signature_length, spc_json_serialization_failed, spc_signature_parsing_failed, or spc_pubkey_recovery_failed on the corresponding failure branches.",
+    "related_but_insufficient_code": [
+      "crates/ritual-spc-verification/src/verifier.rs logs spc_executor_inactive, spc_executor_not_registered, and spc_signature_verification_failed.",
+      "crates/ritual-spc-signature/src/lib.rs returns errors for short proofs, JSON serialization, signature parsing, and public-key recovery, but it does not call log_tx_error with the required specific labels."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The commit inserts log_tx_error calls labeled spc_executor_inactive, spc_executor_not_registered, spc_invalid_signature_length, spc_json_serialization_failed, spc_signature_parsing_failed, spc_pubkey_recovery_failed, and spc_signature_verification_failed at the corresponding failure branches. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "2595bdde45a6c52a0729d3393c963f21191917f6"
+  ],
+  "statement": "SPC verification must call log_tx_error with specific labels when executor registration is missing or inactive, signature length is invalid, proof JSON serialization fails, recoverable signature parsing fails, public key recovery fails, or recovered public key does not match the executor public key.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Exercise each listed SPC verifier failure branch with a tracing subscriber and assert exactly the expected label is logged with tx_hash and request details before the branch returns its existing error or false result."
+  ],
+  "summary": "The SPC verifier logs only part of the required failure-label set.",
+  "test_or_falsification_candidate": "Exercise invalid signature length, JSON serialization failure, signature parsing failure, and public-key recovery failure with a tracing/metrics subscriber and assert the specific labels are absent.",
+  "title": "SPC verifier logs specific failure labels",
+  "total_invariants": 1954
+}

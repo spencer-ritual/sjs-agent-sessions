@@ -1,0 +1,104 @@
+{
+  "cluster_key": "scheduler:generation-service",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "The port defines SCHEDULED_SYSTEM_SENDER as the fixed scheduler system sender used for generated scheduled transactions.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const SYSTEM_SENDER: Address = address!(\"000000000000000000000000000000000000fa7e\");\npub const SCHEDULED_SYSTEM_SENDER: Address = SYSTEM_SENDER;",
+      "symbols": [
+        "SYSTEM_SENDER",
+        "SCHEDULED_SYSTEM_SENDER"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Generated ordinary scheduled transactions are recovered with SCHEDULED_SYSTEM_SENDER and pass None for commitment_tx, settlement_tx, and spc_calls. They also copy the Scheduler call timing fields start_block, frequency, and ttl into TxScheduled.",
+      "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let tx = TxScheduled::new_with_options(\n    u64::MAX,\n    call.max_fee_per_gas,\n    call.max_priority_fee_per_gas,\n    Some(get_scheduler_address()),\n    call.value,\n    input,\n    origin_hash,\n    obligation.call_id,\n    obligation.index,\n    call.start_block as u64,\n    call.frequency as u64,\n    call.ttl as u64,\n    call.caller,\n    None,\n    None,\n    None,\n);\nlet signed = tx.into_signed(signature);\nOk(Recovered::new_unchecked(TransactionSigned::from(signed), SCHEDULED_SYSTEM_SENDER))",
+      "symbols": [
+        "create_scheduled_execution_transaction",
+        "create_scheduled_execution_transaction_from_state",
+        "TxScheduled::new_with_options"
+      ]
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "169074f08721705fbb99cc9531ea798b61e9f3cc",
+      "evidence": "The current TxScheduled representation carries the timing fields needed to derive the execution max/expiry block and exposes expiry_block(); it does not preserve the old literal max_block_number field shape.",
+      "path": "crates/consensus/src/transaction/scheduled.rs",
+      "repo": "/home/ritual/repos/ritual-alloy-internal",
+      "snippet": "pub struct TxScheduled {\n    pub initial_block: u64,\n    pub frequency: u64,\n    pub ttl: u64,\n    pub spc_calls: Option<Vec<SpcCall>>,\n}\n...\npub fn expiry_block(&self) -> u64 {\n    self.initial_block.saturating_add(self.frequency.saturating_mul(self.index)).saturating_add(self.ttl)\n}",
+      "symbols": [
+        "TxScheduled",
+        "TxScheduled::new_with_options",
+        "TxScheduled::expiry_block"
+      ]
+    }
+  ],
+  "equivalence_argument": "The old scheduling service represented the maximum block as an explicit max_block_number field. In the v2 architecture, generated TxScheduled transactions preserve the same bound structurally by carrying initial_block, frequency, ttl, and execution index, with Alloy deriving expiry_block from those fields. The port also preserves the other two explicit requirements: generated ordinary scheduled transactions are recovered as SCHEDULED_SYSTEM_SENDER and pass None for spc_calls.",
+  "evidence_files": [
+    "crates/scheduling/src/service.rs"
+  ],
+  "invariant_id": "cur-5eef00d37e-generated-scheduled-preserve-system-fields",
+  "invariant_index": 17,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+    "/home/ritual/repos/ritual-alloy-internal"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/scheduling/src/service.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/consensus/src/transaction/scheduled.rs"
+    ],
+    "checked_queries": [
+      "SYSTEM_SENDER|SCHEDULED_SYSTEM_SENDER|max_block_number|spc_calls|TxScheduled::new_with_options|new_with_options",
+      "pub struct TxScheduled|spc_calls|max_block_number|new_with_options",
+      "max_block_number"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-alloy-internal"
+    ],
+    "checked_symbols": [
+      "SYSTEM_SENDER",
+      "SCHEDULED_SYSTEM_SENDER",
+      "TxScheduled::new_with_options",
+      "TxScheduled::expiry_block",
+      "spc_calls",
+      "max_block_number"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "The old crates/scheduling/src/service.rs path is absent from the v2 port; max_block_number is not a literal TxScheduled field in current Alloy and is represented by timing fields plus expiry_block()."
+    ]
+  },
+  "notes": "Mapped structurally across the port and Alloy because current TxScheduled no longer carries a literal max_block_number field.",
+  "rationale": "The candidates describe successive requirements on the same generated scheduled transaction path: use the system sender as recovered signer, preserve the call's maximum block, and mark ordinary scheduled transactions as not carrying SPC calls.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "e61f3c53cf5b32f454bca80f2fefcc3d432cc92d",
+    "66eee5c3db18e6b3db51e619bc7fb8ff0429e11c",
+    "e7a485a28efe3c4d89ec09b70a03218ee315df52"
+  ],
+  "statement": "Generated transactions for ordinary scheduled calls must use SYSTEM_SENDER as the recovered signer, carry the call's configured max_block_number, and set spc_calls to None.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Trigger scheduled transaction construction for a call with a sentinel max_block_number and assert the recovered signer is SYSTEM_SENDER, the transaction carries that max block, and spc_calls is None.",
+    "Construct a regular scheduled call and assert downstream async/SPC handling does not treat the resulting scheduled transaction as carrying SPC calls."
+  ],
+  "summary": "Generated ordinary scheduled transactions preserve system sender and empty SPC calls, with max-block semantics represented by current TxScheduled timing fields.",
+  "test_or_falsification_candidate": "Create a scheduled transaction from state with sentinel start_block/frequency/ttl and no SPC calls; assert the recovered signer is SCHEDULED_SYSTEM_SENDER, spc_calls is None, and TxScheduled::expiry_block reflects the configured execution bound.",
+  "title": "Generated scheduled transactions preserve system fields",
+  "total_invariants": 1954
+}

@@ -1,0 +1,53 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "LLM pricing returns errors for missing output and undecodable non-error responses instead of constructing synthetic fallback metrics.",
+      "path": "crates/ritual-async-fees/src/llm.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let metrics = match exec_output {\n    Some(bytes) => match decode_llm_response(bytes, is_encrypted_output) {\n        Ok(metrics) => metrics,\n        Err(err) if err.starts_with(LLM_HAS_ERROR_PREFIX) => return Ok(U256::from(LLM_ERROR_EXECUTOR_FEE_WEI)),\n        Err(err) => return Err(format!(\"Failed to decode LLM response: {err}\")),\n    },\n    None => return Err(\"Missing LLM executor output\".to_string()),\n};",
+      "symbols": [
+        "compute_llm_executor_fee",
+        "decode_llm_response"
+      ]
+    }
+  ],
+  "equivalence_argument": "The only non-error fallback is an explicit executor error response that maps to a constant error fee; ordinary missing or malformed output fails as required.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-c7ceb4169e-pricing-requires-decodeable-output",
+  "invariant_index": 307,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in the port LLM fee computation.",
+  "rationale": "The diff removes `fallback_llm_metrics()` and changes decode errors and missing executor output from fallback metrics to `return Err(...)`, with log messages saying LLM pricing cannot be computed. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "45a5af6ee4d7fa2500a160c59a269c04419e1607"
+  ],
+  "statement": "`compute_llm_executor_fee` returns an error instead of synthetic fallback LLM metrics when executor output is missing or the LLM response cannot be decoded.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call the LLM fee computation with `None` executor output and with malformed response bytes, and assert both return `Err` and do not compute a fee from default prompt/completion token metrics."
+  ],
+  "summary": "LLM pricing fails on missing or undecodable output instead of using synthetic fallback metrics.",
+  "test_or_falsification_candidate": "Call compute_llm_executor_fee with None and malformed bytes and assert both return Err without default prompt/completion metrics.",
+  "title": "LLM pricing requires decodeable output",
+  "total_invariants": 1954
+}

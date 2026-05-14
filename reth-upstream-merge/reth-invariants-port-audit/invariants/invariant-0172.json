@@ -1,0 +1,72 @@
+{
+  "cluster_key": "executor delivery:builder-skips-expensive-8aebe250",
+  "confidence": "high",
+  "destinations": [
+    {
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "files": [
+        "crates/ethereum/payload/src/lib.rs"
+      ],
+      "evidence": "Payload building now applies the global deadline before scheduled obligation/predicate collection, fulfilled async collection, delivery-ready collection, sequencing-rights reorder, and the execution loop."
+    }
+  ],
+  "equivalence_argument": "Mapped in the port: all expensive optional collection/reorder phases covered by this invariant now check the shared build deadline before starting and proceed toward sealing with already collected work when the deadline has elapsed.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-ba06c8c60b-builder-skips-expensive-phases-after-deadline",
+  "invariant_index": 172,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ethereum/payload/src/config.rs",
+      "crates/ethereum/payload/src/sequencing_rights.rs"
+    ],
+    "checked_queries": [
+      "global_deadline|fulfilled_async|delivery_ready|sequencing_right|predicate|deadline",
+      "get_fulfilled_original_async_commitment_transactions|get_delivery_ready_original_async_transactions|Instant::now\\(\\) > global_deadline"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "global_deadline",
+      "collect_scheduled_obligations",
+      "filter_obligations_by_predicates",
+      "get_fulfilled_original_async_commitment_transactions",
+      "get_delivery_ready_original_async_transactions",
+      "reorder_payload_candidates"
+    ],
+    "missing_behavior": "",
+    "related_but_insufficient_code": [
+      "The original audit observed missing guards before scheduled, fulfilled async, and delivery-ready collection. Local port code now guards all three before entering those phases."
+    ]
+  },
+  "notes": "Resolved locally by adding the missing scheduled obligation/predicate deadline guard and sharing the deadline predicate with the existing fulfilled, delivery, sequencing, and execution guards.",
+  "rationale": "The merge wraps major payload collection/sort work in deadline guards, passes global_deadline into obligation computation, and logs that skipped fulfilled async, delivery settlements, or sequencing rights can be picked up or ordered by simpler fallbacks. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: The exact phase boundaries and logging targets are builder implementation details; the load-bearing behavior is that payload construction does not keep doing expensive optional work after the configured budget.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "0205db843a7041b39bf920fd5d085ad33c62530a"
+  ],
+  "statement": "When the payload build deadline has already elapsed, the builder must skip remaining expensive collection, predicate filtering, fulfilled async, delivery, and sequencing-rights phases and continue toward sealing with the work already collected.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Configure a near-zero build deadline and a pool containing scheduled, fulfilled async, delivery, and sequencing-rights candidates; assert the builder skips deadline-guarded phases, returns a payload instead of stalling, and leaves skipped candidates for future blocks when applicable."
+  ],
+  "summary": "Deadline skipping is mapped for scheduled, fulfilled async, delivery, sequencing, and execution phases.",
+  "test_or_falsification_candidate": "Set RETH_BUILD_DEADLINE_MS near zero and make scheduled predicates, fulfilled async, and delivery-ready jobs expensive; the mapped port path should skip deadline-guarded phases and proceed toward sealing.",
+  "title": "Builder skips expensive phases after deadline",
+  "total_invariants": 1954
+}

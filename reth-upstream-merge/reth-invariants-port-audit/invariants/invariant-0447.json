@@ -1,0 +1,64 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-tee-registry-reader/src/types.rs",
+    "crates/ritual-tee-registry-reader/src/reader.rs"
+  ],
+  "invariant_id": "cur-4e0f3b009d-dkms-capability-recognized-executor",
+  "invariant_index": 447,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-tee-registry-reader/src/types.rs",
+      "crates/ritual-tee-registry-reader/src/reader.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs"
+    ],
+    "checked_queries": [
+      "Capability::try_from for 5, 6, 7",
+      "7 => Ok(Capability::ImageCall)",
+      "Dkms = 6",
+      "ImageCall = 7"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "Capability::try_from",
+      "Capability::Dkms",
+      "Capability::ImageCall",
+      "Capability::is_executor_capability"
+    ],
+    "missing_behavior": "Capability value 7 is recognized as ImageCall instead of being rejected as unknown.",
+    "related_but_insufficient_code": [
+      "The port recognizes Dkms at 6 and excludes it from executor capabilities.",
+      "The same enum maps 7 to ImageCall and tests assert that mapping, so value 7 is not rejected as unknown."
+    ]
+  },
+  "notes": "The current multimodal capability layout makes this historical DKMS boundary assertion false.",
+  "rationale": "The merge result adds the Dkms enum variant at discriminant 6, maps TryFrom(6) to Dkms, updates tests to expect TryFrom(7) to fail, and asserts Dkms is not an executor capability. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "c2f0e14f5bb1653352558ebfe4382a312910a632"
+  ],
+  "statement": "ritual-tee-registry-reader must decode capability value 6 as Capability::Dkms, reject value 7 as unknown, and Capability::Dkms must not satisfy is_executor_capability().",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Unit test Capability::try_from for 5, 6, and 7 and assert ZkCall, Dkms, and Err respectively; assert Dkms.is_executor_capability() is false while HTTP/LLM/ZK executor capabilities remain true."
+  ],
+  "summary": "DKMS is recognized and non-executor, but 7 is not unknown.",
+  "test_or_falsification_candidate": "Unit test Capability::try_from for 5, 6, and 7 and assert ZkCall, Dkms, and Err respectively; assert Dkms.is_executor_capability() is false while HTTP/LLM/ZK executor capabilities remain true.",
+  "title": "DKMS capability is recognized but non-executor",
+  "total_invariants": 1954
+}

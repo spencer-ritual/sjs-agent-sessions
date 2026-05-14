@@ -1,0 +1,64 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "The settlement reader omits missing jobs and inserts only existing jobs into the result map.",
+      "path": "crates/ritual-async-registry/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if executor.is_zero() {\n    tracing::warn!(..., \"read_jobs_for_settlement: job not found (executor is zero)\");\n    continue; // Job doesn't exist \u2014 caller decides how to handle missing entries\n}\n...\nresults.insert(*job_id, SettlementData { ... });",
+      "symbols": [
+        "read_jobs_for_settlement"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "Tests assert missing-only reads return Ok(empty) and mixed reads return only existing jobs.",
+      "path": "crates/ritual-async-registry/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "assert!(result.is_ok());\nassert!(result.unwrap().is_empty());\n...\nassert_eq!(jobs.len(), 1);\nassert!(jobs.contains_key(&job_id_exists));\nassert!(!jobs.contains_key(&job_id_missing));",
+      "symbols": [
+        "test_read_job_not_found",
+        "test_read_multiple_jobs_some_not_found"
+      ]
+    }
+  ],
+  "equivalence_argument": "The function uses continue on missing executor and only inserts decoded SettlementData after successful existence checks, so absent job IDs are omitted from the result without failing the read.",
+  "evidence_files": [
+    "crates/ritual-async-registry/src/lib.rs"
+  ],
+  "invariant_id": "cur-bf6c161fc0-settlement-reads-omit-missing-jobs",
+  "invariant_index": 494,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This is backed by both implementation and tests for empty/mixed missing-job cases.",
+  "rationale": "The merge changes the zero-executor branch from returning an error to continue, and tests assert a missing job returns an empty result while a mixed request returns only the existing job. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "713bb7c4da42f149ae4d0b0af81f4733733c1af0"
+  ],
+  "statement": "read_jobs_for_settlement must skip job ids whose jobExecutor storage is zero and return the existing jobs it can read, rather than failing the entire settlement read for a missing job.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call read_jobs_for_settlement with one existing job id and one missing job id and assert the returned map contains only the existing job and no error; call it with only a missing job and assert Ok(empty)."
+  ],
+  "summary": "Settlement reads omit missing jobs and return existing ones.",
+  "test_or_falsification_candidate": "Call read_jobs_for_settlement with one existing job id and one missing job id and assert the returned map contains only the existing job and no error; call it with only a missing job and assert Ok(empty).",
+  "title": "Settlement reads omit missing jobs",
+  "total_invariants": 1954
+}

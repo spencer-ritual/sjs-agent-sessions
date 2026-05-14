@@ -1,0 +1,63 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "",
+  "evidence_files": [
+    "crates/ritual-precompile-codecs/src/executor.rs"
+  ],
+  "invariant_id": "cur-4ccbfd9dd5-executor-requests-decode-fields-manually",
+  "invariant_index": 305,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-precompile-codecs/src/executor.rs"
+    ],
+    "checked_queries": [
+      "read_abi_word",
+      "word_to_usize",
+      "zero-offset empty encrypted secrets",
+      "InputTooShort expected 128",
+      "ExecutorRequest::decode_base_fields"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "ExecutorRequest::decode_base_fields",
+      "ethabi::decode",
+      "read_abi_word",
+      "word_to_usize",
+      "InputTooShort"
+    ],
+    "missing_behavior": "The audited code does not manually read executor from word 0, encrypted_secrets from word 1 offset, and ttl from word 2 with explicit zero-offset empty-secrets and bounds/overflow errors.",
+    "related_but_insufficient_code": [
+      "The only port ExecutorRequest decoder delegates to ethabi::decode over a fixed ParamType list and token extraction, so it does not expose explicit word/offset/length parsing branches.",
+      "Searches of audited dependency repos found no alternate manual ExecutorRequest decoder implementing zero-offset empty encrypted_secrets handling."
+    ]
+  },
+  "notes": "Confirmed by exact searches for manual ABI parser helpers and InputTooShort/zero-offset handling.",
+  "rationale": "The primary diff replaces tuple ABI decoding with explicit word, offset, length, bounds, and ttl parsing logic for ExecutorRequest. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "c3f166adeed58a8a9763889f21953a08f87eb938"
+  ],
+  "statement": "ExecutorRequest decoding should read the executor address from the first ABI word, encrypted_secrets from the dynamic bytes offset in the second word, and ttl from the third word, including support for zero-offset empty encrypted secrets and explicit bounds/overflow errors.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Feed ExecutorRequest::decode valid ABI data with a right-aligned executor address, dynamic encrypted_secrets bytes, and ttl, plus a zero-offset empty-secrets payload, and assert successful decoding; also assert malformed offsets, lengths, or overflowing ttl return the documented codec errors."
+  ],
+  "summary": "ExecutorRequest decoding is not the manual ABI word parser required by this invariant.",
+  "test_or_falsification_candidate": "Feed a zero-offset empty-secrets payload and malformed offset/length cases to the current decoder; it should not exercise the invariant-specified manual parsing behavior.",
+  "title": "Executor requests decode ABI fields manually",
+  "total_invariants": 1954
+}

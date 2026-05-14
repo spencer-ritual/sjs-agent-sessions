@@ -1,0 +1,53 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The configured block verifier runs after transaction processing and before post-execution finalization; verifier errors return immediately and prevent finalization.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "if let Some(ref verifier) = self.verifier {\n    if let Err(e) = verifier.verify_block(block.sealed_block()) {\n        ritual_metrics::block::log_block_verify_failure(&block.hash(), block.number(), &e);\n        return Err(BlockExecutionError::msg(format!(\"Block verification failed: {:?}\", e)));\n    }\n}\n...\nlet result = strategy.apply_post_execution_changes()?;",
+      "symbols": [
+        "RitualBlockExecutor::execute_one",
+        "BlockVerifierTrait::verify_block"
+      ]
+    }
+  ],
+  "equivalence_argument": "The nodebuilder executor gates finalization on the configured verifier in both execute_one and execute_one_with_state_hook.",
+  "evidence_files": [
+    "crates/node/src/executor.rs"
+  ],
+  "invariant_id": "cur-ec564cc85c-configured-block-verifier-gates-finalization",
+  "invariant_index": 346,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in nodebuilder RitualBlockExecutor.",
+  "rationale": "The new executor adds a consensus verification phase before apply_post_execution_changes, maps verifier failures into BlockExecutionError, and build_evm_with_pool wires in a block verifier while build_evm without pool leaves it absent. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "7e16c872fe94f5ffdd3f4ba315413db9b91b0ad1"
+  ],
+  "statement": "When a block verifier is configured, RitualBlockExecutor invokes verifier.verify_block on the sealed block after transaction execution and before post-execution finalization, and any verifier error aborts execution before state transitions are finalized.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Run block execution with a mock verifier that records calls and succeeds, asserting verify_block is called after all transactions and before finalization. Then run with a verifier that returns an error and assert execute_one returns BlockExecutionError and does not call apply_post_execution_changes or merge state transitions."
+  ],
+  "summary": "Configured block verification gates nodebuilder finalization.",
+  "test_or_falsification_candidate": "Install a verifier that returns an error and assert execute_one returns BlockExecutionError before apply_post_execution_changes is called.",
+  "title": "Configured block verifier gates finalization",
+  "total_invariants": 1954
+}

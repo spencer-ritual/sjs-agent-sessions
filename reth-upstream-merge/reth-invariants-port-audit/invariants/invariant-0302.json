@@ -1,0 +1,55 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Wallet gating computes dynamic escrow requirements per precompile, using max-output HTTP estimates and model-registry LLM deposit estimates, then enforces both balance and lock duration before allowing commitment.",
+      "path": "crates/ritual-async-fees/src/wallet.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let executor_fee = if precompile_address == LLM_CALL_PRECOMPILE {\n    let model_name = extract_model_from_llm_input(precompile_input)?;\n    llm_executor_deposit_estimate_for_model(db, get_model_registry_address(), &model_name)?\n} else if precompile_address == HTTP_CALL_PRECOMPILE || precompile_address == LONG_RUNNING_HTTP_PRECOMPILE {\n    http_executor_fee(input_len, HTTP_CALL_MAX_OUTPUT_BYTES)\n} else { ... };\nlet total_required_fees = executor_fee + commitment_fee + inclusion_fee + callback_fee;\nif balance < total_required_fees { return Err(...); }\nif lock_until < U256::from(commit_block.saturating_add(ttl)) { return Err(...); }",
+      "symbols": [
+        "verify_wallet_for_commitment",
+        "llm_executor_deposit_estimate_for_model",
+        "http_executor_fee"
+      ]
+    }
+  ],
+  "equivalence_argument": "Payload and block-verification commitment paths call verify_wallet_for_commitment, so scheduled and regular async commitments are gated by the same dynamic fee and lock-duration checks before inclusion is accepted.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-async/src/wallet.rs"
+  ],
+  "invariant_id": "cur-f6fe5ad814-wallet-gating-covers-dynamic-async-fees",
+  "invariant_index": 302,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in the port async-fees wallet verifier.",
+  "rationale": "The primary diff passes the detected `AsyncCallResult` into wallet validation and replaces fixed fee checks with estimates derived from async input length, HTTP maximum output size, and the LLM-specific executor deposit estimate before async transactions are included. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "0192e13de434f8b6a35ee509944ea31422ff3adb"
+  ],
+  "statement": "The payload builder must skip scheduled and regular async transactions unless the user's RitualWallet balance and lock duration cover the dynamically estimated async fees for that specific async result, including HTTP max-output estimates and LLM executor deposit estimates.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Configure a RitualWallet with balances just below and just above the computed dynamic requirement for an HTTP async result and an LLM async result, then run payload candidate selection and assert below-threshold transactions are cached/skipped as invalid while above-threshold transactions remain eligible, with lock duration still enforced through current block plus TTL."
+  ],
+  "summary": "Wallet gating enforces dynamic async fee and lock requirements for HTTP and LLM commitments.",
+  "test_or_falsification_candidate": "Configure RitualWallet balances around the computed HTTP and LLM dynamic requirements and assert below-threshold commitments are rejected while above-threshold commitments pass with sufficient lock duration.",
+  "title": "Wallet gating covers dynamic async fees",
+  "total_invariants": 1954
+}

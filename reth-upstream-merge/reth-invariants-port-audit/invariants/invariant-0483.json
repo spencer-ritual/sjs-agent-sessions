@@ -1,0 +1,69 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ritual-async-fees/src/wallet.rs"
+  ],
+  "invariant_id": "cur-4d49c6d9e1-wallet-validation-uses-escrow-delivery-config",
+  "invariant_index": 483,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-async-fees/src/wallet.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-precompile-codecs/src/validation.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs"
+    ],
+    "checked_queries": [
+      "FHE wallet validation fhe_escrow_lockup",
+      "FHE_PRECOMPILE verify_wallet_for_commitment",
+      "DeliveryConfig::from_fhe_abi",
+      "decode_delivery_config FHE_PRECOMPILE"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "FHE_PRECOMPILE",
+      "fhe_escrow_lockup",
+      "verify_wallet_for_commitment",
+      "supports_wallet_check",
+      "decode_delivery_config",
+      "validate_fhe_call_payload"
+    ],
+    "missing_behavior": "Wallet validation does not support FHE_PRECOMPILE and no fhe_escrow_lockup helper exists, so FHE Phase 1 wallet escrow is not enforced through the FHE-specific escrow path.",
+    "related_but_insufficient_code": [
+      "crates/ethereum/payload/src/ritual_async.rs decodes FHE delivery config at field index 11 for two-phase delivery.",
+      "crates/ritual-precompile-codecs/src/validation.rs validates FHE executor/TTL payload structure.",
+      "crates/ritual-async-fees/src/wallet.rs supports HTTP, long-running HTTP, ZK, LLM, DKMS, persistent/sovereign agent, and audio, but not FHE."
+    ]
+  },
+  "notes": "The invariant requires both wallet escrow and delivery-config behavior; only the delivery-config side is present.",
+  "rationale": "The primary diff adds fhe_escrow_lockup, imports it into wallet validation, routes FHE precompile validation through that escrow value, and documents/uses DeliveryConfig::from_fhe_abi for FHE callback cost. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "959d22c7fb37803baa289b78db79ad5baf9c1bd8"
+  ],
+  "statement": "Wallet validation for FHE precompile 0x0807 should use fhe_escrow_lockup for Phase 1 executor escrow and should decode Phase 2 callback gas/value with the FHE delivery-config layout rather than another multimodal layout.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Run wallet validation for an FHE async request and assert required Phase 1 escrow is fhe_escrow_lockup; then provide FHE delivery fields at indices 11-16 and assert callback gas/value are decoded from the FHE layout, while malformed FHE delivery config returns an error."
+  ],
+  "summary": "FHE delivery-config decoding exists, but FHE wallet escrow validation is absent.",
+  "test_or_falsification_candidate": "Run wallet validation for an FHE async request and assert required Phase 1 escrow is fhe_escrow_lockup; then provide FHE delivery fields at indices 11-16 and assert callback gas/value are decoded from the FHE layout, while malformed FHE delivery config returns an error.",
+  "title": "FHE wallet validation uses FHE escrow and delivery config",
+  "total_invariants": 1954
+}

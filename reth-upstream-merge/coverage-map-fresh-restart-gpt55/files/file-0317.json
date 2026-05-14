@@ -1,0 +1,89 @@
+{
+  "record_type": "file",
+  "file_index": 317,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-precompile-codecs/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "manifest",
+    "precompile-codecs",
+    "abi"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0317-atom-0001",
+      "file_index": 317,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-precompile-codecs/Cargo.toml",
+      "source_hunk_hint": "@@ -0,0 +1,18 @@; precompile codecs crate manifest",
+      "source_kind": "crate_manifest",
+      "source_snippet": "[package]\nname = \"ritual-precompile-codecs\"\nversion.workspace = true\nedition.workspace = true\nrust-version.workspace = true\nlicense.workspace = true\nrepository.workspace = true\ndescription = \"Rust codecs for precompile input/output decoding\"\n\n[dependencies]\nalloy-primitives = { workspace = true }\nalloy-sol-types = { workspace = true }\nethabi = { workspace = true }\nthiserror = { workspace = true }\ntracing = { workspace = true }\n\n[dev-dependencies]\nhex = { workspace = true }",
+      "semantic_claim": "The old divergence adds the `ritual-precompile-codecs` manifest with workspace package metadata and dependencies for Alloy primitives/Sol types, `ethabi`, typed errors, tracing, and hex test fixtures.",
+      "high_risk": false,
+      "risk_tags": [
+        "manifest",
+        "precompile-codecs",
+        "abi-decoding",
+        "workspace-member"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/Cargo.toml",
+          "symbols": [
+            "package:ritual-precompile-codecs",
+            "alloy-primitives",
+            "alloy-sol-types",
+            "ethabi",
+            "thiserror",
+            "tracing",
+            "hex"
+          ],
+          "evidence": "Destination manifest lines 1-18 exactly match source-added diff lines 56794-56811."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "Cargo.toml",
+          "symbols": [
+            "workspace.members",
+            "workspace.dependencies.ritual-precompile-codecs"
+          ],
+          "evidence": "Destination workspace includes `crates/ritual-precompile-codecs/` and exposes the crate as a workspace dependency."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the ABI codec crate dependency surface and workspace wiring unchanged.",
+      "test_strategy": "workspace_manifest_and_codec_crate_resolution",
+      "negative_test_candidate": "Removing `ethabi` should break the codec modules that decode tuple and array ABI payloads.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact manifest mapping."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The precompile codecs manifest is exact-port preserved with the ABI decoding and test dependency surface.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 317: A\tcrates/ritual-precompile-codecs/Cargo.toml.",
+    "Source-added hunk spans diff lines 56794-56811 with header `@@ -0,0 +1,18 @@`.",
+    "Destination `crates/ritual-precompile-codecs/Cargo.toml` has 18 lines and matches the source-added manifest exactly.",
+    "No review queue entry required because the atom is exact."
+  ]
+}

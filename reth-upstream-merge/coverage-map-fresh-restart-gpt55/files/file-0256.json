@@ -1,0 +1,33 @@
+{
+  "record_type": "file",
+  "file_index": 256,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/prune/prune/src/segments/set.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "semicolon",
+    "prune",
+    "segments"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The prune segment set divergence is semicolon-only rustfmt noise in optional segment insertion; no segment set behavior changed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 256: M\tcrates/prune/prune/src/segments/set.rs.",
+    "The isolated patch only changes `return self.segment(segment)` to a semicolon-terminated statement.",
+    "No optional segment insertion, segment collection, or fallback `self` behavior changed."
+  ]
+}

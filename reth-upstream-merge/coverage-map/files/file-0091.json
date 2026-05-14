@@ -9,14 +9,12 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "mapped",
+  "file_classification": "intentionally_absent",
   "tags": [
-    "mapped",
-    "payload",
     "high-risk",
-    "non-exact",
+    "intentionally_absent",
     "needs-review",
-    "revm"
+    "non-exact"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -34,19 +32,9 @@
       "risk_tags": [
         "payload"
       ],
-      "mapping_status": "moved_to_dependency",
-      "destinations": [
-        {
-          "repo": "/home/ritual/repos/ritual-revm-internal",
-          "path": "crates/handler/src/execution.rs",
-          "symbols": [
-            "create_init_frame"
-          ],
-          "snippet": "pub fn create_init_frame<CTX: ContextTr>(\n    ctx: &mut CTX,\n    gas_limit: u64,\n    reservoir: u64,\n) -> Result<FrameInput, <<CTX::Journal as JournalTr>::Database as Database>::Error> {",
-          "evidence": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path."
-        }
-      ],
-      "equivalence_argument": "The downstream file name resolves uniquely in the destination search scope outside the original path, indicating the behavior likely moved rather than disappearing.",
+      "mapping_status": "intentionally_absent",
+      "destinations": [],
+      "equivalence_argument": null,
       "test_strategy": "destination_only_regression",
       "negative_test_candidate": "Run the destination behavior owned by crates/ethereum/payload/src/execution.rs and verify the downstream-observed behavior still holds after the port refactor.",
       "adversarial_review": {
@@ -55,14 +43,15 @@
         "review_record_id": null
       },
       "review_required": true,
-      "notes": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path.",
-      "human_question": "Confirm that landing this file in a dependency repository preserves every downstream behavior atom expected from the old fork."
+      "notes": "Sequencing-rights classification/reordering is not active in the current v2.2 slice. Payload building keeps upstream tip ordering plus scheduled/async obligation handling, so old sequencing-rights crate/API atoms are intentionally absent.",
+      "human_question": "filename/path similarity is not evidence of preserved behavior, guards, transitions, side effects, or failure paths.",
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope."
     }
   ],
   "high_risk_atoms_total": 1,
   "non_exact_atoms_total": 1,
   "adversarial_reviews": [],
-  "summary": "The downstream file maps to destination code but needs review because the destination implementation was refactored or moved.",
+  "summary": "Atoms in this file are intentionally absent or mapped to active v2.2 behavior where applicable.",
   "review_required": true,
   "status": "needs_review",
   "notes": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path."

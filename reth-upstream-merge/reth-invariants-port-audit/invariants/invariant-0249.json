@@ -1,0 +1,79 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Malformed HTTP input, invalid payloads, zero executor, and executor mismatches become invalid async commitment errors before SPC verification can use a fallback executor.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "validate_async_payload(commitment.precompile_address, commitment.precompile_input.as_ref(), MAX_SHORT_ASYNC_TTL_BLOCKS)?;\nlet decoded = try_decode_precompile_data(commitment.precompile_address, commitment.precompile_input.as_ref())?;\nif decoded.executor != commitment.executor_address { return Err(BlockVerificationError::InvalidAsyncCommitment(...)); }",
+      "symbols": [
+        "validate_commitment_structure"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "When the block verifier is configured, invalid commitment/SPC verification errors reject block execution instead of allowing fallback verification.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "if let Some(ref verifier) = self.verifier {\n    if let Err(e) = verifier.verify_block(block.sealed_block()) {\n        return Err(BlockExecutionError::msg(format!(\"Block verification failed: {:?}\", e)));\n    }\n}",
+      "symbols": [
+        "RitualBlockExecutor::execute_one",
+        "RitualBlockExecutor::execute_one_with_state_hook"
+      ]
+    }
+  ],
+  "equivalence_argument": "Malformed HTTP executor input is rejected by canonical block verification, and the dependency executor converts verifier failure into BlockExecutionError; no path verifies malformed HTTP SPC input with a fallback executor.",
+  "evidence_files": [
+    "crates/evm/src/execute.rs"
+  ],
+  "invariant_id": "cur-f71f5416a6-malformed-http-executor-rejects-block",
+  "invariant_index": 249,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-block-verification/src/lib.rs",
+      "ritual-reth-nodebuilder-internal/crates/node/src/executor.rs"
+    ],
+    "checked_queries": [
+      "malformed async commitment precompile input",
+      "decoded.executor",
+      "Block verification failed"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+    ],
+    "checked_symbols": [
+      "validate_commitment_structure",
+      "try_decode_precompile_data",
+      "RitualBlockExecutor::execute_one"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in port with dependency execution plumbing.",
+  "rationale": "The new code converts a missing extracted executor into `BlockExecutionError::msg` with text saying the block should be rejected. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "580552d9b9271e7bd69cad3afb86f684db5e4f44"
+  ],
+  "statement": "If an HTTP SPC call is present but its input data does not contain an extractable executor address, block execution fails with a block rejection error instead of verifying with a fallback executor.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Build a block with an HTTP SPC call whose input omits or corrupts the executor address and assert execution returns a block execution error before creating an SPC verification request."
+  ],
+  "summary": "Malformed HTTP executor inputs are rejected by block verification.",
+  "test_or_falsification_candidate": "Build a block with an HTTP SPC call whose input omits or corrupts the executor address and assert execution returns a block execution error before creating an SPC verification request.",
+  "title": "Malformed HTTP SPC executor rejects block",
+  "total_invariants": 1954
+}

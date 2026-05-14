@@ -1,0 +1,66 @@
+{
+  "record_type": "file",
+  "file_index": 54,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/engine/local/src/payload.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "high-risk",
+    "payload",
+    "reth-port"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0054-atom-0001",
+      "file_index": 54,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/engine/local/src/payload.rs",
+      "source_hunk_hint": "@@ -39,6 +39,7 @@ where",
+      "source_kind": "new_field",
+      "source_snippet": "EthPayloadAttributes { ... parent_beacon_block_root: ..., extra_data: None, }",
+      "semantic_claim": "Local payload attribute construction explicitly sets engine payload `extra_data` to None, preserving default local-miner payload attributes after the upstream type added the field.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/engine/local/src/payload.rs",
+          "symbols": [
+            "LocalPayloadAttributesBuilder::build"
+          ],
+          "snippet": "EthPayloadAttributes { timestamp, prev_randao: B256::random(), suggested_fee_recipient: Address::random(), withdrawals: ..., parent_beacon_block_root: ..., extra_data: None, slot_number: ... }",
+          "evidence": "The destination local payload builder contains the same explicit `extra_data: None` field in the constructed EthPayloadAttributes."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Instantiate LocalPayloadAttributesBuilder and assert the built EthPayloadAttributes has extra_data == None while timestamp/withdrawal/root behavior remains unchanged.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact destination evidence found in the same path and builder function."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "Local payload attributes explicitly set extra_data to None and the port carries the same field initialization.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "This is high-risk because it touches payload attribute construction, but the mapping is exact."
+}

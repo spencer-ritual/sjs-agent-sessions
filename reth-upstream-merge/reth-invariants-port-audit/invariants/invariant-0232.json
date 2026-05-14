@@ -1,0 +1,62 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping was found: current ExecutorRegistry has no TTL or interval-based cleanup method, only capacity eviction of the oldest inactive executor.",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/types.rs"
+  ],
+  "invariant_id": "cur-e76bc78774-registry-cleanup-preserves-active-executors",
+  "invariant_index": 232,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-spc-verification/src/types.rs",
+      "crates/ritual-spc-verification/src/verifier.rs",
+      "crates/ritual-spc-verification/src/service.rs"
+    ],
+    "checked_queries": [
+      "cleanup|expired|ttl|registration_time|remove_oldest_inactive|last_cleanup|cleanup_interval"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "ExecutorRegistry::cleanup",
+      "cleanup_expired",
+      "registration_time",
+      "remove_oldest_inactive",
+      "ExecutorRegistryConfig"
+    ],
+    "missing_behavior": "Missing cleanup behavior that removes expired inactive executors after a cleanup interval while retaining active executors older than TTL.",
+    "related_but_insufficient_code": [
+      "ExecutorRegistry stores registration_time but exposes no TTL cleanup method for expired inactive executors.",
+      "ExecutorRegistry::clear removes all executors and is not an expired-inactive cleanup policy.",
+      "remove_oldest_inactive only runs when register_executor sees capacity pressure; it does not remove inactive records by age or explicitly preserve active old records under a cleanup interval."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The cleanup predicate explicitly keeps active executors and applies TTL only to inactive entries, which protects active executor availability from time-based eviction. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "71f0156e2a83c51d57191e946a8502f679c40308"
+  ],
+  "statement": "ExecutorRegistry cleanup must remove expired inactive executors after the cleanup interval, but must retain active executors even when their registration timestamp is older than the configured TTL.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create a registry with a short TTL, insert one active and one inactive executor with old registration times, force last_cleanup to be older than 300 seconds or expose cleanup through a test helper, trigger registration/cleanup, and assert only the inactive expired executor is removed."
+  ],
+  "summary": "Registry TTL cleanup preserving active executors is absent from the current port.",
+  "test_or_falsification_candidate": "Create old active and inactive executor records and trigger the expected cleanup path; current registry has no cleanup API or TTL setting to exercise.",
+  "title": "Registry cleanup preserves active executors",
+  "total_invariants": 1954
+}

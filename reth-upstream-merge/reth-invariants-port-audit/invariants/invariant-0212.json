@@ -1,0 +1,79 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "RitualNode selects the custom RitualExecutorBuilder in its component builder.",
+      "path": "crates/node/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "ComponentsBuilder::default()\n    .node_types::<Node>()\n    .pool(EthereumPoolBuilder::default())\n    .payload(BasicPayloadServiceBuilder::default())\n    .network(EthereumNetworkBuilder::default())\n    .executor(RitualExecutorBuilder::default())\n    .consensus(EthereumConsensusBuilder::default())",
+      "symbols": [
+        "RitualNode::components",
+        "RitualExecutorBuilder"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The executor builder wraps the upstream Ethereum EVM config with RitualEvmFactory and returns a RitualBlockExecutorProvider.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "type EVM = EthEvmConfig<RitualEvmFactory>;\ntype Executor = RitualBlockExecutorProvider<Self::EVM>;\n...\nlet evm_config = EthEvmConfig::new_with_evm_factory(ctx.chain_spec(), RitualEvmFactory::default());\nlet ritual_executor = RitualBlockExecutorProvider::new(evm_config.clone(), spc_verifier, None);",
+      "symbols": [
+        "RitualExecutorBuilder::build_evm",
+        "RitualBlockExecutorProvider",
+        "EthEvmConfig<RitualEvmFactory>"
+      ]
+    }
+  ],
+  "equivalence_argument": "The nodebuilder dependency owns this node-construction invariant: RitualNode routes block execution through RitualExecutorBuilder and a delegating RitualBlockExecutorProvider while preserving Ethereum components around it.",
+  "evidence_files": [
+    "crates/node/src/lib.rs",
+    "crates/node/src/executor.rs"
+  ],
+  "invariant_id": "cur-41981cdf9d-execution-goes-through-custom-executor-wrapper",
+  "invariant_index": 212,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/node/src/lib.rs",
+      "crates/node/src/executor.rs"
+    ],
+    "checked_queries": [
+      "RitualExecutorBuilder|RitualBlockExecutorProvider|EthEvmConfig<RitualEvmFactory>|RitualNode::components"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+    ],
+    "checked_symbols": [
+      "RitualNode::components",
+      "RitualExecutorBuilder",
+      "RitualBlockExecutorProvider",
+      "EthEvmConfig<RitualEvmFactory>"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The primary diff replaces EthereumExecutorBuilder with RitualExecutorBuilder in RitualNode's component builder and type aliases, then implements RitualEvmConfig as a wrapper over EthEvmConfig and RitualBlockExecutor as a delegating wrapper over EthBlockExecutor. That suggests the intended behavior is to install a Ritual-owned execution extension point without changing ordinary Ethereum execution behavior in this commit. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "a22e8e2daa06d311d1255dfc924c30ed5f885248"
+  ],
+  "statement": "After this commit, RitualNode block execution should be built through RitualExecutorBuilder/RitualEvmConfig while preserving Ethereum block execution semantics delegated to the upstream EthBlockExecutor and EthEvmConfig.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Instantiate a RitualNode after this commit and execute a block containing normal Ethereum transactions against the same chain spec with both the previous Ethereum executor path and the new Ritual executor path; fail if the Ritual path is not selected or if receipts, gas used, state root, or execution errors differ for the same inputs."
+  ],
+  "summary": "RitualNode execution goes through the custom executor wrapper in nodebuilder.",
+  "test_or_falsification_candidate": "Instantiate RitualNode::components and execute a normal Ethereum block through the Ritual executor path, comparing receipts/state/gas with the Ethereum executor for unchanged semantics.",
+  "title": "Ritual node execution goes through a custom executor wrapper",
+  "total_invariants": 1954
+}

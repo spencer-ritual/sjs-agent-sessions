@@ -1,0 +1,84 @@
+{
+  "cluster_key": "scheduler:payload-building:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Payload building runs synthesized obligations through predicate filtering and pool scheduled candidates through full scheduled verification before inclusion.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "match filter_obligations_by_predicates(&mut scheduled_db, obligations, &mut evaluate_predicate) { Ok(result) => result.obligations, Err(_) => Vec::new() }\n...\nif let Err(err) = verify_scheduled_transactions_full_with_predicate_evaluator(..., &mut evaluate_predicate) { continue; }",
+      "symbols": [
+        "filter_obligations_by_predicates",
+        "verify_scheduled_transactions_full_with_predicate_evaluator"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Predicate read failures drop synthesized obligations; full scheduled verification maps predicate read failure to PredicateReverted so payload skips the pooled scheduled tx.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let predicate_addr = match read_call_predicate(db, None, ob.call_id) {\n    Ok(addr) => addr,\n    Err(e) => { dropped_predicate += 1; continue; }\n};\n...\nlet predicate = read_call_predicate(db, Some(scheduler), call_id).map_err(|_| ScheduledConstraintViolation::PredicateReverted { ... })?;",
+      "symbols": [
+        "filter_obligations_by_predicates",
+        "read_call_predicate",
+        "verify_scheduled_transactions_full_with_predicate_evaluator"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port: payload building excludes scheduled transactions when predicate storage cannot be read, either by dropping synthesized obligations or skipping pooled scheduled txs that fail full verification.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-39b27b487a-predicate-read-errors-skip-scheduled",
+  "invariant_index": 79,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "read_call_predicate|Failed to read predicate address|PredicateReverted|filter_obligations_by_predicates"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "read_call_predicate",
+      "filter_obligations_by_predicates",
+      "verify_scheduled_transactions_full_with_predicate_evaluator"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped exactly.",
+  "rationale": "This candidate specifically hardens predicate verification failure behavior and is not superseded by later bounded candidates.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "d9c83b68e2f4e49d590edc681b7903d0d9d3f581"
+  ],
+  "statement": "If payload building cannot read a scheduled call's predicate address from storage, it must exclude that scheduled transaction from the proposed block rather than include it without predicate verification.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Mock read_call_predicate to fail for a due obligation and assert payload_candidates does not include the synthesized scheduled transaction.",
+    "Mock predicate storage failure for a pool-sourced scheduled tx and assert payload builder logs/skips it instead of including it."
+  ],
+  "summary": "Predicate read failures skip scheduled transactions in the port.",
+  "test_or_falsification_candidate": "Predicate storage-read failure during payload build should produce no scheduled transaction for that call/index.",
+  "title": "Predicate read errors skip scheduled transactions",
+  "total_invariants": 1954
+}

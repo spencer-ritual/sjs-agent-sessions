@@ -1,0 +1,64 @@
+{
+  "cluster_key": "scheduler:receipt-rpc",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "ritual-reth-internal/crates/ritual-scheduled-verification/src/lib.rs",
+    "ritual-reth-internal/crates/scheduling/src/singleton.rs",
+    "ritual-reth-internal/crates/scheduling/src/types.rs",
+    "ritual-reth-internal/crates/ritual-scheduled-block-building/src/lib.rs"
+  ],
+  "invariant_id": "cur-d36ea9772d-hydration-strictly-rebuilds-memory-active-scheduler-storage",
+  "invariant_index": 122,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/scheduling/src/singleton.rs",
+      "crates/scheduling/src/types.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs"
+    ],
+    "checked_queries": [
+      "hydrate|replace stale|origin_hash|last_synced_block|duplicate call|compute_max_block_number|read_active_scheduled_calls"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "scheduler memory hydration",
+      "read_active_scheduled_calls",
+      "compute_max_block_number_u64"
+    ],
+    "missing_behavior": "Missing strict scheduler memory rebuild. The port can scan active Scheduler storage and uses saturating max-block helpers, but it does not hydrate/rebuild a scheduler-memory map, preserve origin_hash in that memory, reject duplicate call IDs during hydration, or set scheduler last_synced_block.",
+    "related_but_insufficient_code": [
+      "compute_obligations/read_active_scheduled_calls read current storage directly, which reduces stale-memory risk but is not the startup hydration invariant."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The strict scan and memory replacement candidates form one current invariant: the scheduler must reconstruct memory from active on-chain storage instead of incrementally merging stale state.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "d73e202e3514a5a9625de61d87b03d64715e5256",
+    "8027129eae5b008828ad71940ed7a0ee79143220",
+    "2b6842b59f2c3fa7ddea963894507089d363296e"
+  ],
+  "statement": "Startup hydration scans Scheduler slots, ignores empty slots, includes only decoded SCHEDULED calls, rejects duplicate call IDs or undecodable call mappings, preserves origin_hash, computes max_block_number with shared saturating math, replaces stale in-memory calls, and sets last_synced_block to the hydration block.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Hydrate from storage containing empty slots, duplicate call IDs, undecodable call mappings, and origin_hash fields; assert exact memory replacement and last_synced_block update."
+  ],
+  "summary": "Strict scheduler-memory rebuild hydration is absent.",
+  "test_or_falsification_candidate": "No local scheduler-memory hydration surface exists; only parent-state scans are present.",
+  "title": "Hydration strictly rebuilds memory from active Scheduler storage",
+  "total_invariants": 1954
+}

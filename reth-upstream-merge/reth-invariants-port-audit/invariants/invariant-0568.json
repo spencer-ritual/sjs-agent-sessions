@@ -1,0 +1,53 @@
+{
+  "cluster_key": "block building:default-payload-build-f0a3c06c",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "The default deadline is 300ms, parse failures fall back to that constant, and valid environment values override it.",
+      "path": "crates/ethereum/payload/src/config.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "const DEFAULT_BUILD_DEADLINE_MS: u64 = 300;\n...\nlet build_deadline_ms = std::env::var(\"RETH_BUILD_DEADLINE_MS\")\n    .ok()\n    .and_then(|value| value.parse::<u64>().ok())\n    .unwrap_or(DEFAULT_BUILD_DEADLINE_MS);\n...\nbuild_deadline: Duration::from_millis(build_deadline_ms),",
+      "symbols": [
+        "DEFAULT_BUILD_DEADLINE_MS",
+        "EthereumBuilderConfig::new"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port exactly implements the 300ms unset/invalid default with valid RETH_BUILD_DEADLINE_MS override semantics.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/config.rs"
+  ],
+  "invariant_id": "cur-ade055ae3d-default-payload-build-deadline-300ms",
+  "invariant_index": 568,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Local tests in the same file assert default, override, and invalid-env behavior.",
+  "rationale": "The primary commit changes DEFAULT_BUILD_DEADLINE_MS and the tests from 500ms to 300ms, with commit text saying unset or invalid default-budget behavior should be consistent. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Block Building",
+  "source_commits": [
+    "6dd898206a1858df6a19619d4b0853e73bde5de0"
+  ],
+  "statement": "EthereumBuilderConfig::new uses a 300 millisecond build_deadline when RETH_BUILD_DEADLINE_MS is unset or cannot be parsed as milliseconds, while valid environment values still override the default.",
+  "status": "current",
+  "subsystem": "block building",
+  "suggested_falsification_tests": [
+    "Clear RETH_BUILD_DEADLINE_MS and assert EthereumBuilderConfig::new().build_deadline is 300ms; set it to not_a_number and assert 300ms; set it to a valid value such as 750 and assert 750ms."
+  ],
+  "summary": "EthereumBuilderConfig defaults payload build deadline to 300ms.",
+  "test_or_falsification_candidate": "Clear RETH_BUILD_DEADLINE_MS, set it invalid, and set it to 750; assert build_deadline is 300ms, 300ms, and 750ms respectively.",
+  "title": "Default payload build deadline is 300ms",
+  "total_invariants": 1954
+}

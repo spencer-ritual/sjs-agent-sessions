@@ -1,0 +1,53 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "910f91cf4b627222a8222f3976af0db517075458",
+      "evidence": "ImageCall, AudioCall, VideoCall, and Fhe all appear in the executor-capability match arm.",
+      "path": "crates/ritual-tee-registry-reader/src/types.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub enum Capability {\n    HttpCall = 0,\n    Llm = 1,\n    ZkCall = 5,\n    Dkms = 6,\n    ImageCall = 7,\n    AudioCall = 8,\n    VideoCall = 9,\n    Fhe = 10,\n}\n\npub fn is_executor_capability(&self) -> bool {\n    matches!(self, Capability::HttpCall | Capability::Llm | Capability::WormholeQuery | Capability::ZkCall | Capability::ImageCall | Capability::AudioCall | Capability::VideoCall | Capability::Fhe)\n}",
+      "symbols": [
+        "Capability",
+        "Capability::is_executor_capability"
+      ]
+    }
+  ],
+  "equivalence_argument": "The registry reader classification is direct: each media capability and FHE returns true from is_executor_capability, while non-executor service capabilities remain excluded.",
+  "evidence_files": [
+    "crates/ritual-tee-registry-reader/src/types.rs"
+  ],
+  "invariant_id": "cur-9cc6e646e3-media-capabilities-executor-capabilities",
+  "invariant_index": 461,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This is owned by the port registry reader because it decodes on-chain TEE service capability values used by RPC and verification.",
+  "rationale": "The `is_executor_capability` match arm includes the three new media capabilities and preserves FHE. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "0a219a8be6baf1105157f139bd20142032996457"
+  ],
+  "statement": "ImageCall, AudioCall, VideoCall, and FHE must all be classified as executor capabilities by the TEE registry reader.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Assert `is_executor_capability()` returns true for ImageCall, AudioCall, VideoCall, and FHE, and that non-executor capabilities remain excluded."
+  ],
+  "summary": "Media and FHE capabilities are executor capabilities.",
+  "test_or_falsification_candidate": "Assert `is_executor_capability()` returns true for ImageCall, AudioCall, VideoCall, and FHE, and that non-executor capabilities remain excluded.",
+  "title": "New media capabilities are executor capabilities",
+  "total_invariants": 1954
+}

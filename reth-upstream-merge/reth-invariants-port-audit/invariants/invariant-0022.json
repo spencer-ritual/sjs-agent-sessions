@@ -1,0 +1,78 @@
+{
+  "cluster_key": "scheduler:scheduled-calls-active-410127e4",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "verify_scheduled_transactions reads the stored call, rejects any state other than call_state::SCHEDULED, and rejects execution_index values greater than or equal to num_calls with the specific constraint violation.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if call.state != call_state::SCHEDULED {\n    return Err(ScheduledConstraintViolation::InvalidCallState { call_id, state: call.state });\n}\n\nif execution_index >= call.num_calls as u64 {\n    return Err(ScheduledConstraintViolation::IndexOutOfBounds { call_id, index: execution_index, num_calls: call.num_calls });\n}",
+      "symbols": [
+        "verify_scheduled_transactions",
+        "ScheduledConstraintViolation::InvalidCallState",
+        "ScheduledConstraintViolation::IndexOutOfBounds"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "The evidence file includes tests covering non-SCHEDULED state rejection and out-of-bounds execution index rejection.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "matches!(result, Err(ScheduledConstraintViolation::InvalidCallState { call_id: 1, state: 1 }))\n...\nmatches!(result, Err(ScheduledConstraintViolation::IndexOutOfBounds { call_id: 1, index: 5, num_calls: 3 }))",
+      "symbols": [
+        "test_verify_rejects_invalid_state",
+        "test_verify_rejects_index_out_of_bounds"
+      ]
+    }
+  ],
+  "equivalence_argument": "This is an exact in-port verifier mapping for C2 and C3: the verifier checks the stored Scheduler call state and execution index bounds before accepting scheduled transactions.",
+  "evidence_files": [
+    "crates/ritual-scheduled-verification/src/lib.rs"
+  ],
+  "invariant_id": "cur-cb91e0ade5-scheduled-calls-active-bounds",
+  "invariant_index": 22,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-scheduled-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "InvalidCallState|IndexOutOfBounds|state != call_state::SCHEDULED|execution_index >= call.num_calls|verify_scheduled_transactions"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "verify_scheduled_transactions",
+      "InvalidCallState",
+      "IndexOutOfBounds",
+      "call_state::SCHEDULED"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped directly in the invariant evidence file.",
+  "rationale": "The only candidate is a high-confidence verifier test invariant. Neighbor candidates describe scheduled transaction typing, pool acceptance, and generation, but none refine or supersede the verifier requirement that the referenced scheduler call is active and the execution index is in range.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "258ce97efb57d5803eacd8ccb6cca387524e4aa4"
+  ],
+  "statement": "verify_scheduled_transactions must reject a scheduled transaction when the stored call state is not SCHEDULED or when execution_index is greater than or equal to num_calls.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Run verify_scheduled_transactions against mock scheduler storage where the call state is CANCELLED or otherwise not SCHEDULED and assert InvalidCallState is returned.",
+    "Run verify_scheduled_transactions against a SCHEDULED call with num_calls = 3 and execution_index = 3 or greater, and assert IndexOutOfBounds is returned."
+  ],
+  "summary": "Scheduled transaction verification in the port rejects inactive calls and out-of-range execution indices.",
+  "test_or_falsification_candidate": "Use mock Scheduler storage with state CANCELLED and with num_calls = 3 / execution_index = 3 or 5; verify_scheduled_transactions should return InvalidCallState and IndexOutOfBounds respectively.",
+  "title": "Scheduled calls must be active and in bounds",
+  "total_invariants": 1954
+}

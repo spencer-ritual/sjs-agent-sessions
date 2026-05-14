@@ -1,0 +1,84 @@
+{
+  "cluster_key": "scheduler:generation-service",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "due_index_bounds rejects zero num_calls, zero frequency, ttl above SCHEDULER_MAX_TTL_BLOCKS, and before-start blocks; computes max_due_index and min_due_index arithmetically in O(1); clamps by num_calls; and compute_obligations only iterates the returned inclusive range.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const SCHEDULER_MAX_TTL_BLOCKS: u64 = 500;\n\npub fn due_index_bounds(block_number: u64, start_block: u64, frequency: u64, ttl: u64, num_calls: u64) -> Option<(u64, u64)> {\n    if num_calls == 0 || frequency == 0 || ttl > SCHEDULER_MAX_TTL_BLOCKS || block_number < start_block { return None; }\n    let since_start = block_number - start_block;\n    let mut max_due_index = since_start / frequency;\n    if max_due_index >= num_calls { max_due_index = num_calls - 1; }\n    let earliest_delta = since_start.saturating_sub(ttl);\n    let min_due_index = div_ceil_u64(earliest_delta, frequency);\n    if min_due_index > max_due_index || min_due_index >= num_calls { return None; }\n    Some((min_due_index, max_due_index))\n}\n...\nlet Some((first_due_index, last_due_index)) = due_index_bounds(block_number, start_block, frequency, ttl as u64, num_calls) else { continue; };\nfor i in first_due_index..=last_due_index { ... }",
+      "symbols": [
+        "SCHEDULER_MAX_TTL_BLOCKS",
+        "due_index_bounds",
+        "compute_obligations"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "The block-building snapshot helper uses the same due_index_bounds function, so the bounded inclusive due window is shared with block-building behavior.",
+      "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let Some((first_due_index, last_due_index)) = ritual_scheduled_verification::due_index_bounds(block_number, call.start_block as u64, call.frequency as u64, call.ttl as u64, call.num_calls as u64) else { continue; };\nfor index in first_due_index..=last_due_index { ... obligations.push(...) }",
+      "symbols": [
+        "compute_obligations_from_calls",
+        "due_index_bounds"
+      ]
+    }
+  ],
+  "equivalence_argument": "This is an exact in-port mapping for the due-window invariant: the central helper implements the inclusive TTL inequality with O(1) bounds, rejects invalid/no-due cases, enforces the protocol TTL cap, and both verification-state scanning and block-building snapshot scanning consume the bounded index interval.",
+  "evidence_files": [
+    "crates/ritual-scheduled-verification/src/lib.rs",
+    "crates/ritual-scheduled-block-building/src/lib.rs"
+  ],
+  "invariant_id": "cur-61aca19161-scheduled-index-window-bounded-exact",
+  "invariant_index": 20,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs"
+    ],
+    "checked_queries": [
+      "pub fn due_index_bounds|SCHEDULER_MAX_TTL_BLOCKS|num_calls == 0|frequency == 0|ttl as u64 > SCHEDULER_MAX_TTL_BLOCKS",
+      "due_index_bounds|SCHEDULER_MAX_TTL_BLOCKS|compute_obligations_from_calls"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "due_index_bounds",
+      "SCHEDULER_MAX_TTL_BLOCKS",
+      "compute_obligations",
+      "compute_obligations_from_calls"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped directly in both evidence files.",
+  "rationale": "The later due-index-bounds candidates supersede the exact-block-only obligation rule by restoring the inclusive TTL window, applying it across verification and block-building, bounding TTL, and requiring O(1) due-index discovery rather than scanning 0..num_calls.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "2bcac89973b00ba448f00b60086ec2cf2f19c8c1",
+    "b5a6cd08554c02306faae51e7e1757b9fbf19c73",
+    "a986aed819d21569fd496db3584debb662100b32",
+    "f4eb5f66c2d2e789f4299b8cadd6f7f08b599ada"
+  ],
+  "statement": "Scheduled obligation computation must skip calls whose ttl exceeds SCHEDULER_MAX_TTL_BLOCKS, compute in O(1) the inclusive execution-index range where start_block + index * frequency <= block_number <= start_block + index * frequency + ttl, bound that range by num_calls, and return no due indices for zero num_calls, zero frequency, before-start, or after-expiry cases.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Property-test due_index_bounds against a naive scan over 0..num_calls for varied start_block, frequency, ttl, block_number, and num_calls, including exact start, ttl boundary, overlapping windows, and no-due cases.",
+    "For ttl > SCHEDULER_MAX_TTL_BLOCKS and very large num_calls, assert obligation computation returns none or skips the call without scanning each index."
+  ],
+  "summary": "The port computes scheduled due-index windows with a shared O(1), TTL-bounded helper used by verification and block-building paths.",
+  "test_or_falsification_candidate": "Property-test due_index_bounds against a naive scan over 0..num_calls for start/frequency/ttl/block/num_calls combinations, including zero num_calls, zero frequency, before-start, after-expiry, TTL cap, and overlapping TTL windows.",
+  "title": "Due scheduled index window is bounded and exact",
+  "total_invariants": 1954
+}

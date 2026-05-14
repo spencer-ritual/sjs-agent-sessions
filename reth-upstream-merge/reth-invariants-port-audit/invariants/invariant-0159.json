@@ -1,0 +1,89 @@
+{
+  "cluster_key": "executor delivery:asyncsettlement-round-trip-4cde539d",
+  "confidence": "high",
+  "destinations": [
+    {
+      "evidence": "The port and its Alloy dependency use ASYNC_SETTLEMENT_TX_TYPE_ID for AsyncSettlement, and that constant is 0x12. Envelope tags, storage codecs, receipts, revm/alloy-evm handling, and payload builder gas accounting consistently use 0x12 rather than 0x7.",
+      "path": "crates/eips/src/eip2718.rs",
+      "repo": "/home/ritual/repos/ritual-alloy-internal",
+      "snippet": "pub const ASYNC_SETTLEMENT_TX_TYPE_ID: u8 = 0x12;",
+      "symbols": [
+        "ASYNC_SETTLEMENT_TX_TYPE_ID",
+        "EthereumTxEnvelope::AsyncSettlement",
+        "TxType::AsyncSettlement"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped after correcting stale 0x7 wording: AsyncSettlement is represented as the dedicated AsyncSettlement variants and round-trips through the current AsyncSettlement transaction type id, ASYNC_SETTLEMENT_TX_TYPE_ID = 0x12.",
+  "evidence_files": [
+    "crates/ethereum/primitives/src/transaction.rs",
+    "crates/storage/codecs/src/alloy/transaction/asyncsettlement.rs",
+    "crates/storage/codecs/src/alloy/transaction/ethereum.rs",
+    "crates/storage/codecs/src/alloy/transaction/mod.rs",
+    "crates/storage/codecs/src/alloy/transaction/txtype.rs",
+    "crates/transaction-pool/src/test_utils/mock.rs"
+  ],
+  "invariant_id": "cur-218d78ffa4-asyncsettlement-round-trip-type",
+  "invariant_index": 159,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+    "/home/ritual/repos/ritual-alloy-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "ritual-alloy-internal/crates/eips/src/eip2718.rs",
+      "ritual-alloy-internal/crates/consensus/src/transaction/envelope.rs",
+      "ritual-alloy-internal/crates/consensus/src/transaction/typed.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/storage/codecs/src/alloy/transaction/async_settlement.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/storage/codecs/src/alloy/transaction/txtype.rs",
+      "ritual-alloy-evm-internal/crates/evm/src/tx.rs",
+      "ritual-revm-internal/crates/context/interface/src/transaction/alloy_types.rs"
+    ],
+    "checked_queries": [
+      "AsyncSettlement|TxAsyncSettlement|ASYNC_SETTLEMENT_TX_TYPE_ID|TxType::AsyncSettlement|0x7|0x07|0x12",
+      "asyncsettlement compact codec",
+      "PooledTransaction::AsyncSettlement"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "ASYNC_SETTLEMENT_TX_TYPE_ID",
+      "TxAsyncSettlement",
+      "EthereumTxEnvelope::AsyncSettlement",
+      "TxType::AsyncSettlement",
+      "PooledTransaction::AsyncSettlement"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "The original audit entry expected 0x7, but current downstream and dependency code consistently define ASYNC_SETTLEMENT_TX_TYPE_ID as 0x12.",
+      "ritual-alloy-internal/crates/consensus/src/transaction/envelope.rs tags AsyncSettlement with #[envelope(ty = 0x12)].",
+      "ritual-reth-internal-v2.2.0-port storage codecs preserve AsyncSettlement fields through ASYNC_SETTLEMENT_TX_TYPE_ID.",
+      "ritual-revm-internal and ritual-alloy-evm-internal recognize AsyncSettlement as a system transaction through ASYNC_SETTLEMENT_TX_TYPE_ID/0x12."
+    ]
+  },
+  "notes": "Mapped after catalog/audit correction: 0x7 was stale or mis-extracted; current AsyncSettlement type id is ASYNC_SETTLEMENT_TX_TYPE_ID = 0x12.",
+  "rationale": "The primary diff adds the AsyncSettlement enum variants and conversions throughout transaction primitives, typed-envelope handling, compact codecs, TxType identifiers, and pool mock conversion, with a dedicated compact codec that maps every settlement field into and out of storage. The audited current code uses ASYNC_SETTLEMENT_TX_TYPE_ID = 0x12; the 0x7 wording is not supported by downstream or the port.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "c2c244efaf4ed6929123df08234eea917c751a40"
+  ],
+  "statement": "A signed TxAsyncSettlement must be represented as Transaction::AsyncSettlement / TxEnvelope::AsyncSettlement / PooledTransaction::AsyncSettlement, report TxType::AsyncSettlement with ASYNC_SETTLEMENT_TX_TYPE_ID (currently 0x12), and preserve all settlement-specific fields across 2718 decoding, compact storage encoding, compact storage decoding, envelope conversion, and transaction-pool conversion.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Build a TxAsyncSettlement containing distinct values for gas, gas_price, to, value, async_tx_hash, user_address, total_amount, executor/validator addresses and fees, settlement_block, and input; sign it, encode/decode it as a 2718 transaction, compact-encode/decode it through storage codecs, convert through TransactionSigned, TxEnvelope, and PooledTransaction, and assert the type remains AsyncSettlement/ASYNC_SETTLEMENT_TX_TYPE_ID and every field is unchanged."
+  ],
+  "summary": "AsyncSettlement round-trip support is mapped with the current type id 0x12.",
+  "test_or_falsification_candidate": "Build and sign a TxAsyncSettlement, 2718 encode it, and assert the first type byte equals ASYNC_SETTLEMENT_TX_TYPE_ID.",
+  "title": "AsyncSettlement transactions round-trip as type 0x12",
+  "total_invariants": 1954
+}

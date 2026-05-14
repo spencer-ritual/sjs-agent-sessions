@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "The port updates the SPC registry from state snapshots, not by running a TeeDA log service that dispatches topic[0] event signatures.",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/service.rs"
+  ],
+  "invariant_id": "cur-f5b2f3d0ce-teeda-logs-dispatch-event-signature",
+  "invariant_index": 257,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-spc-verification/src/service.rs",
+      "crates/ritual-spc-verification/src/error.rs",
+      "crates/ritual-spc-verification/src/verifier.rs"
+    ],
+    "checked_queries": [
+      "ExecutorRegistered ExecutorUpdated ExecutorDeactivated",
+      "TeeDA logs topic[0] dispatch",
+      "ExecutorRegistryService handle log",
+      "event signature InvalidEventData"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "ExecutorRegistryService",
+      "ExecutorRegistered",
+      "ExecutorDeactivated",
+      "ExecutorUpdated",
+      "topic[0]",
+      "InvalidEventData"
+    ],
+    "missing_behavior": "No audited repo contains a TeeDA log service that inspects topic[0] and dispatches ExecutorRegistered, ExecutorDeactivated, and ExecutorUpdated handlers while debug-logging unknown signatures.",
+    "related_but_insufficient_code": [
+      "crates/ritual-spc-verification/src/verifier.rs has update_registry_from_data, which rebuilds registry contents from read_all_executors state data rather than dispatching log signatures.",
+      "crates/ritual-spc-verification/src/error.rs defines InvalidEventData but no event handler uses it in the audited code."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The commit replaces a Phase 2 TODO at the TeeDA-log point with concrete event signature helpers and match arms for the three registry-relevant contract events. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "3aeb9bff2387ecbd42714e9c9db11b5a0c9363ee"
+  ],
+  "statement": "For logs emitted by the configured TeeDA contract address, the service must inspect topic[0] and dispatch ExecutorRegistered, ExecutorDeactivated, and ExecutorUpdated events to their specific handlers while leaving unknown TeeDA event signatures unhandled except for debug logging.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Feed canonical-state receipts containing one log from the TeeDA address for each supported event signature plus one unknown signature, and assert only the three supported events invoke registry mutation handlers while the unknown signature leaves registry state unchanged."
+  ],
+  "summary": "TeeDA event-signature dispatch is absent.",
+  "test_or_falsification_candidate": "Feed TeeDA receipt logs with registered, deactivated, updated, and unknown signatures to a service handler; current audited code has no handler to exercise.",
+  "title": "TeeDA logs dispatch by event signature",
+  "total_invariants": 1954
+}

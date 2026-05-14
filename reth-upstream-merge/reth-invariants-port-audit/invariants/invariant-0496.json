@@ -1,0 +1,52 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "SPC reads fail immediately when the AsyncJobTracker executor slot is zero.",
+      "path": "crates/ritual-async-registry/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if executor.is_zero() {\n    return Err(RegistryError::DatabaseError(format!(\n        \"Job {} not found in AsyncJobTracker (jobExecutor is zero) \u2014 cannot verify SPC for non-existent job\",\n        job_id\n    )));\n}",
+      "symbols": [
+        "read_jobs_for_spc_verification"
+      ]
+    }
+  ],
+  "equivalence_argument": "The SPC verification reader does not omit missing jobs; it returns an error before inserting any verification data for a zero-executor job.",
+  "evidence_files": [
+    "crates/ritual-async-registry/src/lib.rs"
+  ],
+  "invariant_id": "cur-8f8b38a36f-reads-fail-missing-asyncjobtracker-entries",
+  "invariant_index": 496,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This is intentionally stricter than settlement reads, which may skip missing jobs.",
+  "rationale": "The diff changes `read_jobs_for_spc_verification` to error when the job executor is zero and updates its test to expect an error for missing jobs, making malformed block references fail closed. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "845432f41d120d168e22a5bd1232766566e41750"
+  ],
+  "statement": "SPC verification job reads should return an error when a referenced job has `jobExecutor == address(0)` instead of silently omitting the job from the returned map.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call `read_jobs_for_spc_verification` with a job id whose `jobExecutor` slot is zero and assert it returns an error; then set a valid executor and assert the job is returned normally."
+  ],
+  "summary": "SPC job reads fail closed on missing AsyncJobTracker entries.",
+  "test_or_falsification_candidate": "Call read_jobs_for_spc_verification with a zero jobExecutor slot and assert Err, then set a valid executor and assert the job is returned.",
+  "title": "SPC job reads fail on missing AsyncJobTracker entries",
+  "total_invariants": 1954
+}

@@ -1,0 +1,75 @@
+{
+  "cluster_key": "executor delivery:agent-settlement-uses-4e3a6ece",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete implementation mapping was found in the audited local repo set: Missing a CLI/0x080C delivery decoder that uses fields 6-10 and forces delivery value to zero; current shared two-phase decoder consumes field 11 as callback_value, which is the agent type field in the 0x080C ABI.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-async-fees/src/constants.rs",
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ritual-async-fees/src/wallet.rs",
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/ritual-precompile-codecs/src/long_running.rs"
+  ],
+  "invariant_id": "cur-1bd607be3c-agent-settlement-uses-work-based-pricing-delivery-fields",
+  "invariant_index": 181,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-async-fees/src/wallet.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ritual-precompile-codecs/src/sovereign_agent.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs"
+    ],
+    "checked_queries": [
+      "CLI_AGENT|CLI Agent|cli_agent|from_cli_agent_abi|calculate_agent_fees_phase2_work|extract_agent_metrics_from_delivery|0x080C|0x080c|DeliveryConfig",
+      "SOVEREIGN_AGENT_PRECOMPILE|decode_delivery_config_at|callback_value|calculate_agent_fees_phase2_work",
+      "SovereignAgentRequest|max_poll_block|ParamType::Address|ParamType::FixedBytes"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "SOVEREIGN_AGENT_PRECOMPILE",
+      "decode_delivery_config",
+      "decode_delivery_config_at",
+      "calculate_agent_fees_phase2_work",
+      "extract_agent_metrics_from_delivery",
+      "calculate_async_fees_phase2",
+      "SovereignAgentRequest"
+    ],
+    "missing_behavior": "Missing a CLI/0x080C delivery decoder that uses fields 6-10 and forces delivery value to zero; current shared two-phase decoder consumes field 11 as callback_value, which is the agent type field in the 0x080C ABI.",
+    "related_but_insufficient_code": [
+      "crates/ritual-async-fees/src/lib.rs and crates/ritual-block-verification/src/lib.rs special-case SOVEREIGN_AGENT_PRECOMPILE for work-based Phase 2 fees from iterations/tool_calls.",
+      "crates/ethereum/payload/src/ritual_async.rs decodes delivery config for SOVEREIGN_AGENT_PRECOMPILE from field 6, which reads target/selector/gas/max fee/priority fee from fields 6-10 but also reads callback_value from field 11.",
+      "crates/ritual-precompile-codecs/src/sovereign_agent.rs shows field 11 is sovereign_agent_type, not a delivery value, and no from_cli_agent_abi or CLI-specific zero-value delivery decoder was found.",
+      "calculate_async_fees_phase2 rejects SOVEREIGN_AGENT_PRECOMPILE generically, with builder/verifier special-casing it instead; that pricing part is present but insufficient because the delivery value semantics are wrong."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The payload builder and verifier treat CLI Agent like agent calls for work-based pricing, the generic Phase 2 fee path explicitly excludes it, and a dedicated delivery decoder extracts CLI Agent's delivery fields from its ABI layout. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: The pricing constants are marked uncalibrated, so exact rates may change; the durable behavior is using work metrics and the CLI-specific delivery ABI rather than byte pricing or the generic long-running decoder.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "10040420016c9c741801a11c9adf73bb7555b183"
+  ],
+  "statement": "CLI Agent Phase 1 fees should use the same constant task-start fee path as agent calls; generic Phase 2 byte pricing should reject CLI Agent and require work-based pricing from `(iterations, tool_calls)`, while settlement delivery config for 0x080C should decode target, selector, gas limit, max fee, and priority fee from fields 6-10 and use zero delivery value.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "For a CLI Agent settlement result containing known iterations/tool_calls, assert builder and verifier compute the same work-based fee and reject missing metrics; assert `DeliveryConfig::from_cli_agent_abi` returns fields 6-10 with value zero and malformed selectors or token types fail decoding."
+  ],
+  "summary": "Work-based 0x080C pricing is present, but CLI delivery value decoding is a confirmed gap.",
+  "test_or_falsification_candidate": "Build a 0x080C delivery request with sovereign_agent_type=1 and otherwise zero callback value semantics; current decode_delivery_config_at(input, 6) will treat field 11 as a nonzero callback_value instead of forcing zero.",
+  "title": "CLI Agent settlement uses work-based pricing and CLI delivery fields",
+  "total_invariants": 1954
+}

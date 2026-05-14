@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "970542d1b36413978b3179faeb582ddec3dfc136",
+      "evidence": "The builder validates the detected async precompile payload with the shared validate_async_payload routine before decoding executor and TTL into a commitment.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "fn validate_async_commitment_call(\n    async_call: &BasicAsyncCallResult,\n) -> Result<ritual_precompile_codecs::DecodedPrecompileData, String> {\n    async_commitment_metadata(async_call.precompile_address, \"detected async precompile\")?;\n\n    let input = async_call.input.as_ref();\n    validate_async_payload(async_call.precompile_address, input, MAX_SHORT_ASYNC_TTL_BLOCKS)\n        .map_err(|err| format!(\"invalid async commitment payload: {err}\"))?;\n\n    try_decode_precompile_data(async_call.precompile_address, input)\n        .map_err(|err| format!(\"malformed async commitment input: {err}\"))\n}",
+      "symbols": [
+        "build_short_async_commitment_transaction",
+        "validate_async_commitment_call"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "970542d1b36413978b3179faeb582ddec3dfc136",
+      "evidence": "The verifier independently enforces TTL bounds, nonzero executor, payload validity, and decoded executor/TTL parity for each async commitment.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "fn validate_commitment_structure(\n    commitment: &TxAsyncCommitment,\n) -> Result<&'static AsyncPrecompileMetadata, BlockVerificationError> {\n    if commitment.ttl == 0 || commitment.ttl > MAX_SHORT_ASYNC_TTL_BLOCKS {\n        return Err(BlockVerificationError::InvalidAsyncCommitment(format!(\n            \"TTL {} outside async commitment bounds 1..={}\",\n            commitment.ttl, MAX_SHORT_ASYNC_TTL_BLOCKS\n        )));\n    }\n    let metadata = async_commitment_metadata(commitment.precompile_address, \"async commitment\")\n        .map_err(BlockVerificationError::InvalidAsyncCommitment)?;\n    if commitment.executor_address.is_zero() {\n        return Err(BlockVerificationError::InvalidAsyncCommitment(\n            \"executor address cannot be zero\".to_string(),\n        ));\n    }\n    validate_async_payload(\n        commitment.precompile_address,\n        commitment.precompile_input.as_ref(),\n        MAX_SHORT_ASYNC_TTL_BLOCKS,\n    )?;\n    let decoded = try_decode_precompile_data(commitment.precompile_address, commitment.precompile_input.as_ref())?;\n    if decoded.executor != commitment.executor_address { /* reject */ }\n    if decoded.ttl != commitment.ttl { /* reject */ }",
+      "symbols": [
+        "validate_commitment_structure",
+        "validate_async_payload",
+        "try_decode_precompile_data"
+      ]
+    }
+  ],
+  "equivalence_argument": "Builder-side detection and verifier-side validation both use the same payload codec and TTL/executor bounds, with verifier decode-parity checks preventing mutation between commitment fields and precompile input.",
+  "evidence_files": [
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-35751e27a2-builder-verifier-agree-async-executor-validity",
+  "invariant_index": 444,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This maps the field-level validity contract; registry capability checks remain a later stateful validation step.",
+  "rationale": "The added tests label TTL and executor checks as differential equivalence between builder and verifier, assert boundary cases, and fuzz both decisions for equality. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "6dce2742d7f1ab825b1b9e25a6c66a529fcd9916"
+  ],
+  "statement": "Builder-side async detection and verifier-side commitment validation must reject ttl == 0, reject ttl > MAX_TTL_BLOCKS, accept ttl in 1..=MAX_TTL_BLOCKS, reject Address::ZERO as executor, and accept nonzero executor addresses.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Run builder detection and verifier commitment validation against commitments with ttl 0, ttl 1, ttl MAX_TTL_BLOCKS, ttl MAX_TTL_BLOCKS + 1, zero executor, and nonzero executor; assert both sides make identical accept/reject decisions matching those boundaries."
+  ],
+  "summary": "Builder and verifier agree on TTL and executor validity.",
+  "test_or_falsification_candidate": "Run builder detection and verifier commitment validation against commitments with ttl 0, ttl 1, ttl MAX_TTL_BLOCKS, ttl MAX_TTL_BLOCKS + 1, zero executor, and nonzero executor; assert both sides make identical accept/reject decisions matching those boundaries.",
+  "title": "Builder and verifier agree on async TTL and executor validity",
+  "total_invariants": 1954
+}

@@ -1,0 +1,77 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "The shared fee type computes total from the three component fees, and calculate_async_fees returns that shared breakdown for short async pricing.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub struct AsyncFees { pub executor_fee: U256, pub commitment_fee: U256, pub inclusion_fee: U256, pub total: U256 }\n...\nlet total = executor_fee + commitment_fee + inclusion_fee;\n...\nOk(AsyncFees::new(executor_fee, commitment_fee, inclusion_fee))",
+      "symbols": [
+        "AsyncFees::new",
+        "calculate_async_fees"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Payload settlement construction consumes the shared AsyncFees breakdown rather than recomputing component totals locally.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let fees = calculate_async_fees(db, get_model_registry_address(), contract_job.precompile_address, &metadata.precompile_input, Some(execution_result), model_cache)?;\n...\nfees.executor_fee, fees.commitment_fee, fees.inclusion_fee, ... fees.total",
+      "symbols": [
+        "prepare_fulfilled_async_settlement",
+        "calculate_async_fees"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Block verification uses the same shared calculator and checks all component fees plus the total.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let fees = calculate_async_fees(&mut db, get_model_registry_address(), job.precompile_address, &precompile_input, Some(&spc_output), &mut model_cache)?;\nif settlement.executor_fee != fees.executor_fee || settlement.commitment_fee != fees.commitment_fee || settlement.inclusion_fee != fees.inclusion_fee || settlement.total_amount != fees.total { return Err(...); }",
+      "symbols": [
+        "verify_settlements",
+        "calculate_async_fees"
+      ]
+    }
+  ],
+  "equivalence_argument": "The v2 port keeps calculate_async_fees as the shared component source for payload construction and verification, with AsyncFees::new deriving total from executor, commitment, and inclusion fees.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/lib.rs"
+  ],
+  "invariant_id": "cur-458514b87e-async-totals-come-shared-calculator",
+  "invariant_index": 356,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to the port async-fees crate and its two primary consumers.",
+  "rationale": "The new crate documents itself as the single source of truth for block building, verification, and wallet checks, and `AsyncFees::new` computes `total` from the three component fees. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "8283cdb5e582a0cc1a63686aff41b5f000435e3e"
+  ],
+  "statement": "`calculate_async_fees` is the shared fee calculator for async transactions and returns a breakdown whose `total` equals executor fee plus commitment fee plus inclusion fee.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "For representative HTTP and LLM async calls, calculate fees through builder, verifier, and wallet validation paths and assert they all use the same component values and `total == executor_fee + commitment_fee + inclusion_fee`."
+  ],
+  "summary": "Async fee totals are derived by the shared AsyncFees calculator used by builder and verifier.",
+  "test_or_falsification_candidate": "For representative HTTP and LLM calls, compare builder and verifier fee outputs and assert total equals executor_fee + commitment_fee + inclusion_fee.",
+  "title": "Async fee totals come from shared calculator",
+  "total_invariants": 1954
+}

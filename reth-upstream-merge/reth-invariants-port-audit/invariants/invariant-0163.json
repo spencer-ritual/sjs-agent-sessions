@@ -1,0 +1,88 @@
+{
+  "cluster_key": "executor delivery:audio-phase-fees-1c0d8009",
+  "confidence": "high",
+  "destinations": [
+    {
+      "evidence": "The shared fee crate now calculates audio Phase 2 fees from delivery_result slot 6 outputDurationMs, converts to rounded pricing seconds, reads model-specific audio pricing, and returns executor-only Phase 2 fees.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "calculate_audio_fees_phase2_from_delivery(... extract_audio_duration_from_delivery ... calculate_audio_fees_phase2 ...)",
+      "symbols": [
+        "calculate_audio_fees_phase2",
+        "calculate_audio_fees_phase2_from_delivery",
+        "extract_audio_duration_from_delivery"
+      ]
+    },
+    {
+      "evidence": "The payload builder now treats AUDIO_CALL_PRECOMPILE as a supported two-phase delivery precompile and routes delivery settlements through the shared audio Phase 2 fee helper.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "contract_job.precompile_address == AUDIO_CALL_PRECOMPILE ... calculate_audio_fees_phase2_from_delivery(...)",
+      "symbols": [
+        "prepare_delivery_settlement_transaction",
+        "is_supported_two_phase_precompile"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port after correcting the stale seconds wording to current downstream semantics: the builder prices audio Phase 2 settlements from slot-6 outputDurationMs via rounded seconds and model-specific calculate_audio_fees_phase2, and malformed/too-short duration output causes settlement creation to fail.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-86dfc13c7d-audio-phase-fees-output-duration",
+  "invariant_index": 163,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs"
+    ],
+    "checked_queries": [
+      "AUDIO_CALL_PRECOMPILE|calculate_async_fees_phase2|calculate_audio_fees_phase2|extract_audio_duration|delivery_result|slot 6"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "prepare_delivery_settlement_transaction",
+      "calculate_async_fees_phase2",
+      "AUDIO_CALL_PRECOMPILE",
+      "calculate_audio_fees_phase2"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "prepare_delivery_settlement_transaction passes callback_delivery_result.len() to calculate_async_fees_phase2 for non-agent two-phase jobs.",
+      "calculate_async_fees_phase2 does not support AUDIO_CALL_PRECOMPILE and has no duration-based audio branch.",
+      "decode_delivery_config includes AUDIO_CALL_PRECOMPILE, but that only decodes callback config and not output duration or fee tiers."
+    ]
+  },
+  "notes": "Mapped after local parity fix. The catalog wording was also corrected because current downstream slot 6 is outputDurationMs and pricing uses rounded-up seconds.",
+  "rationale": "The original audio Phase 2 path was later refined so slot 6 is outputDurationMs, not raw seconds, and fee calculation uses rounded-up seconds plus current model-specific audio pricing. The durable behavior is that audio Phase 2 pricing reflects delivered audio duration and malformed duration output does not fall back to generic byte-length pricing.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "c0f40d9bad9895158f4c7911be1d42d6e9c6cb42",
+    "cf054db8d52e8aa30b18aebbabbc4e50cff2d5b7",
+    "033d7bf239f9363e85c53c63f007887b10209923",
+    "8aa848f34c3f6d6543a3731eb6a436cf361e287d"
+  ],
+  "statement": "For AUDIO_CALL_PRECOMPILE Phase 2 delivery settlements, the payload builder must extract outputDurationMs from ABI slot 6 of the delivery result, convert it to rounded-up pricing seconds, and calculate fees with calculate_audio_fees_phase2; missing or too-short delivery output must prevent settlement creation.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Build an audio Phase 2 delivery result with a known slot-6 millisecond duration and assert settlement fees equal calculate_audio_fees_phase2 for the rounded pricing duration; then provide a delivery result shorter than slot 6 and assert settlement creation errors instead of falling back to unrelated pricing."
+  ],
+  "summary": "Payload building now uses duration-based audio Phase 2 settlement fees.",
+  "test_or_falsification_candidate": "Focused fee-crate tests cover calculate_audio_fees_phase2 for executor-only Phase 2 fees, and cargo check validates the payload builder calls the shared audio delivery fee helper.",
+  "title": "Audio Phase 2 fees use output duration",
+  "total_invariants": 1954
+}

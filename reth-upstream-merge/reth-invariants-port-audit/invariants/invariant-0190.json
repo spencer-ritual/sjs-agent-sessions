@@ -1,0 +1,111 @@
+{
+  "cluster_key": "executor delivery:delivery-calls-preserved-e6f116b7",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The delivery settlement builder derives a delivery SPC call from the raw delivery result/proof and stores it on the AsyncSettlement transaction.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let delivery_spc_call = SpcCall::new(...);\nlet mut settlement_tx = TxAsyncSettlement::new(...);\nsettlement_tx.delivery_spc_calls = Some(vec![delivery_spc_call]);",
+      "symbols": [
+        "prepare_delivery_settlement_transaction",
+        "TxAsyncSettlement::new",
+        "SpcCall::new"
+      ]
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "169074f08721705fbb99cc9531ea798b61e9f3cc",
+      "evidence": "The dependency transaction type carries delivery_spc_calls through RLP encoding/decoding and exposes them through the Transaction trait while clearing runtime fields for signing/hash stability.",
+      "path": "crates/consensus/src/transaction/async_settlement.rs",
+      "repo": "/home/ritual/repos/ritual-alloy-internal",
+      "snippet": "pub delivery_spc_calls: Option<Vec<SpcCall>>,\n...\nif let Some(delivery_spc_calls) = &self.delivery_spc_calls { len += delivery_spc_calls.length(); }\n...\nfn delivery_spc_calls(&self) -> Option<Vec<SpcCall>> { self.delivery_spc_calls.clone() }",
+      "symbols": [
+        "TxAsyncSettlement",
+        "RlpEcdsaEncodableTx",
+        "RlpEcdsaDecodableTx",
+        "Transaction::delivery_spc_calls"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The port storage codec preserves delivery_spc_calls through compact storage round trips.",
+      "path": "crates/storage/codecs/src/alloy/transaction/async_settlement.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "delivery_spc_calls: self.delivery_spc_calls.clone().unwrap_or_default(),\n...\nalloy_tx.delivery_spc_calls = if tx.delivery_spc_calls.is_empty() { None } else { Some(tx.delivery_spc_calls) };",
+      "symbols": [
+        "Compact for AlloyTxAsyncSettlement"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "RPC receipt construction exposes delivery_spc_calls alongside normal SPC calls.",
+      "path": "crates/rpc/rpc-eth-types/src/receipt.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "spc_calls: tx.spc_calls(),\ndelivery_spc_calls: tx.delivery_spc_calls(),",
+      "symbols": [
+        "TransactionSignedEcRecoveredWithBlobs::from"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port populates delivery_spc_calls at Phase 2 settlement construction, the alloy transaction type serializes/deserializes and delegates the field while keeping canonical signing/hash identity stable, the port storage codec round-trips it, and receipts expose the same trait field.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ethereum/primitives/src/transaction.rs",
+    "crates/rpc/rpc-eth-types/src/receipt.rs",
+    "crates/storage/codecs/src/alloy/transaction/async_settlement.rs"
+  ],
+  "invariant_id": "cur-d27119248a-delivery-calls-preserved-exposed",
+  "invariant_index": 190,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+    "/home/ritual/repos/ritual-alloy-internal"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/consensus/src/transaction/async_settlement.rs",
+      "crates/storage/codecs/src/alloy/transaction/async_settlement.rs",
+      "crates/rpc/rpc-eth-types/src/receipt.rs"
+    ],
+    "checked_queries": [
+      "delivery_spc_calls|fn delivery_spc_calls|TxAsyncSettlement|rlp_encoded_fields_length|Compact|receipt"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-alloy-internal"
+    ],
+    "checked_symbols": [
+      "delivery_spc_calls",
+      "TxAsyncSettlement",
+      "RlpEcdsaEncodableTx",
+      "RlpEcdsaDecodableTx",
+      "Compact",
+      "Transaction::delivery_spc_calls"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The primary diff populates delivery_spc_calls on settlement construction, adds transaction delegation for delivery_spc_calls, includes the field in receipts, and updates settlement codec handling. The commit title explicitly calls out receipt support. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "0a0777c12ee5b9b3a73e01444a6a7a62d08f409b"
+  ],
+  "statement": "AsyncSettlement transactions created for Phase 2 delivery must carry delivery_spc_calls derived from the delivery result/proof, preserve those calls through transaction trait delegation and compact/RLP paths, and expose them in RPC receipts.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create a Phase 2 delivery settlement with known delivery result/proof, round-trip it through the async settlement codec/RLP path, and fetch its RPC receipt; assert delivery_spc_calls contains the expected SpcCall while canonical transaction hash behavior remains stable."
+  ],
+  "summary": "Delivery SPC calls are populated by the port and preserved through transaction, storage, and receipt surfaces.",
+  "test_or_falsification_candidate": "Create a delivery settlement with a known delivery SPC call, RLP round-trip it, compact-storage round-trip it, and build an RPC receipt; assert the call remains present while the transaction hash is unchanged by runtime SPC fields.",
+  "title": "Delivery SPC calls are preserved and exposed",
+  "total_invariants": 1954
+}

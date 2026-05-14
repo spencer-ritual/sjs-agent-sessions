@@ -1,0 +1,95 @@
+{
+  "cluster_key": "executor delivery:async-pool-separate-fd5181a5",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The outer Pool owns a separate async_pool field alongside, not inside, the locked TxPool.",
+      "path": "crates/transaction-pool/src/pool/mod.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pool: RwLock<TxPool<T>>,\nasync_pool: AsyncPool<T::Transaction>,\n...\npool: RwLock::new(TxPool::new(ordering, config.clone())),\nasync_pool: AsyncPool::new(),",
+      "symbols": [
+        "Pool",
+        "Pool::new"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Canonical insertion, fulfillment, metadata lookup, and fulfilled-entry reads route directly to the dedicated async_pool field.",
+      "path": "crates/transaction-pool/src/pool/mod.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "self.async_pool.add_committed_async_tx(...);\n...\nself.async_pool.submit_result_with_context(submission)\n...\nself.async_pool.get_metadata(original_tx_hash)\n...\nself.async_pool.fulfilled_entries(current_block)",
+      "symbols": [
+        "Pool::process_async_commitment_transactions",
+        "Pool::submit_async_result",
+        "Pool::get_async_metadata",
+        "Pool::fulfilled_async_entries"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Sender locking and async metadata storage are owned by AsyncPool and can be consulted independently of TxPool internals.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub struct AsyncPool<T: PoolTransaction> { inner: RwLock<AsyncPoolInner<T>> }\n...\nif let Some(locked_hash) = inner.sender_locks.get(&original_sender) { ... }\n...\npub fn is_sender_locked(&self, sender: Address) -> bool { self.inner.read().sender_locks.contains_key(&sender) }",
+      "symbols": [
+        "AsyncPool::add_metadata",
+        "AsyncPool::is_sender_locked"
+      ]
+    }
+  ],
+  "equivalence_argument": "The old AsyncCommitmentPool wording maps to the v2.2 port AsyncPool. The load-bearing behavior is preserved: Pool has a distinct async_pool field, initializes it independently, and routes async sender locks, insertion, lookup, fulfillment, entry enumeration, and cleanup through that field rather than embedding async state in the locked TxPool.",
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/mod.rs",
+    "crates/transaction-pool/src/pool/txpool.rs",
+    "crates/transaction-pool/src/pool/async_pool.rs"
+  ],
+  "invariant_id": "cur-af1a4e6016-async-pool-separate-txpool-lock",
+  "invariant_index": 156,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/mod.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/transaction-pool/src/pool/txpool.rs"
+    ],
+    "checked_queries": [
+      "async_pool: AsyncPool|pool: RwLock<TxPool|is_sender_locked|submit_async_result|get_async_metadata|add_committed_async_tx"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "Pool::async_pool",
+      "AsyncPool::add_metadata",
+      "AsyncPool::is_sender_locked",
+      "Pool::submit_async_result",
+      "Pool::get_async_metadata"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The diff adds async_pool to Pool, initializes it separately, changes AsyncCommitmentPool::add_transaction to take &self, removes the async subpool from TxPool, and rewires async APIs to call self.async_pool directly. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: This is mostly an internal locking and ownership refactor; callers observe it through async-pool behavior and potential contention/race differences.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "650311bd077b241485c5e5f7eabd4c251c436934"
+  ],
+  "statement": "The outer Pool must own a dedicated AsyncCommitmentPool field and route async sender-lock checks, metadata lookup, fulfillment, direct result insertion, precompile input lookup, async-pool containment, and async-pool insertion through that field instead of through the locked internal TxPool.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Instrument or mock Pool so async result submission, async metadata lookup, and sender-lock checks can occur while the internal TxPool write lock is held, and assert they still complete through the dedicated async_pool; also assert adding a duplicate sender fails via async_pool sender locking."
+  ],
+  "summary": "Async pool state is separate from the internal TxPool lock and owns async routing.",
+  "test_or_falsification_candidate": "Hold or instrument the internal TxPool lock while calling async metadata lookup, result submission, and sender-lock checks; they should proceed through Pool::async_pool and duplicate sender insertion should fail via AsyncPool sender_locks.",
+  "title": "Async pool is separate from TxPool lock",
+  "total_invariants": 1954
+}

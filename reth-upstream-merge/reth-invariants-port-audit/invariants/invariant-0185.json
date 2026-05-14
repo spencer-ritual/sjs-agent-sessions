@@ -1,0 +1,72 @@
+{
+  "cluster_key": "executor delivery:builder-verifier-share-8ac3fb11",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping was found: the port shares sovereign-agent delivery metric extraction between builder and verifier, but it lacks shared image/audio/video delivery metric extraction and explicitly rejects image/audio/video/FHE two-phase families from the v2 delivery path.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-async-fees/src/constants.rs",
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-0341c4ea4c-builder-verifier-share-delivery-extraction-semantics",
+  "invariant_index": 185,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-async-fees/src/constants.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs"
+    ],
+    "checked_queries": [
+      "extract_agent_metrics_from_delivery|calculate_agent_fees_phase2_work|IMAGE|AUDIO|VIDEO|SETTLEMENT_BYTES_OFFSET_POSITION",
+      "fn ensure_supported_two_phase|unsupported two-phase|rejects_unported_fee_families|calculate_async_fees_phase2\\(",
+      "delivery.*metrics|image.*delivery|audio.*delivery|video.*delivery"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "extract_agent_metrics_from_delivery",
+      "calculate_agent_fees_phase2_work",
+      "calculate_async_fees_phase2",
+      "ensure_supported_two_phase_metadata",
+      "ensure_supported_two_phase",
+      "is_supported_two_phase_precompile"
+    ],
+    "missing_behavior": "Missing shared ritual-async-fees extraction semantics for image, audio, and video Phase 2 delivery metadata, and the local builder/verifier reject those two-phase families instead of using common offsets and helpers.",
+    "related_but_insufficient_code": [
+      "crates/ritual-async-fees/src/lib.rs exposes extract_agent_metrics_from_delivery and calculate_agent_fees_phase2_work for sovereign-agent delivery metrics only.",
+      "crates/ethereum/payload/src/ritual_async.rs uses extract_agent_metrics_from_delivery for SOVEREIGN_AGENT_PRECOMPILE, then falls back to calculate_async_fees_phase2 for other delivery families.",
+      "crates/ritual-async-fees/src/lib.rs calculate_async_fees_phase2 supports LONG_RUNNING_HTTP, ZK_TWO_PHASE, and PERSISTENT_AGENT only; image/audio/video are not accepted.",
+      "crates/ethereum/payload/src/ritual_async.rs and crates/ritual-block-verification/src/lib.rs both restrict supported two-phase precompiles to long-running HTTP, ZK, sovereign-agent, and persistent-agent.",
+      "crates/ritual-block-verification/src/lib.rs has a test named supported_two_phase_helper_rejects_unported_fee_families covering image, audio, video, and FHE."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The commit message labels the move consensus critical and says the goal is eliminating builder/verifier divergence. The primary diff removes local extraction functions from the payload builder, adds shared ABI offset constants and extraction helpers to ritual-async-fees, and updates verifier extraction to use those shared constants. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "e1515f61232cd4b24aae4ddab238c7da63d31dca"
+  ],
+  "statement": "Payload building and block verification must extract Phase 2 delivery metadata for agent, image, audio, and video calls using the same ABI offsets and extraction semantics from ritual-async-fees.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "For each supported Phase 2 delivery type, encode a settlement/delivery_result with known agent iterations/tool calls, image dimensions, audio duration, and video dimensions/duration; assert payload-builder fee selection and block-verifier expected-fee calculation extract the same values. Then mutate an offset or truncate the delivery_result and assert both paths fail consistently."
+  ],
+  "summary": "Shared builder/verifier delivery extraction is incomplete for image/audio/video, so this invariant is a confirmed gap.",
+  "test_or_falsification_candidate": "Encode Phase 2 delivery results for image, audio, and video with known dimensions/durations and attempt builder/verifier settlement fee calculation; current local code should reject the families as unsupported or fail fee calculation instead of extracting shared metrics.",
+  "title": "Builder and verifier share delivery extraction semantics",
+  "total_invariants": 1954
+}

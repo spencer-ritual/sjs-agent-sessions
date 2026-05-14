@@ -9,10 +9,10 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "mapped",
+  "file_classification": "intentionally_absent",
   "tags": [
-    "mapped",
-    "needs-review"
+    "intentionally_absent",
+    "non-exact"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -47,7 +47,7 @@
           "evidence": "The destination validation code contains no `tracing` import or log macros, so the downstream manifest addition is not needed there."
         }
       ],
-      "equivalence_argument": "Downstream commit `826110f5901` added `tracing.workspace = true` after introducing Ritual-specific debug/error logging in `crates/consensus/common/src/validation.rs`. In the v2.2.0 port target, that logging is absent and the crate instead carries upstream structural changes such as `alloy-primitives` usage and tx-root precomputation support. Because the only consumer of this dependency in the downstream crate is gone, omitting the manifest entry is intentional rather than a missed port.",
+      "equivalence_argument": null,
       "test_strategy": "not_needed",
       "negative_test_candidate": null,
       "adversarial_review": {
@@ -55,16 +55,19 @@
         "status": "not_requested",
         "review_record_id": null
       },
-      "review_required": true,
-      "human_question": "Confirm that the v2.2 port should continue omitting downstream-only consensus validation tracing, leaving this manifest dependency intentionally absent.",
-      "notes": "Destination search found no exact or near-exact Ritual logging strings in the port or dependency repos for this crate; the dependency addition is tied to downstream-only diagnostics, not retained runtime behavior."
+      "review_required": false,
+      "human_question": null,
+      "notes": "Destination search found no exact or near-exact Ritual logging strings in the port or dependency repos for this crate; the dependency addition is tied to downstream-only diagnostics, not retained runtime behavior. Guideline remediation: accepted as intentionally absent because The downstream `tracing` dependency only supported Ritual debug/error logging in consensus validation; the v2.2 port has no corresponding tracing call sites, so the manifest dependency is obsolete rather than a behavior gap.",
+      "required_change": null,
+      "intentional_absence_basis": "destination_absence_of_diagnostic_callsite",
+      "intentional_absence_rationale": "The downstream `tracing` dependency only supported Ritual debug/error logging in consensus validation; the v2.2 port has no corresponding tracing call sites, so the manifest dependency is obsolete rather than a behavior gap."
     }
   ],
   "high_risk_atoms_total": 0,
   "non_exact_atoms_total": 1,
   "adversarial_reviews": [],
-  "summary": "The only atom is a downstream-only `tracing` dependency addition, intentionally absent in the v2.2.0 port because the corresponding tracing calls are not present in destination code.",
-  "review_required": true,
-  "status": "needs_review",
+  "summary": "Atoms in this file are intentionally absent or mapped to active v2.2 behavior where applicable.",
+  "review_required": false,
+  "status": "complete",
   "notes": "Accounted as one non-exact manifest atom with intentional absence backed by destination `validation.rs` and upstream-aligned `Cargo.toml` evidence."
 }

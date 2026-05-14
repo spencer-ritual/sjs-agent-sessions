@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "The fixed ZK Phase 1 executor fee is defined as 500,000,000,000 wei.",
+      "path": "crates/ritual-async-fees/src/constants.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const ZK_PHASE1_SETTLEMENT_FEE_WEI: u128 = 500_000_000_000;",
+      "symbols": [
+        "ZK_PHASE1_SETTLEMENT_FEE_WEI"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "Phase 1 fee calculation uses the explicit fixed fee plus standard commitment and small-output inclusion fees.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let executor_fee = U256::from(ZK_PHASE1_SETTLEMENT_FEE_WEI);\nlet commitment_fee = async_commitment_fee(input_len);\nlet inclusion_fee = async_inclusion_fee(input_len, 64);",
+      "symbols": [
+        "calculate_zk_fees_phase1",
+        "calculate_async_fees"
+      ]
+    }
+  ],
+  "equivalence_argument": "The explicit constant is the sole executor fee input for ZK Phase 1, and calculate_async_fees routes 0x0806 directly to that helper.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/constants.rs",
+    "crates/ritual-async-fees/src/lib.rs"
+  ],
+  "invariant_id": "cur-3775256ae4-phase-uses-explicit-fees",
+  "invariant_index": 487,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The implementation matches the required 500,000,000,000 wei executor fee.",
+  "rationale": "The merge subject says it adds missing ZK two-phase Phase 1 fee calculation, and the primary diff adds ZK_PHASE1_SETTLEMENT_FEE_WEI, calculate_zk_fees_phase1(), and dispatch from calculate_async_fees when the precompile address is ZK_TWO_PHASE_PRECOMPILE. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "d5bc3bf62d26279f3d3c32a804648a461bdf8b8e"
+  ],
+  "statement": "For ZK two-phase precompile 0x0806 during Phase 1, async fee calculation must return calculate_zk_fees_phase1(input_len), using a 500,000,000,000 wei executor fee plus standard async commitment and inclusion fees for a small job commitment output.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call calculate_async_fees with ZK_TWO_PHASE_PRECOMPILE and a known input length, then assert the executor fee is 500,000,000,000 wei, commitment fee equals async_commitment_fee(input_len), inclusion fee equals async_inclusion_fee(input_len, 64), and the call does not return unknown precompile."
+  ],
+  "summary": "ZK Phase 1 uses the explicit fixed fee constant.",
+  "test_or_falsification_candidate": "Call calculate_async_fees with ZK_TWO_PHASE_PRECOMPILE and a known input length, then assert the executor fee is 500,000,000,000 wei, commitment fee equals async_commitment_fee(input_len), inclusion fee equals async_inclusion_fee(input_len, 64), and the call does not return unknown precompile.",
+  "title": "ZK Phase 1 uses explicit fees",
+  "total_invariants": 1954
+}

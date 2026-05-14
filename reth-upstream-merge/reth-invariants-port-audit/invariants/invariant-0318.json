@@ -1,0 +1,70 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/service.rs"
+  ],
+  "invariant_id": "cur-36256e288c-executorwentoffline-deactivates-payment-address",
+  "invariant_index": 318,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-spc-verification/src/service.rs (absent locally)",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-spc-verification/src/types.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-spc-verification/src/verifier.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-tee-registry-reader/src/constants.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-tee-registry-reader/src/reader.rs",
+      "ritual-reth-nodebuilder-internal/crates/node/src/executor.rs",
+      "all audited dependency repos searched for the listed symbols"
+    ],
+    "checked_queries": [
+      "ExecutorWentOffline",
+      "ExecutorDeactivated",
+      "deactivate_executor",
+      "topic[1]",
+      "paymentAddress"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "ExecutorWentOffline",
+      "ExecutorDeactivated",
+      "deactivate_executor",
+      "paymentAddress",
+      "topic[1]"
+    ],
+    "missing_behavior": "No local audited repo handles ExecutorWentOffline(address indexed paymentAddress) logs or rejects malformed logs missing topic[1]; the only deactivation method is an in-memory helper with no event dispatch caller.",
+    "related_but_insufficient_code": [
+      "ritual-spc-verification/src/types.rs still defines ExecutorRegistry and deactivate_executor, but it is only an in-memory map and has no log-watching service.",
+      "ritual-tee-registry-reader reads TEEServiceRegistry storage via TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS; it does not decode ExecutorRegistry event logs.",
+      "ritual-reth-nodebuilder-internal/crates/node/src/executor.rs syncs registry state from storage before execution but uses TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS and read_all_executors, not ExecutorRegistry event receipts."
+    ]
+  },
+  "notes": "Confirmed by exact symbol searches across all audited local repos and by reading the current SPC/TEE registry code paths.",
+  "rationale": "The primary diff changes the event signature and dispatch arm from ExecutorDeactivated to ExecutorWentOffline and rewrites the handler to extract paymentAddress from topic[1]. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "f1d8539121f5e9ac2de951630ad7adb0f518ddab"
+  ],
+  "statement": "ExecutorWentOffline(address indexed paymentAddress) must replace ExecutorDeactivated handling, and the service must mark the executor for topic[1]'s paymentAddress offline while rejecting logs missing that topic.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Register an executor in the service registry, process an ExecutorWentOffline log whose indexed paymentAddress is that executor, and assert it is no longer active; process the old ExecutorDeactivated signature or a log without topic[1] and assert the old signature is ignored or the malformed new log errors without unintended deactivation."
+  ],
+  "summary": "ExecutorWentOffline event handling is absent from the audited local repos.",
+  "test_or_falsification_candidate": "Register an executor then process an ExecutorWentOffline log; the current local code has no handler to process that log or deactivate by payment address.",
+  "title": "ExecutorWentOffline deactivates payment address",
+  "total_invariants": 1954
+}

@@ -1,0 +1,54 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "The builder checks contract job consistency and verifies the Phase 1 SPC signature before including the fulfilled settlement.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let spc_jobs = ritual_async_registry::read_jobs_for_spc_verification(db, None, &[job_id])?;\n...\nif spc_job.executor_address != contract_job.executor_address || spc_job.input_hash != contract_job.input_hash {\n    return Err(\"SPC verification job data does not match settlement job data\".to_string());\n}\nverify_spc_with_preloaded_context(...)?;",
+      "symbols": [
+        "prepare_fulfilled_async_settlement",
+        "verify_spc_with_preloaded_context"
+      ]
+    }
+  ],
+  "equivalence_argument": "The builder batch path has become a per-settlement helper, but it still reads AsyncJobTracker/TEE context, checks input hash consistency, and skips entries whose proof or context fails build-time verification.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ethereum/payload/Cargo.toml"
+  ],
+  "invariant_id": "cur-fbcf555d21-phase-settlements-require-build-time-verification",
+  "invariant_index": 508,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This is the same implementation surface as invariant 505, with the broader contract-context consistency checks included.",
+  "rationale": "The primary diff batch-reads job and executor-key context, verifies each SPC call before injection, and adds helper functions that check input hash, construct the same signature payload as verification, and reject invalid proofs. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "074503b1e7362e3764c92701d1532805b72f760a"
+  ],
+  "statement": "Before including a fulfilled async Phase 1 settlement, the payload builder should re-verify the SPC signature using AsyncJobTracker job data and the executor public key from the TEE registry; if verification fails, the builder should skip that settlement instead of producing a block that the verifier would reject.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Populate the async pool with a fulfilled transaction whose proof is invalid, whose input hash differs from contract state, or whose executor key is missing; assert payload building skips the settlement and does not include an invalid SPC call."
+  ],
+  "summary": "Phase 1 settlements require build-time SPC verification.",
+  "test_or_falsification_candidate": "Use a fulfilled async pool entry with invalid proof, mismatched input hash, or missing executor key and assert payload building skips it.",
+  "title": "Phase 1 settlements require build-time SPC verification",
+  "total_invariants": 1954
+}

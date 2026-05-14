@@ -1,0 +1,339 @@
+{
+  "record_type": "file",
+  "file_index": 87,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/ethereum/payload/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "missing",
+  "tags": [
+    "missing",
+    "reviewed",
+    "manifest",
+    "payload",
+    "telemetry",
+    "test-gap",
+    "reth-port"
+  ],
+  "atoms_total": 7,
+  "atoms": [
+    {
+      "record_id": "file-0087-atom-0001",
+      "file_index": 87,
+      "atom_index": 1,
+      "atoms_total": 7,
+      "source_path": "crates/ethereum/payload/Cargo.toml",
+      "source_hunk_hint": "@@ -27,15 +27,41 @@",
+      "source_kind": "other",
+      "source_snippet": "ritual-async.workspace = true",
+      "semantic_claim": "The Ethereum payload builder crate declares the legacy ritual-async dependency needed by payload-building async transaction metadata and helper APIs.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "async-fsm"
+      ],
+      "mapping_status": "moved_to_dependency",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/Cargo.toml",
+          "symbols": [
+            "dependencies"
+          ],
+          "snippet": "ritual-async-inspector.workspace = true\nritual-async-fees.workspace = true\nritual-async-registry.workspace = true",
+          "evidence": "The destination manifest declares several decomposed async crates but does not declare ritual-async."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "ritual_async"
+          ],
+          "snippet": "use ritual_async::{",
+          "evidence": "Destination source still imports ritual_async, so the missing manifest dependency may be a build-surface gap rather than a purely obsolete dependency."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Run cargo check for reth-ethereum-payload-builder with the active feature set and assert ritual_async imports resolve from a declared direct dependency.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed covered by decomposition. lib.rs declares a local ritual_async module rather than importing an external ritual-async crate; active async helpers use decomposed async-inspector/fees/registry crates."
+    },
+    {
+      "record_id": "file-0087-atom-0002",
+      "file_index": 87,
+      "atom_index": 2,
+      "atoms_total": 7,
+      "source_path": "crates/ethereum/payload/Cargo.toml",
+      "source_hunk_hint": "@@ -27,15 +27,41 @@",
+      "source_kind": "other",
+      "source_snippet": "revm-context = { workspace = true }",
+      "semantic_claim": "The Ethereum payload builder crate declares revm-context so payload execution can construct async-context-aware EVM state.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "async-context",
+        "precompile"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/Cargo.toml",
+          "symbols": [
+            "dependencies.revm-context"
+          ],
+          "snippet": "revm-context = { path = \"../../../../ritual-revm-internal/crates/context\", features = [\"async-context\", \"optional_no_base_fee\", \"optional_fee_charge\"] }",
+          "evidence": "The destination declares revm-context directly with async-context and fee-related features rather than using the workspace shorthand."
+        }
+      ],
+      "equivalence_argument": "The dependency edge exists and is stronger than the source shorthand because it enables async-context and optional-fee features explicitly.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Build payload code that mutates AsyncContextFactory state and optional fee fields, proving the destination revm-context features are active.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed covered. revm-context is a direct dependency with async-context and optional fee features enabled."
+    },
+    {
+      "record_id": "file-0087-atom-0003",
+      "file_index": 87,
+      "atom_index": 3,
+      "atoms_total": 7,
+      "source_path": "crates/ethereum/payload/Cargo.toml",
+      "source_hunk_hint": "@@ -27,15 +27,41 @@",
+      "source_kind": "other",
+      "source_snippet": "alloy-sol-types, ritual-async-fees, ritual-async-registry, ritual-spc-signature, ritual-tee-registry-reader, ritual-precompile-codecs, ritual-async-inspector, ritual-sequencing-rights, ritual-scheduled-block-building, ritual-scheduled-verification",
+      "semantic_claim": "The payload builder declares the core dependency suite for async fees, registry reads, SPC signatures, precompile codecs, async inspection, sequencing rights, and scheduled block building/verification.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "async-fsm",
+        "scheduled",
+        "executor-selection"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/Cargo.toml",
+          "symbols": [
+            "dependencies"
+          ],
+          "snippet": "ritual-async-inspector.workspace = true\nritual-async-fees.workspace = true\nritual-async-registry.workspace = true\nritual-precompile-codecs.workspace = true\nritual-scheduled-block-building.workspace = true\nritual-scheduled-verification.workspace = true\nritual-sequencing-rights.workspace = true\nritual-spc-signature.workspace = true\nritual-tee-registry-reader.workspace = true\nalloy-sol-types.workspace = true",
+          "evidence": "The destination manifest declares the same core dependency suite, plus ritual-precompile-addresses."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom groups exact manifest edges whose behavior is covered by later payload source files."
+    },
+    {
+      "record_id": "file-0087-atom-0004",
+      "file_index": 87,
+      "atom_index": 4,
+      "atoms_total": 7,
+      "source_path": "crates/ethereum/payload/Cargo.toml",
+      "source_hunk_hint": "@@ -27,15 +27,41 @@",
+      "source_kind": "other",
+      "source_snippet": "ritual-metrics.workspace = true; ritual-heartbeat-tracker.workspace = true; ritual-scheduling.workspace = true",
+      "semantic_claim": "The payload builder manifest declares metrics, heartbeat tracking, and the legacy scheduling crate for async/scheduled payload instrumentation and scheduling support.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "scheduled",
+        "telemetry",
+        "executor-selection"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/Cargo.toml",
+          "symbols": [
+            "dependencies"
+          ],
+          "snippet": "ritual-scheduled-block-building.workspace = true\nritual-scheduled-verification.workspace = true",
+          "evidence": "The destination has the newer scheduled block-building/verification crates but does not declare ritual-metrics, ritual-heartbeat-tracker, or ritual-scheduling in this payload crate."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+          "symbols": [
+            "crate docs"
+          ],
+          "snippet": "The source of truth is Scheduler parent state",
+          "evidence": "Scheduling behavior appears intentionally decomposed, but metrics and heartbeat-tracker payload manifest coverage were not found."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "integration_traffic",
+      "negative_test_candidate": "Run scheduled payload construction with heartbeat and metrics expectations enabled and verify the destination either emits equivalent telemetry/heartbeat behavior or documents the omission.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed missing support/observability surface. Scheduled behavior is decomposed, but ritual-metrics, heartbeat-tracker, and legacy ritual-scheduling manifest edges are absent from the payload crate."
+    },
+    {
+      "record_id": "file-0087-atom-0005",
+      "file_index": 87,
+      "atom_index": 5,
+      "atoms_total": 7,
+      "source_path": "crates/ethereum/payload/Cargo.toml",
+      "source_hunk_hint": "@@ -27,15 +27,41 @@",
+      "source_kind": "other",
+      "source_snippet": "once_cell.workspace = true; rayon.workspace = true",
+      "semantic_claim": "The payload builder manifest declares once_cell and rayon for singleton/lazy state and parallel payload-building work.",
+      "high_risk": false,
+      "risk_tags": [
+        "payload"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/Cargo.toml",
+          "symbols": [
+            "dependencies"
+          ],
+          "snippet": "tracing.workspace = true",
+          "evidence": "The destination payload manifest does not declare once_cell or rayon."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "Cargo.toml",
+          "symbols": [
+            "workspace.dependencies.once_cell",
+            "workspace.dependencies.rayon"
+          ],
+          "snippet": "once_cell = { version = \"1.19\", default-features = false, features = [\"critical-section\"] }\nrayon = \"1.7\"",
+          "evidence": "The workspace dependencies exist, so the missing mapping is the payload crate-level dependency edge."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Build payload modules that previously used once_cell or rayon-backed parallelism and assert there is no undeclared dependency or lost parallel execution path.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed obsolete support surface. once_cell and rayon are not declared because current payload sources do not use them."
+    },
+    {
+      "record_id": "file-0087-atom-0006",
+      "file_index": 87,
+      "atom_index": 6,
+      "atoms_total": 7,
+      "source_path": "crates/ethereum/payload/Cargo.toml",
+      "source_hunk_hint": "@@ -27,15 +27,41 @@",
+      "source_kind": "other",
+      "source_snippet": "async-context = [\"reth-evm/async-context\", \"reth-evm-ethereum/async-context\"]",
+      "semantic_claim": "The payload builder exposes an async-context feature that forwards to both reth-evm and reth-evm-ethereum async-context features.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "async-context",
+        "precompile"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/Cargo.toml",
+          "symbols": [
+            "dependencies.revm-context",
+            "dependencies.alloy-evm"
+          ],
+          "snippet": "revm-context = { path = \"../../../../ritual-revm-internal/crates/context\", features = [\"async-context\", \"optional_no_base_fee\", \"optional_fee_charge\"] }\nalloy-evm = { workspace = true, features = [\"async-context\"] }",
+          "evidence": "The destination enables async-context at dependency edges rather than exposing the same crate feature forwarding."
+        }
+      ],
+      "equivalence_argument": "Async context support appears always enabled through direct dependency features, but the public crate feature surface from the source manifest is absent.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Build all consumers that enable reth-ethereum-payload-builder/async-context and assert the destination either supports an equivalent feature flag or no consumer depends on it.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed covered for behavior. async-context is always enabled through revm-context and alloy-evm dependency features, though the old public feature flag is not preserved."
+    },
+    {
+      "record_id": "file-0087-atom-0007",
+      "file_index": 87,
+      "atom_index": 7,
+      "atoms_total": 7,
+      "source_path": "crates/ethereum/payload/Cargo.toml",
+      "source_hunk_hint": "@@ -27,15 +27,41 @@",
+      "source_kind": "test_fixture",
+      "source_snippet": "[dev-dependencies]\nalloy-dyn-abi.workspace = true\nsecp256k1.workspace = true",
+      "semantic_claim": "The payload builder declares dev dependencies for ABI encoding and secp256k1 test fixtures used by payload and async transaction tests.",
+      "high_risk": false,
+      "risk_tags": [
+        "test-fixture",
+        "payload"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/Cargo.toml",
+          "symbols": [
+            "dev-dependencies"
+          ],
+          "snippet": "No [dev-dependencies] section found.",
+          "evidence": "The destination payload manifest has no dev-dependencies section declaring alloy-dyn-abi or secp256k1."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Run payload crate tests that encode dynamic ABI calls or sign async transactions and assert missing dev dependencies do not block the test suite.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed missing test-support surface. The payload manifest still has no alloy-dyn-abi or secp256k1 dev-dependencies."
+    }
+  ],
+  "high_risk_atoms_total": 5,
+  "non_exact_atoms_total": 6,
+  "adversarial_reviews": [
+    {
+      "review_record_id": "review-files-0077-0089-mechanical",
+      "required": false,
+      "status": "completed",
+      "reason": "Mechanical review completed; remaining non-exact atoms are now confirmed covered, confirmed missing, intentionally absent, or support/test/telemetry only."
+    }
+  ],
+  "summary": "Mechanical review complete. Core payload async/scheduled dependencies and async-context support are covered through decomposed crates and direct feature-enabled dependencies; remaining omissions are manifest compatibility, telemetry/heartbeat, obsolete support deps, and test-support deps.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Queue entry 87 was verified as M\\tcrates/ethereum/payload/Cargo.toml; only diff lines 16809-16854 were analyzed for this record. Mechanical review review-files-0077-0089-mechanical completed; all prior needs-review atoms have definitive verdicts."
+}

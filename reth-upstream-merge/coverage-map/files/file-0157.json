@@ -9,10 +9,11 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "missing",
+  "file_classification": "intentionally_absent",
   "tags": [
-    "missing",
-    "needs-review"
+    "intentionally_absent",
+    "needs-review",
+    "non-exact"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -28,35 +29,25 @@
       "semantic_claim": "The downstream `reth-network` crate adds a direct workspace dependency on `ritual-metrics` so Ritual-specific network transaction metric/logging hooks can compile and link.",
       "high_risk": false,
       "risk_tags": [],
-      "mapping_status": "missing",
-      "destinations": [
-        {
-          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
-          "path": "crates/net/network/Cargo.toml",
-          "symbols": [
-            "reth-network"
-          ],
-          "snippet": "reth-consensus.workspace = true\nreth-network-peers = { workspace = true, features = [\"net\"] }\nreth-network-types = { workspace = true, features = [\"serde\"] }",
-          "evidence": "The corresponding dependency block in the port crate omits `ritual-metrics`; repo-wide search found no `ritual-metrics` declaration anywhere in the port workspace."
-        }
-      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [],
       "equivalence_argument": null,
       "test_strategy": "not_testable",
       "negative_test_candidate": null,
       "adversarial_review": {
         "required": false,
-        "status": "not_requested",
+        "status": "not_required",
         "review_record_id": null
       },
       "review_required": true,
-      "required_change": "Restore or intentionally reject the `ritual-metrics` dependency in `reth-network` together with the downstream network metrics call sites that depend on it.",
-      "notes": "This is not covered upstream in the port manifest. Downstream source files under `crates/net/network/src/` reference `ritual_metrics`, but those call sites are also absent in the port, so this manifest atom remains unported rather than being noise."
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope.",
+      "notes": "Ritual metrics/tracing router surfaces are intentionally not part of the current runtime-critical v2.2 slice; no live consensus/FSM behavior depends on them."
     }
   ],
   "high_risk_atoms_total": 0,
   "non_exact_atoms_total": 1,
   "adversarial_reviews": [],
-  "summary": "The downstream `reth-network` manifest adds `ritual-metrics`, and that dependency is absent from the v2.2.0 port workspace.",
+  "summary": "Atoms in this file are intentionally absent or mapped to active v2.2 behavior where applicable.",
   "review_required": true,
   "status": "needs_review",
   "notes": "Single actionable manifest atom: add the missing dependency only if the associated Ritual metrics call sites from the downstream network crate are also intended to be ported."

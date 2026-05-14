@@ -1,0 +1,62 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-async/src/validation.rs"
+  ],
+  "invariant_id": "cur-5d817cc607-dkms-validation-enforces-executor-only",
+  "invariant_index": 471,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-precompile-codecs/src/validation.rs",
+      "crates/ritual-precompile-codecs/src/dkms_key.rs"
+    ],
+    "checked_queries": [
+      "validate_dkms_key_payload owner zero key_index key_format",
+      "DKMS RPC validation enforces executor and TTL only",
+      "OwnerZeroAddress DkmsKeyRequest"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "validate_dkms_key_payload",
+      "validate_executor_base_fields",
+      "OwnerZeroAddress",
+      "encrypted_secrets",
+      "user_public_key"
+    ],
+    "missing_behavior": "validate_dkms_key_payload does more than executor/TTL-only validation: it validates base encrypted secret/public key fields and rejects zero owner.",
+    "related_but_insufficient_code": [
+      "crates/ritual-precompile-codecs/src/validation.rs validates executor, TTL, encrypted_secrets, user_public_key, and owner nonzero for DKMS.",
+      "crates/ritual-precompile-codecs/src/dkms_key.rs decodes owner/key fields but validation intentionally rejects owner zero."
+    ]
+  },
+  "notes": "The current port implements the later owner-required DKMS behavior, so this older validation-only invariant is not preserved.",
+  "rationale": "The validator explicitly states DKMS uses base executor/TTL validation and leaves potential DKMS-specific owner or key-format checks as future additions. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "7dfa01a1a08526afad2a775501ccfe555cb0a648"
+  ],
+  "statement": "validate_dkms_key_payload must decode DkmsKeyRequest, reject zero executor, ttl 0, and ttl greater than max_ttl_blocks(), and otherwise accept the request without owner, key_index, or key_format range checks beyond ABI decoding.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call validate_dkms_key_payload with a valid DKMS request and assert Ok; then test zero executor, ttl zero, ttl max_ttl_blocks()+1, and malformed ABI and assert ExecutorZeroAddress, TTLZero, TTLExceeded, and DecodeFailed respectively. Also assert owner zero and arbitrary key_index pass when ABI decoding succeeds."
+  ],
+  "summary": "DKMS validation is stricter than executor-and-TTL-only.",
+  "test_or_falsification_candidate": "Call validate_dkms_key_payload with a valid DKMS request and assert Ok; then test zero executor, ttl zero, ttl max_ttl_blocks()+1, and malformed ABI and assert ExecutorZeroAddress, TTLZero, TTLExceeded, and DecodeFailed respectively. Also assert owner zero and arbitrary key_index pass when ABI decoding succeeds.",
+  "title": "DKMS RPC validation enforces executor and TTL only",
+  "total_invariants": 1954
+}

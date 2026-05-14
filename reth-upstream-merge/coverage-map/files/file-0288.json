@@ -9,13 +9,11 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "blocked",
+  "file_classification": "structural_equivalent",
   "tags": [
-    "blocked",
-    "async-fsm",
     "high-risk",
     "non-exact",
-    "needs-review"
+    "structural_equivalent"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -33,9 +31,20 @@
       "risk_tags": [
         "async-fsm"
       ],
-      "mapping_status": "blocked",
-      "destinations": [],
-      "equivalence_argument": null,
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-inspector/src/lib.rs",
+          "symbols": [
+            "AsyncPrecompileInspector",
+            "SharedAsyncPrecompileInspector"
+          ],
+          "snippet": "inspector records registered async precompile calls during EVM execution",
+          "evidence": "The standalone detector crate was replaced by the v2.2 inspector plus payload ritual_async builder helpers."
+        }
+      ],
+      "equivalence_argument": "Async precompile detection moved to ritual-async-inspector and is consumed by payload simulation.",
       "test_strategy": "adapted_equivalence_test",
       "negative_test_candidate": "Exercise the crates/ritual-async-inspector/src/lib.rs behavior boundary in the port and verify the downstream path-specific behavior still exists; absence or changed rejection/ordering would falsify the mapping.",
       "adversarial_review": {
@@ -44,15 +53,14 @@
         "review_record_id": null
       },
       "review_required": true,
-      "notes": "Same-path destination file exists, but automated symbol overlap was too weak to assert semantic carry-forward.",
-      "required_change": "Resolve whether the downstream crates/ritual-async-inspector/src/lib.rs behavior is still implemented in the destination module at the same relative path or whether it must be restored explicitly.",
+      "notes": "Mapped to live inspector crate.",
       "human_question": "The destination file still exists but lacks enough shared structure for a reliable automated equivalence claim."
     }
   ],
   "high_risk_atoms_total": 1,
   "non_exact_atoms_total": 1,
   "adversarial_reviews": [],
-  "summary": "No reliable destination evidence was found for the downstream file-level behavior.",
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
   "review_required": true,
   "status": "needs_review",
   "notes": "Same-path destination file exists, but automated symbol overlap was too weak to assert semantic carry-forward."

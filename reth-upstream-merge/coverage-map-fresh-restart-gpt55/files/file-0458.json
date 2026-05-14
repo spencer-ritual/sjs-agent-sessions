@@ -1,0 +1,68 @@
+{
+  "record_type": "file",
+  "file_index": 458,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/storage/codecs/src/alloy/mod.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "storage-codecs"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0458-atom-0001",
+      "file_index": 458,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/storage/codecs/src/alloy/mod.rs",
+      "source_hunk_hint": "@@ -18,6 +18,7 @@ cond_mod!",
+      "source_kind": "module_export",
+      "source_snippet": "passkey_signature,",
+      "semantic_claim": "The alloy codec module exports the `passkey_signature` compact codec module alongside the existing alloy codec submodules.",
+      "high_risk": false,
+      "risk_tags": [
+        "module-wiring",
+        "passkey"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/src/alloy/mod.rs",
+          "symbols": [
+            "cond_mod"
+          ],
+          "evidence": "Destination `cond_mod!` includes `passkey_signature` in the same module list."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "cargo check reth-codecs passkey_signature module import",
+      "negative_test_candidate": "An import of `crate::alloy::passkey_signature` should compile when the `alloy` feature is active.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact module wiring present."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The added passkey signature module export is present in the destination.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0458: M\tcrates/storage/codecs/src/alloy/mod.rs.",
+    "Diff lines 85886-85890 add the module export."
+  ]
+}

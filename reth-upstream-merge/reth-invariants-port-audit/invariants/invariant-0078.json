@@ -1,0 +1,71 @@
+{
+  "cluster_key": "scheduler:payload-building:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Fulfilled async annotation assigns the same spc_calls vector to Legacy, Eip1559, Scheduled, Passkey, and AsyncSettlement variants.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let spc_calls = vec![spc_call];\n...\nTransactionSigned::Passkey(signed) => {\n    let (mut tx, signature, hash) = signed.into_parts();\n    tx.commitment_tx = Some(commitment_hash);\n    tx.settlement_tx = Some(settlement_hash);\n    tx.spc_calls = Some(spc_calls.clone());\n    TransactionSigned::Passkey(Signed::new_unchecked(tx, signature, hash))\n}",
+      "symbols": [
+        "annotate_fulfilled_original_transaction",
+        "TransactionSigned::Passkey"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port fulfilled-async preparation: Passkey receives the same SPC call vector as the other supported original transaction variants.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-f17747ce41-passkey-carry-fulfilled-async-calls",
+  "invariant_index": 78,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ethereum/payload/src/lib.rs"
+    ],
+    "checked_queries": [
+      "annotate_fulfilled_original_transaction|TransactionSigned::Passkey|spc_calls"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "annotate_fulfilled_original_transaction",
+      "TransactionSigned::Passkey",
+      "spc_calls"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped exactly.",
+  "rationale": "No later packet candidate changes this compatibility rule for passkey transactions receiving fulfilled async SPC calls.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "0e7e1665a2f101021b1d180bf8f0912609b8519e"
+  ],
+  "statement": "When payload building injects SPC calls for fulfilled async execution, Transaction::Passkey must receive the same spc_calls vector as legacy, EIP-1559, and scheduled transaction variants.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Construct a fulfilled async Passkey original and assert prepared.original_tx.spc_calls() contains the injected SPC call.",
+    "Run the same fulfilled async annotation fixture for Legacy, Eip1559, Scheduled, and Passkey and assert identical SPC vector contents."
+  ],
+  "summary": "Passkey fulfilled async SPC propagation is mapped in the port.",
+  "test_or_falsification_candidate": "Fulfilled async settlement fixture with Passkey original should expose spc_calls to async_context.pending_spc_calls during payload execution.",
+  "title": "Passkey transactions carry fulfilled async SPC calls",
+  "total_invariants": 1954
+}

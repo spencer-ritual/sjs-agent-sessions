@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "Heartbeat revival data reads owner, last executor, manifest CID, and encrypted DA config together from heartbeat storage.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub struct HeartbeatAgentRevivalData { owner, last_executor, latest_manifest_cid, encrypted_da_config }\n...\nlet last_executor = Address::from_slice(&slot2_bytes[12..32]);\n...\nOk(HeartbeatAgentRevivalData { owner, last_executor, latest_manifest_cid, encrypted_da_config })",
+      "symbols": [
+        "HeartbeatAgentRevivalData",
+        "read_heartbeat_agent_revival_data"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "The selector performs deterministic parent/agent-seeded rotation, skips the previous executor when another HTTP executor exists, and reuses it only when all candidates are excluded.",
+      "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let seed = u16::from_be_bytes([hash_bytes[30] ^ agent_bytes[18], hash_bytes[31] ^ agent_bytes[19]]) as usize;\nlet start = seed % http_executors.len();\nfor i in 0..http_executors.len() { ... if executor != exclude { return Some(executor); } }\nif exclude != Address::ZERO && http_executors.contains(&exclude) { return Some(exclude); }",
+      "symbols": [
+        "select_revival_executor",
+        "try_synthesize_heartbeat_revival_transactions"
+      ]
+    }
+  ],
+  "equivalence_argument": "Heartbeat revival reads the required data and deterministically selects a HTTP_CALL executor while avoiding the last executor when possible.",
+  "evidence_files": [
+    "crates/ritual-scheduled-verification/src/lib.rs",
+    "crates/scheduling/src/canonical.rs"
+  ],
+  "invariant_id": "cur-f16f16fbfe-revival-executor-avoids-last-executor-possible",
+  "invariant_index": 548,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The port has evolved from parent-only selection to parent-plus-agent selection, which still satisfies this broader invariant.",
+  "rationale": "The diff adds last_executor to HeartbeatAgentRevivalData and introduces select_revival_executor, which rotates from the parent hash tail, filters out the excluded last executor, and falls back to it only if all candidates equal the excluded executor. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "ee00da6a694dc1e066fc49320e56afca6b862614"
+  ],
+  "statement": "For failed-agent revival, the node must read owner, last_executor, manifest CID, and encrypted DA config together; select a HTTP_CALL executor using a parent-hash-seeded deterministic rotation; skip the last_executor when another eligible executor exists; and reuse last_executor only when it is the sole eligible candidate.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Given a fixed parent hash and executor list, assert select_revival_executor is deterministic, skips a present last_executor when another executor exists, returns the excluded executor when it is the only candidate, and returns None for an empty list; also assert read_heartbeat_agent_revival_data extracts last_executor from the expected packed storage slot."
+  ],
+  "summary": "Revival executor avoids the last executor when possible.",
+  "test_or_falsification_candidate": "Provide executor lists of size 0/1/many and assert selection skips last_executor except when it is the only eligible candidate.",
+  "title": "Revival executor avoids last executor when possible",
+  "total_invariants": 1954
+}

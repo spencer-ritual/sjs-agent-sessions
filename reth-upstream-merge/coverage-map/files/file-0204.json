@@ -9,12 +9,11 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "mapped",
+  "file_classification": "structural_equivalent",
   "tags": [
-    "mapped",
-    "non-exact",
     "needs-review",
-    "reth-port"
+    "non-exact",
+    "structural_equivalent"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -62,7 +61,7 @@
   "high_risk_atoms_total": 0,
   "non_exact_atoms_total": 1,
   "adversarial_reviews": [],
-  "summary": "The downstream file maps to destination code but needs review because the destination implementation was refactored or moved.",
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
   "review_required": true,
   "status": "needs_review",
   "notes": "The destination keeps the module at the same relative path with overlapping symbols ['new', 'num_connected_peers', 'build_current_stage', 'handle_pipeline_event', 'handle_consensus_engine_event']."

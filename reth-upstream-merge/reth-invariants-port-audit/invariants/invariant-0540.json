@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "Wallet verification propagates delivery config decode failures as errors for every family it supports with callback cost, rather than substituting zero.",
+      "path": "crates/ritual-async-fees/src/wallet.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let callback_fee = delivery_callback_cost(precompile_address, precompile_input, user_address)?;\n...\ndecode_delivery_callback_cost_at(precompile_input, first_delivery_field).map_err(|err| format!(\"failed to decode Phase 2 delivery callback cost ...: {err}\"))\n...\nlet gas_limit = abi_u256_head(input, first_delivery_field + 2, \"delivery_gas_limit\")?;",
+      "symbols": [
+        "verify_wallet_for_commitment",
+        "delivery_callback_cost",
+        "decode_delivery_callback_cost_at"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "Unhandled precompiles fail wallet validation before any zero callback-cost acceptance path can make them pass.",
+      "path": "crates/ritual-async-fees/src/wallet.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "return Err(format!(\"unsupported precompile for wallet verification: {precompile_address}\"));",
+      "symbols": [
+        "verify_wallet_for_commitment"
+      ]
+    }
+  ],
+  "equivalence_argument": "For wallet-supported two-phase families, malformed delivery config aborts validation; unsupported precompiles also fail instead of being accepted with zero callback cost.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/wallet.rs"
+  ],
+  "invariant_id": "cur-b2dfcdb45a-malformed-delivery-config-rejects-escrow-validation",
+  "invariant_index": 540,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This mapping is scoped to the precompile families accepted by verify_wallet_for_commitment; broader all-family callback coverage is recorded separately as invariant 539.",
+  "rationale": "The primary diff removes the previous decode-failure branches that logged a warning and returned `U256::ZERO`, replacing them with `map_err(...)?` and an explicit error for unhandled two-phase precompiles. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "832b068c62486dea6ac1cff4f01c7b7f65a5220a"
+  ],
+  "statement": "If wallet escrow verification cannot decode the delivery config for a supported two-phase precompile, it must return an error instead of using zero callback cost; unhandled two-phase precompiles must also error.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Pass malformed delivery-config calldata for long-running HTTP, ZK, FHE, sovereign agent, and persistent agent precompiles to wallet verification and assert it returns an error rather than accepting with zero Phase 2 callback cost."
+  ],
+  "summary": "Malformed delivery config rejects escrow validation.",
+  "test_or_falsification_candidate": "Pass malformed delivery-config calldata for long-running HTTP, audio, ZK, sovereign agent, and persistent agent wallet checks and assert each returns an error.",
+  "title": "Malformed delivery config rejects escrow validation",
+  "total_invariants": 1954
+}

@@ -1,0 +1,56 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "The payload helper encodes the original transaction, constructs AsyncJobTracker.addJob calldata at ASYNC_JOB_TRACKER_ADDRESS/default tracker, and carries executor, precompile address/input, TTL, sender, original hash, and original RLP into the async commitment transaction.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let origin_tx_rlp = encode_supported_origin_tx(original_tx.inner())?;\nlet add_job_call = addJobCall {\n    executor: executor_address,\n    jobId: origin_tx_hash,\n    precompileAddress: precompile_address,\n    precompileInput: precompile_input.clone(),\n    ttl: U256::from(ttl),\n    sender: sender_address,\n    origRlp: origin_tx_rlp.clone(),\n};\nlet async_commitment = TxAsyncCommitment::new(... Some(async_job_tracker_addr), ..., add_job_call.abi_encode().into(), origin_tx_hash, origin_tx_rlp, precompile_address, precompile_input, ttl, executor_address, ...);",
+      "symbols": [
+        "build_short_async_commitment_transaction",
+        "create_short_async_commitment_tx",
+        "addJobCall",
+        "async_job_tracker_address"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port stores the canonical original transaction hash as the job key while also embedding the encoded original transaction RLP and contract addJob fields; for supported original transaction encodings this is the hash identity used by the verifier and AsyncJobTracker lookup paths.",
+  "evidence_files": [
+    "crates/ritual-async/src/detector.rs",
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-7e0346c1eb-async-commitments-create-asyncjobtracker-jobs",
+  "invariant_index": 295,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in the port payload async commitment builder.",
+  "rationale": "The merge changes `create_commitment_tx` from a raw async-exec transaction into an `AsyncJobTracker.addJob` contract call using `ASYNC_JOB_TRACKER_ADDRESS` or a default tracker address, and the payload code defines the matching contract interface. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "ed503ac7d3761f20ca4ef30a97cfba8201a80c6f"
+  ],
+  "statement": "Detected async calls must create async commitment system transactions that call `AsyncJobTracker.addJob` at the configured tracker address, with the job id set to the keccak hash of the original transaction RLP and with precompile, input, commit block, TTL, and executor fields carried into the job record.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Run async detection on a transaction that calls an async precompile, decode the produced commitment transaction input as `AsyncJobTracker.addJob`, and assert the target address is the configured tracker, `jobId == keccak256(origin_tx_rlp)`, and the decoded precompile address, input, commit block, TTL, and executor match the detected async call."
+  ],
+  "summary": "Async commitment transactions encode AsyncJobTracker.addJob calls with the detected async metadata.",
+  "test_or_falsification_candidate": "Run async detection for a short async precompile call, decode the commitment calldata as AsyncJobTracker.addJob, and assert tracker address, job id, precompile input, TTL, executor, sender, original hash, and original RLP match the detected original transaction.",
+  "title": "Async commitments create AsyncJobTracker jobs",
+  "total_invariants": 1954
+}

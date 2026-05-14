@@ -1,0 +1,80 @@
+{
+  "record_type": "file",
+  "file_index": 543,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/transaction-pool/src/validate/mod.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "intentionally_absent",
+    "txpool",
+    "validation"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0543-atom-0001",
+      "file_index": 543,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/transaction-pool/src/validate/mod.rs",
+      "source_hunk_hint": "@@ -273,6 +273,60 @@ pub struct ValidPoolTransaction<T: PoolTransaction> {",
+      "source_kind": "valid_pool_constructor",
+      "source_snippet": "    pub fn new_scheduled(transaction: T) -> Self {\n        let sender = transaction.sender();\n        let sender_bytes = sender.as_slice();\n        let mut sender_u64_bytes = [0u8; 8];\n        for i in 0..std::cmp::min(8, sender_bytes.len()) {\n            sender_u64_bytes[i] = sender_bytes[i];\n        }\n        let sender_u64 = u64::from_be_bytes(sender_u64_bytes);\n        let sender_id = SenderId::from(sender_u64);\n        let nonce = transaction.nonce();",
+      "semantic_claim": "The old diff adds constructors for local non-propagating scheduled and async-exec pool transactions.",
+      "high_risk": true,
+      "risk_tags": [
+        "txpool",
+        "async",
+        "scheduled",
+        "intentional-absence"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/mod.rs",
+          "symbols": [
+            "build_async_commitment_pool_transaction"
+          ],
+          "evidence": "Destination constructs async commitment pool transactions through `PoolInner::build_async_commitment_pool_transaction`; scheduled transactions are synthesized outside txpool from Scheduler state."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/validate/mod.rs",
+          "symbols": [
+            "ValidPoolTransaction"
+          ],
+          "evidence": "Destination `ValidPoolTransaction` has no `new_scheduled` or `new_async_commitment` constructors."
+        }
+      ],
+      "equivalence_argument": "Intentional non-exact mapping: local non-propagating transaction construction moved to narrower async and scheduled synthesis paths.",
+      "test_strategy": "async commitment pool transaction construction and scheduled synthesis compile tests",
+      "negative_test_candidate": "Old constructor names should be absent; destination construction paths should still create non-propagating local system transactions.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": ""
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Old `ValidPoolTransaction::new_scheduled/new_async_commitment` constructors are intentionally absent after refactor.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0543: M\tcrates/transaction-pool/src/validate/mod.rs.",
+    "Source diff lines 96947-97071; first hunk `@@ -273,6 +273,60 @@ pub struct ValidPoolTransaction<T: PoolTransaction> {`.",
+    "Fresh destination evidence was checked against /home/ritual/repos/ritual-reth-internal-v2.2.0-port."
+  ]
+}

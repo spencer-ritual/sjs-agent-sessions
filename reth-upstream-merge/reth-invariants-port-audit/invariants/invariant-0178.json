@@ -1,0 +1,113 @@
+{
+  "cluster_key": "precompile pricing:addresses:part-01",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The inspector counts every known async precompile call while preserving the first call address, input, program counter, and caller as the canonical detection result.",
+      "path": "crates/ritual-async-inspector/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "self.async_call_count += 1;\nif self.has_async_call { ... return; }\nself.has_async_call = true;\nself.precompile_address = Some(target);\nself.precompile_input = Some(input);\nself.program_counter = self.rolling_program_counter;\nself.caller_address = Some(caller);",
+      "symbols": [
+        "AsyncPrecompileInspector::observe_call",
+        "AsyncPrecompileInspector::async_call_result"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The EVM inspector hook records supported async precompile calls and returns None, allowing execution to continue normally.",
+      "path": "crates/ritual-async-inspector/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "fn call(&mut self, context: &mut CTX, inputs: &mut CallInputs) -> Option<CallOutcome> {\n    self.observe_call(inputs.target_address, inputs.caller, inputs.input.bytes(context));\n    None\n}",
+      "symbols": [
+        "Inspector<CTX>::call for AsyncPrecompileInspector"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Local tests cover non-HTTP registered async calls and first-call canonicalization when multiple async calls occur.",
+      "path": "crates/ritual-async-inspector/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "inspector.observe_call(ritual_precompile_addresses::LLM_CALL_PRECOMPILE, caller, Bytes::from_static(b\"prompt\"));\n...\nassert_eq!(inspector.async_call_count(), 2);\nassert_eq!(result.input, Bytes::from_static(b\"first\"));",
+      "symbols": [
+        "records_registered_non_http_async_calls",
+        "keeps_first_http_call_canonical"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port implements the invariant in the shared async inspector: known async precompile calls, including HTTP and LLM through ritual_precompile_addresses, are non-blocking observations, call count is tracked, and only the first call metadata is returned.",
+  "evidence_files": [
+    "crates/ritual-async/src/inspector.rs",
+    "crates/ritual-async/src/detector.rs",
+    "crates/evm/src/lib.rs",
+    "crates/ritual-async-inspector/src/inspector.rs",
+    "crates/ritual-async-inspector/src/lib.rs",
+    "crates/ritual-async-inspector/Cargo.toml"
+  ],
+  "invariant_id": "cur-ccf91536fc-async-precompile-inspector-captures-first-http-call-metadata",
+  "invariant_index": 178,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-inspector/src/lib.rs",
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/rpc/rpc/src/async_tx_validator.rs"
+    ],
+    "checked_queries": [
+      "AsyncPrecompileInspector|async_call_result|async_call_count|HTTP_CALL_PRECOMPILE|LLM|caller_address|program_counter"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "AsyncPrecompileInspector",
+      "SharedAsyncPrecompileInspector",
+      "observe_call",
+      "async_call_result",
+      "async_call_count",
+      "HTTP_CALL_PRECOMPILE",
+      "LLM_CALL_PRECOMPILE"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The early HTTP-only detector is corrected to the 0x801 address, expanded into the shared HTTP/LLM inspector, and finalized as first-call-preserving behavior with call count tracking.",
+  "record_type": "invariant_mapping",
+  "section": "Precompile Pricing",
+  "source_commits": [
+    "0ccb3167ecd141176aadae8684a38fea39de0bab",
+    "b792646151cf45a6139e60bd021985634fc7c5d6",
+    "97ac1ea8989f250d91c2992ad82e9ab7d3b92822",
+    "bbb882e594b9f168cd1aa5255707dab67cef30e9",
+    "a77a6222b544301eac2ce1d0df204c25b191b24a",
+    "49d7ed2f61a41951eec8f2ff175029fffe16db7b",
+    "011806e4aba08f44de857188e2d3672b2b65ed3e",
+    "b22df7d2808abddcdf190bed2f8dbfc2592e56df",
+    "500a6599ec15dbf0ee6f963e854cd1b161fa5e98"
+  ],
+  "statement": "With AsyncPrecompileInspector installed, calls to supported async precompile addresses, including HTTP 0x0801 and LLM 0x0802, allow execution to continue while counting async calls and preserving the first call target, input, caller address, and program counter as the transaction detection result.",
+  "status": "current",
+  "subsystem": "precompile pricing",
+  "suggested_falsification_tests": [
+    "Instantiate `AsyncPrecompileInspector`, invoke its `call` hook with `CallInputs` targeting `HTTP_CALL_PRECOMPILE` and known input bytes, and assert that `has_async_call`, `precompile_address`, and `precompile_input` are set while the hook returns `None`; repeat with a non-HTTP address and assert the fields remain unset.",
+    "Execute detect_async_transaction on a transaction that calls 0x0000000000000000000000000000000000000801 with known calldata and assert the returned result contains that address and exact input bytes.",
+    "Execute a contract that calls HTTP_CALL_PRECOMPILE from a known PC and assert async_call_result().program_counter returns that PC and the debug logs include it.",
+    "Simulate a contract call to the HTTP async precompile from a known caller address and assert `inspector.async_call_result().unwrap().caller_address` equals that caller address.",
+    "Run `AsyncPrecompileInspector::call` or an EVM transaction through the inspector with a call targeting `0x0000000000000000000000000000000000000801` and assert `has_async_call` becomes true; repeat with `0x0000000000000000000000000000000000000101` and assert this address no longer triggers the HTTP-call detection.",
+    "Execute a contract that calls HTTP_CALL_PRECOMPILE from a known call site and assert the inspector's BasicAsyncCallResult includes that PC and the calling contract address.",
+    "Run a small EVM execution under AsyncPrecompileInspector where a contract calls 0x0801 with input A and another where it calls 0x0802 with input B; assert async_call_result returns the matching target, input, caller, and a non-empty program_counter while the call still executes. Also call a non-async address and assert has_async_call remains false.",
+    "Run an EVM simulation that attempts two async precompile calls, first to HTTP and then to LLM with different inputs. Assert `async_call_count()` is 2 but `async_call_result()` reports the first call's address/input/caller/program counter, not the second.",
+    "Run the inspector over a transaction that calls HTTP then LLM async precompiles; assert async_call_count is 2 while async_call_result still contains the HTTP address, first input, first caller, and first program counter."
+  ],
+  "summary": "The async inspector captures first-call HTTP/LLM metadata and leaves execution unmodified.",
+  "test_or_falsification_candidate": "Run the inspector over a transaction or direct observe_call sequence that calls HTTP then LLM and assert async_call_count is 2 while async_call_result keeps the first call address/input/caller/program counter.",
+  "title": "Async precompile inspector captures first HTTP or LLM call metadata",
+  "total_invariants": 1954
+}

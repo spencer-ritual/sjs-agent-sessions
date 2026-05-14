@@ -1,0 +1,68 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "970542d1b36413978b3179faeb582ddec3dfc136",
+      "evidence": "The fee functions are pure arithmetic over their explicit inputs for long-running HTTP polling and agent work metrics.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn phase2_long_running(blocks_polled: u64) -> Self {\n    let polling_fee = U256::from(FEE_PER_POLL_BLOCK_WEI) * U256::from(blocks_polled);\n    Self::new(polling_fee, U256::ZERO, U256::ZERO)\n}\n...\nfn agent_phase2_execution_fee(iterations: u16, tool_calls: u16) -> U256 {\n    U256::from(SOVEREIGN_AGENT_ITERATION_FEE_WEI) * U256::from(iterations) +\n        U256::from(SOVEREIGN_AGENT_TOOL_CALL_FEE_WEI) * U256::from(tool_calls)\n}\n\npub fn calculate_agent_fees_phase2_work(iterations: u16, tool_calls: u16) -> AsyncFees {\n    AsyncFees::new(agent_phase2_execution_fee(iterations, tool_calls), U256::ZERO, U256::ZERO)\n}",
+      "symbols": [
+        "AsyncFees::phase2_long_running",
+        "calculate_agent_fees_phase2_work",
+        "calculate_async_fees_phase2",
+        "calculate_async_fees"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "970542d1b36413978b3179faeb582ddec3dfc136",
+      "evidence": "Verifier settlement validation recomputes fees through the same deterministic fee functions used by builder-side settlement creation.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let fees = calculate_async_fees(\n    &mut db,\n    get_model_registry_address(),\n    job.precompile_address,\n    &precompile_input,\n    Some(&spc_output),\n    &mut model_cache,\n)?;\n...\ncalculate_agent_fees_phase2_work(iterations, tool_calls)\n...\ncalculate_async_fees_phase2(metadata.address, blocks_polled, delivery_result.as_ref().map_or(0, |result| result.len()))",
+      "symbols": [
+        "calculate_async_fees",
+        "calculate_agent_fees_phase2_work",
+        "calculate_async_fees_phase2"
+      ]
+    }
+  ],
+  "equivalence_argument": "The fee paths do not depend on wall clock, random state, or mutable global state for the listed components; identical inputs lead builder and verifier through the same arithmetic functions.",
+  "evidence_files": [
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-788d69f8bd-async-calculations-deterministic",
+  "invariant_index": 439,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "LLM short-settlement pricing still depends on explicit model registry state passed through ModelCache, while this invariant covers HTTP, long-running HTTP Phase 2, and agent Phase 2 fee determinism.",
+  "rationale": "The added differential tests explicitly frame fee calculation as consensus-critical builder/verifier equivalence and assert repeated calls with the same inputs return equal fee values. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "7fef002312ba507bd9aa6552d90bfd436216cba1"
+  ],
+  "statement": "HTTP executor fees, long-running HTTP Phase 2 fees, and Agent Phase 2 fees must be deterministic for identical inputs so builder and verifier compute the same fee components.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "For a fixed set of HTTP input/output lengths, Agent iterations/tool_calls, and Phase 2 commit/settlement/delivery lengths, compute fees through the builder and verifier paths and assert all executor, commitment, and inclusion fee components are identical."
+  ],
+  "summary": "Async fee calculations are deterministic for matching inputs.",
+  "test_or_falsification_candidate": "For a fixed set of HTTP input/output lengths, Agent iterations/tool_calls, and Phase 2 commit/settlement/delivery lengths, compute fees through the builder and verifier paths and assert all executor, commitment, and inclusion fee components are identical.",
+  "title": "Async fee calculations are deterministic",
+  "total_invariants": 1954
+}

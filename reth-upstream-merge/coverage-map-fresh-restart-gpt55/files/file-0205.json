@@ -1,0 +1,33 @@
+{
+  "record_type": "file",
+  "file_index": 205,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/node/metrics/src/hooks.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "semicolon",
+    "node-metrics",
+    "hooks"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The node metrics hooks divergence is semicolon-only rustfmt noise in early returns for jemalloc epoch, process, and IO stat collection failures; no metrics behavior changed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 205: M\tcrates/node/metrics/src/hooks.rs.",
+    "The isolated patch only changes three `return` statements to `return;`.",
+    "No memory metric, IO metric, error logging, or collection scheduling behavior changed."
+  ]
+}

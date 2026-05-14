@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "Wallet verification decodes the model from LLM input, reads the configured ModelRegistry address, and fails if extraction or model pricing fails.",
+      "path": "crates/ritual-async-fees/src/wallet.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let model_name = extract_model_from_llm_input(precompile_input)?;\nllm_executor_deposit_estimate_for_model(db, get_model_registry_address(), &model_name)?",
+      "symbols": [
+        "verify_wallet_for_commitment",
+        "extract_model_from_llm_input",
+        "llm_executor_deposit_estimate_for_model"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "Block verification invokes the wallet verifier for async commitments against parent state.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "verify_wallet_for_commitment(&mut db, original_payer, commitment.precompile_address, &commitment.precompile_input, commitment.ttl, current_block)?;",
+      "symbols": [
+        "verify_commitments",
+        "verify_wallet_for_commitment"
+      ]
+    }
+  ],
+  "equivalence_argument": "The verifier path uses the same wallet check for LLM commitments that extracts the model name and prices it through ModelRegistry; decode or registry failures propagate as verification errors rather than falling back to a default estimate.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/wallet.rs"
+  ],
+  "invariant_id": "cur-dfea1a473d-verifier-uses-model-specific-pricing",
+  "invariant_index": 396,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in the port wallet verifier and block verification caller.",
+  "rationale": "The commit body says verifier and builder must use exactly the same pessimistic fee calculation to avoid consensus divergence, and the diff replaces the verifier's default LLM estimate with model extraction plus ModelRegistry-backed pricing. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "4a85f7d0af2b18692eedb5eef09a4dc5d5d7139c"
+  ],
+  "statement": "During block verification wallet checks for LLM precompile calls, the verifier extracts the model name from the precompile input, reads the ModelRegistry address, and uses llm_executor_deposit_estimate_for_model for that model; if the model cannot be extracted or priced from the registry, verification fails instead of falling back to a default pessimistic LLM estimate.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create an LLM async commitment for a model with non-default registry pricing, then verify a block using wallet state sufficient for the model-specific price but not a mismatched default price; also assert verification fails when the model is absent from ModelRegistry or cannot be decoded from input."
+  ],
+  "summary": "LLM verifier wallet checks use ModelRegistry-specific pricing.",
+  "test_or_falsification_candidate": "Verify an LLM commitment whose wallet balance covers only the model-specific registry deposit, and separately verify malformed or unregistered model input fails block verification.",
+  "title": "Verifier uses model-specific LLM pricing",
+  "total_invariants": 1954
+}

@@ -9,20 +9,19 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "mapped",
+  "file_classification": "structural_equivalent",
   "tags": [
-    "mapped",
+    "high-risk",
     "non-exact",
-    "needs-review",
-    "alloy"
+    "structural_equivalent"
   ],
-  "atoms_total": 1,
+  "atoms_total": 2,
   "atoms": [
     {
       "record_id": "file-0250-atom-0001",
       "file_index": 250,
       "atom_index": 1,
-      "atoms_total": 1,
+      "atoms_total": 2,
       "source_path": "crates/primitives-traits/src/transaction/signed.rs",
       "source_hunk_hint": "@@ -9,2 +9,5 @@ use alloy_consensus::{",
       "source_kind": "other",
@@ -30,39 +29,115 @@
       "semantic_claim": "The downstream diff for crates/primitives-traits/src/transaction/signed.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
       "high_risk": false,
       "risk_tags": [],
-      "mapping_status": "moved_to_dependency",
+      "mapping_status": "structural_equivalent",
       "destinations": [
         {
-          "repo": "/home/ritual/repos/ritual-alloy-internal",
-          "path": "crates/consensus/src/signed.rs",
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/src/alloy/transaction/ethereum.rs",
           "symbols": [
-            "new_unchecked",
-            "new_unhashed",
-            "tx",
-            "tx_mut",
-            "signature"
+            "transaction compact codecs"
           ],
-          "snippet": "    pub fn new_unchecked(tx: T, signature: Sig, hash: B256) -> Self {\n        let value = OnceLock::new();\n        #[allow(clippy::useless_conversion)]\n        value.get_or_init(|| hash.into());\n        Self { tx, signature, hash: value }",
-          "evidence": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path."
+          "snippet": "transaction variants include async/scheduled/settlement storage codecs",
+          "evidence": "Active transaction identity/codec behavior was mapped in the tx identity feature pass."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/mod.rs",
+          "symbols": [
+            "Transaction",
+            "TxScheduled",
+            "TxAsyncCommitment",
+            "TxAsyncSettlement"
+          ],
+          "snippet": "Ritual transaction type identity lives in Alloy consensus dependency",
+          "evidence": "Transaction identity/runtime-field boundaries moved to Alloy consensus."
         }
       ],
-      "equivalence_argument": "The downstream file name resolves uniquely in the destination search scope outside the original path, indicating the behavior likely moved rather than disappearing.",
+      "equivalence_argument": "Transaction identity and codec behavior is preserved in Alloy plus Reth storage codecs.",
       "test_strategy": "not_needed",
       "negative_test_candidate": null,
       "adversarial_review": {
         "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Mapped to prior tx identity/codecs pass.",
+      "human_question": "filename/path similarity is not evidence of preserved behavior."
+    },
+    {
+      "record_type": "pr_preservation_derived_atom",
+      "pr_preservation_derived": true,
+      "pr_preservation_grounded": true,
+      "file_index": 250,
+      "source_path": "crates/primitives-traits/src/transaction/signed.rs",
+      "source_hunk_hint": "crates/primitives-traits/src/transaction/signed.rs:137-157",
+      "source_kind": "encoding_rule",
+      "source_snippet": "    }\n\n    /// Attempts to convert the transaction into a scheduled transaction.\n    /// Used in receipt generation to uncover the scheduled transaction details:\n    /// - origin\n    /// - frequency\n    /// - initial_block\n    /// etc.\n    fn as_scheduled(&self) -> Option<&TxScheduled> {\n        None\n    }\n\n    /// Attempts to convert the transaction into an async-exec transaction.\n    /// used in receipt generation to uncover the async-exec transaction details:\n    fn as_async_commitment(&self) -> Option<&TxAsyncCommitment> {\n        None\n    }\n\n    /// Attempts to convert the transaction into an async-settlement transaction.\n    /// used in receipt generation to uncover the async-settlement transaction details:\n    fn as_async_settlement(&self) -> Option<&TxAsyncSettlement> {",
+      "semantic_claim": "PR preservation `#220` `jungle-scheduled` keeps live downstream behavior: scheduled tx codec/receipt integration.",
+      "high_risk": true,
+      "risk_tags": [
+        "encoding",
+        "scheduled",
+        "txpool"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/src/alloy/transaction/ethereum.rs",
+          "symbols": [
+            "transaction compact codecs"
+          ],
+          "snippet": "transaction variants include async/scheduled/settlement storage codecs",
+          "evidence": "Active transaction identity/codec behavior was mapped in the tx identity feature pass."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/mod.rs",
+          "symbols": [
+            "Transaction",
+            "TxScheduled",
+            "TxAsyncCommitment",
+            "TxAsyncSettlement"
+          ],
+          "snippet": "Ritual transaction type identity lives in Alloy consensus dependency",
+          "evidence": "Transaction identity/runtime-field boundaries moved to Alloy consensus."
+        }
+      ],
+      "equivalence_argument": "Transaction identity and codec behavior is preserved in Alloy plus Reth storage codecs.",
+      "test_strategy": "pr_diff_equivalence_regression",
+      "negative_test_candidate": "Replay or unit-test the smallest downstream scenario introduced by #220 that exercises `scheduled tx codec/receipt integration` and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
         "status": "not_requested",
         "review_record_id": null
       },
       "review_required": true,
-      "notes": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path.",
-      "human_question": "Confirm that landing this file in a dependency repository preserves every downstream behavior atom expected from the old fork."
+      "source_prs": [
+        {
+          "key": "#220",
+          "slug": "jungle-scheduled",
+          "merge_commit": "8305f0018e43de61905ee2bcafe70f43cea51c30"
+        }
+      ],
+      "source_pr_claims": [
+        "scheduled tx codec/receipt integration"
+      ],
+      "source_flow_ids": [
+        "pr-raw-0067"
+      ],
+      "notes": "Mapped to prior tx identity/codecs pass.",
+      "atom_index": 2,
+      "record_id": "file-0250-atom-0002",
+      "atoms_total": 2,
+      "needs_atomization": true
     }
   ],
-  "high_risk_atoms_total": 0,
-  "non_exact_atoms_total": 1,
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 2,
   "adversarial_reviews": [],
-  "summary": "The downstream file maps to destination code but needs review because the destination implementation was refactored or moved.",
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
   "review_required": true,
   "status": "needs_review",
   "notes": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path."

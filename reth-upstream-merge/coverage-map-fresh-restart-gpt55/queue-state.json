@@ -1,0 +1,4025 @@
+{
+  "output_dir": "/home/ritual/repos/sjs-agent-sessions/reth-upstream-merge/coverage-map-fresh-restart-gpt55",
+  "total_files": 579,
+  "policy": "A file index is complete only when files/file-####.json exists, parses as JSON, has matching file_index/source_path, and status is complete or needs_review.",
+  "noise_records_seeded": 38,
+  "in_scope_pending": [
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127,
+    128,
+    129,
+    130,
+    131,
+    132,
+    133,
+    134,
+    135,
+    136,
+    137,
+    138,
+    139,
+    140,
+    141,
+    142,
+    143,
+    144,
+    145,
+    146,
+    147,
+    148,
+    149,
+    150,
+    151,
+    152,
+    153,
+    154,
+    155,
+    156,
+    157,
+    158,
+    159,
+    160,
+    161,
+    162,
+    163,
+    164,
+    165,
+    166,
+    167,
+    168,
+    169,
+    170,
+    171,
+    172,
+    173,
+    174,
+    175,
+    176,
+    177,
+    178,
+    179,
+    180,
+    181,
+    182,
+    183,
+    184,
+    185,
+    186,
+    187,
+    188,
+    189,
+    190,
+    191,
+    192,
+    193,
+    194,
+    195,
+    196,
+    197,
+    198,
+    199,
+    200,
+    201,
+    202,
+    203,
+    204,
+    205,
+    206,
+    207,
+    208,
+    209,
+    210,
+    211,
+    212,
+    213,
+    214,
+    215,
+    216,
+    217,
+    218,
+    219,
+    220,
+    221,
+    222,
+    223,
+    224,
+    225,
+    226,
+    227,
+    228,
+    229,
+    230,
+    231,
+    232,
+    233,
+    234,
+    235,
+    236,
+    237,
+    238,
+    239,
+    240,
+    241,
+    242,
+    243,
+    244,
+    245,
+    246,
+    247,
+    248,
+    249,
+    250,
+    251,
+    252,
+    253,
+    254,
+    255,
+    256,
+    257,
+    258,
+    259,
+    260,
+    261,
+    262,
+    263,
+    264,
+    265,
+    266,
+    267,
+    268,
+    269,
+    270,
+    271,
+    272,
+    273,
+    274,
+    275,
+    276,
+    277,
+    278,
+    279,
+    280,
+    281,
+    282,
+    283,
+    284,
+    285,
+    286,
+    287,
+    288,
+    289,
+    290,
+    291,
+    292,
+    293,
+    294,
+    295,
+    296,
+    297,
+    298,
+    299,
+    300,
+    301,
+    302,
+    303,
+    304,
+    305,
+    306,
+    307,
+    308,
+    309,
+    310,
+    311,
+    312,
+    313,
+    314,
+    315,
+    316,
+    317,
+    318,
+    319,
+    320,
+    321,
+    322,
+    323,
+    324,
+    325,
+    326,
+    327,
+    328,
+    329,
+    330,
+    331,
+    332,
+    333,
+    334,
+    335,
+    336,
+    337,
+    338,
+    339,
+    340,
+    341,
+    342,
+    343,
+    344,
+    345,
+    346,
+    348,
+    349,
+    350,
+    351,
+    352,
+    353,
+    354,
+    355,
+    356,
+    357,
+    358,
+    359,
+    360,
+    361,
+    362,
+    363,
+    364,
+    365,
+    366,
+    367,
+    368,
+    369,
+    370,
+    371,
+    372,
+    373,
+    374,
+    375,
+    376,
+    377,
+    378,
+    379,
+    380,
+    381,
+    382,
+    383,
+    384,
+    385,
+    386,
+    387,
+    388,
+    389,
+    390,
+    391,
+    392,
+    393,
+    394,
+    395,
+    396,
+    397,
+    398,
+    399,
+    400,
+    401,
+    402,
+    403,
+    404,
+    405,
+    406,
+    407,
+    408,
+    409,
+    410,
+    411,
+    412,
+    413,
+    414,
+    415,
+    416,
+    417,
+    418,
+    419,
+    420,
+    421,
+    422,
+    423,
+    424,
+    425,
+    426,
+    427,
+    428,
+    429,
+    430,
+    431,
+    432,
+    433,
+    434,
+    435,
+    436,
+    437,
+    438,
+    439,
+    440,
+    441,
+    442,
+    443,
+    444,
+    445,
+    446,
+    447,
+    448,
+    449,
+    450,
+    451,
+    452,
+    453,
+    454,
+    455,
+    456,
+    457,
+    458,
+    459,
+    460,
+    461,
+    462,
+    463,
+    464,
+    465,
+    466,
+    467,
+    468,
+    469,
+    470,
+    471,
+    472,
+    473,
+    474,
+    475,
+    476,
+    477,
+    478,
+    479,
+    480,
+    481,
+    482,
+    483,
+    484,
+    485,
+    486,
+    487,
+    488,
+    489,
+    490,
+    491,
+    492,
+    493,
+    494,
+    495,
+    496,
+    497,
+    498,
+    499,
+    500,
+    501,
+    502,
+    503,
+    504,
+    505,
+    506,
+    507,
+    508,
+    509,
+    510,
+    511,
+    512,
+    513,
+    514,
+    516,
+    517,
+    518,
+    519,
+    520,
+    521,
+    522,
+    523,
+    524,
+    525,
+    526,
+    527,
+    528,
+    529,
+    530,
+    531,
+    532,
+    533,
+    534,
+    535,
+    536,
+    537,
+    538,
+    539,
+    540,
+    541,
+    542,
+    543,
+    544,
+    545,
+    546,
+    547,
+    548,
+    549,
+    550,
+    551,
+    552,
+    553,
+    554,
+    555,
+    556,
+    557,
+    558,
+    559,
+    560,
+    561,
+    562
+  ],
+  "entries": [
+    {
+      "file_index": 1,
+      "status": "A",
+      "path": ".cursorrules",
+      "old_path": null
+    },
+    {
+      "file_index": 2,
+      "status": "A",
+      "path": ".github/workflows/claude-pr-review.yml",
+      "old_path": null
+    },
+    {
+      "file_index": 3,
+      "status": "M",
+      "path": ".gitignore",
+      "old_path": null
+    },
+    {
+      "file_index": 4,
+      "status": "A",
+      "path": ".ritual-pr/config.yml",
+      "old_path": null
+    },
+    {
+      "file_index": 5,
+      "status": "A",
+      "path": ".ritual-pr/prompts/shared/consensus-code-audit.md",
+      "old_path": null
+    },
+    {
+      "file_index": 6,
+      "status": "A",
+      "path": ".ritual-pr/prompts/shared/engineering.md",
+      "old_path": null
+    },
+    {
+      "file_index": 7,
+      "status": "A",
+      "path": ".ritual-pr/prompts/shared/fsm-verification.md",
+      "old_path": null
+    },
+    {
+      "file_index": 8,
+      "status": "M",
+      "path": "Cargo.lock",
+      "old_path": null
+    },
+    {
+      "file_index": 9,
+      "status": "M",
+      "path": "Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 10,
+      "status": "M",
+      "path": "Cross.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 11,
+      "status": "A",
+      "path": "PR183_REIMPLEMENTATION.md",
+      "old_path": null
+    },
+    {
+      "file_index": 12,
+      "status": "M",
+      "path": "README.md",
+      "old_path": null
+    },
+    {
+      "file_index": 13,
+      "status": "A",
+      "path": "awaiting_execution_pool_plan.md",
+      "old_path": null
+    },
+    {
+      "file_index": 14,
+      "status": "A",
+      "path": "b",
+      "old_path": null
+    },
+    {
+      "file_index": 15,
+      "status": "M",
+      "path": "bin/reth-bench/src/valid_payload.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 16,
+      "status": "M",
+      "path": "bin/reth/src/commands/debug_cmd/build_block.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 17,
+      "status": "M",
+      "path": "bin/reth/src/commands/debug_cmd/execution.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 18,
+      "status": "M",
+      "path": "bin/reth/src/commands/debug_cmd/in_memory_merkle.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 19,
+      "status": "M",
+      "path": "bin/reth/src/commands/debug_cmd/merkle.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 20,
+      "status": "M",
+      "path": "crates/chain-state/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 21,
+      "status": "M",
+      "path": "crates/chain-state/src/chain_info.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 22,
+      "status": "M",
+      "path": "crates/chain-state/src/in_memory.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 23,
+      "status": "M",
+      "path": "crates/chain-state/src/noop.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 24,
+      "status": "M",
+      "path": "crates/chain-state/src/notifications.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 25,
+      "status": "M",
+      "path": "crates/chain-state/src/test_utils.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 26,
+      "status": "M",
+      "path": "crates/chainspec/src/api.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 27,
+      "status": "M",
+      "path": "crates/chainspec/src/constants.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 28,
+      "status": "M",
+      "path": "crates/chainspec/src/spec.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 29,
+      "status": "M",
+      "path": "crates/cli/cli/src/chainspec.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 30,
+      "status": "M",
+      "path": "crates/cli/commands/src/common.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 31,
+      "status": "M",
+      "path": "crates/cli/commands/src/db/checksum.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 32,
+      "status": "M",
+      "path": "crates/cli/commands/src/db/diff.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 33,
+      "status": "M",
+      "path": "crates/cli/commands/src/db/list.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 34,
+      "status": "M",
+      "path": "crates/cli/commands/src/db/mod.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 35,
+      "status": "M",
+      "path": "crates/cli/commands/src/db/stats.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 36,
+      "status": "M",
+      "path": "crates/cli/commands/src/db/tui.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 37,
+      "status": "M",
+      "path": "crates/cli/commands/src/import.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 38,
+      "status": "M",
+      "path": "crates/cli/commands/src/init_state/without_evm.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 39,
+      "status": "M",
+      "path": "crates/cli/commands/src/stage/dump/hashing_account.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 40,
+      "status": "M",
+      "path": "crates/cli/commands/src/stage/dump/hashing_storage.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 41,
+      "status": "M",
+      "path": "crates/cli/commands/src/stage/dump/merkle.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 42,
+      "status": "M",
+      "path": "crates/cli/commands/src/stage/run.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 43,
+      "status": "M",
+      "path": "crates/cli/commands/src/test_vectors/compact.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 44,
+      "status": "M",
+      "path": "crates/cli/commands/src/test_vectors/tables.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 45,
+      "status": "M",
+      "path": "crates/cli/util/src/parsers.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 46,
+      "status": "M",
+      "path": "crates/cli/util/src/sigsegv_handler.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 47,
+      "status": "M",
+      "path": "crates/consensus/common/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 48,
+      "status": "M",
+      "path": "crates/consensus/common/src/validation.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 49,
+      "status": "M",
+      "path": "crates/consensus/debug-client/src/providers/etherscan.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 50,
+      "status": "M",
+      "path": "crates/e2e-test-utils/src/network.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 51,
+      "status": "M",
+      "path": "crates/e2e-test-utils/src/node.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 52,
+      "status": "M",
+      "path": "crates/e2e-test-utils/src/payload.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 53,
+      "status": "M",
+      "path": "crates/engine/local/src/miner.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 54,
+      "status": "M",
+      "path": "crates/engine/local/src/payload.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 55,
+      "status": "M",
+      "path": "crates/engine/local/src/service.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 56,
+      "status": "M",
+      "path": "crates/engine/tree/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 57,
+      "status": "M",
+      "path": "crates/engine/tree/src/backfill.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 58,
+      "status": "M",
+      "path": "crates/engine/tree/src/chain.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 59,
+      "status": "M",
+      "path": "crates/engine/tree/src/download.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 60,
+      "status": "M",
+      "path": "crates/engine/tree/src/engine.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 61,
+      "status": "M",
+      "path": "crates/engine/tree/src/tree/block_buffer.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 62,
+      "status": "M",
+      "path": "crates/engine/tree/src/tree/cached_state.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 63,
+      "status": "M",
+      "path": "crates/engine/tree/src/tree/invalid_headers.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 64,
+      "status": "M",
+      "path": "crates/engine/tree/src/tree/mod.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 65,
+      "status": "M",
+      "path": "crates/engine/tree/src/tree/payload_processor/multiproof.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 66,
+      "status": "M",
+      "path": "crates/engine/tree/src/tree/payload_processor/prewarm.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 67,
+      "status": "M",
+      "path": "crates/engine/tree/src/tree/trie_updates.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 68,
+      "status": "M",
+      "path": "crates/engine/util/src/reorg.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 69,
+      "status": "M",
+      "path": "crates/engine/util/src/skip_fcu.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 70,
+      "status": "M",
+      "path": "crates/engine/util/src/skip_new_payload.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 71,
+      "status": "M",
+      "path": "crates/era/src/era1_file.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 72,
+      "status": "M",
+      "path": "crates/errors/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 73,
+      "status": "M",
+      "path": "crates/errors/src/error.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 74,
+      "status": "M",
+      "path": "crates/ethereum/consensus/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 75,
+      "status": "M",
+      "path": "crates/ethereum/consensus/src/validation.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 76,
+      "status": "M",
+      "path": "crates/ethereum/engine-primitives/src/payload.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 77,
+      "status": "M",
+      "path": "crates/ethereum/evm/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 78,
+      "status": "M",
+      "path": "crates/ethereum/evm/src/build.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 79,
+      "status": "M",
+      "path": "crates/ethereum/evm/src/execute.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 80,
+      "status": "M",
+      "path": "crates/ethereum/evm/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 81,
+      "status": "M",
+      "path": "crates/ethereum/node/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 82,
+      "status": "M",
+      "path": "crates/ethereum/node/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 83,
+      "status": "M",
+      "path": "crates/ethereum/node/src/node.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 84,
+      "status": "M",
+      "path": "crates/ethereum/node/src/payload.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 85,
+      "status": "A",
+      "path": "crates/ethereum/node/src/spc.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 86,
+      "status": "M",
+      "path": "crates/ethereum/node/tests/e2e/rpc.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 87,
+      "status": "M",
+      "path": "crates/ethereum/payload/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 88,
+      "status": "A",
+      "path": "crates/ethereum/payload/src/bundle.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 89,
+      "status": "A",
+      "path": "crates/ethereum/payload/src/collector.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 90,
+      "status": "M",
+      "path": "crates/ethereum/payload/src/config.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 91,
+      "status": "A",
+      "path": "crates/ethereum/payload/src/execution.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 92,
+      "status": "M",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 93,
+      "status": "A",
+      "path": "crates/ethereum/payload/src/unified_builder.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 94,
+      "status": "A",
+      "path": "crates/ethereum/payload/src/unified_execution.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 95,
+      "status": "M",
+      "path": "crates/ethereum/payload/src/validator.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 96,
+      "status": "M",
+      "path": "crates/ethereum/primitives/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 97,
+      "status": "M",
+      "path": "crates/ethereum/primitives/src/receipt.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 98,
+      "status": "M",
+      "path": "crates/ethereum/primitives/src/transaction.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 99,
+      "status": "M",
+      "path": "crates/ethereum/reth/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 100,
+      "status": "M",
+      "path": "crates/etl/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 101,
+      "status": "M",
+      "path": "crates/evm/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 102,
+      "status": "M",
+      "path": "crates/evm/execution-errors/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 103,
+      "status": "M",
+      "path": "crates/evm/execution-errors/src/trie.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 104,
+      "status": "M",
+      "path": "crates/evm/execution-types/src/chain.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 105,
+      "status": "M",
+      "path": "crates/evm/execution-types/src/execution_outcome.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 106,
+      "status": "A",
+      "path": "crates/evm/src/async_context_tests.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 107,
+      "status": "M",
+      "path": "crates/evm/src/execute.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 108,
+      "status": "M",
+      "path": "crates/evm/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 109,
+      "status": "M",
+      "path": "crates/evm/src/metrics.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 110,
+      "status": "A",
+      "path": "crates/evm/src/pool_manager.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 111,
+      "status": "A",
+      "path": "crates/evm/src/spc.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 112,
+      "status": "M",
+      "path": "crates/exex/exex/src/backfill/job.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 113,
+      "status": "M",
+      "path": "crates/exex/exex/src/backfill/stream.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 114,
+      "status": "M",
+      "path": "crates/exex/exex/src/manager.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 115,
+      "status": "M",
+      "path": "crates/exex/exex/src/notifications.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 116,
+      "status": "M",
+      "path": "crates/exex/exex/src/wal/cache.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 117,
+      "status": "M",
+      "path": "crates/exex/exex/src/wal/mod.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 118,
+      "status": "M",
+      "path": "crates/net/banlist/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 119,
+      "status": "M",
+      "path": "crates/net/discv4/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 120,
+      "status": "M",
+      "path": "crates/net/discv4/src/proto.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 121,
+      "status": "M",
+      "path": "crates/net/discv4/src/test_utils.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 122,
+      "status": "M",
+      "path": "crates/net/discv5/src/config.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 123,
+      "status": "M",
+      "path": "crates/net/discv5/src/enr.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 124,
+      "status": "M",
+      "path": "crates/net/discv5/src/filter.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 125,
+      "status": "M",
+      "path": "crates/net/discv5/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 126,
+      "status": "M",
+      "path": "crates/net/discv5/src/network_stack_id.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 127,
+      "status": "M",
+      "path": "crates/net/dns/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 128,
+      "status": "M",
+      "path": "crates/net/dns/src/query.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 129,
+      "status": "M",
+      "path": "crates/net/dns/src/sync.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 130,
+      "status": "M",
+      "path": "crates/net/dns/src/tree.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 131,
+      "status": "M",
+      "path": "crates/net/downloaders/src/bodies/bodies.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 132,
+      "status": "M",
+      "path": "crates/net/downloaders/src/bodies/request.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 133,
+      "status": "M",
+      "path": "crates/net/downloaders/src/bodies/task.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 134,
+      "status": "M",
+      "path": "crates/net/downloaders/src/file_client.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 135,
+      "status": "M",
+      "path": "crates/net/downloaders/src/file_codec.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 136,
+      "status": "M",
+      "path": "crates/net/downloaders/src/headers/reverse_headers.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 137,
+      "status": "M",
+      "path": "crates/net/downloaders/src/headers/task.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 138,
+      "status": "M",
+      "path": "crates/net/downloaders/src/receipt_file_client.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 139,
+      "status": "M",
+      "path": "crates/net/downloaders/src/test_utils/bodies_client.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 140,
+      "status": "M",
+      "path": "crates/net/ecies/src/algorithm.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 141,
+      "status": "M",
+      "path": "crates/net/ecies/src/codec.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 142,
+      "status": "M",
+      "path": "crates/net/eth-wire-types/src/broadcast.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 143,
+      "status": "M",
+      "path": "crates/net/eth-wire-types/src/disconnect_reason.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 144,
+      "status": "M",
+      "path": "crates/net/eth-wire-types/src/message.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 145,
+      "status": "M",
+      "path": "crates/net/eth-wire/src/capability.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 146,
+      "status": "M",
+      "path": "crates/net/eth-wire/src/errors/eth.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 147,
+      "status": "M",
+      "path": "crates/net/eth-wire/src/errors/p2p.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 148,
+      "status": "M",
+      "path": "crates/net/eth-wire/src/eth_snap_stream.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 149,
+      "status": "M",
+      "path": "crates/net/eth-wire/src/ethstream.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 150,
+      "status": "M",
+      "path": "crates/net/eth-wire/src/multiplex.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 151,
+      "status": "M",
+      "path": "crates/net/eth-wire/src/p2pstream.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 152,
+      "status": "M",
+      "path": "crates/net/eth-wire/src/pinger.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 153,
+      "status": "M",
+      "path": "crates/net/eth-wire/src/protocol.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 154,
+      "status": "M",
+      "path": "crates/net/eth-wire/src/test_utils.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 155,
+      "status": "M",
+      "path": "crates/net/nat/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 156,
+      "status": "M",
+      "path": "crates/net/network-types/src/peers/mod.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 157,
+      "status": "M",
+      "path": "crates/net/network/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 158,
+      "status": "M",
+      "path": "crates/net/network/src/discovery.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 159,
+      "status": "M",
+      "path": "crates/net/network/src/error.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 160,
+      "status": "M",
+      "path": "crates/net/network/src/eth_requests.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 161,
+      "status": "M",
+      "path": "crates/net/network/src/fetch/mod.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 162,
+      "status": "M",
+      "path": "crates/net/network/src/manager.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 163,
+      "status": "M",
+      "path": "crates/net/network/src/metrics.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 164,
+      "status": "M",
+      "path": "crates/net/network/src/network.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 165,
+      "status": "M",
+      "path": "crates/net/network/src/peers.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 166,
+      "status": "M",
+      "path": "crates/net/network/src/session/active.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 167,
+      "status": "M",
+      "path": "crates/net/network/src/session/counter.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 168,
+      "status": "M",
+      "path": "crates/net/network/src/session/mod.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 169,
+      "status": "M",
+      "path": "crates/net/network/src/state.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 170,
+      "status": "M",
+      "path": "crates/net/network/src/swarm.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 171,
+      "status": "M",
+      "path": "crates/net/network/src/test_utils/init.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 172,
+      "status": "M",
+      "path": "crates/net/network/src/test_utils/testnet.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 173,
+      "status": "M",
+      "path": "crates/net/network/src/transactions/constants.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 174,
+      "status": "M",
+      "path": "crates/net/network/src/transactions/fetcher.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 175,
+      "status": "M",
+      "path": "crates/net/network/src/transactions/mod.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 176,
+      "status": "M",
+      "path": "crates/net/network/src/transactions/validation.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 177,
+      "status": "M",
+      "path": "crates/net/network/tests/it/connect.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 178,
+      "status": "M",
+      "path": "crates/net/network/tests/it/multiplex.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 179,
+      "status": "M",
+      "path": "crates/net/network/tests/it/txgossip.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 180,
+      "status": "M",
+      "path": "crates/net/p2p/src/error.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 181,
+      "status": "M",
+      "path": "crates/net/p2p/src/full_block.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 182,
+      "status": "M",
+      "path": "crates/net/p2p/src/test_utils/headers.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 183,
+      "status": "M",
+      "path": "crates/net/peers/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 184,
+      "status": "M",
+      "path": "crates/net/peers/src/node_record.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 185,
+      "status": "M",
+      "path": "crates/node/api/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 186,
+      "status": "M",
+      "path": "crates/node/api/src/node.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 187,
+      "status": "M",
+      "path": "crates/node/builder/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 188,
+      "status": "M",
+      "path": "crates/node/builder/src/builder/mod.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 189,
+      "status": "M",
+      "path": "crates/node/builder/src/components/builder.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 190,
+      "status": "M",
+      "path": "crates/node/builder/src/components/execute.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 191,
+      "status": "M",
+      "path": "crates/node/builder/src/components/payload.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 192,
+      "status": "M",
+      "path": "crates/node/builder/src/components/pool.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 193,
+      "status": "M",
+      "path": "crates/node/builder/src/launch/common.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 194,
+      "status": "M",
+      "path": "crates/node/builder/src/launch/engine.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 195,
+      "status": "M",
+      "path": "crates/node/builder/src/launch/exex.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 196,
+      "status": "M",
+      "path": "crates/node/builder/src/rpc.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 197,
+      "status": "M",
+      "path": "crates/node/builder/src/setup.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 198,
+      "status": "M",
+      "path": "crates/node/core/src/args/debug.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 199,
+      "status": "M",
+      "path": "crates/node/core/src/args/log.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 200,
+      "status": "M",
+      "path": "crates/node/core/src/args/payload_builder.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 201,
+      "status": "M",
+      "path": "crates/node/core/src/cli/config.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 202,
+      "status": "M",
+      "path": "crates/node/core/src/node_config.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 203,
+      "status": "M",
+      "path": "crates/node/events/src/cl.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 204,
+      "status": "M",
+      "path": "crates/node/events/src/node.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 205,
+      "status": "M",
+      "path": "crates/node/metrics/src/hooks.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 206,
+      "status": "M",
+      "path": "crates/optimism/chainspec/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 207,
+      "status": "M",
+      "path": "crates/optimism/cli/src/commands/import.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 208,
+      "status": "M",
+      "path": "crates/optimism/cli/src/commands/import_receipts.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 209,
+      "status": "M",
+      "path": "crates/optimism/cli/src/commands/init_state.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 210,
+      "status": "M",
+      "path": "crates/optimism/cli/src/receipt_file_codec.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 211,
+      "status": "M",
+      "path": "crates/optimism/consensus/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 212,
+      "status": "M",
+      "path": "crates/optimism/consensus/src/proof.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 213,
+      "status": "M",
+      "path": "crates/optimism/consensus/src/validation/canyon.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 214,
+      "status": "M",
+      "path": "crates/optimism/consensus/src/validation/isthmus.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 215,
+      "status": "M",
+      "path": "crates/optimism/consensus/src/validation/mod.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 216,
+      "status": "M",
+      "path": "crates/optimism/node/src/engine.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 217,
+      "status": "M",
+      "path": "crates/optimism/node/src/node.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 218,
+      "status": "M",
+      "path": "crates/optimism/payload/src/builder.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 219,
+      "status": "M",
+      "path": "crates/optimism/payload/src/validator.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 220,
+      "status": "M",
+      "path": "crates/optimism/primitives/src/bedrock.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 221,
+      "status": "M",
+      "path": "crates/optimism/primitives/src/receipt.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 222,
+      "status": "M",
+      "path": "crates/optimism/primitives/src/transaction/signed.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 223,
+      "status": "M",
+      "path": "crates/optimism/rpc/src/error.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 224,
+      "status": "M",
+      "path": "crates/optimism/rpc/src/eth/block.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 225,
+      "status": "M",
+      "path": "crates/optimism/rpc/src/eth/call.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 226,
+      "status": "M",
+      "path": "crates/optimism/rpc/src/eth/ext.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 227,
+      "status": "M",
+      "path": "crates/optimism/rpc/src/eth/transaction.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 228,
+      "status": "M",
+      "path": "crates/optimism/txpool/src/supervisor/client.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 229,
+      "status": "M",
+      "path": "crates/optimism/txpool/src/transaction.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 230,
+      "status": "M",
+      "path": "crates/optimism/txpool/src/validator.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 231,
+      "status": "M",
+      "path": "crates/payload/basic/src/better_payload_emitter.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 232,
+      "status": "M",
+      "path": "crates/payload/basic/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 233,
+      "status": "M",
+      "path": "crates/payload/basic/src/stack.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 234,
+      "status": "M",
+      "path": "crates/payload/builder-primitives/src/events.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 235,
+      "status": "M",
+      "path": "crates/payload/builder/src/noop.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 236,
+      "status": "M",
+      "path": "crates/payload/builder/src/service.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 237,
+      "status": "M",
+      "path": "crates/payload/primitives/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 238,
+      "status": "M",
+      "path": "crates/payload/util/src/traits.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 239,
+      "status": "M",
+      "path": "crates/payload/validator/src/cancun.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 240,
+      "status": "M",
+      "path": "crates/payload/validator/src/prague.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 241,
+      "status": "M",
+      "path": "crates/payload/validator/src/shanghai.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 242,
+      "status": "M",
+      "path": "crates/primitives-traits/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 243,
+      "status": "M",
+      "path": "crates/primitives-traits/src/account.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 244,
+      "status": "M",
+      "path": "crates/primitives-traits/src/block/mod.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 245,
+      "status": "M",
+      "path": "crates/primitives-traits/src/block/recovered.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 246,
+      "status": "M",
+      "path": "crates/primitives-traits/src/block/sealed.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 247,
+      "status": "M",
+      "path": "crates/primitives-traits/src/crypto.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 248,
+      "status": "M",
+      "path": "crates/primitives-traits/src/size.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 249,
+      "status": "M",
+      "path": "crates/primitives-traits/src/transaction/error.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 250,
+      "status": "M",
+      "path": "crates/primitives-traits/src/transaction/signed.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 251,
+      "status": "M",
+      "path": "crates/primitives-traits/src/withdrawal.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 252,
+      "status": "M",
+      "path": "crates/prune/prune/src/db_ext.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 253,
+      "status": "M",
+      "path": "crates/prune/prune/src/pruner.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 254,
+      "status": "M",
+      "path": "crates/prune/prune/src/segments/mod.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 255,
+      "status": "M",
+      "path": "crates/prune/prune/src/segments/receipts.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 256,
+      "status": "M",
+      "path": "crates/prune/prune/src/segments/set.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 257,
+      "status": "M",
+      "path": "crates/prune/prune/src/segments/static_file/headers.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 258,
+      "status": "M",
+      "path": "crates/prune/prune/src/segments/static_file/transactions.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 259,
+      "status": "M",
+      "path": "crates/prune/prune/src/segments/user/account_history.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 260,
+      "status": "M",
+      "path": "crates/prune/prune/src/segments/user/history.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 261,
+      "status": "M",
+      "path": "crates/prune/prune/src/segments/user/receipts_by_logs.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 262,
+      "status": "M",
+      "path": "crates/prune/prune/src/segments/user/sender_recovery.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 263,
+      "status": "M",
+      "path": "crates/prune/prune/src/segments/user/storage_history.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 264,
+      "status": "M",
+      "path": "crates/prune/prune/src/segments/user/transaction_lookup.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 265,
+      "status": "M",
+      "path": "crates/prune/types/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 266,
+      "status": "M",
+      "path": "crates/prune/types/src/mode.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 267,
+      "status": "M",
+      "path": "crates/ress/protocol/src/connection.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 268,
+      "status": "M",
+      "path": "crates/ress/protocol/src/provider.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 269,
+      "status": "M",
+      "path": "crates/ress/protocol/tests/it/e2e.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 270,
+      "status": "M",
+      "path": "crates/ress/provider/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 271,
+      "status": "M",
+      "path": "crates/ress/provider/src/pending_state.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 272,
+      "status": "M",
+      "path": "crates/revm/src/cached.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 273,
+      "status": "A",
+      "path": "crates/ritual-async-commitment-validator/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 274,
+      "status": "A",
+      "path": "crates/ritual-async-commitment-validator/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 275,
+      "status": "A",
+      "path": "crates/ritual-async-fees/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 276,
+      "status": "A",
+      "path": "crates/ritual-async-fees/src/constants.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 277,
+      "status": "A",
+      "path": "crates/ritual-async-fees/src/delivery.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 278,
+      "status": "A",
+      "path": "crates/ritual-async-fees/src/gas.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 279,
+      "status": "A",
+      "path": "crates/ritual-async-fees/src/http.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 280,
+      "status": "A",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 281,
+      "status": "A",
+      "path": "crates/ritual-async-fees/src/llm.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 282,
+      "status": "A",
+      "path": "crates/ritual-async-fees/src/registry.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 283,
+      "status": "A",
+      "path": "crates/ritual-async-fees/src/scheduled.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 284,
+      "status": "A",
+      "path": "crates/ritual-async-fees/src/validators.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 285,
+      "status": "A",
+      "path": "crates/ritual-async-fees/src/wallet.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 286,
+      "status": "A",
+      "path": "crates/ritual-async-inspector/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 287,
+      "status": "A",
+      "path": "crates/ritual-async-inspector/src/inspector.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 288,
+      "status": "A",
+      "path": "crates/ritual-async-inspector/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 289,
+      "status": "A",
+      "path": "crates/ritual-async-inspector/src/utils.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 290,
+      "status": "A",
+      "path": "crates/ritual-async-registry/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 291,
+      "status": "A",
+      "path": "crates/ritual-async-registry/src/error.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 292,
+      "status": "A",
+      "path": "crates/ritual-async-registry/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 293,
+      "status": "A",
+      "path": "crates/ritual-async-registry/src/slots.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 294,
+      "status": "A",
+      "path": "crates/ritual-async/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 295,
+      "status": "A",
+      "path": "crates/ritual-async/src/detector.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 296,
+      "status": "A",
+      "path": "crates/ritual-async/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 297,
+      "status": "A",
+      "path": "crates/ritual-async/src/validation.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 298,
+      "status": "A",
+      "path": "crates/ritual-async/src/wallet.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 299,
+      "status": "A",
+      "path": "crates/ritual-block-verification/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 300,
+      "status": "A",
+      "path": "crates/ritual-block-verification/src/constants.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 301,
+      "status": "A",
+      "path": "crates/ritual-block-verification/src/error.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 302,
+      "status": "A",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 303,
+      "status": "A",
+      "path": "crates/ritual-block-verification/src/nonce_lock.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 304,
+      "status": "A",
+      "path": "crates/ritual-block-verification/src/verifier.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 305,
+      "status": "A",
+      "path": "crates/ritual-blocking-pubsub/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 306,
+      "status": "A",
+      "path": "crates/ritual-blocking-pubsub/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 307,
+      "status": "A",
+      "path": "crates/ritual-heartbeat-tracker/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 308,
+      "status": "A",
+      "path": "crates/ritual-heartbeat-tracker/src/events.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 309,
+      "status": "A",
+      "path": "crates/ritual-heartbeat-tracker/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 310,
+      "status": "A",
+      "path": "crates/ritual-metrics/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 311,
+      "status": "A",
+      "path": "crates/ritual-metrics/src/block.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 312,
+      "status": "A",
+      "path": "crates/ritual-metrics/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 313,
+      "status": "A",
+      "path": "crates/ritual-metrics/src/scheduling.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 314,
+      "status": "A",
+      "path": "crates/ritual-metrics/src/tx.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 315,
+      "status": "A",
+      "path": "crates/ritual-precompile-addresses/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 316,
+      "status": "A",
+      "path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 317,
+      "status": "A",
+      "path": "crates/ritual-precompile-codecs/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 318,
+      "status": "A",
+      "path": "crates/ritual-precompile-codecs/src/dkms_key.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 319,
+      "status": "A",
+      "path": "crates/ritual-precompile-codecs/src/error.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 320,
+      "status": "A",
+      "path": "crates/ritual-precompile-codecs/src/executor.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 321,
+      "status": "A",
+      "path": "crates/ritual-precompile-codecs/src/http_call.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 322,
+      "status": "A",
+      "path": "crates/ritual-precompile-codecs/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 323,
+      "status": "A",
+      "path": "crates/ritual-precompile-codecs/src/llm_call.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 324,
+      "status": "A",
+      "path": "crates/ritual-precompile-codecs/src/long_running.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 325,
+      "status": "A",
+      "path": "crates/ritual-precompile-codecs/src/persistent_agent.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 326,
+      "status": "A",
+      "path": "crates/ritual-precompile-codecs/src/sovereign_agent.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 327,
+      "status": "A",
+      "path": "crates/ritual-precompile-codecs/src/storage_ref.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 328,
+      "status": "A",
+      "path": "crates/ritual-scheduled-block-building/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 329,
+      "status": "A",
+      "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 330,
+      "status": "A",
+      "path": "crates/ritual-scheduled-verification/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 331,
+      "status": "A",
+      "path": "crates/ritual-scheduled-verification/src/error.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 332,
+      "status": "A",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 333,
+      "status": "A",
+      "path": "crates/ritual-scheduled-verification/src/predicate.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 334,
+      "status": "A",
+      "path": "crates/ritual-scheduled-verification/src/slots.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 335,
+      "status": "A",
+      "path": "crates/ritual-sequencing-rights/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 336,
+      "status": "A",
+      "path": "crates/ritual-sequencing-rights/src/bucket.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 337,
+      "status": "A",
+      "path": "crates/ritual-sequencing-rights/src/classifier.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 338,
+      "status": "A",
+      "path": "crates/ritual-sequencing-rights/src/error.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 339,
+      "status": "A",
+      "path": "crates/ritual-sequencing-rights/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 340,
+      "status": "A",
+      "path": "crates/ritual-sequencing-rights/src/priority.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 341,
+      "status": "A",
+      "path": "crates/ritual-sequencing-rights/src/reader.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 342,
+      "status": "A",
+      "path": "crates/ritual-sequencing-rights/src/types.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 343,
+      "status": "A",
+      "path": "crates/ritual-spc-signature/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 344,
+      "status": "A",
+      "path": "crates/ritual-spc-signature/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 345,
+      "status": "A",
+      "path": "crates/ritual-spc-verification/Cargo.lock",
+      "old_path": null
+    },
+    {
+      "file_index": 346,
+      "status": "A",
+      "path": "crates/ritual-spc-verification/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 347,
+      "status": "A",
+      "path": "crates/ritual-spc-verification/README.md",
+      "old_path": null
+    },
+    {
+      "file_index": 348,
+      "status": "A",
+      "path": "crates/ritual-spc-verification/src/client.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 349,
+      "status": "A",
+      "path": "crates/ritual-spc-verification/src/error.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 350,
+      "status": "A",
+      "path": "crates/ritual-spc-verification/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 351,
+      "status": "A",
+      "path": "crates/ritual-spc-verification/src/types.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 352,
+      "status": "A",
+      "path": "crates/ritual-spc-verification/src/verifier.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 353,
+      "status": "A",
+      "path": "crates/ritual-tee-registry-reader/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 354,
+      "status": "A",
+      "path": "crates/ritual-tee-registry-reader/src/constants.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 355,
+      "status": "A",
+      "path": "crates/ritual-tee-registry-reader/src/error.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 356,
+      "status": "A",
+      "path": "crates/ritual-tee-registry-reader/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 357,
+      "status": "A",
+      "path": "crates/ritual-tee-registry-reader/src/reader.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 358,
+      "status": "A",
+      "path": "crates/ritual-tee-registry-reader/src/storage_layout.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 359,
+      "status": "A",
+      "path": "crates/ritual-tee-registry-reader/src/types.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 360,
+      "status": "M",
+      "path": "crates/rpc/ipc/src/server/connection.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 361,
+      "status": "M",
+      "path": "crates/rpc/ipc/src/server/ipc.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 362,
+      "status": "M",
+      "path": "crates/rpc/ipc/src/stream_codec.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 363,
+      "status": "M",
+      "path": "crates/rpc/rpc-api/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 364,
+      "status": "M",
+      "path": "crates/rpc/rpc-api/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 365,
+      "status": "A",
+      "path": "crates/rpc/rpc-api/src/ritual.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 366,
+      "status": "M",
+      "path": "crates/rpc/rpc-api/src/txpool.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 367,
+      "status": "M",
+      "path": "crates/rpc/rpc-builder/src/auth.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 368,
+      "status": "M",
+      "path": "crates/rpc/rpc-builder/src/cors.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 369,
+      "status": "M",
+      "path": "crates/rpc/rpc-builder/src/error.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 370,
+      "status": "M",
+      "path": "crates/rpc/rpc-builder/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 371,
+      "status": "M",
+      "path": "crates/rpc/rpc-builder/tests/it/http.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 372,
+      "status": "M",
+      "path": "crates/rpc/rpc-engine-api/src/engine_api.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 373,
+      "status": "M",
+      "path": "crates/rpc/rpc-engine-api/src/error.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 374,
+      "status": "M",
+      "path": "crates/rpc/rpc-eth-api/src/helpers/block.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 375,
+      "status": "M",
+      "path": "crates/rpc/rpc-eth-api/src/helpers/call.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 376,
+      "status": "M",
+      "path": "crates/rpc/rpc-eth-api/src/helpers/estimate.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 377,
+      "status": "M",
+      "path": "crates/rpc/rpc-eth-api/src/helpers/fee.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 378,
+      "status": "M",
+      "path": "crates/rpc/rpc-eth-api/src/helpers/pending_block.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 379,
+      "status": "M",
+      "path": "crates/rpc/rpc-eth-api/src/helpers/state.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 380,
+      "status": "M",
+      "path": "crates/rpc/rpc-eth-api/src/helpers/trace.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 381,
+      "status": "M",
+      "path": "crates/rpc/rpc-eth-api/src/helpers/transaction.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 382,
+      "status": "M",
+      "path": "crates/rpc/rpc-eth-types/src/cache/mod.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 383,
+      "status": "M",
+      "path": "crates/rpc/rpc-eth-types/src/error/api.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 384,
+      "status": "M",
+      "path": "crates/rpc/rpc-eth-types/src/error/mod.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 385,
+      "status": "M",
+      "path": "crates/rpc/rpc-eth-types/src/fee_history.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 386,
+      "status": "M",
+      "path": "crates/rpc/rpc-eth-types/src/gas_oracle.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 387,
+      "status": "M",
+      "path": "crates/rpc/rpc-eth-types/src/id_provider.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 388,
+      "status": "M",
+      "path": "crates/rpc/rpc-eth-types/src/logs_utils.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 389,
+      "status": "M",
+      "path": "crates/rpc/rpc-eth-types/src/receipt.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 390,
+      "status": "M",
+      "path": "crates/rpc/rpc-eth-types/src/revm_utils.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 391,
+      "status": "M",
+      "path": "crates/rpc/rpc-eth-types/src/utils.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 392,
+      "status": "M",
+      "path": "crates/rpc/rpc-layer/src/auth_client_layer.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 393,
+      "status": "M",
+      "path": "crates/rpc/rpc-server-types/src/module.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 394,
+      "status": "M",
+      "path": "crates/rpc/rpc-testing-util/tests/it/trace.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 395,
+      "status": "M",
+      "path": "crates/rpc/rpc/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 396,
+      "status": "A",
+      "path": "crates/rpc/rpc/src/async_tx_validator.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 397,
+      "status": "M",
+      "path": "crates/rpc/rpc/src/debug.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 398,
+      "status": "M",
+      "path": "crates/rpc/rpc/src/eth/bundle.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 399,
+      "status": "M",
+      "path": "crates/rpc/rpc/src/eth/filter.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 400,
+      "status": "M",
+      "path": "crates/rpc/rpc/src/eth/helpers/block.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 401,
+      "status": "M",
+      "path": "crates/rpc/rpc/src/eth/helpers/call.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 402,
+      "status": "M",
+      "path": "crates/rpc/rpc/src/eth/helpers/pending_block.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 403,
+      "status": "M",
+      "path": "crates/rpc/rpc/src/eth/helpers/transaction.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 404,
+      "status": "M",
+      "path": "crates/rpc/rpc/src/eth/helpers/types.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 405,
+      "status": "M",
+      "path": "crates/rpc/rpc/src/eth/pubsub.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 406,
+      "status": "M",
+      "path": "crates/rpc/rpc/src/eth/sim_bundle.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 407,
+      "status": "M",
+      "path": "crates/rpc/rpc/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 408,
+      "status": "M",
+      "path": "crates/rpc/rpc/src/otterscan.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 409,
+      "status": "M",
+      "path": "crates/rpc/rpc/src/reth.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 410,
+      "status": "A",
+      "path": "crates/rpc/rpc/src/ritual.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 411,
+      "status": "M",
+      "path": "crates/rpc/rpc/src/trace.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 412,
+      "status": "M",
+      "path": "crates/rpc/rpc/src/txpool.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 413,
+      "status": "M",
+      "path": "crates/rpc/rpc/src/validation.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 414,
+      "status": "A",
+      "path": "crates/scheduling/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 415,
+      "status": "A",
+      "path": "crates/scheduling/src/canonical.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 416,
+      "status": "A",
+      "path": "crates/scheduling/src/contract.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 417,
+      "status": "A",
+      "path": "crates/scheduling/src/events.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 418,
+      "status": "A",
+      "path": "crates/scheduling/src/job.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 419,
+      "status": "A",
+      "path": "crates/scheduling/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 420,
+      "status": "A",
+      "path": "crates/scheduling/src/service.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 421,
+      "status": "A",
+      "path": "crates/scheduling/src/singleton.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 422,
+      "status": "A",
+      "path": "crates/scheduling/src/transaction.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 423,
+      "status": "A",
+      "path": "crates/scheduling/src/types.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 424,
+      "status": "M",
+      "path": "crates/stages/api/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 425,
+      "status": "M",
+      "path": "crates/stages/api/src/error.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 426,
+      "status": "M",
+      "path": "crates/stages/api/src/metrics/listener.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 427,
+      "status": "M",
+      "path": "crates/stages/api/src/pipeline/mod.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 428,
+      "status": "M",
+      "path": "crates/stages/api/src/pipeline/set.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 429,
+      "status": "M",
+      "path": "crates/stages/api/src/stage.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 430,
+      "status": "M",
+      "path": "crates/stages/stages/src/stages/bodies.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 431,
+      "status": "M",
+      "path": "crates/stages/stages/src/stages/execution.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 432,
+      "status": "M",
+      "path": "crates/stages/stages/src/stages/finish.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 433,
+      "status": "M",
+      "path": "crates/stages/stages/src/stages/hashing_account.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 434,
+      "status": "M",
+      "path": "crates/stages/stages/src/stages/hashing_storage.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 435,
+      "status": "M",
+      "path": "crates/stages/stages/src/stages/headers.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 436,
+      "status": "M",
+      "path": "crates/stages/stages/src/stages/index_account_history.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 437,
+      "status": "M",
+      "path": "crates/stages/stages/src/stages/index_storage_history.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 438,
+      "status": "M",
+      "path": "crates/stages/stages/src/stages/merkle.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 439,
+      "status": "M",
+      "path": "crates/stages/stages/src/stages/prune.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 440,
+      "status": "M",
+      "path": "crates/stages/stages/src/stages/s3/downloader/fetch.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 441,
+      "status": "M",
+      "path": "crates/stages/stages/src/stages/s3/downloader/meta.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 442,
+      "status": "M",
+      "path": "crates/stages/stages/src/stages/s3/mod.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 443,
+      "status": "M",
+      "path": "crates/stages/stages/src/stages/sender_recovery.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 444,
+      "status": "M",
+      "path": "crates/stages/stages/src/stages/tx_lookup.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 445,
+      "status": "M",
+      "path": "crates/stages/stages/src/stages/utils.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 446,
+      "status": "M",
+      "path": "crates/stages/stages/src/test_utils/test_db.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 447,
+      "status": "M",
+      "path": "crates/stages/types/src/checkpoints.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 448,
+      "status": "M",
+      "path": "crates/stages/types/src/execution.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 449,
+      "status": "M",
+      "path": "crates/static-file/static-file/src/static_file_producer.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 450,
+      "status": "M",
+      "path": "crates/static-file/types/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 451,
+      "status": "M",
+      "path": "crates/static-file/types/src/segment.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 452,
+      "status": "M",
+      "path": "crates/storage/codecs/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 453,
+      "status": "M",
+      "path": "crates/storage/codecs/derive/src/compact/flags.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 454,
+      "status": "M",
+      "path": "crates/storage/codecs/derive/src/compact/generator.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 455,
+      "status": "M",
+      "path": "crates/storage/codecs/derive/src/compact/mod.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 456,
+      "status": "M",
+      "path": "crates/storage/codecs/derive/src/compact/structs.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 457,
+      "status": "M",
+      "path": "crates/storage/codecs/derive/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 458,
+      "status": "M",
+      "path": "crates/storage/codecs/src/alloy/mod.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 459,
+      "status": "A",
+      "path": "crates/storage/codecs/src/alloy/passkey_signature.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 460,
+      "status": "A",
+      "path": "crates/storage/codecs/src/alloy/transaction/async_commitment.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 461,
+      "status": "A",
+      "path": "crates/storage/codecs/src/alloy/transaction/async_settlement.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 462,
+      "status": "M",
+      "path": "crates/storage/codecs/src/alloy/transaction/eip1559.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 463,
+      "status": "M",
+      "path": "crates/storage/codecs/src/alloy/transaction/ethereum.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 464,
+      "status": "M",
+      "path": "crates/storage/codecs/src/alloy/transaction/legacy.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 465,
+      "status": "M",
+      "path": "crates/storage/codecs/src/alloy/transaction/mod.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 466,
+      "status": "C068",
+      "path": "crates/storage/codecs/src/alloy/transaction/passkey.rs",
+      "old_path": "crates/storage/codecs/src/alloy/transaction/eip1559.rs"
+    },
+    {
+      "file_index": 467,
+      "status": "A",
+      "path": "crates/storage/codecs/src/alloy/transaction/scheduled.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 468,
+      "status": "A",
+      "path": "crates/storage/codecs/src/alloy/transaction/spc_call.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 469,
+      "status": "M",
+      "path": "crates/storage/codecs/src/alloy/transaction/txtype.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 470,
+      "status": "M",
+      "path": "crates/storage/codecs/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 471,
+      "status": "M",
+      "path": "crates/storage/codecs/src/test_utils.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 472,
+      "status": "M",
+      "path": "crates/storage/db-api/src/cursor.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 473,
+      "status": "M",
+      "path": "crates/storage/db-api/src/models/storage_sharded_key.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 474,
+      "status": "M",
+      "path": "crates/storage/db-api/src/unwind.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 475,
+      "status": "M",
+      "path": "crates/storage/db-common/src/db_tool/mod.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 476,
+      "status": "M",
+      "path": "crates/storage/db-common/src/init.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 477,
+      "status": "M",
+      "path": "crates/storage/db/src/implementation/mdbx/mod.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 478,
+      "status": "M",
+      "path": "crates/storage/db/src/implementation/mdbx/tx.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 479,
+      "status": "M",
+      "path": "crates/storage/db/src/lockfile.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 480,
+      "status": "M",
+      "path": "crates/storage/db/src/static_file/cursor.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 481,
+      "status": "M",
+      "path": "crates/storage/db/src/version.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 482,
+      "status": "M",
+      "path": "crates/storage/libmdbx-rs/mdbx-sys/build.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 483,
+      "status": "M",
+      "path": "crates/storage/libmdbx-rs/src/codec.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 484,
+      "status": "M",
+      "path": "crates/storage/libmdbx-rs/src/cursor.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 485,
+      "status": "M",
+      "path": "crates/storage/libmdbx-rs/src/environment.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 486,
+      "status": "M",
+      "path": "crates/storage/libmdbx-rs/src/error.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 487,
+      "status": "M",
+      "path": "crates/storage/libmdbx-rs/src/transaction.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 488,
+      "status": "M",
+      "path": "crates/storage/nippy-jar/src/compression/lz4.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 489,
+      "status": "M",
+      "path": "crates/storage/nippy-jar/src/compression/zstd.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 490,
+      "status": "M",
+      "path": "crates/storage/nippy-jar/src/consistency.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 491,
+      "status": "M",
+      "path": "crates/storage/nippy-jar/src/cursor.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 492,
+      "status": "M",
+      "path": "crates/storage/nippy-jar/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 493,
+      "status": "M",
+      "path": "crates/storage/nippy-jar/src/writer.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 494,
+      "status": "M",
+      "path": "crates/storage/provider/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 495,
+      "status": "M",
+      "path": "crates/storage/provider/src/providers/blockchain_provider.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 496,
+      "status": "M",
+      "path": "crates/storage/provider/src/providers/consistent.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 497,
+      "status": "M",
+      "path": "crates/storage/provider/src/providers/consistent_view.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 498,
+      "status": "M",
+      "path": "crates/storage/provider/src/providers/database/provider.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 499,
+      "status": "M",
+      "path": "crates/storage/provider/src/providers/state/historical.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 500,
+      "status": "M",
+      "path": "crates/storage/provider/src/providers/state/latest.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 501,
+      "status": "M",
+      "path": "crates/storage/provider/src/providers/static_file/jar.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 502,
+      "status": "M",
+      "path": "crates/storage/provider/src/providers/static_file/manager.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 503,
+      "status": "M",
+      "path": "crates/storage/provider/src/providers/static_file/writer.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 504,
+      "status": "M",
+      "path": "crates/storage/provider/src/test_utils/mock.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 505,
+      "status": "M",
+      "path": "crates/storage/provider/src/writer/mod.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 506,
+      "status": "M",
+      "path": "crates/storage/storage-api/src/receipts.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 507,
+      "status": "M",
+      "path": "crates/storage/storage-api/src/state.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 508,
+      "status": "M",
+      "path": "crates/storage/zstd-compressors/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 509,
+      "status": "M",
+      "path": "crates/tasks/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 510,
+      "status": "M",
+      "path": "crates/tokio-util/src/ratelimit.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 511,
+      "status": "M",
+      "path": "crates/tracing/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 512,
+      "status": "M",
+      "path": "crates/tracing/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 513,
+      "status": "A",
+      "path": "crates/tracing/src/ritual_router.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 514,
+      "status": "M",
+      "path": "crates/transaction-pool/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 515,
+      "status": "A",
+      "path": "crates/transaction-pool/async_execution_final_jun3.md",
+      "old_path": null
+    },
+    {
+      "file_index": 516,
+      "status": "M",
+      "path": "crates/transaction-pool/src/blobstore/disk.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 517,
+      "status": "M",
+      "path": "crates/transaction-pool/src/blobstore/mem.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 518,
+      "status": "M",
+      "path": "crates/transaction-pool/src/blobstore/mod.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 519,
+      "status": "M",
+      "path": "crates/transaction-pool/src/blobstore/noop.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 520,
+      "status": "M",
+      "path": "crates/transaction-pool/src/blobstore/tracker.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 521,
+      "status": "A",
+      "path": "crates/transaction-pool/src/blocking_handlers.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 522,
+      "status": "M",
+      "path": "crates/transaction-pool/src/config.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 523,
+      "status": "M",
+      "path": "crates/transaction-pool/src/error.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 524,
+      "status": "M",
+      "path": "crates/transaction-pool/src/lib.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 525,
+      "status": "M",
+      "path": "crates/transaction-pool/src/maintain.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 526,
+      "status": "M",
+      "path": "crates/transaction-pool/src/metrics.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 527,
+      "status": "M",
+      "path": "crates/transaction-pool/src/noop.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 528,
+      "status": "A",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 529,
+      "status": "A",
+      "path": "crates/transaction-pool/src/pool/async_pool_removal_tests.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 530,
+      "status": "M",
+      "path": "crates/transaction-pool/src/pool/best.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 531,
+      "status": "M",
+      "path": "crates/transaction-pool/src/pool/blob.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 532,
+      "status": "M",
+      "path": "crates/transaction-pool/src/pool/mod.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 533,
+      "status": "M",
+      "path": "crates/transaction-pool/src/pool/parked.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 534,
+      "status": "M",
+      "path": "crates/transaction-pool/src/pool/pending.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 535,
+      "status": "A",
+      "path": "crates/transaction-pool/src/pool/scheduled.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 536,
+      "status": "M",
+      "path": "crates/transaction-pool/src/pool/state.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 537,
+      "status": "M",
+      "path": "crates/transaction-pool/src/pool/txpool.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 538,
+      "status": "M",
+      "path": "crates/transaction-pool/src/test_utils/gen.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 539,
+      "status": "M",
+      "path": "crates/transaction-pool/src/test_utils/mock.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 540,
+      "status": "M",
+      "path": "crates/transaction-pool/src/traits.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 541,
+      "status": "M",
+      "path": "crates/transaction-pool/src/validate/constants.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 542,
+      "status": "M",
+      "path": "crates/transaction-pool/src/validate/eth.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 543,
+      "status": "M",
+      "path": "crates/transaction-pool/src/validate/mod.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 544,
+      "status": "M",
+      "path": "crates/transaction-pool/src/validate/task.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 545,
+      "status": "A",
+      "path": "crates/transaction-pool/tests/it/async_exec.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 546,
+      "status": "M",
+      "path": "crates/trie/common/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 547,
+      "status": "M",
+      "path": "crates/trie/common/benches/prefix_set.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 548,
+      "status": "M",
+      "path": "crates/trie/common/src/hashed_state.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 549,
+      "status": "M",
+      "path": "crates/trie/common/src/prefix_set.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 550,
+      "status": "M",
+      "path": "crates/trie/common/src/proofs.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 551,
+      "status": "M",
+      "path": "crates/trie/common/src/updates.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 552,
+      "status": "M",
+      "path": "crates/trie/db/tests/witness.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 553,
+      "status": "M",
+      "path": "crates/trie/parallel/src/proof_task.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 554,
+      "status": "M",
+      "path": "crates/trie/sparse/src/state.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 555,
+      "status": "M",
+      "path": "crates/trie/sparse/src/trie.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 556,
+      "status": "M",
+      "path": "crates/trie/trie/src/hashed_cursor/post_state.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 557,
+      "status": "M",
+      "path": "crates/trie/trie/src/node_iter.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 558,
+      "status": "M",
+      "path": "crates/trie/trie/src/proof/mod.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 559,
+      "status": "M",
+      "path": "crates/trie/trie/src/trie.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 560,
+      "status": "M",
+      "path": "crates/trie/trie/src/trie_cursor/in_memory.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 561,
+      "status": "M",
+      "path": "crates/trie/trie/src/walker.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 562,
+      "status": "M",
+      "path": "crates/trie/trie/src/witness.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 563,
+      "status": "A",
+      "path": "docs/design/model-pricing-registry.md",
+      "old_path": null
+    },
+    {
+      "file_index": 564,
+      "status": "M",
+      "path": "examples/beacon-api-sidecar-fetcher/src/mined_sidecar.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 565,
+      "status": "M",
+      "path": "examples/custom-engine-types/src/main.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 566,
+      "status": "M",
+      "path": "examples/custom-node/src/primitives/tx.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 567,
+      "status": "M",
+      "path": "examples/custom-payload-builder/Cargo.toml",
+      "old_path": null
+    },
+    {
+      "file_index": 568,
+      "status": "M",
+      "path": "examples/custom-payload-builder/src/generator.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 569,
+      "status": "M",
+      "path": "examples/custom-payload-builder/src/job.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 570,
+      "status": "M",
+      "path": "examples/custom-rlpx-subprotocol/src/subprotocol/connection/mod.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 571,
+      "status": "M",
+      "path": "examples/custom-rlpx-subprotocol/src/subprotocol/protocol/proto.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 572,
+      "status": "M",
+      "path": "examples/db-access/src/main.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 573,
+      "status": "M",
+      "path": "examples/manual-p2p/src/main.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 574,
+      "status": "M",
+      "path": "examples/node-custom-rpc/src/main.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 575,
+      "status": "M",
+      "path": "examples/precompile-cache/src/main.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 576,
+      "status": "A",
+      "path": "scripts/multi_tx_analysis.py",
+      "old_path": null
+    },
+    {
+      "file_index": 577,
+      "status": "M",
+      "path": "testing/ef-tests/src/cases/blockchain_test.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 578,
+      "status": "M",
+      "path": "testing/ef-tests/src/models.rs",
+      "old_path": null
+    },
+    {
+      "file_index": 579,
+      "status": "M",
+      "path": "testing/testing-utils/src/generators.rs",
+      "old_path": null
+    }
+  ]
+}

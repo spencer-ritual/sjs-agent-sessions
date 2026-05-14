@@ -1,0 +1,32 @@
+{
+  "record_type": "file",
+  "file_index": 172,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/net/network/src/test_utils/testnet.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "network",
+    "test-utils"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The network testnet divergence is rustfmt-only noise in early returns and event pattern formatting; no testnet utility behavior changed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 172: M\tcrates/net/network/src/test_utils/testnet.rs.",
+    "The isolated patch adds semicolons to connect_peers and next_session_closed returns and reformats a session-established pattern alternative.",
+    "No peer connection setup, session closed event extraction, or session established event extraction changed."
+  ]
+}

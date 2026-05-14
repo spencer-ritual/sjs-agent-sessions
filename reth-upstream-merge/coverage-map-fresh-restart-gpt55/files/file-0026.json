@@ -1,0 +1,155 @@
+{
+  "record_type": "file",
+  "file_index": 26,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/chainspec/src/api.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "high-risk",
+    "non-exact",
+    "needs-review",
+    "consensus-constant",
+    "negative-path",
+    "reth-port",
+    "nodebuilder"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0026-atom-0001",
+      "file_index": 26,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/chainspec/src/api.rs",
+      "source_hunk_hint": "@@ -65,6 +65,10 @@ pub trait EthChainSpec: Send + Sync + Unpin + Debug {",
+      "source_kind": "other",
+      "source_snippet": "/// Returns the maximum allowed extra_data size for headers, if any.\n/// Returns `None` if there is no limit.\nfn max_extra_data_bytes(&self) -> Option<usize>;",
+      "semantic_claim": "EthChainSpec exposes a required chain-specific optional maximum header extra_data byte limit; None means the chain has no limit.",
+      "high_risk": true,
+      "risk_tags": [
+        "consensus-constant",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/chainspec/src/api.rs",
+          "symbols": [
+            "EthChainSpec::max_extra_data_bytes"
+          ],
+          "snippet": "/// Maximum allowed header `extra_data` size for this chain.\n///\n/// `None` means the chain intentionally has no size cap.\nfn max_extra_data_bytes(&self) -> Option<usize> {\n    Some(MAXIMUM_EXTRA_DATA_SIZE)\n}",
+          "evidence": "The destination has the same method name and return type, but it is not exact or renamed_exact relative to the downstream abstract method because it adds a default implementation returning Some(MAXIMUM_EXTRA_DATA_SIZE)."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/consensus/src/lib.rs",
+          "symbols": [
+            "EthBeaconConsensus::new",
+            "EthBeaconConsensus::validate_header"
+          ],
+          "snippet": "let max_extra_data_size = chain_spec.max_extra_data_bytes();\n...\nvalidate_header_extra_data(header, self.max_extra_data_size)?;",
+          "evidence": "Consensus obtains the optional limit through the EthChainSpec method and applies it during header validation."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/consensus/common/src/validation.rs",
+          "symbols": [
+            "validate_header_extra_data"
+          ],
+          "snippet": "let Some(max_size) = max_size else { return Ok(()) };\nlet extra_data_len = header.extra_data().len();\nif extra_data_len > max_size {\n    Err(ConsensusError::ExtraDataExceedsMax { len: extra_data_len })\n} else {\n    Ok(())\n}",
+          "evidence": "The downstream None-means-unbounded contract is implemented by returning Ok when the trait method supplies None."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+          "path": "crates/chainspec/src/lib.rs",
+          "symbols": [
+            "impl EthChainSpec for RitualChainSpec"
+          ],
+          "snippet": "impl EthChainSpec for RitualChainSpec {\n    type Header = Header;\n\n    delegate! {\n        to self.inner {\n            fn chain(&self) -> Chain;\n            ...\n            fn final_paris_total_difficulty(&self) -> Option<U256>;\n        }\n    }\n}",
+          "evidence": "RitualChainSpec does not override or delegate max_extra_data_bytes, so the destination trait default applies. This is the main non-exactness relative to the downstream abstract method."
+        }
+      ],
+      "equivalence_argument": "Destination callers receive the same API shape and ChainSpec overrides the method, so core ChainSpec behavior is covered. However, the destination trait default is not exact and not renamed_exact relative to the downstream abstract method: the downstream patch forced every EthChainSpec implementer to state its own limit, while the port silently assigns Some(MAXIMUM_EXTRA_DATA_SIZE) to any non-overriding implementer. This is structural equivalence only for implementers whose intended limit is the Ethereum default; it needs review for custom chains that require None or a custom size.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Create a custom EthChainSpec implementation intended to allow unbounded extra_data. In the source shape it must explicitly return None; in the destination shape omit the override and validate a header with 64 bytes of extra_data. If destination rejects with ExtraDataExceedsMax while source accepts, the trait-default mapping is not behaviorally equivalent.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Non-exact by construction: the destination method is a trait default, not the downstream abstract method. No exact max_extra_data_bytes symbol was found in alloy, alloy-evm, revm, revm-inspectors, or ritual-node."
+    },
+    {
+      "record_id": "file-0026-atom-0002",
+      "file_index": 26,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/chainspec/src/api.rs",
+      "source_hunk_hint": "@@ -127,4 +131,8 @@ impl EthChainSpec for ChainSpec {",
+      "source_kind": "other",
+      "source_snippet": "fn max_extra_data_bytes(&self) -> Option<usize> {\n    self.max_extra_data_bytes\n}",
+      "semantic_claim": "The concrete ChainSpec EthChainSpec implementation returns the ChainSpec.max_extra_data_bytes field unchanged.",
+      "high_risk": true,
+      "risk_tags": [
+        "consensus-constant",
+        "negative-path"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/chainspec/src/api.rs",
+          "symbols": [
+            "impl EthChainSpec for ChainSpec<H>",
+            "EthChainSpec::max_extra_data_bytes"
+          ],
+          "snippet": "fn max_extra_data_bytes(&self) -> Option<usize> {\n    self.max_extra_data_bytes\n}",
+          "evidence": "The destination concrete ChainSpec implementation returns the same field unchanged; the generic ChainSpec<H> parameter is an upstream type-shape adaptation and does not change the atom's logic."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/chainspec/src/spec.rs",
+          "symbols": [
+            "ChainSpec::max_extra_data_bytes",
+            "ChainSpec::max_extra_data_bytes field"
+          ],
+          "snippet": "pub max_extra_data_bytes: Option<usize>,\n...\npub const fn max_extra_data_bytes(&self) -> Option<usize> {\n    self.max_extra_data_bytes\n}",
+          "evidence": "The destination ChainSpec stores the same optional field and its inherent accessor also returns the field unchanged."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "same_test_both_repos",
+      "negative_test_candidate": "Construct ChainSpec values with max_extra_data_bytes set to None and Some(64), then call the EthChainSpec method through the trait. The mapping is falsified if either call returns the trait default or any value other than the stored field.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact concrete implementation; only surrounding type genericity differs from the downstream file."
+    }
+  ],
+  "high_risk_atoms_total": 2,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [
+    {
+      "atom_record_id": "file-0026-atom-0001",
+      "required": true,
+      "status": "not_requested",
+      "review_record_id": null
+    }
+  ],
+  "summary": "EthChainSpec max_extra_data_bytes is present in the port; the ChainSpec implementation is exact, but the trait API is only structurally equivalent because the destination adds a default implementation.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "Patch has two non-noise atoms. The non-exact trait-default atom is high-risk because it can change header extra_data rejection behavior for non-overriding custom chain specs."
+}

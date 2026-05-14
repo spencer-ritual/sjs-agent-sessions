@@ -9,14 +9,11 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "mapped",
+  "file_classification": "covered_by_upstream",
   "tags": [
-    "mapped",
-    "encoding",
+    "covered_by_upstream",
     "high-risk",
-    "non-exact",
-    "upstream-covered",
-    "reth-port"
+    "non-exact"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -72,7 +69,7 @@
         "status": "pass",
         "review_record_id": "review-file-0455-atom-0001"
       },
-      "review_required": false,
+      "review_required": true,
       "notes": "Reclassified after confirming the consumed upstream derive crate already includes `maybe_zero` handling and local transaction codec bitflag tests remain in place.",
       "required_change": null
     }
@@ -82,8 +79,8 @@
   "adversarial_reviews": [
     "coverage-map/reviews/review-file-0455-atom-0001.json"
   ],
-  "summary": "The downstream `maybe_zero` compact derive behavior is covered by the upstream `reth-codecs-derive 0.3.1` dependency used by the v2 port.",
-  "review_required": false,
-  "status": "complete",
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": true,
+  "status": "needs_review",
   "notes": "Reclassified from missing based on upstream derive source and local codec compatibility evidence."
 }

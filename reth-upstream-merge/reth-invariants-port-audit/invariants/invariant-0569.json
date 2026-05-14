@@ -1,0 +1,53 @@
+{
+  "cluster_key": "block building:default-payload-resolve-e1060c5e",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "PayloadStore::resolve always delegates to resolve_kind with WaitForPending, so default resolution waits for a pending build path rather than asking for Earliest.",
+      "path": "crates/payload/builder/src/service.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub async fn resolve(&self, id: PayloadId) -> Option<Result<T::BuiltPayload, PayloadBuilderError>> {\n    self.resolve_kind(id, PayloadKind::WaitForPending).await\n}",
+      "symbols": [
+        "PayloadStore::resolve",
+        "PayloadKind::WaitForPending"
+      ]
+    }
+  ],
+  "equivalence_argument": "The public default resolve path uses WaitForPending directly, preserving consensus-side eager fetch behavior without fixed delays.",
+  "evidence_files": [
+    "crates/payload/builder/src/service.rs"
+  ],
+  "invariant_id": "cur-3d19a8d708-default-payload-resolve-waits-pending-build",
+  "invariant_index": 569,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This maps the default store resolve API.",
+  "rationale": "The primary diff changes PayloadStore::resolve from PayloadKind::Earliest to PayloadKind::WaitForPending and documents the behavior as avoiding fixed delays on the consensus side. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Block Building",
+  "source_commits": [
+    "db77489795a693830dd4076f033bd770b570b276"
+  ],
+  "statement": "PayloadStore::resolve must call resolve_kind with PayloadKind::WaitForPending, not Earliest, so consensus-side eager fetching blocks until at least one payload build completes or fallback resolution applies.",
+  "status": "current",
+  "subsystem": "block building",
+  "suggested_falsification_tests": [
+    "Call PayloadStore::resolve on a handle with an in-progress build and assert it issues a WaitForPending resolve command rather than Earliest."
+  ],
+  "summary": "Default payload resolve waits for pending builds.",
+  "test_or_falsification_candidate": "Call PayloadStore::resolve for an in-progress job and assert the underlying command is PayloadKind::WaitForPending.",
+  "title": "Default payload resolve waits for pending build",
+  "total_invariants": 1954
+}

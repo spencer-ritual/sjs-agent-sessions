@@ -1,0 +1,104 @@
+{
+  "cluster_key": "executor delivery:audio-escrow-covers-69e2141c",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "evidence": "The port now defines audio_escrow_lockup using max(audio_min_fee_wei, audio_fee_wei_per_second * AUDIO_MAX_DURATION_SECONDS) and extracts the multimodal model name from ABI slot 14.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn audio_escrow_lockup(...) -> Result<U256, String> { ... Ok(duration_fee.max(min_fee)) }",
+      "symbols": [
+        "audio_escrow_lockup",
+        "extract_model_from_multimodal_input",
+        "AUDIO_MAX_DURATION_SECONDS"
+      ]
+    },
+    {
+      "evidence": "ModelRegistry reads now populate audio_fee_wei_per_second and audio_min_fee_wei from slots 7 and 8, matching current downstream model-specific multimodal pricing.",
+      "path": "crates/ritual-async-fees/src/registry.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "base_slot + U256::from(7) ... audioFeeWeiPerSecond; base_slot + U256::from(8) ... audioMinFeeWei",
+      "symbols": [
+        "read_model_from_db",
+        "ModelInfo::audio_fee_wei_per_second",
+        "ModelInfo::audio_min_fee_wei"
+      ]
+    },
+    {
+      "evidence": "Wallet validation now supports AUDIO_CALL_PRECOMPILE, uses audio_escrow_lockup for executor escrow, and includes the long-running delivery callback cost for audio inputs.",
+      "path": "crates/ritual-async-fees/src/wallet.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "precompile_address == AUDIO_CALL_PRECOMPILE ... audio_escrow_lockup(&model_info, &model_name)?",
+      "symbols": [
+        "verify_wallet_for_commitment",
+        "supports_wallet_check",
+        "delivery_callback_cost"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port after correcting the stale tier wording to the current downstream model-specific rule: audio wallet validation now requires worst-case audio executor escrow based on model registry pricing and max supported duration, not input size.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ritual-async/src/wallet.rs"
+  ],
+  "invariant_id": "cur-2bfc382e27-audio-escrow-covers-worst-case-tier",
+  "invariant_index": 162,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/wallet.rs",
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-async-fees/src/constants.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs"
+    ],
+    "checked_queries": [
+      "audio_escrow_lockup|AUDIO_TIER3_FEE_WEI|calculate_audio|AUDIO_CALL_PRECOMPILE",
+      "verify_wallet_for_commitment|supports_wallet_check|agent_escrow_lockup|persistent_agent_escrow_lockup"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "verify_wallet_for_commitment",
+      "supports_wallet_check",
+      "audio_escrow_lockup",
+      "AUDIO_TIER3_FEE_WEI",
+      "AUDIO_CALL_PRECOMPILE"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "wallet.rs handles LLM, HTTP, DKMS, ZK, SOVEREIGN_AGENT, and PERSISTENT_AGENT escrow paths but has no AUDIO_CALL_PRECOMPILE branch.",
+      "supports_wallet_check omits AUDIO_CALL_PRECOMPILE.",
+      "ritual-precompile-addresses registers AUDIO_CALL_PRECOMPILE, but registration does not establish wallet escrow pricing."
+    ]
+  },
+  "notes": "Mapped after local parity fix. The catalog wording was also corrected because current downstream no longer uses an AUDIO_TIER3_FEE_WEI constant; it uses model-specific audio pricing at AUDIO_MAX_DURATION_SECONDS.",
+  "rationale": "The original tier-3 wording was superseded by model-specific multimodal pricing: current downstream reads audio pricing from the model registry and defines audio_escrow_lockup as the maximum of the configured minimum and per-second fee multiplied by AUDIO_MAX_DURATION_SECONDS. The durable behavior is that audio wallet validation reserves worst-case executor escrow for the workload instead of using input-size HTTP-style pricing.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "5e7da3f8e2216f6d0c0b8e688c3a21f556a18241",
+    "033d7bf239f9363e85c53c63f007887b10209923",
+    "8aa848f34c3f6d6543a3731eb6a436cf361e287d",
+    "594135760cb0b51e22b1386579e5c40b83e75037"
+  ],
+  "statement": "Wallet validation for audio async calls must require model-specific worst-case audio escrow for the maximum supported audio duration, rather than estimating executor escrow from input size.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Run wallet validation for a 0x0819 audio async transaction backed by model registry audio pricing and assert the required executor escrow is max(audio_min_fee_wei, audio_fee_wei_per_second * AUDIO_MAX_DURATION_SECONDS) regardless of input byte length; verify insufficient balance below that escrow is rejected."
+  ],
+  "summary": "Audio wallet escrow pricing is mapped in the port.",
+  "test_or_falsification_candidate": "Local ritual-async-fees unit tests cover audio wallet validation below and at the required model-specific worst-case escrow plus commitment, inclusion, and callback costs.",
+  "title": "Audio escrow covers worst-case duration",
+  "total_invariants": 1954
+}

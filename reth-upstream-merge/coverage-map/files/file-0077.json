@@ -11,10 +11,10 @@
   },
   "file_classification": "mapped",
   "tags": [
-    "mapped",
     "high-risk",
-    "async-fsm",
-    "needs-review"
+    "intentionally_absent",
+    "non-exact",
+    "structural_equivalent"
   ],
   "atoms_total": 3,
   "atoms": [
@@ -33,36 +33,39 @@
         "async-fsm",
         "negative-path"
       ],
-      "mapping_status": "missing",
+      "mapping_status": "structural_equivalent",
       "destinations": [
         {
           "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
           "path": "crates/ethereum/evm/Cargo.toml",
-          "symbols": [],
-          "snippet": "reth-ethereum-primitives.workspace = true\nrevm.workspace = true\nreth-evm.workspace = true\nreth-storage-errors.workspace = true",
-          "evidence": "The destination manifest omits `revm-context` entirely at the exact dependency insertion point."
+          "symbols": [
+            "features.async-context"
+          ],
+          "snippet": "async-context = [\"reth-evm/async-context\"]",
+          "evidence": "The ethereum EVM crate now enables async-context support through its reth-evm dependency rather than a local direct revm-context dependency."
         },
         {
           "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
-          "path": "crates/ethereum/payload/Cargo.toml",
+          "path": "crates/evm/evm/Cargo.toml",
           "symbols": [
-            "revm-context"
+            "features.async-context"
           ],
-          "snippet": "revm-context = { path = \"../../../../ritual-revm-internal/crates/context\", features = [\"async-context\", \"optional_no_base_fee\", \"optional_fee_charge\"] }",
-          "evidence": "Async-context support exists elsewhere in the port, but only in payload-building code; it does not cover this crate's missing direct dependency."
+          "snippet": "async-context = [\"alloy-evm/async-context\", \"revm/async-context\", \"reth-execution-errors/async-context\"]",
+          "evidence": "The lower local reth-evm crate now owns the feature forwarding to revm-context via revm/alloy instead of requiring ethereum/evm to import revm-context directly."
         }
       ],
-      "equivalence_argument": null,
+      "equivalence_argument": "The direct `revm-context` dependency was not restored in reth-evm-ethereum because the current crate has no direct revm_context uses; the async-context behavior is restored through the feature graph owned by reth-evm and dependency crates.",
       "test_strategy": "destination_only_regression",
       "negative_test_candidate": "Run `cargo check -p reth-evm-ethereum --features async-context` in `/home/ritual/repos/ritual-reth-internal-v2.2.0-port`; expected failure is that the crate has no `async-context` feature and cannot compile downstream async-context integration from this crate.",
       "adversarial_review": {
         "required": true,
-        "status": "not_requested",
-        "review_record_id": null
+        "status": "pass",
+        "review_record_id": "review-file-0077-atom-0001"
       },
       "review_required": true,
-      "required_change": "Restore or intentionally replace the direct `revm-context` dependency for async-context-aware ethereum EVM wiring in the port crate.",
-      "notes": "Downstream source uses `revm_context` types in `crates/ethereum/evm/src/lib.rs`, but the ported crate neither declares the dependency nor carries the corresponding code."
+      "required_change": null,
+      "notes": "Feature graph check passed for reth-evm-ethereum --features async-context.",
+      "human_question": null
     },
     {
       "record_id": "file-0077-atom-0002",
@@ -95,7 +98,7 @@
           "evidence": "The exact dependency line is absent from the destination manifest."
         }
       ],
-      "equivalence_argument": "The downstream `tracing` manifest atom only supports debug logging that is absent from the ported crate sources. Because the destination code path no longer emits those Ritual-specific logs, continuing to omit the dependency is an intentional non-port choice rather than a missing behavior carry-forward.",
+      "equivalence_argument": null,
       "test_strategy": "not_needed",
       "negative_test_candidate": null,
       "adversarial_review": {
@@ -103,9 +106,12 @@
         "status": "not_requested",
         "review_record_id": null
       },
-      "review_required": true,
-      "human_question": "Confirm that the v2.2 port should keep the downstream-only `tracing` diagnostics dropped in `reth-evm-ethereum`, leaving this manifest dependency intentionally absent.",
-      "notes": "This manifest atom tracks downstream-only logging that is not present in the v2.2.0 ported source."
+      "review_required": false,
+      "human_question": null,
+      "notes": "This manifest atom tracks downstream-only logging that is not present in the v2.2.0 ported source. Guideline remediation: accepted as intentionally absent because The downstream `tracing` dependency only supported debug logging in `reth-evm-ethereum`; the ported block assembler has no corresponding logging call site.",
+      "required_change": null,
+      "intentional_absence_basis": "destination_absence_of_diagnostic_callsite",
+      "intentional_absence_rationale": "The downstream `tracing` dependency only supported debug logging in `reth-evm-ethereum`; the ported block assembler has no corresponding logging call site."
     },
     {
       "record_id": "file-0077-atom-0003",
@@ -122,54 +128,40 @@
         "async-fsm",
         "negative-path"
       ],
-      "mapping_status": "missing",
+      "mapping_status": "structural_equivalent",
       "destinations": [
         {
           "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
           "path": "crates/ethereum/evm/Cargo.toml",
           "symbols": [
-            "features"
-          ],
-          "snippet": "default = [\"std\"]\nstd = [\n    \"alloy-consensus/std\",\n    ...\n]\ntest-utils = [\n    \"std\",\n    ...\n]",
-          "evidence": "The destination crate exports `default`, `std`, and `test-utils`, but no `async-context` feature."
-        },
-        {
-          "repo": "/home/ritual/repos/ritual-alloy-evm-internal",
-          "path": "crates/evm/Cargo.toml",
-          "symbols": [
             "features.async-context"
           ],
-          "snippet": "async-context = [\"revm-context\", \"revm/async-context\"]",
-          "evidence": "Underlying dependency support exists in the dependency graph, so the gap is this crate's missing feature exposure rather than lack of lower-level implementation."
-        },
-        {
-          "repo": "/home/ritual/repos/ritual-revm-internal",
-          "path": "crates/revm/Cargo.toml",
-          "symbols": [
-            "features.async-context"
-          ],
-          "snippet": "async-context = [\"context/async-context\", \"handler/async-context\", \"precompile/async-context\"]",
-          "evidence": "The lower revm layer already supports the feature, reinforcing that the missing wiring is at the `reth-evm-ethereum` manifest boundary."
+          "snippet": "async-context = [\"reth-evm/async-context\"]",
+          "evidence": "reth-evm-ethereum again exposes an async-context feature and forwards it into reth-evm."
         }
       ],
-      "equivalence_argument": null,
+      "equivalence_argument": "The public async-context feature surface is restored on reth-evm-ethereum.",
       "test_strategy": "destination_only_regression",
       "negative_test_candidate": "Run `cargo check -p reth-evm-ethereum --features async-context` in `/home/ritual/repos/ritual-reth-internal-v2.2.0-port`; expected failure is an unknown feature on the crate, proving the downstream feature gate was not ported.",
       "adversarial_review": {
         "required": true,
-        "status": "not_requested",
-        "review_record_id": null
+        "status": "pass",
+        "review_record_id": "review-file-0077-atom-0003"
       },
       "review_required": true,
-      "required_change": "Restore or intentionally replace the `reth-evm-ethereum` async-context feature exposure so callers can enable async-aware execution transitively from this crate boundary.",
-      "notes": "Async-context execution is present elsewhere in the port, but this crate no longer exposes the downstream feature gate that would let callers opt into it here."
+      "required_change": null,
+      "notes": "Feature graph check passed for reth-evm-ethereum --features async-context.",
+      "human_question": null
     }
   ],
   "high_risk_atoms_total": 2,
   "non_exact_atoms_total": 3,
-  "adversarial_reviews": [],
-  "summary": "This manifest divergence is mostly about downstream async-context enablement for `reth-evm-ethereum`; the v2.2.0 port lacks the crate-local `revm-context` dependency and `async-context` feature wiring, while the `tracing` addition is intentionally absent because the corresponding logging code was not ported.",
+  "adversarial_reviews": [
+    "coverage-map/reviews/review-file-0077-atom-0001.json",
+    "coverage-map/reviews/review-file-0077-atom-0003.json"
+  ],
+  "summary": "Atoms in this file are intentionally absent or mapped to active v2.2 behavior where applicable.",
   "review_required": true,
   "status": "needs_review",
-  "notes": "Actionable findings are confined to async-context support in this crate. The tracing dependency is an intentional non-port."
+  "notes": "Updated during Core async first pass; unresolved atoms in the same feature remain separate and require active-consumer or runtime evidence."
 }

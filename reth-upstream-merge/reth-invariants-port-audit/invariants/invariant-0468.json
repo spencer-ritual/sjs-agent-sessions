@@ -1,0 +1,70 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-async-fees/src/constants.rs",
+    "crates/ritual-async-fees/src/lib.rs"
+  ],
+  "invariant_id": "cur-ee32a03920-video-pricing-scales-steps",
+  "invariant_index": 468,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/constants.rs",
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-async-fees/src/registry.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "ritual-revm-internal/crates/precompile/src/video_call.rs"
+    ],
+    "checked_queries": [
+      "VIDEO_STEPS_BASELINE VIDEO_FPS_BASELINE OutputUxParams num_inference_steps fps",
+      "calculate_video video_phase2 video_fee_wei_per_pixel_second",
+      "video pricing scales steps FPS"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "calculate_video_fees_phase2",
+      "VIDEO_STEPS_BASELINE",
+      "VIDEO_FPS_BASELINE",
+      "OutputUxParams",
+      "video_steps_baseline",
+      "video_fps_baseline",
+      "calculate_video_call_gas_cost"
+    ],
+    "missing_behavior": "Video Phase 2 executor fees are not calculated from pixel-seconds with inference-step and FPS multipliers; the port lacks video Phase 2 fee calculators and baseline constants.",
+    "related_but_insufficient_code": [
+      "crates/ritual-async-fees/src/registry.rs reserves video pricing fields but reads them as zero and does not use them in fee math.",
+      "ritual-revm-internal/crates/precompile/src/video_call.rs calculates EVM gas from input/output byte lengths, not async executor fees from delivered duration, pixels, steps, or FPS."
+    ]
+  },
+  "notes": "The only video-related code found is precompile gas accounting and zeroed reserved registry fields, neither of which implements the async fee invariant.",
+  "rationale": "The new OutputUxParams and multiplier helpers feed into image_phase2_execution_fee and calculate_image_fees_phase2, adding steps-sensitive pricing to the existing pixel/minimum fee model. The video escrow and Phase 2 fee paths now apply both steps and FPS multipliers after the existing per-pixel-second fee calculation. Collapsed 2 closely related historical candidate statements into the latest effective formulation.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "e5871573bb3e95e0b9d4b62748c5d9af1228a4ae"
+  ],
+  "statement": "Video Phase 2 executor fees must start from base_fee plus width * height * rounded_duration_seconds * per_pixel_second_fee, then apply num_inference_steps and fps multipliers normalized against VIDEO_STEPS_BASELINE and VIDEO_FPS_BASELINE, without reducing the fee when either parameter is zero or below baseline.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Compute image Phase 2 fees for the same width and height with num_inference_steps 0, baseline, and 2x baseline; assert the first two equal the base fee and the 2x case doubles the executor fee.",
+    "Compute video Phase 2 fees for identical width, height, and duration with default UX params, 2x baseline steps, 2x baseline fps, and both; assert fees scale by the expected multiplicative factors."
+  ],
+  "summary": "Video step/FPS-scaled Phase 2 pricing is not ported.",
+  "test_or_falsification_candidate": "Compute image Phase 2 fees for the same width and height with num_inference_steps 0, baseline, and 2x baseline; assert the first two equal the base fee and the 2x case doubles the executor fee. Compute video Phase 2 fees for identical width, height, and duration with default UX params, 2x baseline steps, 2x baseline fps, and both; assert fees scale by the expected multiplicative factors.",
+  "title": "Video pricing scales with steps and FPS",
+  "total_invariants": 1954
+}

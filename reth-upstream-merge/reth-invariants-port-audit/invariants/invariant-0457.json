@@ -1,0 +1,71 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-async-fees/src/lib.rs"
+  ],
+  "invariant_id": "cur-19507e8575-multimodal-phase-fees-delivered-output-attributes",
+  "invariant_index": 457,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-precompile-addresses/src/lib.rs",
+      "crates/rpc/rpc/src/async_tx_validator.rs",
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-async-fees/src/wallet.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "ritual-revm-internal/crates/precompile/src/image_call.rs",
+      "ritual-revm-internal/crates/precompile/src/video_call.rs"
+    ],
+    "checked_queries": [
+      "calculate_image_fees_phase2 calculate_video_fees_phase2 extract_image extract_video",
+      "calculate_async_fees_phase2 IMAGE_CALL_PRECOMPILE VIDEO_CALL_PRECOMPILE",
+      "width height duration milliseconds multimodal Phase 2"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "calculate_async_fees_phase2",
+      "calculate_audio_fees_phase2_from_delivery",
+      "extract_audio_duration_from_delivery",
+      "IMAGE_CALL_PRECOMPILE",
+      "VIDEO_CALL_PRECOMPILE"
+    ],
+    "missing_behavior": "Dedicated delivered-output Phase 2 pricing is absent for image and video, and the generic Phase 2 calculator rejects media addresses; only audio duration-based Phase 2 pricing is present.",
+    "related_but_insufficient_code": [
+      "crates/ritual-async-fees/src/lib.rs implements audio duration extraction and audio Phase 2 fee calculation only.",
+      "crates/ethereum/payload/src/ritual_async.rs branches to audio fee calculation but falls back to generic Phase 2 for image/video, which rejects unsupported addresses.",
+      "ritual-revm-internal image/video precompiles calculate gas by input/output bytes, not executor fees from delivered dimensions/duration."
+    ]
+  },
+  "notes": "Audio has a partial implementation, but the invariant requires image, audio, and video delivered-output attributes plus generic rejection guidance.",
+  "rationale": "The merge adds extraction utilities for image/audio/video delivery results, dedicated Phase 2 fee calculators, and payload-builder branches that extract delivered output attributes before calculating executor fees. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "7bb0f4d3a6ebf5fa929fa7045228eccdf63dea61"
+  ],
+  "statement": "Phase 2 fee calculation for image, audio, and video precompiles must use delivery-result attributes: image width and height, audio duration seconds, and video width, height, and duration milliseconds. Generic block-based Phase 2 pricing must reject these precompiles and direct callers to the dedicated multimodal calculators.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Provide Phase 2 delivery results for image, audio, and video with known dimensions/duration and assert payload fee calculation uses the dedicated calculators; call the generic calculate_async_fees_phase2 with these precompile addresses and assert it returns the guidance error."
+  ],
+  "summary": "Multimodal Phase 2 fee calculation is incomplete.",
+  "test_or_falsification_candidate": "Provide Phase 2 delivery results for image, audio, and video with known dimensions/duration and assert payload fee calculation uses the dedicated calculators; call the generic calculate_async_fees_phase2 with these precompile addresses and assert it returns the guidance error.",
+  "title": "Multimodal Phase 2 fees use delivered output attributes",
+  "total_invariants": 1954
+}

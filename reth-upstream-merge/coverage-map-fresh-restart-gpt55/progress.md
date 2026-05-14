@@ -1,0 +1,327 @@
+# Fresh Restart Coverage Map Progress
+
+Objective: build a fresh 579-file coverage map without reading prior coverage-map outputs.
+
+## Hard Invariant
+
+A file only counts as complete after the parent writes and validates `files/file-####.json`. Launched subagents and visible chat results do not count.
+
+## State
+
+- Output directory: `/home/ritual/repos/sjs-agent-sessions/reth-upstream-merge/coverage-map-fresh-restart-gpt55`
+- Required records: 579
+- Deterministic noise records seeded: 38
+- In-scope records pending child audit: 541
+- Created: 2026-05-09T02:07:56.753674+00:00
+
+## Persistence Checks
+
+- After each child result: write JSON atomically, re-read it, validate index/path/counts, then update this file.
+- After each batch: recount `files/file-*.json`; progress equals persisted count only.
+
+## Persisted Records
+
+- 2026-05-09T02:07Z: seeded 38 deterministic noise records.
+- 2026-05-09T02:09Z: persisted and validated `file-0020.json`; validated count is 39.
+- 2026-05-09T02:10Z: persisted and validated `file-0021.json`; validated count is 40.
+- 2026-05-09T02:12Z: persisted and validated `file-0022.json`; validated count is 41.
+- 2026-05-09T02:13Z: persisted and validated `file-0023.json`; validated count is 42.
+- 2026-05-09T02:15Z: persisted and validated `file-0024.json`; validated count is 43.
+- 2026-05-09T02:16Z: persisted and validated `file-0025.json`; validated count is 44.
+- 2026-05-09T02:18Z: persisted and validated `file-0026.json`; validated count is 45; review queue entries: 1.
+- 2026-05-09T02:20Z: persisted and validated `file-0027.json`; validated count is 46; review queue entries: 2.
+- 2026-05-09T02:24Z: persisted `file-0028.json`; non-shell file count confirms 47 records; review queue entries: 4.
+- 2026-05-09T02:24Z: shell validation returned impossible empty output again, so summary/review updates for `file-0028` were applied via non-shell tools and should be rechecked with `ReadFile`/`Glob`, not trusted shell output.
+- 2026-05-09T02:57Z: shell smoke test passed, persisted and validated `file-0029.json`; shell and non-shell checks agree on 48 records; review queue entries: 4.
+- 2026-05-09T03:00Z: persisted and validated `file-0030.json`; shell and non-shell checks agree on 49 records; review queue entries: 4.
+- 2026-05-09T03:01Z: persisted and validated `file-0031.json`; shell and non-shell checks agree on 50 records; review queue entries: 4.
+- 2026-05-09T03:03Z: persisted and validated `file-0032.json`; shell validator reports 51 records; review queue entries: 4.
+- 2026-05-09T03:04Z: persisted and validated `file-0033.json`; shell and non-shell checks agree on 52 records; review queue entries: 4.
+- 2026-05-09T15:24Z: persisted and validated `file-0034.json`; validated count is 53; review queue entries: 4.
+- 2026-05-09T15:24Z: persisted and validated `file-0035.json`; validated count is 54; review queue entries: 4.
+- 2026-05-09T15:24Z: persisted and validated `file-0036.json`; validated count is 55; review queue entries: 4.
+- 2026-05-09T15:24Z: persisted and validated `file-0037.json`; validated count is 56; review queue entries: 4.
+- 2026-05-09T15:24Z: persisted and validated `file-0038.json`; validated count is 57; review queue entries: 4.
+- 2026-05-09T15:24Z: persisted and validated `file-0039.json`; validated count is 58; review queue entries: 4.
+- 2026-05-09T15:24Z: persisted and validated `file-0040.json`; validated count is 59; review queue entries: 4.
+- 2026-05-09T15:24Z: persisted and validated `file-0041.json`; validated count is 60; review queue entries: 4.
+- 2026-05-09T15:24Z: persisted and validated `file-0042.json`; validated count is 61; review queue entries: 4.
+- 2026-05-09T15:24Z: persisted and validated `file-0043.json`; validated count is 62; review queue entries: 4.
+- 2026-05-09T15:24Z: persisted and validated `file-0044.json`; validated count is 63; review queue entries: 4.
+- 2026-05-09T15:24Z: persisted and validated `file-0045.json`; validated count is 64; review queue entries: 4.
+- 2026-05-09T15:24Z: persisted and validated `file-0046.json`; validated count is 65; review queue entries: 4.
+- 2026-05-09T15:28Z: persisted and validated `file-0047.json`; validated count is 66; review queue entries: 4 -> 8.
+- 2026-05-09T15:28Z: persisted and validated `file-0048.json`; validated count is 67; review queue entries: 8.
+- 2026-05-09T15:29Z: persisted and validated `file-0049.json`; validated count is 68; review queue entries: 8.
+- 2026-05-09T15:29Z: persisted and validated `file-0050.json`; validated count is 69; review queue entries: 8.
+- 2026-05-09T15:29Z: persisted and validated `file-0051.json`; validated count is 70; review queue entries: 8.
+- 2026-05-09T15:29Z: persisted and validated `file-0052.json`; validated count is 71; review queue entries: 8.
+- 2026-05-09T15:29Z: persisted and validated `file-0053.json`; validated count is 72; review queue entries: 8.
+- 2026-05-09T15:30Z: persisted and validated `file-0054.json`; validated count is 73; review queue entries: 8.
+- 2026-05-09T15:30Z: persisted and validated `file-0055.json`; validated count is 74; review queue entries: 8.
+- 2026-05-09T15:30Z: persisted and validated `file-0056.json`; validated count is 75; review queue entries: 9.
+- 2026-05-09T15:31Z: persisted and validated `file-0057.json`; validated count is 76; review queue entries: 9.
+- 2026-05-09T15:31Z: persisted and validated `file-0058.json`; validated count is 77; review queue entries: 9.
+- 2026-05-09T15:31Z: persisted and validated `file-0059.json`; validated count is 78; review queue entries: 9.
+- 2026-05-09T15:31Z: persisted and validated `file-0060.json`; validated count is 79; review queue entries: 9.
+- 2026-05-09T15:31Z: persisted and validated `file-0061.json`; validated count is 80; review queue entries: 9.
+- 2026-05-09T15:33Z: persisted and validated `file-0063.json`; validated count is 81; review queue entries: 9.
+- 2026-05-09T15:33Z: persisted and validated `file-0065.json`; validated count is 82; review queue entries: 9.
+- 2026-05-09T15:33Z: persisted and validated `file-0066.json`; validated count is 83; review queue entries: 9.
+- 2026-05-09T15:33Z: persisted and validated `file-0067.json`; validated count is 84; review queue entries: 9.
+- 2026-05-09T15:33Z: persisted and validated `file-0068.json`; validated count is 85; review queue entries: 9.
+- 2026-05-09T15:33Z: persisted and validated `file-0069.json`; validated count is 86; review queue entries: 9.
+- 2026-05-09T15:33Z: persisted and validated `file-0070.json`; validated count is 87; review queue entries: 9.
+- 2026-05-09T15:33Z: persisted and validated `file-0071.json`; validated count is 88; review queue entries: 9.
+- 2026-05-09T15:34Z: persisted and validated `file-0074.json`; validated count is 89; review queue entries: 9.
+- 2026-05-09T15:34Z: persisted and validated `file-0075.json`; validated count is 90; review queue entries: 9.
+- 2026-05-09T15:36Z: persisted and validated `file-0086.json`; validated count is 91; review queue entries: 9.
+- 2026-05-09T16:35Z: persisted and validated `file-0095.json`; validated count is 92; review queue entries: 9.
+- 2026-05-09T16:36Z: persisted and validated `file-0090.json`; validated count is 93; review queue entries: 11.
+- 2026-05-09T16:37Z: persisted and validated `file-0085.json`; validated count is 94; review queue entries: 17.
+- 2026-05-09T16:38Z: persisted and validated `file-0081.json`; validated count is 95; review queue entries: 22.
+- 2026-05-09T16:39Z: persisted and validated `file-0082.json`; validated count is 96; review queue entries: 23.
+- 2026-05-09T16:45Z: persisted and validated `file-0072.json`; validated count is 97; review queue entries: 23.
+- 2026-05-09T16:45Z: persisted and validated `file-0073.json`; validated count is 98; review queue entries: 23.
+- 2026-05-09T16:58Z: repaired accounting for existing `file-0062.json`; normalized atom source kinds, added four required review queue entries, and validated count is 99; review queue entries: 27.
+- 2026-05-09T17:05Z: persisted and parent-validated `file-0064.json`; normalized child schema, added thirteen required review queue entries, and validated count is 100; review queue entries: 40.
+- 2026-05-09T17:12Z: persisted and parent-validated `file-0076.json`; replaced child schema-drift artifact with normalized JSON, added three required review queue entries, and validated count is 101; review queue entries: 43.
+- 2026-05-09T17:16Z: persisted and parent-validated `file-0077.json`; mapped exact async-context feature forwarding and recorded two missing manifest dependency atoms, validated count is 102; review queue entries: 45.
+- 2026-05-09T17:20Z: persisted and parent-validated `file-0078.json`; mapped block assembler extra_data handling and missing large-extra_data diagnostic, validated count is 103; review queue entries: 47.
+- 2026-05-09T17:24Z: persisted and parent-validated `file-0079.json`; mapped async metadata fixture updates and recorded two missing post-merge reward regression tests, validated count is 104; review queue entries: 49.
+- 2026-05-09T17:29Z: persisted and parent-validated `file-0080.json`; mapped EVM config extra_data and async TxEnv wiring through destination architecture, validated count is 105; review queue entries: 52.
+- 2026-05-09T17:36Z: persisted and parent-validated `file-0083.json`; normalized child metadata and added eight required review queue entries, validated count is 106; review queue entries: 60.
+- 2026-05-09T17:40Z: persisted and parent-validated `file-0084.json`; mapped missing-payload fallback and missing max block size byte budget handoff, validated count is 107; review queue entries: 61.
+- 2026-05-09T17:46Z: persisted and parent-validated `file-0087.json`; mapped payload manifest dependency suite with six review-required non-exact atoms, validated count is 108; review queue entries: 67.
+- 2026-05-09T17:56Z: persisted and parent-validated `file-0088.json`; validated child bundle audit and added ten required review queue entries, validated count is 109; review queue entries: 77.
+- 2026-05-09T18:53Z: persisted and parent-validated `file-0089.json`; normalized collector classification and added nine required review queue entries, validated count is 110; review queue entries: 86.
+- 2026-05-09T19:02Z: persisted and parent-validated `file-0091.json`; normalized execution classification and added sixteen required review queue entries, validated count is 111; review queue entries: 102.
+- 2026-05-09T19:12Z: persisted and parent-validated `file-0092.json`; normalized payload lib classification and added thirty-eight required review queue entries, validated count is 112; review queue entries: 140.
+- 2026-05-09T19:21Z: persisted and parent-validated `file-0093.json`; normalized unified builder classification and high-risk count, added fourteen required review queue entries, validated count is 113; review queue entries: 154.
+- 2026-05-09T19:29Z: persisted and parent-validated `file-0094.json`; validated unified execution audit and added fifteen required review queue entries, validated count is 114; review queue entries: 169.
+- 2026-05-09T19:35Z: persisted and parent-validated `file-0096.json`; normalized low-risk primitives manifest omission and added one review queue entry, validated count is 115; review queue entries: 170.
+- 2026-05-09T19:41Z: persisted and parent-validated `file-0097.json`; confirmed receipt.rs patch is formatting-only noise, validated count is 116; review queue entries: 170.
+- 2026-05-09T19:50Z: persisted and parent-validated `file-0098.json`; normalized transaction primitive classification and added eighteen required review queue entries, validated count is 117; review queue entries: 188.
+- 2026-05-09T19:21Z: persisted and parent-validated `file-0093.json`; normalized unified builder classification and high-risk count, added fourteen required review queue entries, validated count is 113; review queue entries: 154.
+- 2026-05-09T18:52Z: persisted and parent-validated `file-0099.json`; confirmed exact `async-context` top-level feature mapping in `crates/ethereum/reth/Cargo.toml`, validated count is 118; review queue entries: 188.
+- 2026-05-09T18:52Z: persisted and parent-validated `file-0100.json`; confirmed ETL semicolon-only noise, validated count is 119; review queue entries: 188.
+- 2026-05-10T16:17Z: persisted and parent-validated `file-0101.json`; normalized manifest schema fields and added four required review queue entries, validated count is 120; review queue entries: 192.
+- 2026-05-10T16:22Z: persisted and parent-validated `file-0102.json`; confirmed exact execution-errors async-context manifest feature mapping, validated count is 121; review queue entries: 192.
+- 2026-05-10T16:29Z: persisted and parent-validated `file-0103.json`; confirmed execution-errors trie diff is rustfmt-only noise, validated count is 122; review queue entries: 192.
+- 2026-05-10T16:37Z: persisted and parent-validated `file-0104.json`; normalized child schema and confirmed execution-types chain semicolon-only noise, validated count is 123; review queue entries: 192.
+- 2026-05-10T16:42Z: persisted and parent-validated `file-0105.json`; confirmed execution-outcome semicolon-only noise, validated count is 124; review queue entries: 192.
+- 2026-05-10T16:58Z: persisted and parent-validated `file-0106.json`; mapped async context test relocation and queued eight high-risk non-exact test atoms, validated count is 125; review queue entries: 200.
+- 2026-05-10T17:07Z: persisted and parent-validated `file-0107.json`; mapped explicit-gas system execution structurally and queued two high-risk non-exact atoms, validated count is 126; review queue entries: 202.
+- 2026-05-10T17:08Z: corrected `file-0027.json` and `file-0028.json` after Reth-port implementation restored the chainspec Summit deposit topic and reward fixture coverage; validated count unchanged at 126; review queue entries: 199.
+- 2026-05-10T17:17Z: persisted and parent-validated `file-0108.json`; mapped EVM lib async-context and extra_data wiring, queued six high-risk non-exact atoms, validated count is 127; review queue entries: 205.
+- 2026-05-10T17:57Z: persisted and parent-validated `file-0109.json`; confirmed EVM metrics test condition reflow is rustfmt-only noise, validated count is 128; review queue entries: 205.
+- 2026-05-10T18:05Z: persisted and parent-validated `file-0110.json`; mapped missing PoolManager singleton and non-exact canonical pool cleanup coverage, queued eight high-risk atoms, validated count is 129; review queue entries: 213.
+- 2026-05-10T18:17Z: persisted and parent-validated `file-0111.json`; mapped missing SPC verifier API against structural v2 proof validation coverage, queued ten high-risk atoms, validated count is 130; review queue entries: 223.
+- 2026-05-10T18:22Z: persisted and parent-validated `file-0112.json`; confirmed ExEx backfill job semicolon-only noise, validated count is 131; review queue entries: 223.
+- 2026-05-10T18:24Z: persisted and parent-validated `file-0113.json`; confirmed ExEx backfill stream semicolon-only noise, validated count is 132; review queue entries: 223.
+- 2026-05-10T18:28Z: persisted and parent-validated `file-0114.json`; confirmed ExEx manager semicolon-only noise, validated count is 133; review queue entries: 223.
+- 2026-05-10T18:31Z: persisted and parent-validated `file-0115.json`; confirmed ExEx notifications formatting-only noise, validated count is 134; review queue entries: 223.
+- 2026-05-10T18:35Z: persisted and parent-validated `file-0116.json`; confirmed ExEx WAL cache semicolon-only noise, validated count is 135; review queue entries: 223.
+- 2026-05-10T18:38Z: persisted and parent-validated `file-0117.json`; confirmed ExEx WAL module semicolon-only noise, validated count is 136; review queue entries: 223.
+- 2026-05-10T18:43Z: persisted and parent-validated `file-0118.json`; confirmed net banlist semicolon-only noise, validated count is 137; review queue entries: 223.
+- 2026-05-10T18:49Z: persisted and parent-validated `file-0119.json`; confirmed discv4 service rustfmt-only noise, validated count is 138; review queue entries: 223.
+- 2026-05-10T18:54Z: persisted and parent-validated `file-0120.json`; confirmed discv4 protocol semicolon-only noise, validated count is 139; review queue entries: 223.
+- 2026-05-10T18:57Z: persisted and parent-validated `file-0121.json`; confirmed discv4 test-utils semicolon-only noise, validated count is 140; review queue entries: 223.
+- 2026-05-10T19:00Z: persisted and parent-validated `file-0122.json`; confirmed discv5 config rustfmt-only noise, validated count is 141; review queue entries: 223.
+- 2026-05-10T19:03Z: persisted and parent-validated `file-0123.json`; confirmed discv5 ENR semicolon-only noise, validated count is 142; review queue entries: 223.
+- 2026-05-10T19:07Z: persisted and parent-validated `file-0124.json`; confirmed discv5 filter semicolon-only noise, validated count is 143; review queue entries: 223.
+- 2026-05-10T19:11Z: persisted and parent-validated `file-0125.json`; confirmed discv5 lib semicolon-only noise, validated count is 144; review queue entries: 223.
+- 2026-05-10T19:16Z: persisted and parent-validated `file-0126.json`; confirmed discv5 network stack ID semicolon-only noise, validated count is 145; review queue entries: 223.
+- 2026-05-10T19:19Z: persisted and parent-validated `file-0127.json`; confirmed DNS discovery service semicolon-only noise, validated count is 146; review queue entries: 223.
+- 2026-05-10T19:24Z: persisted and parent-validated `file-0128.json`; confirmed DNS query pool semicolon-only noise, validated count is 147; review queue entries: 223.
+- 2026-05-10T19:28Z: persisted and parent-validated `file-0129.json`; confirmed DNS sync tree semicolon-only noise, validated count is 148; review queue entries: 223.
+- 2026-05-10T19:31Z: persisted and parent-validated `file-0130.json`; confirmed DNS tree semicolon-only noise, validated count is 149; review queue entries: 223.
+- 2026-05-10T19:38Z: persisted and parent-validated `file-0131.json`; confirmed bodies downloader rustfmt-only noise, validated count is 150; review queue entries: 223.
+- 2026-05-11T12:32Z: persisted and parent-validated `file-0132.json`; confirmed bodies request rustfmt-only noise, validated count is 151; review queue entries: 223.
+- 2026-05-11T12:35Z: persisted and parent-validated `file-0133.json`; confirmed bodies downloader task semicolon-only noise, validated count is 152; review queue entries: 223.
+- 2026-05-11T12:39Z: persisted and parent-validated `file-0134.json`; confirmed file-client downloader semicolon-only noise, validated count is 153; review queue entries: 223.
+- 2026-05-11T12:43Z: persisted and parent-validated `file-0135.json`; confirmed file codec semicolon-only noise, validated count is 154; review queue entries: 223.
+- 2026-05-11T12:48Z: persisted and parent-validated `file-0136.json`; confirmed reverse headers downloader rustfmt-only noise, validated count is 155; review queue entries: 223.
+- 2026-05-11T12:51Z: persisted and parent-validated `file-0137.json`; confirmed headers downloader task semicolon-only noise, validated count is 156; review queue entries: 223.
+- 2026-05-11T12:54Z: persisted and parent-validated `file-0138.json`; confirmed receipt file-client semicolon-only noise, validated count is 157; review queue entries: 223.
+- 2026-05-11T12:57Z: persisted and parent-validated `file-0139.json`; confirmed bodies test utility semicolon-only noise, validated count is 158; review queue entries: 223.
+- 2026-05-11T13:01Z: persisted and parent-validated `file-0140.json`; confirmed ECIES algorithm crypto-path semicolon-only noise, validated count is 159; review queue entries: 223.
+- 2026-05-11T13:05Z: persisted and parent-validated `file-0141.json`; confirmed ECIES codec semicolon-only noise, validated count is 160; review queue entries: 223.
+- 2026-05-11T13:10Z: persisted and parent-validated `file-0142.json`; confirmed eth-wire broadcast semicolon-only noise, validated count is 161; review queue entries: 223.
+- 2026-05-11T13:13Z: persisted and parent-validated `file-0143.json`; confirmed disconnect reason semicolon-only noise, validated count is 162; review queue entries: 223.
+- 2026-05-11T13:17Z: persisted and parent-validated `file-0144.json`; confirmed eth-wire message rustfmt-only noise, validated count is 163; review queue entries: 223.
+- 2026-05-11T13:21Z: persisted and parent-validated `file-0145.json`; confirmed eth-wire capability semicolon-only noise, validated count is 164; review queue entries: 223.
+- 2026-05-11T13:26Z: persisted and parent-validated `file-0146.json`; confirmed eth-wire error helper semicolon-only noise, validated count is 165; review queue entries: 223.
+- 2026-05-11T13:29Z: persisted and parent-validated `file-0147.json`; confirmed P2P error helper rustfmt-only noise, validated count is 166; review queue entries: 223.
+- 2026-05-11T13:33Z: persisted and parent-validated `file-0148.json`; confirmed Eth/Snap stream rustfmt-only noise, validated count is 167; review queue entries: 223.
+- 2026-05-11T13:36Z: persisted and parent-validated `file-0149.json`; confirmed Eth stream semicolon-only noise, validated count is 168; review queue entries: 223.
+- 2026-05-11T13:42Z: persisted and parent-validated `file-0150.json`; confirmed eth-wire multiplex rustfmt-only noise, validated count is 169; review queue entries: 223.
+- 2026-05-11T13:51Z: persisted and parent-validated `file-0151.json`; confirmed P2P stream semicolon-only noise, validated count is 170; review queue entries: 223.
+- 2026-05-11T13:55Z: persisted and parent-validated `file-0152.json`; confirmed eth-wire pinger semicolon-only noise, validated count is 171; review queue entries: 223.
+- 2026-05-11T13:58Z: persisted and parent-validated `file-0153.json`; confirmed eth-wire protocol semicolon-only noise, validated count is 172; review queue entries: 223.
+- 2026-05-11T14:03Z: persisted and parent-validated `file-0154.json` through `file-0156.json`; confirmed eth-wire test_utils, nat resolver, and network peer reputation semicolon-only noise, validated count is 175; review queue entries: 223.
+- 2026-05-11T14:12Z: persisted and parent-validated `file-0157.json`; recorded missing low-risk `ritual-metrics` network Cargo dependency for old P2P transaction observability, validated count is 176; review queue entries: 223.
+- 2026-05-11T14:25Z: persisted and parent-validated `file-0158.json` through `file-0162.json`; confirmed network discovery, error classification, eth request serving, fetcher, and manager rustfmt-only noise, validated count is 181; review queue entries: 223.
+- 2026-05-11T14:37Z: persisted and parent-validated `file-0163.json`; recorded partial low-risk destination coverage for Ritual transaction-type announcement metrics via aggregate `other` bucket, validated count is 182; review queue entries: 223.
+- 2026-05-11T14:47Z: persisted and parent-validated `file-0164.json`; recorded missing low-risk Ritual P2P pooled-transaction announcement logging in NetworkHandle, validated count is 183; review queue entries: 223.
+- 2026-05-11T15:00Z: persisted and parent-validated `file-0165.json` through `file-0169.json`; confirmed network peer manager, active session, session counter, session manager, and network state rustfmt-only noise, validated count is 188; review queue entries: 223.
+- 2026-05-11T15:10Z: persisted and parent-validated `file-0170.json` through `file-0173.json`; confirmed network swarm, test init/testnet helpers, and transaction fetch constants rustfmt-only noise, validated count is 192; review queue entries: 223.
+- 2026-05-11T15:18Z: persisted and parent-validated `file-0174.json`; confirmed transaction fetcher rustfmt-only noise, validated count is 193; review queue entries: 223.
+- 2026-05-11T15:31Z: parent-validated `file-0175.json`; recorded two missing low-risk Ritual P2P transaction broadcast/receive observability atoms, validated count is 194; review queue entries: 223.
+- 2026-05-11T15:40Z: persisted and parent-validated `file-0176.json` through `file-0179.json`; confirmed transaction validation and network integration test rustfmt-only noise, validated count is 198; review queue entries: 223.
+- 2026-05-11T15:51Z: persisted and parent-validated `file-0180.json` through `file-0184.json`; confirmed P2P/peers error, full-block, test header, peer parsing, and node record rustfmt-only noise, validated count is 203; review queue entries: 223.
+- 2026-05-11T16:20Z: persisted and parent-validated `file-0185.json`; recorded missing low-risk `ritual-spc-verification` node API manifest dependency, validated count is 204; review queue entries: 223.
+- 2026-05-11T16:29Z: persisted and parent-validated `file-0186.json`; recorded high-risk partial coverage for removed `AddOnsContext::spc_verifier` public API and added one review queue entry, validated count is 205; review queue entries: 224.
+- 2026-05-11T16:41Z: persisted and parent-validated `file-0187.json`; recorded partial low-risk node-builder manifest dependency coverage for execution, ethereum primitive, block-verification, and SPC-verification dependencies, validated count is 206; review queue entries: 224.
+- 2026-05-11T16:55Z: persisted and parent-validated `file-0188.json`; recorded high-risk partial coverage for removed builder-owned SPC verifier lifecycle/startup path and added one review queue entry, validated count is 207; review queue entries: 225.
+- 2026-05-11T17:07Z: persisted and parent-validated `file-0189.json`; recorded high-risk partial coverage for removed pool-aware `build_evm_with_pool` component construction path and added one review queue entry, validated count is 208; review queue entries: 226.
+- 2026-05-11T17:15Z: persisted and parent-validated `file-0190.json`; recorded high-risk missing executor-builder `build_evm_with_pool` API and added one review queue entry, validated count is 209; review queue entries: 227.
+- 2026-05-11T17:24Z: persisted and parent-validated `file-0191.json`; recorded high-risk missing `empty_payload_grace` payload job config propagation and added one review queue entry, validated count is 210; review queue entries: 228.
+- 2026-05-11T17:34Z: persisted and parent-validated `file-0192.json`; recorded high-risk partial PoolBuilder `TransactionPoolExt` trait-bound coverage and added one review queue entry, validated count is 211; review queue entries: 229.
+- 2026-05-11T17:45Z: persisted and parent-validated `file-0193.json`; recorded high-risk partial launch-context shared SPC verifier propagation coverage and added one review queue entry, validated count is 212; review queue entries: 230.
+- 2026-05-11T18:02Z: persisted and parent-validated `file-0194.json`; recorded high-risk partial engine-launch coverage for canonical-state backfill blocking handler wiring and AddOnsContext SPC verifier handoff, added two review queue entries, validated count is 213; review queue entries: 232.
+- 2026-05-11T18:08Z: persisted and parent-validated `file-0195.json`; confirmed ExEx launcher semicolon-only rustfmt noise, validated count is 214; review queue entries: 232.
+- 2026-05-11T18:17Z: persisted and parent-validated `file-0196.json`; recorded low-risk missing RPC AddOnsContext `spc_verifier` destructuring/API plumbing, validated count is 215; review queue entries: 232.
+- 2026-05-11T18:28Z: persisted and parent-validated `file-0197.json`; recorded high-risk partial pipeline/execution-stage blocking handler setup coverage and added one review queue entry, validated count is 216; review queue entries: 233.
+- 2026-05-11T18:35Z: persisted and parent-validated `file-0198.json`; confirmed node-core debug args semicolon-only rustfmt noise, validated count is 217; review queue entries: 233.
+- 2026-05-11T18:46Z: persisted and parent-validated `file-0199.json`; recorded low-risk missing RitualRouter lifecycle logging/observability coverage, validated count is 218; review queue entries: 233.
+- 2026-05-11T19:02Z: persisted and parent-validated `file-0200.json`; recorded high-risk missing payload-builder CLI/config coverage for empty-payload grace, max-block-size bytes, and oversized extra-data acceptance, added three review queue entries, validated count is 219; review queue entries: 236.
+- 2026-05-11T19:12Z: persisted and parent-validated `file-0201.json`; recorded high-risk missing PayloadBuilderConfig trait coverage for empty-payload grace and max-block-size bytes, added two review queue entries, validated count is 220; review queue entries: 238.
+- 2026-05-11T19:18Z: persisted and parent-validated `file-0202.json`; confirmed node config tip lookup/fetch semicolon-only rustfmt noise, validated count is 221; review queue entries: 238.
+- 2026-05-11T19:25Z: persisted and parent-validated `file-0203.json`; confirmed consensus-layer health event stream semicolon-only rustfmt noise, validated count is 222; review queue entries: 238.
+- 2026-05-11T20:10Z: persisted and parent-validated `file-0204.json`; confirmed node events rustfmt-only condition wrapping and semicolon noise, validated count is 223; review queue entries: 238.
+- 2026-05-11T20:16Z: persisted and parent-validated `file-0205.json`; confirmed node metrics hooks semicolon-only rustfmt noise, validated count is 224; review queue entries: 238.
+- 2026-05-11T20:28Z: persisted and parent-validated `file-0206.json`; recorded high-risk partial OP chainspec `max_extra_data_bytes` forwarding coverage and added one review queue entry, validated count is 225; review queue entries: 239.
+- 2026-05-11T20:35Z: persisted and parent-validated `file-0207.json`; confirmed Optimism import command rustfmt-only semicolon/line-wrap noise, validated count is 226; review queue entries: 239.
+- 2026-05-11T20:41Z: persisted and parent-validated `file-0208.json`; confirmed Optimism receipt import semicolon-only rustfmt noise, validated count is 227; review queue entries: 239.
+- 2026-05-11T20:47Z: persisted and parent-validated `file-0209.json`; confirmed Optimism init-state semicolon-only rustfmt noise, validated count is 228; review queue entries: 239.
+- 2026-05-11T20:53Z: persisted and parent-validated `file-0210.json`; confirmed Optimism receipt file codec semicolon-only rustfmt noise, validated count is 229; review queue entries: 239.
+- 2026-05-11T21:05Z: persisted and parent-validated `file-0211.json`; recorded high-risk partial OP consensus extra-data validation coverage and added one review queue entry, validated count is 230; review queue entries: 240.
+- 2026-05-11T21:11Z: persisted and parent-validated `file-0212.json`; confirmed Optimism receipt proof rustfmt-only condition wrapping and semicolon noise, validated count is 231; review queue entries: 240.
+- 2026-05-11T21:17Z: persisted and parent-validated `file-0213.json`; confirmed Canyon withdrawals validation semicolon-only rustfmt noise, validated count is 232; review queue entries: 240.
+- 2026-05-11T21:23Z: persisted and parent-validated `file-0214.json`; confirmed Isthmus withdrawals-root validation semicolon-only rustfmt noise, validated count is 233; review queue entries: 240.
+- 2026-05-11T21:31Z: persisted and parent-validated `file-0215.json`; confirmed Optimism consensus validation semicolon-only rustfmt noise, validated count is 234; review queue entries: 240.
+- 2026-05-11T21:39Z: persisted and parent-validated `file-0216.json`; confirmed Optimism node engine semicolon-only rustfmt noise, validated count is 235; review queue entries: 240.
+- 2026-05-11T21:45Z: persisted and parent-validated `file-0217.json`; confirmed Optimism node interop supervisor condition line-wrap-only rustfmt noise, validated count is 236; review queue entries: 240.
+- 2026-05-11T22:00Z: persisted and parent-validated `file-0218.json`; recorded high-risk partial OP payload-builder BuildArguments/empty-payload attempt propagation coverage and added one review queue entry, validated count is 237; review queue entries: 241.
+- 2026-05-11T22:06Z: persisted and parent-validated `file-0219.json`; confirmed Optimism payload validator semicolon-only rustfmt noise, validated count is 238; review queue entries: 241.
+- 2026-05-11T22:12Z: persisted and parent-validated `file-0220.json`; confirmed Bedrock duplicate transaction helper semicolon-only rustfmt noise, validated count is 239; review queue entries: 241.
+- 2026-05-11T22:18Z: persisted and parent-validated `file-0221.json`; confirmed Optimism receipt primitive pattern-wrap/semicolon rustfmt noise, validated count is 240; review queue entries: 241.
+- 2026-05-11T22:31Z: persisted and parent-validated `file-0222.json`; recorded high-risk missing OP signed-transaction `signature()` accessor coverage and added one review queue entry, validated count is 241; review queue entries: 242.
+- 2026-05-11T22:37Z: persisted and parent-validated `file-0223.json`; confirmed Optimism RPC error pattern-wrap rustfmt noise, validated count is 242; review queue entries: 242.
+- 2026-05-11T22:44Z: persisted and parent-validated `file-0224.json`; confirmed Optimism RPC block loading semicolon-only rustfmt noise after explicit return context, validated count is 243; review queue entries: 242.
+- 2026-05-11T22:50Z: persisted and parent-validated `file-0225.json`; confirmed Optimism RPC call blob-hash validation semicolon-only rustfmt noise, validated count is 244; review queue entries: 242.
+- 2026-05-11T23:03Z: persisted and parent-validated `file-0226.json`; recorded non-high-risk missing OP RPC raw-transaction decode error-detail coverage, validated count is 245; review queue entries: 242.
+- 2026-05-11T23:09Z: persisted and parent-validated `file-0227.json`; confirmed Optimism RPC transaction conversion/deposit handling semicolon-only rustfmt noise, validated count is 246; review queue entries: 242.
+- 2026-05-11T23:15Z: persisted and parent-validated `file-0228.json`; confirmed Optimism supervisor client pre-interop rejection semicolon-only rustfmt noise, validated count is 247; review queue entries: 242.
+- 2026-05-11T23:21Z: persisted and parent-validated `file-0229.json`; confirmed Optimism txpool interop deadline semicolon-only rustfmt noise, validated count is 248; review queue entries: 242.
+- 2026-05-11T23:28Z: persisted and parent-validated `file-0230.json`; confirmed Optimism txpool validator semicolon-only rustfmt noise, validated count is 249; review queue entries: 242.
+- 2026-05-11T23:41Z: persisted and parent-validated `file-0231.json`; recorded high-risk missing BetterPayloadEmitter full-BuildArguments empty-payload forwarding and added one review queue entry, validated count is 250; review queue entries: 243.
+- 2026-05-11T23:58Z: persisted and parent-validated `file-0232.json`; recorded high-risk missing basic payload empty-payload grace and build-attempt/full-BuildArguments API coverage, validated count is 251; review queue entries: 245.
+- 2026-05-12T00:09Z: persisted and parent-validated `file-0233.json`; recorded high-risk missing payload builder stack attempt/full-BuildArguments forwarding coverage, validated count is 252; review queue entries: 246.
+- 2026-05-12T00:15Z: persisted and parent-validated `file-0234.json`; confirmed payload builder event-stream loop-control semicolon-only rustfmt noise, validated count is 253; review queue entries: 246.
+- 2026-05-12T00:20Z: persisted and parent-validated `file-0235.json`; confirmed noop payload service termination semicolon-only rustfmt noise, validated count is 254; review queue entries: 246.
+- 2026-05-12T00:31Z: persisted and parent-validated `file-0236.json`; recorded high-risk missing payload store `resolve()` WaitForPending default coverage and added one review queue entry, validated count is 255; review queue entries: 247.
+- 2026-05-12T00:37Z: persisted and parent-validated `file-0237.json`; confirmed payload primitives Engine API validation semicolon-only rustfmt noise, validated count is 256; review queue entries: 247.
+- 2026-05-12T00:43Z: persisted and parent-validated `file-0238.json`; confirmed payload util best-transaction iterator semicolon-only rustfmt noise, validated count is 257; review queue entries: 247.
+- 2026-05-12T00:49Z: persisted and parent-validated `file-0239.json`; confirmed Cancun payload validator semicolon-only rustfmt noise, validated count is 258; review queue entries: 247.
+- 2026-05-12T00:55Z: persisted and parent-validated `file-0240.json`; confirmed Prague payload validator semicolon-only rustfmt noise, validated count is 259; review queue entries: 247.
+- 2026-05-12T01:01Z: persisted and parent-validated `file-0241.json`; confirmed Shanghai withdrawals validation semicolon-only rustfmt noise, validated count is 260; review queue entries: 247.
+- 2026-05-12T01:10Z: persisted and parent-validated `file-0242.json`; recorded exact mapped primitives-traits tracing manifest dependency/std feature coverage, validated count is 261; review queue entries: 247.
+- 2026-05-12T01:16Z: persisted and parent-validated `file-0243.json`; confirmed account empty-check boolean line-wrap-only rustfmt noise, validated count is 262; review queue entries: 247.
+- 2026-05-12T01:22Z: persisted and parent-validated `file-0244.json`; confirmed block signer recovery error-return semicolon-only rustfmt noise, validated count is 263; review queue entries: 247.
+- 2026-05-12T01:28Z: persisted and parent-validated `file-0245.json`; confirmed recovered-block equality line-wrap-only rustfmt noise, validated count is 264; review queue entries: 247.
+- 2026-05-12T01:34Z: persisted and parent-validated `file-0246.json`; confirmed sealed-block transactions-root mismatch semicolon-only rustfmt noise, validated count is 265; review queue entries: 247.
+- 2026-05-12T01:40Z: persisted and parent-validated `file-0247.json`; confirmed secp256k1 high-S recovery rejection semicolon-only rustfmt noise, validated count is 266; review queue entries: 247.
+- 2026-05-12T01:52Z: persisted and parent-validated `file-0248.json`; recorded exact mapped InMemorySize support for passkey, scheduled, and async transaction variants, validated count is 267; review queue entries: 247.
+- 2026-05-12T02:04Z: persisted and parent-validated `file-0249.json`; recorded exact mapped permanent precompile invalid transaction error coverage, validated count is 268; review queue entries: 247.
+- 2026-05-12T02:25Z: persisted and parent-validated `file-0250.json`; recorded exact mapped signed transaction API, custom signer recovery, passkey verification, and OP signature coverage, validated count is 269; review queue entries: 247.
+- 2026-05-12T02:31Z: persisted and parent-validated `file-0251.json`; confirmed withdrawal test equality line-wrap-only rustfmt noise, validated count is 270; review queue entries: 247.
+- 2026-05-12T02:37Z: persisted and parent-validated `file-0252.json`; confirmed prune DB loop break semicolon-only rustfmt noise, validated count is 271; review queue entries: 247.
+- 2026-05-12T02:43Z: persisted and parent-validated `file-0253.json`; confirmed pruner early-return/break semicolon and interval-comparison line-wrap-only rustfmt noise, validated count is 272; review queue entries: 247.
+- 2026-05-12T02:49Z: persisted and parent-validated `file-0254.json`; confirmed prune segment empty-range return semicolon-only rustfmt noise, validated count is 273; review queue entries: 247.
+- 2026-05-12T02:55Z: persisted and parent-validated `file-0255.json`; confirmed receipt pruning no-work return and test arithmetic rustfmt noise, validated count is 274; review queue entries: 247.
+- 2026-05-12T03:01Z: persisted and parent-validated `file-0256.json`; confirmed prune segment set optional insertion semicolon-only rustfmt noise, validated count is 275; review queue entries: 247.
+- 2026-05-12T03:07Z: persisted and parent-validated `file-0257.json`; confirmed static-file header pruning early-return semicolons plus test arithmetic line-wrap rustfmt noise, validated count is 276; review queue entries: 247.
+- 2026-05-12T03:13Z: persisted and parent-validated `file-0258.json` through `file-0260.json`; confirmed static-file transaction, account-history, and user-history pruning hunks are rustfmt-only semicolon/line-wrap noise, validated count is 279; review queue entries: 247.
+- 2026-05-12T03:21Z: persisted and parent-validated `file-0261.json` through `file-0264.json`; confirmed receipts-by-logs, sender-recovery, storage-history, and transaction-lookup pruning hunks are rustfmt-only semicolon/line-wrap noise, validated count is 283; review queue entries: 247.
+- 2026-05-12T03:29Z: persisted and parent-validated `file-0265.json` through `file-0268.json`; confirmed prune type/mode and Ress protocol connection/provider hunks are rustfmt-only semicolon/line-wrap noise, validated count is 287; review queue entries: 247.
+- 2026-05-12T03:37Z: persisted and parent-validated `file-0269.json` through `file-0272.json`; confirmed Ress protocol/provider tests and revm cached-state test hunks are rustfmt-only semicolon/line-wrap noise, validated count is 291; review queue entries: 247.
+- 2026-05-12T03:43Z: persisted and parent-validated `file-0273.json`; confirmed async commitment validator manifest and workspace wiring are exact mapped, validated count is 292; review queue entries: 247.
+- 2026-05-12T03:49Z: persisted and parent-validated `file-0274.json`; confirmed async commitment validator implementation is exact mapped across static validation, parent-state replay validation, and included tests, validated count is 293; review queue entries: 247.
+- 2026-05-12T03:55Z: persisted and parent-validated `file-0275.json`; confirmed async fees crate manifest and workspace member/dependency wiring are exact mapped, validated count is 294; review queue entries: 247.
+- 2026-05-12T04:01Z: persisted and parent-validated `file-0276.json`; confirmed async fees constants module is exact mapped across fee constants, precompile address re-exports, ABI offsets/selectors, and size/dimension limits, validated count is 295; review queue entries: 247.
+- 2026-05-12T04:07Z: persisted and parent-validated `file-0277.json`; confirmed async fees delivery helpers are exact mapped across AsyncDelivery event/result definitions, callback gas extraction, fallback behavior, and unit coverage, validated count is 296; review queue entries: 247.
+- 2026-05-12T04:13Z: persisted and parent-validated `file-0278.json`; confirmed async fees gas helpers are exact mapped across system transaction classification, calldata gas calculation, effective block gas accounting, destination re-exports, and payload usage evidence, validated count is 297; review queue entries: 247.
+- 2026-05-12T04:19Z: persisted and parent-validated `file-0279.json`; confirmed async fees HTTP executor fee helper is exact mapped across base/input fee calculation, output-size fee calculation, and unit coverage, validated count is 298; review queue entries: 247.
+- 2026-05-11T17:25Z: persisted and parent-validated `file-0280.json`; confirmed async fees crate root and re-export surface are exact mapped, including shared fee/extraction helpers and root-level unit coverage, validated count is 299; review queue entries: 247.
+- 2026-05-11T17:29Z: persisted and parent-validated `file-0281.json`; confirmed async fees LLM helpers are exact mapped across encrypted-output detection, response pricing extraction, registry-backed executor fee calculation, model extraction, deposit estimation, and embedded error-settlement tests, validated count is 300; review queue entries: 247.
+- 2026-05-11T17:33Z: persisted and parent-validated `file-0282.json`; confirmed async fees model registry helpers are exact mapped across storage reads, deterministic value conversion and validation, per-block caching, Solidity mapping-slot computation, and embedded registry/cache/multimodal unit coverage, validated count is 301; review queue entries: 247.
+- 2026-05-11T17:36Z: persisted and parent-validated `file-0283.json`; confirmed async fees scheduled callback gas helpers are exact mapped across Scheduler event decoding, success/failure gas extraction, skip-event zero gas semantics, fallback helper behavior, and embedded unit coverage, validated count is 302; review queue entries: 247.
+- 2026-05-11T17:40Z: persisted and parent-validated `file-0284.json`; confirmed async fees validator helpers are exact mapped across operation-agnostic commitment fee calculation, zero inclusion fee semantics, embedded unit coverage, crate re-exports, and bounded usage evidence, validated count is 303; review queue entries: 247.
+- 2026-05-11T17:42Z: corrected parent review-queue accounting to the file-backed count of 242 entries after validation; no review queue entries were added or removed during the correction, validated count remains 303.
+- 2026-05-11T17:44Z: persisted and parent-validated `file-0285.json`; confirmed async fees wallet helpers are exact mapped across wallet storage reads, per-precompile escrow calculation, Phase 2 callback cost inclusion, final balance/lock validation, sender extraction, and bounded builder/verifier/RPC usage evidence, validated count is 304; review queue entries: 242.
+- 2026-05-11T17:48Z: persisted and parent-validated `file-0286.json`; confirmed async registry manifest and root workspace wiring are exact mapped across package metadata, minimal workspace dependencies, workspace member registration, and workspace dependency path, validated count is 305; review queue entries: 242.
+- 2026-05-11T17:49Z: reviewed and closed `file-0076`; confirmed Alloy Engine/Beacon `extra_data` schema preservation, Reth sibling Alloy dependency wiring, payload-builder consumption, and payload ID hashing. Wrote `review-file-0076-atom-0001.json`, marked `file-0076` complete, and removed its three queue entries. Review queue entries: 244.
+- 2026-05-11T17:51Z: corrected parent review-queue accounting to the current file-backed count of 244 entries after the out-of-band `file-0076` review action; validated count remains 305.
+- 2026-05-11T18:00Z: corrected mis-indexed `file-0286.json` from async-registry manifest to the actual queue entry `crates/ritual-async-inspector/Cargo.toml`; async-registry manifest remains pending at its true queue index, validated count remains 305; review queue entries: 244.
+- 2026-05-11T18:08Z: persisted and parent-validated `file-0287` for `crates/ritual-async-inspector/src/inspector.rs`; exact mapped 3 atoms covering the async precompile address/result surface, first-call inspector detection and input/caller capture, and rolling program-counter tracking. Counts: 306/579, review queue entries: 244.
+- 2026-05-11T18:15Z: persisted and parent-validated `file-0288` and `file-0289` for `crates/ritual-async-inspector/src/lib.rs` and `src/utils.rs`; exact mapped 2 crate-root atoms covering public re-exports and TTL/deadline policy, plus one documentation-only empty-module noise record. Counts: 308/579, review queue entries: 244.
+- 2026-05-11T18:19Z: persisted and parent-validated `file-0290` for `crates/ritual-async-registry/Cargo.toml`; exact mapped 1 atom covering the async registry manifest and root workspace wiring. Counts: 309/579, review queue entries: 244.
+- 2026-05-11T18:23Z: persisted and parent-validated `file-0291` for `crates/ritual-async-registry/src/error.rs`; exact mapped 1 atom covering the registry error enum and display payloads. Counts: 310/579, review queue entries: 244.
+- 2026-05-11T18:35Z: persisted and parent-validated `file-0292` for `crates/ritual-async-registry/src/lib.rs`; exact mapped 7 atoms covering public registry data/API, settlement reads, nonce-lock predicates, active/expiry readers, SPC verification reads, TEE payment lookup, and inline tests. Counts: 311/579, review queue entries: 244.
+- 2026-05-11T18:40Z: persisted and parent-validated `file-0293` for `crates/ritual-async-registry/src/slots.rs`; exact mapped 3 atoms covering storage layout constants, bytes32 mapping slot helpers, address/senderJobs slot helpers, and slot tests. Counts: 312/579, review queue entries: 244.
+- 2026-05-11T18:42Z: corrected parent review-queue accounting to the current file-backed count of 190 entries after checkpoint validation; persisted/validated count remains 312 and `errors` remains empty.
+- 2026-05-11T18:47Z: persisted and parent-validated `file-0294` for `crates/ritual-async/Cargo.toml`; exact mapped 1 atom covering the central async detection crate manifest and root workspace wiring. Counts: 313/579, review queue entries: 190.
+- 2026-05-11T18:59Z: persisted and parent-validated `file-0295` for `crates/ritual-async/src/detector.rs`; exact mapped 9 atoms covering trace buffering, RPC simulation, ABI/deadline extractors, commitment transaction construction, detector entrypoints, validation gates, Phase 2 deadline validation, origin encoding/sender extraction, and unit tests. Counts: 314/579, review queue entries: 190.
+- 2026-05-11T19:13Z: persisted and parent-validated `file-0296` for `crates/ritual-async/src/lib.rs`; exact mapped 3 atoms covering crate root/module declarations, inspector/detector re-exports, and validation/wallet re-exports. Counts: 315/579, review queue entries: 190.
+- 2026-05-11T19:14Z: corrected parent review-queue accounting to the current file-backed count of 88 entries after checkpoint validation; persisted/validated count remains 315 and `errors` remains empty.
+- 2026-05-11T19:27Z: persisted and parent-validated `file-0297` for `crates/ritual-async/src/validation.rs`; exact mapped 9 atoms covering shared bounds/errors, precompile data extraction, two-phase deadlines, payload router, HTTP/LLM/base validators, long-running HTTP, Sovereign/Persistent Agent, media/FHE/DKMS validators, and tests. Counts: 316/579, review queue entries: 88.
+- 2026-05-11T19:34Z: persisted and parent-validated `file-0298` for `crates/ritual-async/src/wallet.rs`; exact mapped 3 atoms covering address helper exports, client-backed state-provider wrapper, and provider-backed centralized wallet verification with sender extraction. Counts: 317/579, review queue entries: 88.
+- 2026-05-11T19:39Z: persisted and parent-validated `file-0299` for `crates/ritual-block-verification/Cargo.toml`; exact mapped 1 atom covering the block verification crate manifest, dependency graph, `async-context` feature forwarding, and root workspace wiring. Counts: 318/579, review queue entries: 88.
+- 2026-05-11T19:44Z: persisted and parent-validated `file-0300` for `crates/ritual-block-verification/src/constants.rs`; exact mapped 2 atoms covering precompile constant re-exports, default TEE registry, SPC proof signature length, and public-key length limit. Counts: 319/579, review queue entries: 88.
+- 2026-05-11T19:49Z: persisted and parent-validated `file-0301` for `crates/ritual-block-verification/src/error.rs`; exact mapped 4 atoms covering error classification, settlement/async errors, SPC/system errors, and sequencing/scheduled errors. Counts: 320/579, review queue entries: 88.
+- 2026-05-11T19:52Z: persisted and parent-validated `file-0302` for `crates/ritual-block-verification/src/lib.rs`; exact mapped 1 atom covering crate root exports/modules and nonce-lock helper re-exports. Counts: 321/579, review queue entries: 88.
+- 2026-05-11T20:00Z: persisted and parent-validated `file-0303` for `crates/ritual-block-verification/src/nonce_lock.rs`; exact mapped 5 atoms covering entrypoints, duplicate commitment detection, transaction selection, batched registry lock-state reads, and fulfillment validation. Counts: 322/579, review queue entries: 88.
+- 2026-05-11T20:07Z: persisted and parent-validated `file-0304` for `crates/ritual-block-verification/src/verifier.rs`; exact mapped 11 atoms covering verifier configuration/helpers, phase orchestration, settlement and Phase 2 economics, async commitments, scheduled/heartbeat constraints, nonce-lock delegation, SPC verification, sequencing rights, scheduled censorship detection, ABI utilities, and embedded tests. Counts: 323/579, review queue entries: 88.
+- 2026-05-11T20:11Z: persisted and parent-validated `file-0305` and `file-0306` for `crates/ritual-blocking-pubsub/{Cargo.toml,src/lib.rs}`; exact mapped 3 total atoms covering the dependency-light manifest, blocking canonical-state handler surface, and synchronous subscription/notification dispatch used by chain-state/provider surfaces. Counts: 325/579, review queue entries: 88.
+- 2026-05-11T20:18Z: persisted and parent-validated `file-0307` through `file-0309` for `crates/ritual-heartbeat-tracker/{Cargo.toml,src/events.rs,src/lib.rs}`; exact mapped 7 total atoms covering manifest wiring, heartbeat event topics/decoders, tracker state and Phase 0b duration telemetry, log processing, storage hydration, and unit tests. Counts: 328/579, review queue entries: 88.
+- 2026-05-11T20:21Z: persisted and parent-validated `file-0310` for `crates/ritual-metrics/Cargo.toml`; exact mapped 1 atom covering the metrics crate manifest, workspace linting, runtime instrumentation dependencies, and broad dev-dependency/test surface. Counts: 329/579, review queue entries: 88.
+- 2026-05-11T20:28Z: persisted and parent-validated `file-0311` for `crates/ritual-metrics/src/block.rs`; exact mapped 6 atoms covering block-build trace config/schema, ring-buffer attempt recording and snapshots, block lifecycle phase logging, block verification logs, payload-build logs, and EL canonical-head update logs. Counts: 330/579, review queue entries: 85.
+- 2026-05-11T20:34Z: persisted and parent-validated `file-0312` and `file-0313` for `crates/ritual-metrics/src/{lib.rs,scheduling.rs}`; exact mapped 4 total atoms covering metrics target/module exports, scheduled incident trace schema/config, best-effort hot-path incident recording with contention accounting, snapshots, and scheduling performance logs. Counts: 332/579, review queue entries: 85.
+- 2026-05-11T20:40Z: persisted and parent-validated `file-0314` for `crates/ritual-metrics/src/tx.rs`; exact mapped 5 atoms covering transaction commit, P2P/RPC intake, txpool add/remove/validation, verification/finalization with scheduled transaction fields, async simulation/commitment/SPC logs, generic transaction errors, and per-transaction payload execution logs. Counts: 333/579, review queue entries: 85.
+- 2026-05-11T20:50Z: persisted and parent-validated `file-0315` and `file-0316` for `crates/ritual-precompile-addresses/{Cargo.toml,src/lib.rs}`; exact mapped 4 total atoms covering the canonical address crate manifest, async/SPC precompile address constants, SPC and two-phase allowlists, classifier helper, and invariant tests. Counts: 335/579, review queue entries: 85.
+- 2026-05-11T21:17Z: persisted and parent-validated `file-0317` through `file-0327` for `crates/ritual-precompile-codecs`; exact mapped 32 total atoms covering the codec manifest/root, shared errors and StorageRef, DKMS/executor/HTTP/LLM decoders, long-running delivery config/FHE helpers, Persistent Agent request/response codecs, Sovereign Agent validation decoder, and embedded tests. Counts: 346/579, review queue entries: 85.
+- 2026-05-11T21:41Z: persisted and parent-validated `file-0328` through `file-0334` for `crates/ritual-scheduled-block-building` and `crates/ritual-scheduled-verification`; exact mapped 25 total atoms covering payload-builder scheduled filtering, heartbeat bypass, obligation augmentation, Scheduler/heartbeat raw storage reads, C1-C11 errors/filtering/verification, predicate helpers, storage slot calculators, due-window obligation computation, and tests. Counts: 353/579, review queue entries: 85.
+- 2026-05-11T19:25Z: persisted and parent-validated `file-0335` through `file-0342` for `crates/ritual-sequencing-rights`; exact mapped 25 total atoms covering the crate manifest, bucket partition/sort/verify/reassembly logic, classifier and REVM inspector call-graph tracking, error surface, public reordering/verification entrypoints, priority computation, state-backed reader, core selector/ordering types, and embedded tests. Counts: 361/579, review queue entries: 57.
+- 2026-05-11T19:39Z: persisted and parent-validated `file-0343` through `file-0347` for SPC signature and SPC verification setup; structurally mapped the signature manifest/library, treated generated SPC verifier `Cargo.lock` and already-present README as noise, and mapped the narrowed SPC verifier manifest. Counts: 365/579, review queue entries: 58.
+- 2026-05-11T20:02Z: persisted and parent-validated `file-0348` through `file-0352` for `crates/ritual-spc-verification/src`; exact mapped client/error/root/types records and structurally mapped verifier implementation with Alloy hex-helper normalization, covering sidecar retry logic, public API, executor registry, direct signature verification, batch/parallel verification, and tests. Counts: 370/579, review queue entries: 58.
+- 2026-05-11T20:24Z: persisted and parent-validated `file-0353` through `file-0359` for `crates/ritual-tee-registry-reader`; structurally mapped manifest/reader import normalization and exact mapped constants, errors, root exports, storage layout, capability/executor types, direct no-cache registry reads, dynamic public-key decoding, and tests. Counts: 377/579, review queue entries: 58.
+- 2026-05-11T20:48Z: persisted and parent-validated `file-0360` through `file-0365`; classified RPC IPC semicolon hunks as rustfmt noise, recorded partial RPC API manifest support, and queued missing high-risk Ritual RPC API module/export/type/trait gaps for review. Counts: 383/579, review queue entries: 53.
+- 2026-05-11T21:05Z: persisted and parent-validated `file-0366` through `file-0373`; queued missing txpool scheduled/async RPC API and generic Ritual RPC module builder gaps, and classified RPC builder/engine rustfmt-only hunks as noise. Counts: 391/579, review queue entries: 55.
+- 2026-05-11T21:25Z: persisted and parent-validated `file-0374` through `file-0384`; classified RPC eth helper/cache/error-api rustfmt hunks as noise and queued missing RPC eth error semantics for decode details, permanently invalid precompile requests, and async sender-lock txpool rejections. Counts: 402/579, review queue entries: 58.
+- 2026-05-11T21:45Z: persisted and parent-validated `file-0385` through `file-0393`; classified RPC eth-types fee/gas/id/logs/revm and RPC layer auth hunks as rustfmt noise, recorded partial raw transaction decode-error detail coverage under the existing `file-0384` review, and queued missing/partial RPC receipt extension plus Ritual module-selection gaps. Counts: 411/579, review queue entries: 62.
+
+- 2026-05-11T19:17:46+00:00: re-reviewed files 81-90 after 7f8a668d24. Closed SPC verifier dependency/export/bridge and RPC async-result verification gaps; kept scheduled txpool admission, maintenance suppression, blocking canonical handler, and support-only manifest gaps as confirmed residuals. Refreshed review queue, index, summary, and 70-90 canvas.
+- 2026-05-11T19:29:00+00:00: downgraded file-0083 scheduled txpool admission from FSM/integration gap to legacy/raw-admission intentional absence pending teammate confirmation. Added Alloy RPC evidence that user-created scheduled transactions are rejected and payload-builder evidence that Scheduler-state obligations synthesize PayloadCandidate::Scheduled.
+
+- 2026-05-11T19:49:41+00:00: mechanically reviewed files 101-110 against latest port code. Closed stale needs-review atoms; no confirmed FSM/runtime gap remains in this slice. Rows 106/108/110 retain only test/support/compatibility/design-confirmation notes. Refreshed review queue, index, validation summary, and 101-110 canvas.
+
+- 2026-05-11T19:54:51+00:00: reopened file 107 targeted review after late subagent result. Executor-level system transaction gas accounting remains covered, but async settlement local block_state_gas_used mirror needs proof or a regression test under Amsterdam prechecks.
+
+- 2026-05-11T20:03:00+00:00: mechanically reviewed files 111-120 against latest port code. Closed stale file 111 SPC API review entries after confirming reth_evm::spc and node bridge restoration; files 112-120 remain formatting/noise. Refreshed review queue, index, validation summary, and 111-120 canvas.
+
+- 2026-05-11T20:06:00+00:00: reviewed files 121-130. All ten records were already complete rustfmt/noise entries with zero atoms and no review-queue entries; created the 121-130 canvas/table artifact.
+
+- 2026-05-11T20:08:00+00:00: reviewed files 141-150. All ten records were already complete rustfmt/noise entries with zero atoms and no review-queue entries; created the 141-150 canvas/table artifact.
+- 2026-05-11T20:13:00+00:00: rechecked files 180-210 against port commit `c7d36f341b`. Closed stale max-block-size findings in `file-0200-atom-0002` and `file-0201-atom-0002` after confirming CLI/config/payload enforcement coverage; review queue entries now 60. Remaining high-risk rows in this slice are old SPC/node-builder lifecycle, pool-aware verifier/backfill wiring, empty-payload grace, oversized extra-data acceptance, and OP extra-data policy confirmation.
+- 2026-05-11T22:15Z: persisted and parent-validated terminal batch through `file-0579`; reconciled all per-file records, rebuilt `index.jsonl` and `review-queue.md` from persisted JSON, and validated contiguous `579/579` records with `errors: []`. Review queue entries: 251.
+- 2026-05-11T22:16Z: terminal reconciliation confirmed from persisted per-file JSON and direct file-tool counts; `files/file-0001.json` through `files/file-0579.json` remain at `579/579`, `validation-summary.json` reports `errors: []`, and the rebuilt review queue count is 251.
+- 2026-05-11T20:58:07Z: terminal reconciliation rerun from persisted per-file JSON; rebuilt index/review queue/summary/NEXT_ACTION with 579/579 records, review queue entries: 251, errors: [].
+- 2026-05-11T21:05Z: resolved needs-proof ambiguity in files 186, 188-194, 197, 200-201, and 206. Downgraded SPC verifier ownership/build_evm_with_pool rows to confirmed architecture/API differences with code evidence, marked blocking-handler ordering and empty-payload/extra-data controls as confirmed gaps, refreshed index/review queue/summary/canvas; review queue entries: 237.
+- 2026-05-11T21:27Z: mechanically reviewed files 211-272 against current port code. Closed review-required rows 211, 218, 222, 231-233, and 236; reclassified stale primitives-traits exact records 242, 248-250 to dependency/structural/non-FSM gap statuses. Review queue entries: 100.
+- 2026-05-11T21:34Z: downgraded files 231-233 after active-path review. Since engine getPayload uses PayloadStore::resolve -> WaitForPending and BasicPayloadJob filters empty-payload races for WaitForPending, empty_payload_grace/full-empty BuildArguments are non-active API/support differences rather than confirmed FSM gaps. Review queue entries: 100.
+- 2026-05-11T21:54Z: closed RPC false positives/duplicates after relocation review: file-0384 atom 3 sender-lock RPC mapping, file-0395 manifest dependency relocation, file-0407 crate-root Ritual API wiring relocation, and file-0410 atom 1 result/delivery method relocation. Review queue entries: 96.
+- 2026-05-11T22:02Z: resolved remaining ambiguous RPC rows: file-0384 decode detail downgraded to non-FSM API gap, file-0384 permanent precompile invalidity closed as structural equivalent/duplicate of builder and pending-block TxTypeNotSupported invalidation, file-0401 closed as Alloy schema/conversion structural equivalent, and file-0402 closed as confirmed non-FSM pending-block extraData metadata gap. Review queue entries: 92.
+- 2026-05-11T23:21Z: rechecked RPC parity after user edits. Files 0364, 0365, 0366, 0370, 0389, 0393, 0408, 0410, and 0412 are resolved; file 0403 passkey hash closed via pool-hash evidence; remaining confirmed non-parity is RPC async admission/preflight/rollback in files 0396 and 0403. Review queue entries: 69.
+- 2026-05-12T14:59Z: rechecked files 0424-0513 against current port. Downgraded file-0452 alloy-consensus serde dev-feature atom as stale/structurally covered by crate-level serde feature; confirmed stages ONNX retry, execution-stage backfill hook, compact passkey fallback, Option<Vec> compact length, storage-codecs tracing instrumentation, and Ritual JSON tracing router items remain open. Review queue entries: 68.

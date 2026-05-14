@@ -1,0 +1,80 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "970542d1b36413978b3179faeb582ddec3dfc136",
+      "evidence": "The canonical shared payload validator enforces input-size, precompile-specific routing, URL/model/message checks, base executor fields, zero executor rejection, and TTL bounds.",
+      "path": "crates/ritual-precompile-codecs/src/validation.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn validate_async_payload(\n    precompile_address: Address,\n    input: &[u8],\n    max_ttl: u64,\n) -> Result<(), PayloadValidationError> {\n    let metadata = metadata_by_address(precompile_address)\n        .ok_or(PayloadValidationError::UnknownPrecompile(precompile_address))?;\n    if input.len() > MAX_ASYNC_INPUT_SIZE {\n        return Err(PayloadValidationError::InputTooLarge { size: input.len(), max: MAX_ASYNC_INPUT_SIZE });\n    }\n\n    match metadata.address {\n        HTTP_CALL_PRECOMPILE => validate_http_call_payload(input, max_ttl),\n        LLM_CALL_PRECOMPILE => validate_llm_call_payload(input, max_ttl),\n        LONG_RUNNING_HTTP_PRECOMPILE => validate_long_running_http_payload(input, max_ttl),\n        ZK_TWO_PHASE_PRECOMPILE => validate_zk_two_phase_payload(input, max_ttl),\n        FHE_PRECOMPILE => validate_fhe_call_payload(input, max_ttl),\n        SOVEREIGN_AGENT_PRECOMPILE => validate_sovereign_agent_payload(input, max_ttl),\n        IMAGE_CALL_PRECOMPILE | AUDIO_CALL_PRECOMPILE | VIDEO_CALL_PRECOMPILE => {\n            validate_executor_request_payload(input, max_ttl)\n        }\n        DKMS_KEY_PRECOMPILE => validate_dkms_key_payload(input, max_ttl),\n        PERSISTENT_AGENT_PRECOMPILE => validate_persistent_agent_payload(input, max_ttl),\n        _ => Err(PayloadValidationError::UnknownPrecompile(precompile_address)),\n    }\n}\n...\nfn validate_http_call_payload(input: &[u8], max_ttl: u64) -> Result<(), PayloadValidationError> {\n    let request = HTTPCallRequest::from_abi(input).map_err(decode_error(\"HTTPCallRequest\"))?;\n    validate_executor_base_fields(request.executor, request.ttl, &request.encrypted_secrets, &request.user_public_key, max_ttl)?;\n    validate_required_http_url(&request.url)\n}\n\nfn validate_llm_call_payload(input: &[u8], max_ttl: u64) -> Result<(), PayloadValidationError> {\n    let request = LLMCallRequest::from_abi(input).map_err(decode_error(\"LLMCallRequest\"))?;\n    validate_executor_base_fields(request.executor, request.ttl, &request.encrypted_secrets, &request.user_public_key, max_ttl)?;\n    if request.model.trim().is_empty() { return Err(PayloadValidationError::EmptyModel); }\n    if !request.has_valid_messages() { return Err(PayloadValidationError::EmptyMessages); }\n    Ok(())\n}\n\nfn validate_executor_and_ttl_bounds(executor: Address, ttl: u64, max_ttl: u64) -> Result<(), PayloadValidationError> {\n    if executor.is_zero() { return Err(PayloadValidationError::ExecutorZeroAddress); }\n    if ttl == 0 { return Err(PayloadValidationError::TtlZero); }\n    if ttl > max_ttl { return Err(PayloadValidationError::TtlExceeded { ttl, max: max_ttl }); }\n    Ok(())\n}",
+      "symbols": [
+        "validate_async_payload",
+        "validate_http_call_payload",
+        "validate_llm_call_payload",
+        "validate_executor_request_payload"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "970542d1b36413978b3179faeb582ddec3dfc136",
+      "evidence": "The builder validates the detected async precompile payload with the shared validate_async_payload routine before decoding executor and TTL into a commitment.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "fn validate_async_commitment_call(\n    async_call: &BasicAsyncCallResult,\n) -> Result<ritual_precompile_codecs::DecodedPrecompileData, String> {\n    async_commitment_metadata(async_call.precompile_address, \"detected async precompile\")?;\n\n    let input = async_call.input.as_ref();\n    validate_async_payload(async_call.precompile_address, input, MAX_SHORT_ASYNC_TTL_BLOCKS)\n        .map_err(|err| format!(\"invalid async commitment payload: {err}\"))?;\n\n    try_decode_precompile_data(async_call.precompile_address, input)\n        .map_err(|err| format!(\"malformed async commitment input: {err}\"))\n}",
+      "symbols": [
+        "build_short_async_commitment_transaction",
+        "validate_async_commitment_call"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "970542d1b36413978b3179faeb582ddec3dfc136",
+      "evidence": "RPC admission runs parent-state simulation, returns Ok for non-async transactions, then applies the shared static validator and stateful executor/wallet checks before pool insertion.",
+      "path": "crates/rpc/rpc/src/async_tx_validator.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let Some(async_call) = inspector.async_call_result() else {\n    return Ok(());\n};\n...\nvalidate_detected_async_call(\n    &mut validation_db,\n    recovered_tx.signer(),\n    parent.number().saturating_add(1),\n    &async_call,\n)\n.map_err(|err| EthApiError::InvalidParams(format!(\"invalid async payload: {err}\")))\n...\nvalidate_async_payload(async_call.precompile_address, async_call.input.as_ref(), MAX_SHORT_ASYNC_TTL_BLOCKS)?;\nlet decoded = try_decode_precompile_data(async_call.precompile_address, async_call.input.as_ref())?;\nvalidate_executor(db, decoded.executor, metadata)?;\nverify_wallet_for_commitment(\n    db,\n    user_address,\n    async_call.precompile_address,\n    &async_call.input,\n    decoded.ttl,\n    commit_block,\n)?;",
+      "symbols": [
+        "validate_rpc_async_admission",
+        "validate_detected_async_call"
+      ]
+    }
+  ],
+  "equivalence_argument": "Both RPC admission and builder commitment construction call ritual_precompile_codecs::validate_async_payload, so oversize, executor, TTL, HTTP URL, and LLM model/message decisions share one validator before state-specific checks.",
+  "evidence_files": [
+    "crates/ritual-async/src/validation.rs",
+    "crates/rpc/rpc/src/async_tx_validator.rs"
+  ],
+  "invariant_id": "cur-8bc12bca0c-async-payload-validation-shared-across-builder",
+  "invariant_index": 438,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The v2 port moved the shared validator to ritual-precompile-codecs rather than the old ritual-async crate.",
+  "rationale": "The commit extracts core async payload checks into ritual_async::validation and changes RPC validate_async_payload to delegate to that module, matching the stated goal of RPC-builder parity. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "0cd3e92b82f36d15b3690026703a9ceaa3fda46a"
+  ],
+  "statement": "Async payload validation must reject inputs larger than MAX_ASYNC_INPUT_SIZE, zero executor addresses, ttl equal to zero, ttl greater than MAX_TTL_BLOCKS, HTTP requests with empty or non-http(s) URLs, and LLM requests with empty model or empty messages.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Run the same corpus of HTTP, LLM, and base executor precompile inputs through ritual_async::validation::validate_async_payload and the RPC validator wrapper; assert both paths return equivalent success or mapped error for oversize inputs, executor zero, TTL bounds, HTTP URL validity, and LLM model/messages checks."
+  ],
+  "summary": "Shared async payload validation gates RPC and builder.",
+  "test_or_falsification_candidate": "Run the same corpus of HTTP, LLM, and base executor precompile inputs through ritual_async::validation::validate_async_payload and the RPC validator wrapper; assert both paths return equivalent success or mapped error for oversize inputs, executor zero, TTL bounds, HTTP URL validity, and LLM model/messages checks.",
+  "title": "Async payload validation is shared across RPC and builder",
+  "total_invariants": 1954
+}

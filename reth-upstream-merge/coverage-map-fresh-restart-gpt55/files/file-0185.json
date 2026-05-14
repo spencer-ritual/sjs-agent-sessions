@@ -1,0 +1,73 @@
+{
+  "record_type": "file",
+  "file_index": 185,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/node/api/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "missing",
+  "tags": [
+    "missing",
+    "non-exact",
+    "cargo",
+    "node-api",
+    "spc",
+    "build-dependency"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0185-atom-0001",
+      "file_index": 185,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/node/api/Cargo.toml",
+      "source_hunk_hint": "@@ -28,6 +28,10 @@",
+      "source_kind": "dependency",
+      "source_snippet": "reth-node-core.workspace = true\nreth-tokio-util.workspace = true\n\n# ritual\nritual-spc-verification.workspace = true\n\n# misc\nalloy-rpc-types-engine.workspace = true",
+      "semantic_claim": "The old node API crate adds a direct `ritual-spc-verification` workspace dependency so its public node context can expose a shared SPC verifier type.",
+      "high_risk": false,
+      "risk_tags": [
+        "spc-verification",
+        "node-api",
+        "build-dependency",
+        "public-api-support"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/node/api/Cargo.toml",
+          "evidence": "The destination node API manifest has standard Reth dependencies and no `ritual-spc-verification` dependency; exact repo searches found no `ritual_spc_verification` import or `SpcVerifier` type usage in the v2.2.0 port."
+        }
+      ],
+      "equivalence_argument": "The destination moved SPC verification behavior into other verifier/block-verification components, but this manifest does not preserve the old node API crate's direct dependency on the `SpcVerifier` type. The dependency itself is build/API support; the behavior-bearing public context field is audited separately in the next file.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "If the port must preserve the old node API surface, add a compile regression proving `reth-node-api` exposes the SPC verifier type or an intentional replacement without requiring downstream crates to depend on the old `ritual-spc-verification` crate.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Low risk at this file boundary because this is dependency metadata; the verifier lifecycle and public context semantics are evaluated in the corresponding source files."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The old node API manifest added `ritual-spc-verification` to support exposing `SpcVerifier` from the node add-ons context. The v2.2.0 port's node API crate has no exact dependency or `SpcVerifier` usage, so this build/API-support atom is recorded as missing and low risk at the manifest boundary.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 185: M\tcrates/node/api/Cargo.toml.",
+    "The isolated patch only adds a Ritual dependency section with `ritual-spc-verification.workspace = true` before the misc dependencies.",
+    "Destination `crates/node/api/Cargo.toml` does not include `ritual-spc-verification`.",
+    "Exact destination searches found no `ritual_spc_verification` import or `SpcVerifier` type usage in the v2.2.0 port.",
+    "The next queue entry, `crates/node/api/src/node.rs`, carries the public AddOnsContext field that this dependency supported."
+  ]
+}

@@ -9,13 +9,11 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "missing",
+  "file_classification": "structural_equivalent",
   "tags": [
-    "missing",
-    "verifier",
     "high-risk",
     "non-exact",
-    "needs-review"
+    "structural_equivalent"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -33,9 +31,20 @@
       "risk_tags": [
         "verifier"
       ],
-      "mapping_status": "missing",
-      "destinations": [],
-      "equivalence_argument": null,
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_ritual_async_block_structure",
+            "validate_block_post_execution"
+          ],
+          "snippet": "provider-aware block verification validates async commitments, wallet state, scheduled obligations, and missed-obligation rules",
+          "evidence": "The old verifier wrapper is replaced by function-based verifier hooks installed in Ethereum consensus/engine validation."
+        }
+      ],
+      "equivalence_argument": "Block verification behavior is preserved by the v2.2 function-based verifier hooks and consensus integration.",
       "test_strategy": "adapted_equivalence_test",
       "negative_test_candidate": "Exercise the crates/ritual-block-verification/src/nonce_lock.rs behavior boundary in the port and verify the downstream path-specific behavior still exists; absence or changed rejection/ordering would falsify the mapping.",
       "adversarial_review": {
@@ -44,14 +53,13 @@
         "review_record_id": null
       },
       "review_required": true,
-      "notes": "No same-path or uniquely named destination evidence was found in the configured search scope.",
-      "required_change": "Restore or intentionally replace the downstream behavior carried by crates/ritual-block-verification/src/nonce_lock.rs; no reliable destination evidence was found in the configured search scope."
+      "notes": "Mapped to ritual-block-verification/src/lib.rs."
     }
   ],
   "high_risk_atoms_total": 1,
   "non_exact_atoms_total": 1,
   "adversarial_reviews": [],
-  "summary": "No reliable destination evidence was found for the downstream file-level behavior.",
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
   "review_required": true,
   "status": "needs_review",
   "notes": "No same-path or uniquely named destination evidence was found in the configured search scope."

@@ -1,0 +1,63 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping was found: the audited port has no ExecutorRegistryService or CanonStateNotification::Reorg event loop for the SPC registry.",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/service.rs"
+  ],
+  "invariant_id": "cur-5f5ea62927-single-slot-registry-service-ignores-reorg-notifications",
+  "invariant_index": 229,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-spc-verification/src/service.rs",
+      "crates/ritual-spc-verification/src/verifier.rs",
+      "crates/ritual-spc-verification/src/types.rs",
+      "crates/ethereum/node/src/ritual_async_rpc.rs"
+    ],
+    "checked_queries": [
+      "ExecutorRegistryService|CanonStateNotification|Reorg|CanonStateSubscriptions|registry service|update_registry_from_data"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "ExecutorRegistryService",
+      "CanonStateNotification::Reorg",
+      "CanonStateSubscriptions",
+      "sync_spc_registry_from_state",
+      "update_registry_from_data"
+    ],
+    "missing_behavior": "Missing single-slot ExecutorRegistryService behavior that receives Reorg notifications and ignores them without mutating the registry.",
+    "related_but_insufficient_code": [
+      "crates/ritual-spc-verification/src has client.rs, error.rs, lib.rs, types.rs, and verifier.rs only; no service.rs exists locally.",
+      "ritual_async_rpc::sync_spc_registry_from_state refreshes the verifier registry from latest state during RPC submission, but it is not a canonical-state subscription service.",
+      "SpcVerifier::update_registry_from_data atomically swaps registry contents from state reads and has no reorg notification branch."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The new service is explicitly documented as optimized for single slot finality with no reorg handling needed, and its event loop handles `CanonStateNotification::Reorg` only by logging a warning before continuing. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "a539ecbffcfafa6feffcbc9e0834d05a97083920"
+  ],
+  "statement": "When the executor registry service receives a canonical state reorg notification, it must not roll back, rebuild, or otherwise mutate the executor registry; reorgs are treated as unexpected and ignored in single-slot-finality mode.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Use a mock `CanonStateSubscriptions` provider whose stream emits a `Reorg` notification after seeding the shared `ExecutorRegistry` with an active executor; run `ExecutorRegistryService::start` until the stream closes and assert the registry contents are unchanged and no error is returned."
+  ],
+  "summary": "The single-slot registry service and reorg-ignore behavior are absent from the audited repo set.",
+  "test_or_falsification_candidate": "Instantiate the expected registry service with a mock canonical notification stream emitting Reorg; current audited code has no service type to construct or exercise.",
+  "title": "Single-slot registry service ignores reorg notifications",
+  "total_invariants": 1954
+}

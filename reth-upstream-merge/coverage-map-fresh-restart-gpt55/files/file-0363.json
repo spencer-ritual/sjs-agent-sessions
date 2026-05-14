@@ -1,0 +1,110 @@
+{
+  "record_type": "file",
+  "file_index": 363,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/rpc/rpc-api/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "rpc-api",
+    "manifest",
+    "ritual-rpc"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0363-atom-0001",
+      "file_index": 363,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/rpc/rpc-api/Cargo.toml",
+      "source_hunk_hint": "@@ -17,6 +17,9 @@; add ritual-metrics dependency",
+      "source_kind": "manifest_dependency",
+      "source_snippet": "# ritual\nritual-metrics.workspace = true",
+      "semantic_claim": "The old divergence adds a `ritual-metrics` dependency to `reth-rpc-api` so the Ritual RPC API type layer can expose debug response structures and conversions backed by metrics trace types.",
+      "high_risk": false,
+      "risk_tags": [
+        "manifest",
+        "ritual-metrics",
+        "rpc-debug-types"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc-api/Cargo.toml",
+          "symbols": [
+            "dependencies"
+          ],
+          "evidence": "Destination `crates/rpc/rpc-api/Cargo.toml` now includes `ritual-metrics.workspace = true`, supporting the restored Ritual RPC debug response type conversions."
+        }
+      ],
+      "equivalence_argument": "Exact: the manifest dependency needed by the restored Ritual RPC API type layer is present.",
+      "test_strategy": "cargo check -p reth-rpc-api with Ritual API module restored",
+      "negative_test_candidate": "Restoring `src/ritual.rs` without `ritual-metrics` should fail to resolve `ritual_metrics::scheduling::ScheduledIncidentTrace`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Resolved with current RPC API manifest edits."
+    },
+    {
+      "record_id": "file-0363-atom-0002",
+      "file_index": 363,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/rpc/rpc-api/Cargo.toml",
+      "source_hunk_hint": "@@ -36,6 +39,7 @@; add serde dependency",
+      "source_kind": "manifest_dependency",
+      "source_snippet": "serde = { workspace = true, features = [\"derive\"] }",
+      "semantic_claim": "The old divergence adds serde derive support to `reth-rpc-api` for Ritual RPC request/response types.",
+      "high_risk": false,
+      "risk_tags": [
+        "manifest",
+        "serde",
+        "rpc-types"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc-api/Cargo.toml",
+          "symbols": [
+            "serde"
+          ],
+          "evidence": "Destination line 41 contains `serde = { workspace = true, features = [\"derive\"] }`."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves serde derive support.",
+      "test_strategy": "cargo check -p reth-rpc-api",
+      "negative_test_candidate": "Removing serde derive should break any local RPC request/response structs deriving `Serialize` or `Deserialize`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact manifest atom."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The RPC API manifest now preserves the old Ritual support dependencies: `ritual-metrics` and serde derive are both present.",
+  "review_required": false,
+  "status": "resolved",
+  "notes": [
+    "Destination manifest includes `ritual-metrics.workspace = true` for restored Ritual RPC debug types.",
+    "Destination manifest retains serde derive support.",
+    "Verified as part of the current RPC parity recheck."
+  ]
+}

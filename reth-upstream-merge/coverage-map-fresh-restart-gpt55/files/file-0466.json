@@ -1,0 +1,110 @@
+{
+  "record_type": "file",
+  "file_index": 466,
+  "total_files": 579,
+  "source_status": "C068",
+  "source_path": "crates/storage/codecs/src/alloy/transaction/passkey.rs",
+  "source_old_path": "crates/storage/codecs/src/alloy/transaction/eip1559.rs",
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "high-risk",
+    "passkey",
+    "encoding",
+    "copy"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0466-atom-0001",
+      "file_index": 466,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/storage/codecs/src/alloy/transaction/passkey.rs",
+      "source_hunk_hint": "copy from eip1559.rs; @@ -20,7 +21,18 @@ TxPasskey mirror struct",
+      "source_kind": "encoding_rule",
+      "source_snippet": "chain_id, nonce, gas_limit, fees, to, value, access_list, commitment_tx, settlement_tx, spc_calls, input last",
+      "semantic_claim": "Passkey transaction compact storage preserves gas, fee, target/value, access list, async tx hashes, optional SPC calls, and trailing input bytes.",
+      "high_risk": true,
+      "risk_tags": [
+        "encoding",
+        "passkey",
+        "storage"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/src/alloy/transaction/passkey.rs",
+          "symbols": [
+            "TxPasskey"
+          ],
+          "evidence": "Destination passkey compact mirror has the same fields and keeps `input` last."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Round-trip TxPasskey with non-default fee/access-list/hash fields and input.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": ""
+    },
+    {
+      "record_id": "file-0466-atom-0002",
+      "file_index": 466,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/storage/codecs/src/alloy/transaction/passkey.rs",
+      "source_hunk_hint": "copy from eip1559.rs; @@ -47,15 +51,17 @@ impl Compact for AlloyTxPasskey",
+      "source_kind": "encoding_rule",
+      "source_snippet": "to_compact/from_compact copy commitment_tx, settlement_tx, and spc_calls without converting Some(empty) to None",
+      "semantic_claim": "Passkey compact conversion preserves native optional SPC call semantics and async hash fields between alloy and local mirror types.",
+      "high_risk": true,
+      "risk_tags": [
+        "encoding",
+        "passkey",
+        "rlp-identity"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/src/alloy/transaction/passkey.rs",
+          "symbols": [
+            "impl Compact for AlloyTxPasskey"
+          ],
+          "evidence": "Destination conversion copies `commitment_tx`, `settlement_tx`, and `spc_calls` in both directions."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Round-trip passkey transactions with `None`, `Some(vec![])`, and nonempty SPC calls and assert the option shape survives.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": ""
+    }
+  ],
+  "high_risk_atoms_total": 2,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The copy-derived passkey transaction compact codec is present at the destination path with `old_path` recorded.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0466: C068\tcrates/storage/codecs/src/alloy/transaction/eip1559.rs -> crates/storage/codecs/src/alloy/transaction/passkey.rs.",
+    "Diff lines 86744-86839 show the copy/rename source and passkey-specific changes."
+  ]
+}

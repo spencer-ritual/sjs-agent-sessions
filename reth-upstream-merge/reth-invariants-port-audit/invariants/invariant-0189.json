@@ -1,0 +1,70 @@
+{
+  "cluster_key": "executor delivery:delivery-callbacks-defer-6bb07e8b",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No implementation mapping was found: local delivery-ready settlement construction creates and executes a direct delivery settlement, and the audited repo set has no detector path that turns a delivery callback async precompile call into a nested commitment transaction.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-async/src/detector.rs",
+    "crates/ritual-async/src/wallet.rs"
+  ],
+  "invariant_id": "cur-f005814a67-delivery-callbacks-defer-into-nested-async",
+  "invariant_index": 189,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-async-fees/src/wallet.rs",
+      "crates/ritual-async/src/detector.rs",
+      "crates/ritual-async/src/wallet.rs"
+    ],
+    "checked_queries": [
+      "detect_async_transaction|AsyncCallDetector|nested async|delivery callback|defer direct",
+      "PreparedDeliverySettlement|DeliveryReady|delivery_ready|prepare_delivery_settlement|collect_delivery",
+      "wallet balance|delivery callback cost|commitment transaction"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "detect_async_transaction",
+      "AsyncCallDetector",
+      "prepare_delivery_settlement_transaction",
+      "PayloadCandidate::Delivery",
+      "execute_async_settlement",
+      "verify_wallet_for_commitment"
+    ],
+    "missing_behavior": "Missing builder logic that simulates delivery callbacks, detects nested async precompile calls, checks the original user wallet for the nested job, executes a nested commitment transaction, and defers direct delivery execution.",
+    "related_but_insufficient_code": [
+      "crates/ethereum/payload/src/ritual_async.rs prepares delivery settlements by building a TxAsyncSettlement with delivery_spc_calls and returns PreparedDeliverySettlement.",
+      "crates/ethereum/payload/src/lib.rs handles PayloadCandidate::Delivery by calling execute_async_settlement directly and incrementing executed_payload_candidate_count on success.",
+      "crates/ritual-async-fees/src/wallet.rs decodes delivery callback cost for wallet accounting, but it does not detect nested async calls or build nested commitments.",
+      "No local crates/ritual-async detector module exists in the port checkout, and searches across audited repos found no detect_async_transaction or AsyncCallDetector symbol."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The payload builder now simulates delivery settlements with detect_async_transaction, checks wallet balance for the nested job, executes an updated commitment transaction when possible, and continues without direct delivery execution to defer it. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "0a0777c12ee5b9b3a73e01444a6a7a62d08f409b"
+  ],
+  "statement": "When simulating a Phase 2 delivery settlement detects a nested async precompile call and the original user has sufficient wallet balance, the builder must execute a nested commitment transaction and defer direct delivery execution; otherwise it must fall back to executing the delivery directly.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Use a delivery callback that triggers an async precompile. With sufficient wallet balance, assert the builder executes the nested commitment and does not directly include the delivery settlement; with insufficient balance, context update failure, or block-size failure, assert the delivery settlement is executed directly."
+  ],
+  "summary": "Nested async deferral from delivery callbacks is absent from the audited local repo set.",
+  "test_or_falsification_candidate": "Use a Phase 2 delivery callback that invokes an async precompile with sufficient user wallet balance; current local builder should execute the delivery settlement directly rather than replacing it with a nested commitment and deferring delivery.",
+  "title": "Delivery callbacks can defer into nested async",
+  "total_invariants": 1954
+}

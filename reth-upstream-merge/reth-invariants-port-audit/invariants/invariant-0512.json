@@ -1,0 +1,64 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: full decode and executor/TTL guards exist, but the invariant requires rejecting any empty model.",
+  "evidence_files": [
+    "crates/ritual-async/src/validation.rs"
+  ],
+  "invariant_id": "cur-93a3e077ff-persistent-agent-payloads-fully-decoded",
+  "invariant_index": 512,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-precompile-codecs/src/validation.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs",
+      "crates/rpc/rpc/src/async_tx_validator.rs"
+    ],
+    "checked_queries": [
+      "persistent agent empty model validation",
+      "PersistentAgentRequest full ABI decode empty model",
+      "restore_from_cid empty model"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "validate_persistent_agent_payload",
+      "PersistentAgentRequest::from_abi",
+      "validate_executor_base_fields",
+      "PERSISTENT_AGENT_PRECOMPILE",
+      "EmptyModel"
+    ],
+    "missing_behavior": "Persistent-agent payload validation decodes the full ABI and validates executor/TTL, but it permits an empty model when restore_from_cid is non-empty.",
+    "related_but_insufficient_code": [
+      "crates/ritual-precompile-codecs/src/validation.rs calls PersistentAgentRequest::from_abi and validate_executor_base_fields.",
+      "The same function returns EmptyModel only when both model and restore_from_cid are empty.",
+      "A local test named persistent_agent_validation_accepts_restore_payload_without_model asserts a payload with empty model and restore_from_cid is accepted."
+    ]
+  },
+  "notes": "The implementation has intentionally broader acceptance than the invariant statement.",
+  "rationale": "The commit imports PersistentAgentRequest and PERSISTENT_AGENT_PRECOMPILE, routes 0x0820 through validate_persistent_agent_payload, and validates executor, ttl, max ttl, and model after a full ABI decode. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "d97edfbc86179e56d63e48a6bffd8e1ea75f1552"
+  ],
+  "statement": "RPC async payload validation for PERSISTENT_AGENT_PRECOMPILE must decode the full PersistentAgentRequest ABI and reject payloads with zero executor, ttl equal to zero, ttl above max_ttl_blocks(), or an empty model.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Submit persistent-agent RPC payloads that fail full ABI decoding, have executor zero, ttl 0, ttl above max_ttl_blocks(), and blank model; assert each is rejected, while a well-formed payload with nonzero executor, valid ttl, and model is accepted past static validation."
+  ],
+  "summary": "Persistent-agent validation allows an empty model with restore CID.",
+  "test_or_falsification_candidate": "Submit a persistent-agent payload with nonzero executor, valid TTL, empty model, and non-empty restore_from_cid and assert validation rejects EmptyModel; current tests assert acceptance.",
+  "title": "Persistent agent payloads are fully decoded",
+  "total_invariants": 1954
+}

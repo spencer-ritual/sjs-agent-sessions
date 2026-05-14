@@ -1,0 +1,33 @@
+{
+  "record_type": "file",
+  "file_index": 179,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/net/network/tests/it/txgossip.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "network",
+    "tests",
+    "txgossip"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The txgossip integration test divergence is rustfmt-only event pattern formatting; no test behavior changed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 179: M\tcrates/net/network/tests/it/txgossip.rs.",
+    "The isolated patch only reformats the unexpected ActivePeerSession/SessionEstablished pattern alternative.",
+    "No invalid transaction session-close assertion, peer ID check, or unexpected-event handling changed."
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "record_type": "file",
+  "file_index": 206,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/optimism/chainspec/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "partial",
+  "tags": [
+    "partial",
+    "high-risk",
+    "non-exact",
+    "optimism",
+    "chainspec",
+    "extra-data",
+    "consensus",
+    "reviewed",
+    "structural-equivalent"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0206-atom-0001",
+      "file_index": 206,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/optimism/chainspec/src/lib.rs",
+      "source_hunk_hint": "@@ -256,6 +256,10 @@",
+      "source_kind": "public_api",
+      "source_snippet": "impl EthChainSpec for OpChainSpec {\n    fn final_paris_total_difficulty(&self) -> Option<U256> {\n        self.inner.final_paris_total_difficulty()\n    }\n\n    fn max_extra_data_bytes(&self) -> Option<usize> {\n        self.inner.max_extra_data_bytes()\n    }\n}",
+      "semantic_claim": "The old Optimism chain spec forwards `max_extra_data_bytes` through its EthChainSpec implementation so OP chains preserve the inner chain's extra-data size policy during consensus validation.",
+      "high_risk": true,
+      "risk_tags": [
+        "consensus",
+        "header-validation",
+        "extra-data",
+        "optimism-chainspec"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/chainspec/src/api.rs",
+          "symbols": [
+            "EthChainSpec::max_extra_data_bytes",
+            "impl EthChainSpec for ChainSpec"
+          ],
+          "evidence": "The generic EthChainSpec trait exposes max_extra_data_bytes and the ChainSpec implementation returns the stored ChainSpec value, so there is no wrapper-specific loss of the policy accessor."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/chainspec/src/spec.rs",
+          "symbols": [
+            "ChainSpec::from(Genesis)",
+            "ChainSpec::max_extra_data_bytes"
+          ],
+          "evidence": "Genesis-derived chain specs, including OP-equivalent genesis parsing in this crate, store max_extra_data_bytes: None. Static Ethereum specs store Some(MAXIMUM_EXTRA_DATA_SIZE). This matches the old OP wrapper forwarding intent by preserving the inner ChainSpec policy without needing an OpChainSpec wrapper."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/consensus/src/lib.rs",
+          "symbols": [
+            "EthBeaconConsensus::new",
+            "validate_header"
+          ],
+          "evidence": "Consensus consumes chain_spec.max_extra_data_bytes() and applies it in validate_header_extra_data, so the stored generic policy is the runtime header-validation policy."
+        }
+      ],
+      "equivalence_argument": "Confirmed after mechanical review: the exact Optimism wrapper boundary is absent, but the forwarded behavior is preserved by the generic ChainSpec implementation. ChainSpec carries max_extra_data_bytes, genesis-derived OP-equivalent specs preserve the inner policy as None/unbounded, static Ethereum specs preserve the 32-byte default, and consensus validates headers using chain_spec.max_extra_data_bytes(). No unresolved OP extra-data policy proof remains for this atom.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Keep an OP/genesis ChainSpec regression that asserts max_extra_data_bytes() is the intended value and that EthBeaconConsensus uses it during validate_header.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed 2026-05-11: structurally covered by generic ChainSpec plus consensus consumption. Exact OpChainSpec wrapper is absent but not a runtime policy gap."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Reviewed and downgraded: no OP-specific wrapper exists, but generic ChainSpec stores and exposes max_extra_data_bytes and consensus consumes it. OP-equivalent genesis-derived specs retain the intended unbounded policy, so this is structural equivalence rather than an unresolved concern.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Reviewed 2026-05-11 against current port code.",
+    "Generic EthChainSpec exposes max_extra_data_bytes and ChainSpec returns its stored value.",
+    "Genesis-derived ChainSpec sets max_extra_data_bytes to None, preserving unbounded extra-data policy for custom/OP-equivalent genesis specs.",
+    "EthBeaconConsensus reads chain_spec.max_extra_data_bytes and applies validate_header_extra_data.",
+    "No unresolved OP extra-data proof remains."
+  ]
+}

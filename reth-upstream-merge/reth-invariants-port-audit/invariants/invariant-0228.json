@@ -1,0 +1,77 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The RPC path verifies hash/executor/input/block/precompile context, gates on verifier success, and submits to the pool only in the success path.",
+      "path": "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if request.executor != job.executor_address {\n    return Err(\"executor mismatch for async result\".to_string());\n}\n...\nmatch context.spc_verifier.verify_single(&spc_request).await {\n    Ok(result) if result.is_valid => {}\n    Ok(_) => return failed_async_response(...),\n    Err(err) => return failed_async_response(...),\n}\n...\ncontext.pool.submit_async_result(submission)",
+      "symbols": [
+        "build_spc_verification_request",
+        "submit_async_result"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The pool repeats finalized-context executor validation before moving the entry to Fulfilled.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if submission.executor != expected_executor {\n    return Err(AsyncPoolError::ExecutorMismatch { expected: expected_executor, actual: submission.executor });\n}\nSelf::fulfill_result(metadata, submission.execution_result, submission.execution_proof);",
+      "symbols": [
+        "AsyncPool::submit_result_with_context"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port has the verifier gate required by the invariant: mismatched context and verifier false/error paths return failed AwaitingExecution responses, while only successful verification reaches pool fulfillment.",
+  "evidence_files": [
+    "crates/rpc/rpc/src/ritual.rs"
+  ],
+  "invariant_id": "cur-3e020cc0af-async-result-submission-gated-executor-verification",
+  "invariant_index": 228,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/ritual-spc-verification/src/verifier.rs"
+    ],
+    "checked_queries": [
+      "executor mismatch|verify_single|failed_async_response|submit_async_result|ExecutorMismatch"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "build_spc_verification_request",
+      "SpcVerifier::verify_single",
+      "AsyncPool::submit_result_with_context",
+      "ExecutorMismatch"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The primary diff removes a temporary early return that accepted every result, preserves the external verification request path, and moves pool submission inside the Ok(true) branch. The Ok(false) and Err branches both return failure responses with the state remaining AwaitingExecution. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "716336485efa4a327d3748bb7b16e05b4b1fe80a"
+  ],
+  "statement": "A submitted async result should update the transaction pool to Fulfilled only when verifier execution returns true for the request's transaction hash, executor, input, output, proof, and callback gas limit; verification false or verifier errors should leave the transaction AwaitingExecution and return a failed response.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Set up a RitualApi with a test pool containing async metadata and precompile input plus a mock verifier service. Submit three async results where the verifier returns true, false, and an HTTP/error response respectively; assert only the true case calls submit_async_result and reports Fulfilled, while the false and error cases do not mutate the pool and report AwaitingExecution with success false."
+  ],
+  "summary": "Async result submission is gated by executor and proof verification before pool fulfillment.",
+  "test_or_falsification_candidate": "Submit three results for the same tracked async job with verifier valid, invalid, and error outcomes; assert only valid reaches pool.submit_async_result/Fulfilled.",
+  "title": "Async result submission is gated by executor verification",
+  "total_invariants": 1954
+}

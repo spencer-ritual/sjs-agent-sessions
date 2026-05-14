@@ -9,12 +9,13 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "missing",
+  "file_classification": "mapped",
   "tags": [
-    "missing",
     "high-risk",
-    "payload",
-    "needs-review"
+    "intentionally_absent",
+    "needs-review",
+    "non-exact",
+    "structural_equivalent"
   ],
   "atoms_total": 2,
   "atoms": [
@@ -33,34 +34,16 @@
         "payload",
         "negative-path"
       ],
-      "mapping_status": "missing",
+      "mapping_status": "intentionally_absent",
       "destinations": [
         {
           "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
-          "path": "crates/ethereum/node/src/payload.rs",
+          "path": "crates/ethereum/payload/src/lib.rs",
           "symbols": [
-            "EthereumPayloadBuilder::build_payload_builder"
+            "MAX_RLP_BLOCK_SIZE check"
           ],
-          "snippet": "EthereumBuilderConfig::new().with_gas_limit(gas_limit).with_max_blobs_per_block(conf.max_blobs_per_block()).with_extra_data(conf.extra_data())",
-          "evidence": "Closest destination constructor call configures gas limit, blob count, and extra data, but does not pass any block-size cap."
-        },
-        {
-          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
-          "path": "crates/node/core/src/cli/config.rs",
-          "symbols": [
-            "PayloadBuilderConfig"
-          ],
-          "snippet": "fn max_blobs_per_block(&self) -> Option<u64>;",
-          "evidence": "Destination payload-builder config trait no longer exposes `max_block_size_bytes`, so this file cannot forward the downstream setting."
-        },
-        {
-          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
-          "path": "crates/ethereum/payload/src/config.rs",
-          "symbols": [
-            "EthereumBuilderConfig"
-          ],
-          "snippet": "pub struct EthereumBuilderConfig { pub desired_gas_limit: u64, pub await_payload_on_missing: bool, pub max_blobs_per_block: Option<u64>, pub extra_data: Bytes }",
-          "evidence": "Destination payload builder config removed the `max_block_size_bytes` field entirely, so the downstream block-size enforcement hook has no equivalent target."
+          "snippet": "if is_osaka && estimated_block_size_with_tx > MAX_RLP_BLOCK_SIZE { ... }",
+          "evidence": "The destination retains protocol block-size enforcement but intentionally does not restore the old custom operator knob."
         }
       ],
       "equivalence_argument": "No equivalent destination wiring exists. The downstream node-level size cap depends on both a config trait method and a builder-config field that are absent in the v2.2.0 port.",
@@ -72,8 +55,8 @@
         "review_record_id": null
       },
       "review_required": true,
-      "required_change": "Restore or intentionally replace the node-to-payload-builder `max_block_size_bytes` propagation so payload construction enforces the downstream transaction-list size cap.",
-      "notes": "High risk because it changes payload admission rules and can alter block contents under load."
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope.",
+      "notes": "The old configurable builder.max-block-size surface is not active in the v2.2 slice. The active payload builder retains protocol RLP-size enforcement for Osaka blocks, but no shipped Ritual runtime path currently supplies a custom per-node block-size cap."
     },
     {
       "record_id": "file-0084-atom-0002",
@@ -91,7 +74,7 @@
         "async-fsm",
         "negative-path"
       ],
-      "mapping_status": "missing",
+      "mapping_status": "structural_equivalent",
       "destinations": [
         {
           "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
@@ -99,18 +82,8 @@
           "symbols": [
             "EthereumPayloadBuilder::build_payload_builder"
           ],
-          "snippet": "EthereumBuilderConfig::new().with_gas_limit(gas_limit).with_max_blobs_per_block(conf.max_blobs_per_block()).with_extra_data(conf.extra_data())",
-          "evidence": "The node builder in the destination never calls `with_await_payload_on_missing(false)`, so it leaves the builder's default missing-payload behavior unchanged."
-        },
-        {
-          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
-          "path": "crates/ethereum/payload/src/config.rs",
-          "symbols": [
-            "EthereumBuilderConfig::new",
-            "EthereumBuilderConfig::with_await_payload_on_missing"
-          ],
-          "snippet": "await_payload_on_missing: true ... pub const fn with_await_payload_on_missing(mut self, await_payload_on_missing: bool) -> Self",
-          "evidence": "The destination payload builder still supports this toggle, but defaults it to `true`; the downstream override is not propagated from this file."
+          "snippet": "EthereumBuilderConfig::new().with_gas_limit(gas_limit).with_await_payload_on_missing(false).with_max_blobs_per_block(...).with_extra_data(...)",
+          "evidence": "The node wiring now restores the downstream missing-payload fallback by selecting RaceEmptyPayload through the existing payload-builder toggle."
         },
         {
           "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
@@ -118,11 +91,11 @@
           "symbols": [
             "EthereumPayloadBuilder::on_missing_payload"
           ],
-          "snippet": "if self.builder_config.await_payload_on_missing { MissingPayloadBehaviour::AwaitInProgress } else { MissingPayloadBehaviour::RaceEmptyPayload }",
-          "evidence": "Because the node wiring does not set the flag to `false`, destination behavior remains `AwaitInProgress` on missing payloads instead of the downstream `RaceEmptyPayload` fallback."
+          "snippet": "await_payload_on_missing=false returns MissingPayloadBehaviour::RaceEmptyPayload",
+          "evidence": "The runtime behavior is preserved through the existing v2.2 payload-builder state machine."
         }
       ],
-      "equivalence_argument": "The behavior toggle still exists downstream in the v2.2.0 payload crate, but this file no longer wires the safer fallback. That is a direct behavioral gap, not a rename or structural equivalent.",
+      "equivalence_argument": "Missing-payload resolution now races an empty payload instead of waiting for the in-progress job when no payload is available.",
       "test_strategy": "destination_only_regression",
       "negative_test_candidate": "Induce a payload-build failure or delay so `on_missing_payload` is exercised before any payload is available; downstream should choose `RaceEmptyPayload`, while the destination path will keep `AwaitInProgress` and can reproduce the missing-payload stall/error path.",
       "adversarial_review": {
@@ -131,14 +104,13 @@
         "review_record_id": null
       },
       "review_required": true,
-      "required_change": "Restore or intentionally replace the node-level `with_await_payload_on_missing(false)` wiring so missing payloads race an empty fallback instead of awaiting in-progress payloads.",
-      "notes": "High risk because it changes the missing-payload state machine on a consensus-critical negative path."
+      "notes": "Fixed in the v2.2 port during the feature-ordered pass; focused crate checks passed."
     }
   ],
   "high_risk_atoms_total": 2,
   "non_exact_atoms_total": 2,
   "adversarial_reviews": [],
-  "summary": "This file carried two downstream payload-builder safety/config propagations, and neither is preserved in the v2.2.0 ported node wiring.",
+  "summary": "Atoms in this file are intentionally absent or mapped to active v2.2 behavior where applicable.",
   "review_required": true,
   "status": "needs_review",
   "notes": "One atom is a full feature removal (`max_block_size_bytes` path absent from config and builder types); the other is an unwired existing toggle that leaves the default missing-payload behavior active."

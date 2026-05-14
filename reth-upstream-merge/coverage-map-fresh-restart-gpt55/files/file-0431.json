@@ -1,0 +1,119 @@
+{
+  "record_type": "file",
+  "file_index": 431,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/stages/stages/src/stages/execution.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "partial",
+  "tags": [
+    "partial",
+    "missing",
+    "high-risk",
+    "non-exact",
+    "reviewed",
+    "stages",
+    "execution",
+    "backfill",
+    "blocking-handler"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0431-atom-0001",
+      "file_index": 431,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/stages/stages/src/stages/execution.rs",
+      "source_hunk_hint": "@@ -65,7 +65,6 @@; @@ -94,6 +93,27 @@; @@ -117,9 +137,19 @@; @@ -352,8 +382,25 @@",
+      "source_kind": "side_effect",
+      "source_snippet": "Adds `blocking_handler: Option<Arc<dyn Fn(&Chain<E::Primitives>) + Send + Sync>>`, `with_blocking_handler`, a manual Debug implementation that reports handler presence, and invokes the handler for each backfill block using a synthetic `Chain` from the block and execution result.",
+      "semantic_claim": "ExecutionStage supports a blocking handler that runs during staged sync/backfill block execution so node-local canonical side effects are reconstructed while historical blocks are replayed.",
+      "high_risk": true,
+      "risk_tags": [
+        "execution",
+        "backfill",
+        "canonical-state",
+        "side-effect"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/stages/stages/src/stages/execution/mod.rs",
+          "symbols": [
+            "ExecutionStage",
+            "post_execute_commit_input",
+            "post_execute_commit"
+          ],
+          "evidence": "Destination remaps the file to `execution/mod.rs` and has ExEx post-execute/post-unwind commit inputs, but searches found no `blocking_handler` or `with_blocking_handler` in the stage execution module."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/node/builder/src/components/pool.rs",
+          "symbols": [
+            "spawn_pool_maintenance_task",
+            "subscribe_blocking_canon_state"
+          ],
+          "evidence": "Current port registers the txpool on the provider-level blocking canonical-state subscription. This covers live canonical txpool maintenance ordering, but it is not the old `ExecutionStage::with_blocking_handler` backfill hook that runs while historical blocks are replayed."
+        }
+      ],
+      "equivalence_argument": "Reviewed confirmed runtime gap: provider-level blocking canonical handlers now cover already-caught-up/live canonical-state processing and txpool ordering, but they do not run while historical blocks are replayed through staged execution. Scheduled obligations and heartbeat revival can be recomputed from parent state during payload building, but async pool metadata/sender locks for commitments replayed during catch-up are process-local and are not reconstructed by a storage scan. If those side effects are not rebuilt before the node starts building blocks or accepting async results after catch-up, the builder/RPC can make decisions from stale or missing local async state. It is not about making block execution faster or making consensus execution itself succeed.",
+      "required_change": "Port a v2-style equivalent of `ExecutionStage::with_blocking_handler` for staged-sync/backfill async-pool side-effect reconstruction, or add an explicit async-pool hydration/replay path that rebuilds canonical async metadata and sender locks before post-catch-up block building and result submission use them.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Start from an unhydrated process-local async pool, replay historical blocks containing an unexpired async commitment through staged execution, then after catch-up submit an async result or build the first payload and assert the canonical async metadata/sender lock exists. This should fail while staged execution does not call a backfill handler or hydrate the async pool.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed: this should not affect normal steady-state processing at tip, because provider-level blocking canonical handling covers live txpool ordering. It is a confirmed staged catch-up/backfill gap for process-local async pool metadata and sender locks. Scheduled and heartbeat builder decisions are less exposed because they are parent-state derived."
+    },
+    {
+      "record_id": "file-0431-atom-0002",
+      "file_index": 431,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/stages/stages/src/stages/execution.rs",
+      "source_hunk_hint": "remaining hunks in diff lines 84921-85051",
+      "source_kind": "rustfmt_noise",
+      "source_snippet": "Semicolon insertions and boolean/operator wrapping around existing return, break, and arithmetic expressions.",
+      "semantic_claim": "The remaining execution-stage hunks are rustfmt-only normalization.",
+      "high_risk": false,
+      "risk_tags": [
+        "rustfmt",
+        "noise"
+      ],
+      "mapping_status": "noise",
+      "destinations": [],
+      "equivalence_argument": "Formatting-only changes have no semantic mapping requirement.",
+      "required_change": null,
+      "test_strategy": "rustfmt",
+      "negative_test_candidate": "N/A formatting-only.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Noise atom separated from the missing backfill hook."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Reviewed confirmed gap: the execution-stage backfill blocking handler API remains absent. Live/already-caught-up canonical handling is covered elsewhere, but staged catch-up does not reconstruct process-local async pool metadata and sender locks for historical commitments before post-catch-up block building/result submission.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0431: M\tcrates/stages/stages/src/stages/execution.rs.",
+    "Source semantic hunks span diff lines 84865-84917 and 84968-84990.",
+    "Destination module is `crates/stages/stages/src/stages/execution/mod.rs`; it has no `blocking_handler` hook.",
+    "Review conclusion: definitive runtime gap for staged catch-up/backfill async-pool reconstruction; not a live-tip processing gap."
+  ]
+}

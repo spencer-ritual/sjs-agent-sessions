@@ -1,0 +1,63 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "No exact mapping: last-executor avoidance is present, but the block-number modulo seed required by this invariant is not.",
+  "evidence_files": [
+    "crates/ritual-scheduled-verification/src/lib.rs",
+    "crates/scheduling/src/canonical.rs"
+  ],
+  "invariant_id": "cur-2f077d909d-revival-executor-selection-avoids-last-executor",
+  "invariant_index": 546,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-scheduled-block-building/src/lib.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/scheduling/src/canonical.rs"
+    ],
+    "checked_queries": [
+      "select_revival_executor current_block modulo last_executor",
+      "block-number modulo revival executor selection",
+      "revival executor selection avoids last executor"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "select_revival_executor",
+      "current_block",
+      "last_executor",
+      "parent_hash"
+    ],
+    "missing_behavior": "The audited port does not select the revival executor by block-number modulo over the current executor list; the local selector uses parent-hash and agent-address entropy instead.",
+    "related_but_insufficient_code": [
+      "crates/ritual-scheduled-block-building/src/lib.rs select_revival_executor skips last_executor when another candidate exists and falls back to it only when it is the sole candidate.",
+      "The selector takes parent_hash and agent_addr, not current_block, and computes the starting index from XORed parent/agent tail bytes."
+    ]
+  },
+  "notes": "This record conflicts with later current invariants that require parent-hash and agent-specific deterministic selection.",
+  "rationale": "The commit reads last_executor from heartbeat agent state, adds select_revival_executor(), and uses it when preparing revival input so revival avoids repeating the failed executor unless no alternative exists. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "cbe3de0a8581f4cb61ad19bb34136c9dad606b1d"
+  ],
+  "statement": "When constructing a heartbeat revival precompile input, the scheduler must select an HTTP_CALL executor deterministically by block-number modulo over the current executor list, skip the agent's last_executor when another candidate exists, and only reuse last_executor when it is the sole available candidate.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Provide executor lists of size 0, 1, and multiple entries with varying block numbers and last_executor values; assert no executor is selected for an empty list, the single last_executor is reused when it is the only candidate, and otherwise the first modulo-ordered executor not equal to last_executor is selected."
+  ],
+  "summary": "Revival executor selection is not block-number modulo based.",
+  "test_or_falsification_candidate": "Call select_revival_executor with two different block numbers and identical parent hash/agent; current function has no block-number input, so the selected executor cannot change by block-number modulo.",
+  "title": "Revival executor selection avoids last executor",
+  "total_invariants": 1954
+}

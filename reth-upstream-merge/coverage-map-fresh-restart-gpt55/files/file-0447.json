@@ -1,0 +1,26 @@
+{
+  "record_type": "file",
+  "file_index": 447,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/stages/types/src/checkpoints.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "Only rustfmt-style punctuation or operator wrapping changed in the downstream diff; no runtime behavior atom is introduced.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Queue entry verified as file-0447: M\tcrates/stages/types/src/checkpoints.rs. Source diff hunk(s): diff lines 85608-85653; semicolon insertion and match-arm rustfmt only. Verified against destination path under /home/ritual/repos/ritual-reth-internal-v2.2.0-port; no semantic downstream behavior needed preservation."
+}

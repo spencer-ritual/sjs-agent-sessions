@@ -1,0 +1,64 @@
+{
+  "cluster_key": "precompile pricing:agentruntime-values-explicit-edc542e6",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping was found: the port decodes AgentRuntime numeric values 0, 1, and 2 and rejects other uint16 values, but no audited local repo maps those variants to the required API strings zeroclaw, openclaw, and hermes.",
+  "evidence_files": [
+    "crates/ritual-precompile-codecs/src/persistent_agent.rs"
+  ],
+  "invariant_id": "cur-fe7502f434-agentruntime-values-explicit-validated",
+  "invariant_index": 192,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-precompile-codecs/src/persistent_agent.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs"
+    ],
+    "checked_queries": [
+      "enum AgentRuntime|InvalidFieldValue|agent_runtime|zeroclaw|openclaw|hermes|TryFrom<u16>|as_api",
+      "ZeroClaw|OpenClaw|Hermes|zeroclaw|openclaw|hermes"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "AgentRuntime",
+      "TryFrom<u16> for AgentRuntime",
+      "to_api_string",
+      "as_api",
+      "agent_runtime"
+    ],
+    "missing_behavior": "Missing AgentRuntime API string mapping from ZeroClaw/OpenClaw/Hermes to zeroclaw/openclaw/hermes in the audited port/dependency repos.",
+    "related_but_insufficient_code": [
+      "crates/ritual-precompile-codecs/src/persistent_agent.rs defines AgentRuntime::{ZeroClaw, OpenClaw, Hermes} with repr(u16) values 0, 1, and 2.",
+      "TryFrom<u16> for AgentRuntime rejects other values with CodecError::InvalidFieldValue for agent_runtime.",
+      "PersistentAgentRequest::from_tokens decodes field 25 via u16_token(...).try_into().",
+      "No to_api_string/as_api/API-string mapping for AgentRuntime exists in the audited repo set; the only matching to_api_string found locally is in /home/ritual/repos/ritual-reth-internal, which is outside the audited repo set."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The candidate defines the effective ABI contract for AgentRuntime numeric values and API string mapping. It is current as stated and has no in-cluster predecessor or successor candidate.",
+  "record_type": "invariant_mapping",
+  "section": "Precompile Pricing",
+  "source_commits": [
+    "a3206fc2413315ed2135aafec4559f1b0f5ae548"
+  ],
+  "statement": "AgentRuntime decoding must accept only uint16 values 0, 1, and 2 as ZeroClaw, OpenClaw, and Hermes, map those variants to API strings zeroclaw, openclaw, and hermes, and reject any other uint16 value.",
+  "status": "current",
+  "subsystem": "precompile pricing",
+  "suggested_falsification_tests": [
+    "Decode persistent agent payloads with agent_runtime values 0, 1, and 2 and assert they map to ZeroClaw, OpenClaw, and Hermes and expose API strings zeroclaw, openclaw, and hermes.",
+    "Decode a persistent agent payload with agent_runtime value 3 and assert decoding returns InvalidFieldValue for agent_runtime."
+  ],
+  "summary": "AgentRuntime numeric validation is present, but the required API string mapping is missing.",
+  "test_or_falsification_candidate": "Decode agent_runtime values 0, 1, 2, and 3; the first three decode and value 3 rejects, but any code requiring runtime.to_api_string() or equivalent string emission is absent in the audited repos.",
+  "title": "AgentRuntime values are explicit and validated",
+  "total_invariants": 1954
+}

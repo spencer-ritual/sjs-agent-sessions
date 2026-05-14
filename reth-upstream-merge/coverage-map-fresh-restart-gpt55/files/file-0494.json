@@ -1,0 +1,69 @@
+{
+  "record_type": "file",
+  "file_index": 494,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/storage/provider/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "storage",
+    "blocking-pubsub"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0494-atom-0001",
+      "file_index": 494,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/storage/provider/Cargo.toml",
+      "source_hunk_hint": "@@ -33,6 +33,7 @@ reth-codecs.workspace = true",
+      "source_kind": "manifest_dependency",
+      "source_snippet": "ritual-blocking-pubsub.workspace = true",
+      "semantic_claim": "The storage provider crate depends on `ritual-blocking-pubsub` so provider canonical-state subscriptions can accept blocking handlers.",
+      "high_risk": false,
+      "risk_tags": [
+        "storage",
+        "canonical-state"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/provider/Cargo.toml",
+          "symbols": [
+            "ritual-blocking-pubsub"
+          ],
+          "evidence": "Destination manifest contains `ritual-blocking-pubsub.workspace = true`."
+        }
+      ],
+      "equivalence_argument": "Exact dependency name is present in the destination manifest.",
+      "test_strategy": "cargo metadata / crate compile",
+      "negative_test_candidate": "Removing the dependency would break the provider blocking subscription signature.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": ""
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "Storage provider manifest dependency for blocking canonical-state subscriptions is exact-port preserved.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0494: M\tcrates/storage/provider/Cargo.toml.",
+    "Source diff lines 88190-88201; first hunk `@@ -33,6 +33,7 @@ reth-codecs.workspace = true`.",
+    "Fresh destination evidence was checked against /home/ritual/repos/ritual-reth-internal-v2.2.0-port."
+  ]
+}

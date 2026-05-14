@@ -1,0 +1,72 @@
+{
+  "record_type": "file",
+  "file_index": 25,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/chain-state/src/test_utils.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "reth-port"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0025-atom-0001",
+      "file_index": 25,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/chain-state/src/test_utils.rs",
+      "source_hunk_hint": "@@ -341,8 +341,14 @@ impl CanonStateSubscriptions for TestCanonStateSubscriptions",
+      "source_kind": "test_fixture",
+      "source_snippet": "fn subscribe_blocking_canon_state(\n    &self,\n    _handler: ritual_blocking_pubsub::BlockingHandler<Self::Primitives>,\n) {\n    // No-op implementation for test provider\n}",
+      "semantic_claim": "TestCanonStateSubscriptions implements the new blocking canonical-state subscription hook as a no-op test fixture so it satisfies CanonStateSubscriptions without invoking blocking handlers.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/chain-state/src/test_utils.rs",
+          "symbols": [
+            "TestCanonStateSubscriptions",
+            "CanonStateSubscriptions::subscribe_blocking_canon_state"
+          ],
+          "snippet": "fn subscribe_blocking_canon_state(\n    &self,\n    _handler: ritual_blocking_pubsub::BlockingHandler<Self::Primitives>,\n) {\n    // No-op implementation for test provider.\n}",
+          "evidence": "The destination port contains the same no-op subscribe_blocking_canon_state implementation on TestCanonStateSubscriptions, with only comment punctuation differing."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/chain-state/src/notifications.rs",
+          "symbols": [
+            "CanonStateSubscriptions::subscribe_blocking_canon_state"
+          ],
+          "snippet": "fn subscribe_blocking_canon_state(\n    &self,\n    handler: ritual_blocking_pubsub::BlockingHandler<Self::Primitives>,\n);",
+          "evidence": "The destination trait requires the blocking canonical-state subscription method that the test fixture implements."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact test-fixture compatibility implementation is present in the port."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The only substantive downstream test-utils atom is exactly present in the v2.2.0 port.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Ignored non-behavioral formatting of the timestamp expression and the Mutex lock-wrapper simplification; both have no distinct downstream behavior to map."
+}

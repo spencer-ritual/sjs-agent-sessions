@@ -1,0 +1,65 @@
+{
+  "cluster_key": "scheduler:receipt-rpc",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Port-generated scheduled system transactions set TxScheduled.to to get_scheduler_address() and calldata to Scheduler.execute(callId,index), while call.value/input metadata comes from the stored call.",
+      "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let input = executeCall { callId: U256::from(obligation.call_id), executionIndex: U256::from(obligation.index) }.abi_encode().into();\nlet tx = TxScheduled::new_with_options(..., Some(get_scheduler_address()), call.value, input, origin_hash, obligation.call_id, obligation.index, ...);",
+      "symbols": [
+        "create_scheduled_execution_transaction",
+        "get_scheduler_address",
+        "executeCall"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port: scheduled system transactions target Scheduler, not the stored call target.",
+  "evidence_files": [
+    "ritual-reth-internal/crates/scheduling/src/transaction.rs",
+    "crates/scheduling/src/contract.rs"
+  ],
+  "invariant_id": "cur-a7dd9c8029-scheduled-system-target-scheduler-contract",
+  "invariant_index": 117,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-scheduled-block-building/src/lib.rs"
+    ],
+    "checked_queries": [
+      "create_scheduled_execution_transaction|executeCall|get_scheduler_address|TxScheduled::new_with_options"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "create_scheduled_execution_transaction",
+      "executeCall",
+      "get_scheduler_address"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The current transaction construction path obtains the scheduler address from SynchronousScheduler and passes it as TxScheduled.to; the stored call.to is executed by the Scheduler contract, not used as the outer transaction recipient.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "c3d0d5becc889c7d2f748e68ad2e0996aa25b0da"
+  ],
+  "statement": "A scheduled system transaction created for a stored call must set its transaction recipient to the configured Scheduler contract address so it invokes Scheduler.execute(callId, executionIndex), not to the stored call.to target address.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Create a stored call with call.to != Scheduler and assert synthesized TxScheduled.to == Scheduler and calldata decodes to execute(callId,index)."
+  ],
+  "summary": "Scheduled system transactions target the Scheduler contract.",
+  "test_or_falsification_candidate": "Unit test create_scheduled_execution_transaction target/calldata.",
+  "title": "Scheduled system transactions target the Scheduler contract",
+  "total_invariants": 1954
+}

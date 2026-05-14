@@ -1,0 +1,75 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-async-fees/src/constants.rs",
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-6e7ccf4c8f-video-phase-pricing-uses-resolution-duration",
+  "invariant_index": 417,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-async-fees/src/constants.rs",
+      "crates/ritual-async-fees/src/registry.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "ritual-revm-internal/crates/precompile/src/video_call.rs"
+    ],
+    "checked_queries": [
+      "calculate_video_fees_phase2",
+      "outputWidth outputHeight outputDurationMs",
+      "video_fee_wei_per_pixel_second",
+      "VIDEO_RESPONSE_DURATION",
+      "video Phase 2 pricing"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "calculate_video_fees_phase2",
+      "video_escrow_lockup",
+      "VIDEO_RESPONSE_WIDTH_OFFSET",
+      "VIDEO_RESPONSE_HEIGHT_OFFSET",
+      "VIDEO_RESPONSE_DURATION_MS_OFFSET",
+      "VIDEO_CALL_PRECOMPILE"
+    ],
+    "missing_behavior": "The audited v2.2 port lacks video Phase 2 settlement pricing that extracts width, height, and outputDurationMs and fails malformed delivery data rather than using a fallback.",
+    "related_but_insufficient_code": [
+      "registry.rs contains video pricing fields but read_model_from_db zeroes them in this port slice.",
+      "constants.rs re-exports VIDEO_CALL_PRECOMPILE but has no video response width/height/duration offsets or fee constants.",
+      "payload and verifier metadata helpers explicitly reject VIDEO_CALL_PRECOMPILE as an unsupported two-phase fee family in the v2 delivery path.",
+      "ritual-revm-internal video_call.rs documents outputWidth/outputHeight/outputDurationMs but is precompile ABI documentation, not block builder/verifier settlement pricing."
+    ]
+  },
+  "notes": "The registered video precompile is not supported by the v2 payload delivery and verification fee path.",
+  "rationale": "The payload builder and block verifier add audio duration extraction from the delivery result, the fee crate adds audio duration tiers and calculate_audio_fees_phase2, and the verifier labels extraction failure consensus-critical with no fallback. The merge adds VIDEO_CALL_PRECOMPILE, video constants, video_escrow_lockup, calculate_video_fees_phase1/phase2, payload extraction of width/height/duration_ms, and verifier-side rejection on extraction failure. Collapsed 2 closely related historical candidate statements into the latest effective formulation.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "d20810cd8ec6e60f1849cf8eb9d13eb3309f932c"
+  ],
+  "statement": "Video Phase 2 settlement pricing must extract outputWidth, outputHeight, and outputDurationMs from the delivery result and calculate the executor fee as base fee plus rounded-up duration seconds multiplied by the resolution tier rate; malformed or too-short video delivery data must fail pricing rather than use a fallback.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create audio Phase 2 delivery results with durations in each tier and assert payload settlement creation and block verification compute matching calculate_audio_fees_phase2 values; provide too-short delivery data and assert pricing/verification fails.",
+    "Create video Phase 2 delivery results for multiple resolutions and durations, assert payload settlement creation and block verification compute calculate_video_fees_phase2(width,height,duration_ms), and assert malformed delivery data rejects the block or settlement."
+  ],
+  "summary": "Video Phase 2 resolution-duration pricing is absent from the audited port.",
+  "test_or_falsification_candidate": "Create audio Phase 2 delivery results with durations in each tier and assert payload settlement creation and block verification compute matching calculate_audio_fees_phase2 values; provide too-short delivery data and assert pricing/verification fails.",
+  "title": "Video Phase 2 pricing uses resolution and duration",
+  "total_invariants": 1954
+}

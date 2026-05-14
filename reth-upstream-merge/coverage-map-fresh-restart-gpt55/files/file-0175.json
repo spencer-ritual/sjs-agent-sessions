@@ -1,0 +1,132 @@
+{
+  "record_type": "file",
+  "file_index": 175,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/net/network/src/transactions/mod.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "missing",
+  "tags": [
+    "missing",
+    "non-exact",
+    "network",
+    "transactions",
+    "metrics",
+    "observability",
+    "p2p-transaction-broadcast",
+    "p2p-transaction-receive"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0175-atom-0001",
+      "file_index": 175,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/net/network/src/transactions/mod.rs",
+      "source_hunk_hint": "@@ -61,6 +61,7 @@; @@ -172,8 +173,14 @@",
+      "source_kind": "other",
+      "source_snippet": "use ritual_metrics;\n\npub fn broadcast_transactions(\n    &self,\n    transactions: impl IntoIterator<Item = N::BroadcastedTransaction>,\n) {\n    let transactions =\n        transactions.into_iter().map(PropagateTransaction::new).collect::<Vec<_>>();\n    if transactions.is_empty() {\n        return;\n    }\n\n    for tx in &transactions {\n        let tx_hash = *tx.transaction.tx_hash();\n        ritual_metrics::tx::log_p2p_tx_broadcast(&tx_hash);\n    }\n\n    self.send(TransactionsCommand::BroadcastTransactions(transactions))\n}",
+      "semantic_claim": "The old transaction handle logs each manually broadcast full transaction hash through Ritual P2P transaction metrics before sending the unchanged BroadcastTransactions command.",
+      "high_risk": false,
+      "risk_tags": [
+        "observability",
+        "p2p-transaction-broadcast",
+        "network-transactions-handle"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/net/network/src/transactions/mod.rs",
+          "symbols": [
+            "TransactionsHandle::broadcast_transactions"
+          ],
+          "evidence": "The destination method still collects non-empty transactions and sends `TransactionsCommand::BroadcastTransactions(transactions)`, but it has no `ritual_metrics` import, no per-transaction hash loop before sending, and repo-wide exact searches found no `log_p2p_tx_broadcast` usage."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/net/network/Cargo.toml",
+          "symbols": [],
+          "evidence": "The destination network crate depends on standard `reth-metrics` and `metrics`, but does not declare `ritual-metrics`, so the old Ritual-specific helper is not available in this crate."
+        }
+      ],
+      "equivalence_argument": "The destination preserves the transaction broadcast command path, but not the old Ritual-specific per-hash broadcast logging side effect. This is low-risk non-exact observability because the missing call does not change transaction propagation, pool admission, consensus validation, verification, or the async FSM.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "If Ritual P2P telemetry is still required, add an observability regression that calls `TransactionsHandle::broadcast_transactions` with multiple transactions and asserts a replacement metric or `ritual_metrics::tx::log_p2p_tx_broadcast` fires once per transaction hash before the broadcast command is sent.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "The adjacent empty-vector early return only gained a semicolon and is rustfmt/noise; the behavior-bearing delta is the inserted Ritual metrics loop."
+    },
+    {
+      "record_id": "file-0175-atom-0002",
+      "file_index": 175,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/net/network/src/transactions/mod.rs",
+      "source_hunk_hint": "@@ -1236,6 +1243,10 @@",
+      "source_kind": "other",
+      "source_snippet": "self.transaction_fetcher\n    .remove_hashes_from_transaction_fetcher(transactions.iter().map(|tx| *tx.tx_hash()));\n\nfor tx in &transactions {\n    ritual_metrics::tx::log_p2p_tx_receive(tx.tx_hash(), &peer_id);\n}\n\n// track that the peer knows these transaction, but only if this is a new broadcast.",
+      "semantic_claim": "The old transaction import path logs every received full transaction hash with its source peer through Ritual P2P transaction metrics after removing fetched hashes and before marking peer knowledge/import quality.",
+      "high_risk": false,
+      "risk_tags": [
+        "observability",
+        "p2p-transaction-receive",
+        "network-transactions-import"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/net/network/src/transactions/mod.rs",
+          "symbols": [
+            "TransactionsManager::import_transactions"
+          ],
+          "evidence": "The destination import path removes hashes from the transaction fetcher and then marks peer knowledge, but there is no per-transaction `ritual_metrics::tx::log_p2p_tx_receive(tx.tx_hash(), &peer_id)` loop; repo-wide exact searches found no `log_p2p_tx_receive` usage."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/net/network/src/metrics.rs",
+          "symbols": [
+            "TransactionsManagerMetrics",
+            "AnnouncedTxTypesMetrics"
+          ],
+          "evidence": "Destination network metrics cover standard Reth transaction-manager counters and Eth68 announcement type histograms, but they do not provide a per-received-full-transaction Ritual P2P logging equivalent."
+        }
+      ],
+      "equivalence_argument": "The destination preserves the full-transaction receive/import behavior, including fetcher cleanup, peer seen tracking, bad import handling, and pool import flow. It lacks only the old Ritual-specific receive logging hook, so the mapping is missing for observability but not for transaction propagation or admission semantics.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "If receive-side P2P telemetry is required, add an observability regression that feeds `NetworkTransactionEvent::IncomingTransactions` or `TransactionsManager::import_transactions` and asserts one receive log or replacement metric per transaction hash and peer.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This hook runs after initial-sync/gossip-disabled/capacity checks and after fetcher removal, but before peer knowledge tracking; the missing destination behavior is observability-only."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 2,
+  "adversarial_reviews": [],
+  "summary": "The old transactions manager added Ritual-specific P2P observability for manual transaction broadcasts and received full transactions. The v2.2.0 port preserves the underlying broadcast and import flows but has no `ritual_metrics` import, no `ritual-metrics` network dependency, and no `log_p2p_tx_broadcast`, `log_p2p_tx_receive`, or `log_p2p_tx_announce` usages, so both low-risk observability atoms are recorded as missing.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 175: M\tcrates/net/network/src/transactions/mod.rs.",
+    "The isolated diff spans lines 31345-31691 of the source diff, between `transactions/fetcher.rs` and `transactions/validation.rs`.",
+    "Behavior-bearing hunks are limited to `use ritual_metrics`, the per-transaction `log_p2p_tx_broadcast` loop in `TransactionsHandle::broadcast_transactions`, and the per-transaction `log_p2p_tx_receive` loop in `TransactionsManager::import_transactions`.",
+    "All other hunks in the isolated diff are rustfmt/noise: added semicolons after early returns/continues, boolean-expression line wrapping, match-pattern formatting, and test match-arm formatting.",
+    "Destination exact searches found no `ritual_metrics`, `log_p2p_tx_broadcast`, `log_p2p_tx_receive`, or `log_p2p_tx_announce` in `ritual-reth-internal-v2.2.0-port`.",
+    "Destination `crates/net/network/src/transactions/mod.rs` still implements broadcast and receive/import behavior without the old Ritual per-hash logging side effects.",
+    "No review queue update is required because both non-exact atoms are low-risk observability-only deltas."
+  ]
+}

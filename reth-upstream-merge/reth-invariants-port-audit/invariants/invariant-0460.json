@@ -1,0 +1,79 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "910f91cf4b627222a8222f3976af0db517075458",
+      "evidence": "Capability values 7, 8, and 9 decode to ImageCall, AudioCall, and VideoCall and are executor capabilities.",
+      "path": "crates/ritual-tee-registry-reader/src/types.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub enum Capability {\n    HttpCall = 0,\n    Llm = 1,\n    ZkCall = 5,\n    Dkms = 6,\n    ImageCall = 7,\n    AudioCall = 8,\n    VideoCall = 9,\n    Fhe = 10,\n}\n\npub fn is_executor_capability(&self) -> bool {\n    matches!(self, Capability::HttpCall | Capability::Llm | Capability::WormholeQuery | Capability::ZkCall | Capability::ImageCall | Capability::AudioCall | Capability::VideoCall | Capability::Fhe)\n}",
+      "symbols": [
+        "Capability",
+        "Capability::try_from",
+        "Capability::is_executor_capability"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "910f91cf4b627222a8222f3976af0db517075458",
+      "evidence": "The canonical precompile metadata assigns image/audio/video to their distinct capability tags.",
+      "path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "AsyncPrecompileMetadata { address: IMAGE_CALL_PRECOMPILE, capability_tag: AsyncPrecompileCapabilityTag::ImageCall, settlement: AsyncPrecompileSettlement::TwoPhase, spc_block_verified: true, short_settlement_enabled: false },\nAsyncPrecompileMetadata { address: AUDIO_CALL_PRECOMPILE, capability_tag: AsyncPrecompileCapabilityTag::AudioCall, settlement: AsyncPrecompileSettlement::TwoPhase, spc_block_verified: true, short_settlement_enabled: false },\nAsyncPrecompileMetadata { address: VIDEO_CALL_PRECOMPILE, capability_tag: AsyncPrecompileCapabilityTag::VideoCall, settlement: AsyncPrecompileSettlement::TwoPhase, spc_block_verified: true, short_settlement_enabled: false },",
+      "symbols": [
+        "ALL_ASYNC_PRECOMPILE_METADATA",
+        "expected_capability_tag"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "910f91cf4b627222a8222f3976af0db517075458",
+      "evidence": "RPC validation derives the required executor capability from canonical precompile metadata and rejects mismatches.",
+      "path": "crates/rpc/rpc/src/async_tx_validator.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let expected = Capability::try_from(metadata.expected_capability_tag().as_u8()).map_err(|_| { ... })?;\nlet executor = read_executor(db, registry, executor_address)?\n    .ok_or_else(|| format!(\"TEE executor {executor_address} not found\"))?;\nif executor.capability != expected {\n    return Err(format!(\"TEE executor {executor_address} has capability {:?}, expected {:?}\", executor.capability, expected));\n}",
+      "symbols": [
+        "validate_executor"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port implements the invariant structurally: registry decoding defines distinct media capabilities, canonical metadata binds each media address to its tag, and RPC admission enforces the derived tag.",
+  "evidence_files": [
+    "crates/ritual-tee-registry-reader/src/types.rs",
+    "crates/ritual-tee-registry-reader/src/reader.rs",
+    "crates/rpc/rpc/src/async_tx_validator.rs"
+  ],
+  "invariant_id": "cur-3f51c158d2-multimodal-precompiles-distinct-capabilities",
+  "invariant_index": 460,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The local code implements the newer distinct-capability behavior rather than the older LLM fallback.",
+  "rationale": "The commit message states that multimodal precompile addresses now route to correct capabilities, and the diff adds ImageCall/AudioCall/VideoCall enum values, marks them executor capabilities, and updates precompile-to-capability routing in validate_executor_registration. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "f7e985e1d90120c262741c8578e037da0efd94bc"
+  ],
+  "statement": "Capability values 7, 8, and 9 must decode to ImageCall, AudioCall, and VideoCall respectively, each must be treated as an executor capability, and RPC async executor validation must require ImageCall for IMAGE_CALL_PRECOMPILE, AudioCall for AUDIO_CALL_PRECOMPILE, and VideoCall for VIDEO_CALL_PRECOMPILE while keeping LLM and Agent precompiles on Llm capability.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Register executors with only Llm, ImageCall, AudioCall, or VideoCall capabilities and call validate_executor_registration for LLM, Agent, IMAGE, AUDIO, VIDEO, and ZK precompile addresses; assert each precompile accepts only its intended capability class and that Capability::try_from(10) still fails."
+  ],
+  "summary": "Multimodal precompiles use distinct executor capabilities.",
+  "test_or_falsification_candidate": "Register executors with only Llm, ImageCall, AudioCall, or VideoCall capabilities and call validate_executor_registration for LLM, Agent, IMAGE, AUDIO, VIDEO, and ZK precompile addresses; assert each precompile accepts only its intended capability class and that Capability::try_from(10) still fails.",
+  "title": "Multimodal precompiles use distinct capabilities",
+  "total_invariants": 1954
+}

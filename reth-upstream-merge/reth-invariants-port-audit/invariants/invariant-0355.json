@@ -1,0 +1,72 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No equivalent strict floating-point conversion guard was found; the local LLM pricing path clamps invalid or overflowing totals instead of rejecting them and does not apply the HTTP base-fee floor in compute_llm_executor_fee.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/llm.rs"
+  ],
+  "invariant_id": "cur-fec4cbcdb7-floating-point-conversion-rejects-invalid-totals",
+  "invariant_index": 355,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/llm.rs",
+      "crates/ritual-async-fees/src/constants.rs",
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "is_finite",
+      "NaN",
+      "infinity",
+      "negative total wei",
+      "u128::MAX",
+      "clamp(0.0, u128::MAX as f64)",
+      "HTTP_EXECUTOR_BASE_FEE_WEI",
+      "compute_llm_executor_fee floating point conversion"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "compute_llm_executor_fee",
+      "llm_executor_deposit_estimate_for_model",
+      "llm_compute_gas",
+      "total_wei",
+      "HTTP_EXECUTOR_BASE_FEE_WEI",
+      "LLM_EXECUTOR_GAS_PRICE_WEI"
+    ],
+    "missing_behavior": "LLM runtime fee conversion does not reject non-finite, negative, or u128-overflowing total_wei values and successful runtime conversions are not floored at HTTP_EXECUTOR_BASE_FEE_WEI.",
+    "related_but_insufficient_code": [
+      "crates/ritual-async-fees/src/llm.rs computes total_wei and returns U256::from(total_wei.max(0.0).round().clamp(0.0, u128::MAX as f64) as u128), which silently clamps negative, non-finite, and overflowing values instead of returning Err.",
+      "llm_executor_deposit_estimate_for_model applies total_wei.max(HTTP_EXECUTOR_BASE_FEE_WEI as f64), but the settlement/runtime compute_llm_executor_fee path does not apply that base-fee floor.",
+      "read_u256_as_f64 rejects oversized ABI token counters, but it is not a guard on the final floating-point gas-to-wei total."
+    ]
+  },
+  "notes": "Confirmed gap in the port async-fees crate; the only base-floor use is in the escrow estimate helper, not runtime settlement pricing.",
+  "rationale": "The primary diff replaces clamp-and-cast behavior with explicit checks for non-finite, negative, and overflow values before rounding into `U256`, addressing the commit's floating-point determinism goal. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "6dc9040291543797ad2085dc7f2981583425a9be"
+  ],
+  "statement": "LLM executor fee conversion from floating-point gas cost to integer wei must reject non-finite, negative, or `u128`-overflowing totals before conversion, and successful conversions must apply at least the HTTP executor base fee floor.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Drive `compute_llm_executor_fee` or a factored conversion helper with cases producing NaN, infinity, negative total wei, and a value greater than `u128::MAX`, and assert each returns `Err`; for a tiny valid value, assert the returned fee is at least `HTTP_EXECUTOR_BASE_FEE_WEI`."
+  ],
+  "summary": "LLM runtime fee conversion still clamps invalid floating-point totals instead of rejecting them.",
+  "test_or_falsification_candidate": "Drive compute_llm_executor_fee with model data/token counts that produce NaN, infinity, negative, and >u128::MAX total_wei, plus a tiny valid total; the invariant expects Err for invalid totals and at least HTTP_EXECUTOR_BASE_FEE_WEI for the valid total, while current code clamps.",
+  "title": "LLM floating-point conversion rejects invalid totals",
+  "total_invariants": 1954
+}

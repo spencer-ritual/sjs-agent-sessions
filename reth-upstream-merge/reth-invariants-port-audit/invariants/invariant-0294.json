@@ -1,0 +1,53 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The Nitro sigver precompile passes the executor-compatible 20 zero-byte nonce hex string to verify_nitro_attestation_raw instead of an empty nonce.",
+      "path": "crates/precompiles/src/sigver.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "let verification_result = verify_nitro_attestation_raw(\n    &attestation_hex,\n    \"0000000000000000000000000000000000000000\",\n    &input_data_bytes,\n    None,\n);",
+      "symbols": [
+        "verify_nitro_attestation_inline",
+        "verify_nitro_attestation_raw"
+      ]
+    }
+  ],
+  "equivalence_argument": "The precompile path decodes attestation/input data and invokes ritual-nsm verification with the exact 40-character zero hex nonce, matching the executor convention for a 20-byte zero nonce.",
+  "evidence_files": [
+    "crates/precompiles/src/sigver.rs"
+  ],
+  "invariant_id": "cur-9a0bf02657-nitro-sigver-uses-zero-byte-executor-nonce",
+  "invariant_index": 294,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in nodebuilder sigver precompile implementation.",
+  "rationale": "The diff changes the nonce argument from an empty string to the 20-byte zero nonce hex string and comments that this matches the executor nonce. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "8c871121c49f90220ce504bd59b8c3b07abbb993"
+  ],
+  "statement": "The sigver Nitro attestation precompile path must call verify_nitro_attestation_raw with nonce hex 0000000000000000000000000000000000000000, matching the executor's 20 zero-byte nonce convention, rather than an empty nonce.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Verify a Nitro attestation produced with the executor's 20 zero-byte nonce through the sigver precompile and assert it succeeds; repeat with behavior equivalent to an empty nonce and assert the user-data/nonce verification no longer matches the executor-produced attestation."
+  ],
+  "summary": "Nitro sigver uses the executor-compatible 20 zero-byte nonce.",
+  "test_or_falsification_candidate": "Verify an attestation produced with a 20 zero-byte nonce through the Nitro sigver precompile and assert it succeeds; an empty-nonce attestation should not match the current verification call.",
+  "title": "Nitro sigver uses zero-byte executor nonce",
+  "total_invariants": 1954
+}

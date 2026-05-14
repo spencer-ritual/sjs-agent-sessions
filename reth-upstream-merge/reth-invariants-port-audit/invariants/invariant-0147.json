@@ -1,0 +1,113 @@
+{
+  "cluster_key": "executor delivery:async-jobs-include-e536e8ce",
+  "confidence": "high",
+  "destinations": [
+    {
+      "evidence": "The port encodes the 13-parameter AsyncJobTracker.addJob call with commitVal, origHash, and origRlp. Precompile input is capped by shared validate_async_payload at MAX_ASYNC_INPUT_SIZE = 10 KiB, and the local parity fix now rejects encoded origin transaction RLP larger than that same cap before constructing the commitment transaction.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let origin_tx_rlp = encode_supported_origin_tx(original_tx.inner())?;\nif origin_tx_rlp.len() > MAX_ASYNC_INPUT_SIZE { return Err(...); }",
+      "symbols": [
+        "build_short_async_commitment_transaction",
+        "create_short_async_commitment_tx",
+        "encode_supported_origin_tx",
+        "MAX_ASYNC_INPUT_SIZE"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port after correcting the stale 5KB wording to the current downstream 10 KiB cap: addJob carries the settlement metadata fields, precompile input is bounded by shared validation, and origin_tx_rlp is now bounded before commitment creation.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-async/src/detector.rs",
+    "crates/ritual-async-fees/src/constants.rs"
+  ],
+  "invariant_id": "cur-c7d33f9f18-async-jobs-include-settlement-metadata-bounded-payloads",
+  "invariant_index": 147,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-precompile-codecs/src/validation.rs",
+      "crates/ritual-async-fees/src/constants.rs",
+      "crates/ritual-async-registry/src/lib.rs",
+      "ritual-alloy-internal/crates/consensus/src/transaction/async_commitment.rs"
+    ],
+    "checked_queries": [
+      "addJob|origRlp|commitVal|origHash",
+      "5KB|5 KB|5120|5121",
+      "MAX_ASYNC_INPUT_SIZE_BYTES|origin_tx_rlp.len|precompile_input.len"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "build_short_async_commitment_transaction",
+      "create_short_async_commitment_tx",
+      "validate_async_payload",
+      "MAX_ASYNC_INPUT_SIZE_BYTES",
+      "TxAsyncCommitment::origin_tx_rlp"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      {
+        "evidence": "addJob calldata includes commitVal, origHash, and origRlp. Before the local parity fix, origin_tx_rlp had no pre-commitment length rejection.",
+        "path": "crates/ethereum/payload/src/ritual_async.rs",
+        "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+        "symbols": [
+          "create_short_async_commitment_tx"
+        ]
+      },
+      {
+        "evidence": "The generic payload validation rejects precompile input larger than MAX_ASYNC_INPUT_SIZE, which matches the current downstream 10 KiB detector cap.",
+        "path": "crates/ritual-precompile-codecs/src/validation.rs",
+        "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+        "symbols": [
+          "validate_async_payload"
+        ]
+      },
+      {
+        "evidence": "MAX_ASYNC_INPUT_SIZE_BYTES is 10 * 1024; the nearby 5KB constant is HTTP output size, not the current async detection input/origin-RLP size.",
+        "path": "crates/ritual-async-fees/src/constants.rs",
+        "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+        "symbols": [
+          "MAX_ASYNC_INPUT_SIZE_BYTES"
+        ]
+      },
+      {
+        "evidence": "Alloy carries origin_tx_rlp through transaction encoding/decoding, but does not enforce the detector-level 5KB limit.",
+        "path": "crates/consensus/src/transaction/async_commitment.rs",
+        "repo": "/home/ritual/repos/ritual-alloy-internal",
+        "symbols": [
+          "TxAsyncCommitment::origin_tx_rlp"
+        ]
+      }
+    ]
+  },
+  "notes": "Mapped after local parity fix: the port already had addJob metadata and 10 KiB precompile input validation; origin_tx_rlp now uses the same 10 KiB cap. The original 5KB wording was stale after downstream 9ce222c2e932.",
+  "rationale": "Commit adec5e166104 updated addJob decoding/encoding to include commitVal, origHash, and origRlp while removing program_counter and caller_address. Its 5KB detector bounds were superseded by commit 9ce222c2e932, which keeps the current FHE-compatible cap at 10 KiB for both precompile input and origin_tx_rlp. Implementation-detail caveat: The exact Solidity binding field names are generated-code details; the intended behavior is that the on-chain job record contains enough bounded data for later settlement verification from contract state.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "adec5e1661048fbfb4114def51e6b9a77a4da56d",
+    "9ce222c2e932ae81de65a84bf93052b451c2cc1b"
+  ],
+  "statement": "Async job creation should encode the 13-parameter AsyncJobTracker.addJob call with commitment validator, origin transaction hash, and origin transaction RLP, and async detection should reject jobs whose precompile input or origin transaction RLP exceeds 10 KiB.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Run async detection on a valid async call and decode the generated addJob calldata, asserting it contains executor, job id/origin hash, precompile, input, commit block, ttl, previous block placeholders, sender, commitment validator, origin hash, and origin RLP. Then repeat with input length 10 KiB + 1 and with origin RLP length 10 KiB + 1 and assert detection returns None in both cases."
+  ],
+  "summary": "addJob carries settlement metadata, and async detection now bounds precompile input and origin RLP at the current downstream 10 KiB cap.",
+  "test_or_falsification_candidate": "Focused payload-builder unit test covers oversized origin RLP rejection; shared validation covers oversized precompile input rejection.",
+  "title": "Async jobs include settlement metadata and bounded payloads",
+  "total_invariants": 1954
+}

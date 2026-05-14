@@ -1,0 +1,69 @@
+{
+  "cluster_key": "executor delivery:async-detection-service-fb535e59",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "evidence": "Downstream commit 78d92c570692 removed the former AsyncDetectionService and node startup now documents that async system transactions are handled synchronously in TxPool::on_canonical_state_change. The v2.2 port likewise has no async detection service startup task.",
+      "path": "crates/ethereum/node/src/node.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "No async detection service construction or critical task registration is present in EthereumAddOns::launch_add_ons.",
+      "symbols": [
+        "EthereumAddOns::launch_add_ons"
+      ]
+    }
+  ],
+  "equivalence_argument": "Stale gap: the older service-criticality invariant from f28470bdc1cd was superseded by downstream commit 78d92c570692, which removed AsyncDetectionService entirely. The port matches the current downstream startup shape by not spawning a background async detection service.",
+  "evidence_files": [
+    "crates/ethereum/node/src/node.rs"
+  ],
+  "invariant_id": "cur-76ef05ef82-async-detection-service-critical",
+  "invariant_index": 143,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/node/src/node.rs",
+      "crates/node/src/addons.rs",
+      "crates/ethereum/node/src/addons.rs"
+    ],
+    "checked_queries": [
+      "\"async detection service\"|async detection service|spawn_critical|spawn_blocking_task|detect_short_async_call|async detection"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+    ],
+    "checked_symbols": [
+      "async detection service",
+      "spawn_critical",
+      "spawn_blocking_task",
+      "detect_short_async_call"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "Downstream f28470bdc1cd briefly required a critical async detection service task.",
+      "Downstream 78d92c570692 later removed AsyncDetectionService and the critical task registration.",
+      "The v2.2.0 port has txpool canonical async side effects but no background async detection service."
+    ]
+  },
+  "notes": "Stale/superseded: the critical-service requirement was replaced by downstream no-background-service startup behavior.",
+  "rationale": "Changing spawn to spawn_critical in f28470bdc1cd briefly changed supervision of the former async detection service, but 78d92c570692 removed that service entirely and moved async system transaction handling into txpool canonical-state processing. The load-bearing current fact is that node startup should not spawn the former background service.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "f28470bdc1cd6134d9c5fc418bd6c1964ab6eedb",
+    "78d92c5706927c40ee9f125d861455485c8157c3"
+  ],
+  "statement": "The older requirement to spawn `AsyncDetectionService` as a critical task named \"async detection service\" was superseded when the service was removed; current node startup must not spawn that former background service.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Start a node with a task executor that records critical tasks and assert no task named \"async detection service\" is spawned."
+  ],
+  "summary": "The critical async detection service gap is stale; current downstream and the port do not spawn the former background service.",
+  "test_or_falsification_candidate": "Node startup task-registration test asserting no task named \"async detection service\" is spawned.",
+  "title": "Former async detection service criticality was superseded",
+  "total_invariants": 1954
+}

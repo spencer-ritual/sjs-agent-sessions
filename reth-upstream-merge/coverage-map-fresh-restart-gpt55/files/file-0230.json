@@ -1,0 +1,34 @@
+{
+  "record_type": "file",
+  "file_index": 230,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/optimism/txpool/src/validator.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "semicolon",
+    "optimism",
+    "txpool",
+    "validation"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The Optimism txpool validator divergence is semicolon-only rustfmt noise across existing transaction validation outcome returns; no txpool validation behavior changed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 230: M\tcrates/optimism/txpool/src/validator.rs.",
+    "The isolated patch only adds semicolons to existing invalid outcome, valid outcome, early outcome, and L1 gas cost balance-error returns.",
+    "No supported transaction type checks, interop validation, L1 data gas fee requirement, balance comparison, or propagation outcome behavior changed."
+  ]
+}

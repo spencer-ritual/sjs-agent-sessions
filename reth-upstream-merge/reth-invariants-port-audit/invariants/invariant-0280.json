@@ -1,0 +1,68 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "AsyncEthEvmContext wraps EthEvmContext and implements AsyncContextTr when the async-context feature is enabled, giving precompiles access to the configured async execution context.",
+      "path": "crates/node/src/async_evm.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "pub struct AsyncEthEvmContext<DB: Database> {\n    inner: EthEvmContext<DB>,\n    #[cfg(feature = \"async-context\")]\n    async_context: Option<Box<revm_context::async_context::AsyncCommitmentutionContext>>,\n}\n#[cfg(feature = \"async-context\")]\nimpl<DB: Database> AsyncContextTr for AsyncEthEvmContext<DB> { ... }",
+      "symbols": [
+        "AsyncEthEvmContext",
+        "AsyncContextTr"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The factory associated context type is AsyncEthEvmContext and both creation paths build RitualEvm around that context.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "type Context<DB: Database> = AsyncEthEvmContext<DB>;\nlet async_context = AsyncEthEvmContext::new(inner_context).with_async_context(Box::new(async_ctx));\nRitualEvm::new(async_context, NoOpInspector::default()).with_precompiles(RitualPrecompiles::new())",
+      "symbols": [
+        "RitualEvmFactory::Context",
+        "RitualEvmFactory::create_evm"
+      ]
+    }
+  ],
+  "equivalence_argument": "The EVM factory is specialized to AsyncEthEvmContext, and that context exposes AsyncContextTr under async-context; this is the behavior async precompiles need to read and mutate the async execution context.",
+  "evidence_files": [
+    "crates/node/Cargo.toml",
+    "crates/node/src/async_evm.rs",
+    "crates/node/src/executor.rs",
+    "crates/node/src/lib.rs"
+  ],
+  "invariant_id": "cur-be67b417f6-evms-expose-async-context",
+  "invariant_index": 280,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in nodebuilder, which owns the Ritual EVM factory.",
+  "rationale": "The primary commit adds AsyncEthEvmContext, implements ContextTr, ContextSetters, and async-context-gated AsyncContextTr for it, switches RitualEvmFactory's Context and Evm associated types to the async-aware context, and registers the new module in the node crate. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "1ed47eae49ed58ffaec9a103676948903576dc03"
+  ],
+  "statement": "RitualEvmFactory must create EVM instances whose context type is AsyncEthEvmContext and, when the async-context feature is enabled, that context must implement AsyncContextTr so async precompiles can access the configured async execution context.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Build the node with async-context enabled, create an EVM through RitualEvmFactory with an AsyncExecutionContext installed on AsyncEthEvmContext, execute a transaction that invokes an async-context-dependent precompile, and assert that the precompile can read and mutate the same async execution context; also assert that replacing the factory context with EthEvmContext fails to compile or fails the precompile access path."
+  ],
+  "summary": "RitualEvmFactory creates EVMs with AsyncEthEvmContext and async-context support.",
+  "test_or_falsification_candidate": "Build nodebuilder with async-context and assert a RitualEvmFactory-created EVM exposes AsyncContextTr before invoking an async-context-dependent precompile.",
+  "title": "Node EVMs expose async context",
+  "total_invariants": 1954
+}

@@ -1,0 +1,64 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: HTTP executors are accepted, but LLM-only executors are rejected by exact capability equality.",
+  "evidence_files": [
+    "crates/rpc/rpc/src/async_tx_validator.rs"
+  ],
+  "invariant_id": "cur-1e8f03e282-persistent-agent-uses-http-executors",
+  "invariant_index": 513,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/rpc/rpc/src/async_tx_validator.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs",
+      "crates/ritual-tee-registry-reader/src/types.rs"
+    ],
+    "checked_queries": [
+      "persistent agent HttpCall Llm capability validation",
+      "PERSISTENT_AGENT_PRECOMPILE vec HttpCall Llm",
+      "expected_capability_tag persistent agent"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "validate_executor",
+      "metadata.expected_capability_tag",
+      "PERSISTENT_AGENT_PRECOMPILE",
+      "Capability::HttpCall",
+      "Capability::Llm"
+    ],
+    "missing_behavior": "Persistent-agent executor admission accepts only the metadata expected capability tag, which is HttpCall, and has no alternate Llm acceptance path.",
+    "related_but_insufficient_code": [
+      "crates/ritual-precompile-addresses/src/lib.rs maps PERSISTENT_AGENT_PRECOMPILE to AsyncPrecompileCapabilityTag::HttpCall.",
+      "crates/rpc/rpc/src/async_tx_validator.rs validate_executor compares executor.capability for exact equality with the single expected tag.",
+      "Capability::Llm exists, but no persistent-agent branch accepts either HttpCall or Llm."
+    ]
+  },
+  "notes": "The metadata comment says the current downstream parity route is HttpCall, not an either-or capability set.",
+  "rationale": "The commit imports PERSISTENT_AGENT_PRECOMPILE into the RPC async validator and maps it to vec![Capability::HttpCall, Capability::Llm] with a comment that it is routed through executor-go HTTP handler like sovereign agent. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "d97edfbc86179e56d63e48a6bffd8e1ea75f1552"
+  ],
+  "statement": "Executor registration validation for PERSISTENT_AGENT_PRECOMPILE must accept executors with either HttpCall or Llm capability, matching sovereign-agent routing.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Validate persistent-agent requests against registry fixtures containing only HttpCall, only Llm, and neither capability; assert the first two pass capability validation and the last fails."
+  ],
+  "summary": "Persistent-agent validation does not accept LLM-only executors.",
+  "test_or_falsification_candidate": "Validate persistent-agent admission with registry fixtures for HttpCall-only, Llm-only, and neither; current code only accepts HttpCall-only.",
+  "title": "Persistent agent uses HTTP or LLM executors",
+  "total_invariants": 1954
+}

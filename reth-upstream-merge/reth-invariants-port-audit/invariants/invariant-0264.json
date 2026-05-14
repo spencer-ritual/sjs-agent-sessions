@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Error logging formats the requested bounded request details and includes them in log_tx_error calls for registry and signature-verification failures.",
+      "path": "crates/ritual-spc-verification/src/verifier.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "fn format_request_details(request: &SpcVerificationRequest) -> String {\n    let input_truncated = if input_hex.len() > 100 { format!(\"{}...\", &input_hex[..100]) } else { input_hex };\n    format!(\"block_number={}, tx_hash={}, executor={}, precompile_address={}, previous_block_hash={}, previous_block_number={}, previous_block_timestamp={}, success={}, error={}, input={}, output={}, proof_len={}\", ... )\n}\n\nritual_metrics::tx::log_tx_error(\"spc_executor_not_registered\", &format!(\"Executor not registered: {}\", error_details), &request.tx_hash);",
+      "symbols": [
+        "SpcVerifier::format_request_details",
+        "SpcVerifier::verify_single",
+        "SpcVerifier::verify_signature_direct_sync"
+      ]
+    }
+  ],
+  "equivalence_argument": "The diagnostic formatter includes all required request fields and truncates input/output to 100 hex characters plus ellipsis before log_tx_error receives the message.",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-89b2a3cad6-error-logs-include-bounded-request-details",
+  "invariant_index": 264,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-spc-verification/src/verifier.rs"
+    ],
+    "checked_queries": [
+      "proof_len",
+      "input_truncated",
+      "output_truncated"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "format_request_details",
+      "log_tx_error"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in port.",
+  "rationale": "The commit adds format_request_details, which hex-encodes and truncates precompile input/output and formats the key request fields into a single diagnostic string. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "2595bdde45a6c52a0729d3393c963f21191917f6"
+  ],
+  "statement": "SPC verification error logging must include block, transaction, executor, precompile, previous block, timeout, success/error, input, output, and proof length details, while truncating input and output hex strings to 100 characters plus ellipsis when longer.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Build an SpcVerificationRequest with long input/output and assert format_request_details includes the named fields, input/output truncated to the first 100 hex characters followed by ellipsis, and proof_len equal to the proof byte length."
+  ],
+  "summary": "SPC error logs include bounded request details.",
+  "test_or_falsification_candidate": "Create a request with long input/output and assert the formatted log message includes all named fields with input and output truncated after 100 hex characters.",
+  "title": "SPC error logs include bounded request details",
+  "total_invariants": 1954
+}

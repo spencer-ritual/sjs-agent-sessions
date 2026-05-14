@@ -1,0 +1,587 @@
+{
+  "record_type": "file",
+  "file_index": 88,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ethereum/payload/src/bundle.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "reviewed",
+    "payload",
+    "async-fsm",
+    "scheduled",
+    "sequencing-rights",
+    "reth-port"
+  ],
+  "atoms_total": 11,
+  "atoms": [
+    {
+      "record_id": "file-0088-atom-0001",
+      "file_index": 88,
+      "atom_index": 1,
+      "atoms_total": 11,
+      "source_path": "crates/ethereum/payload/src/bundle.rs",
+      "source_hunk_hint": "@@ -0,0 +1,194 @@",
+      "source_kind": "new_field",
+      "source_snippet": "pub enum TxSource { Scheduled, FulfilledAsync, Regular }",
+      "semantic_claim": "Payload bundle construction classifies every single transaction by source as scheduled, fulfilled async, or regular so later bundle helpers can preserve source identity.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "scheduled",
+        "async-fsm",
+        "transaction-identity"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "build_payload"
+          ],
+          "snippet": "let scheduled_obligations = { ... }; ... let fulfilled_async_entries = match pool.get_fulfilled_original_async_commitment_transactions(current_block) { ... }; ... while let Some(pool_tx) = best_txs.next() { ... }",
+          "evidence": "The v2.2 port keeps scheduled, fulfilled-async, delivery-ready, and regular candidates in separate payload loops rather than materializing a TxSource enum."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/async_pool.rs",
+          "symbols": [
+            "AsyncState",
+            "AsyncTxMetadata"
+          ],
+          "snippet": "pub enum AsyncState { AwaitingExecution, Fulfilled, AwaitingDelivery, DeliveryReady }",
+          "evidence": "Async source state is represented by pool lifecycle metadata, not by a payload-local TxSource value."
+        }
+      ],
+      "equivalence_argument": "The destination preserves source separation operationally through distinct scheduled, async, delivery, and regular loops, but there is no exact or renamed TxSource representation.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Build a block containing one scheduled transaction, one fulfilled async original, one delivery-ready settlement, and one regular mempool transaction, then assert each path is classified and handled by the expected destination loop without losing source-specific validation.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed covered operationally. PayloadCandidate variants preserve fulfilled-async, delivery, and regular source identity; scheduled state obligations remain a separate pre-candidate phase rather than a TxSource enum variant."
+    },
+    {
+      "record_id": "file-0088-atom-0002",
+      "file_index": 88,
+      "atom_index": 2,
+      "atoms_total": 11,
+      "source_path": "crates/ethereum/payload/src/bundle.rs",
+      "source_hunk_hint": "@@ -0,0 +31,42 @@",
+      "source_kind": "new_field",
+      "source_snippet": "TxBundle::Single { pool_tx, tx, tx_size, source }",
+      "semantic_claim": "A single-transaction bundle carries both the original pool transaction for invalidation and the recovered transaction plus size and source metadata for execution and accounting.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "transaction-identity",
+        "negative-paths"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/sequencing_rights.rs",
+          "symbols": [
+            "SequencingCandidate"
+          ],
+          "snippet": "pub(crate) struct SequencingCandidate<PoolTx: PoolTransaction> { pub(crate) pool_tx: Arc<ValidPoolTransaction<PoolTx>>, pub(crate) tx: Recovered<TransactionSigned>, pub(crate) original_index: usize }",
+          "evidence": "Regular pool candidates carry pool_tx and recovered tx together, but do not carry tx_size or TxSource."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "regular_candidates",
+            "best_txs.mark_invalid"
+          ],
+          "snippet": "regular_candidates.push(SequencingCandidate::new(pool_tx, tx, regular_candidate_index)); ... best_txs.mark_invalid(&pool_tx, &InvalidPoolTransactionError::ExceedsGasLimit(...));",
+          "evidence": "The regular path preserves the pool transaction for invalidation and derives size later from tx.inner().length()."
+        }
+      ],
+      "equivalence_argument": "The destination regular candidate path preserves the key execution and invalidation references, but size and source are recomputed or implicit rather than stored in an equivalent bundle variant.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Force a regular candidate to exceed gas or Osaka block-size limits and assert the destination marks the original pool transaction invalid while preserving sender/nonce descendant skipping.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed covered. Regular PayloadCandidate/SequencingCandidate keeps the pool transaction and recovered tx; size is computed at execution time."
+    },
+    {
+      "record_id": "file-0088-atom-0003",
+      "file_index": 88,
+      "atom_index": 3,
+      "atoms_total": 11,
+      "source_path": "crates/ethereum/payload/src/bundle.rs",
+      "source_hunk_hint": "@@ -0,0 +43,59 @@",
+      "source_kind": "new_field",
+      "source_snippet": "TxBundle::FulfilledAsyncPair { pool_tx, original_tx, original_tx_size, settlement_tx, settlement_tx_size, metadata }",
+      "semantic_claim": "A fulfilled async bundle pairs the original user transaction with its Phase 1 settlement transaction and async metadata so both can be accounted and executed as one atomic unit.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "async-fsm",
+        "execution-ordering",
+        "transaction-identity"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "PreparedAsyncSettlement"
+          ],
+          "snippet": "pub(crate) struct PreparedAsyncSettlement { pub(crate) original_tx: Recovered<TransactionSigned>, pub(crate) settlement_tx: Recovered<TransactionSigned>, pub(crate) original_rlp_len: usize, pub(crate) settlement_rlp_len: usize, pub(crate) original_miner_fee: u128, pub(crate) settlement_calldata_gas: u64 }",
+          "evidence": "The destination preparation result carries the original, settlement, sizes, miner fee, and settlement calldata gas, while async metadata remains an argument rather than a stored field."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "pool.get_fulfilled_original_async_commitment_transactions",
+            "prepare_fulfilled_async_settlement"
+          ],
+          "snippet": "for (pool_tx, metadata) in fulfilled_async_entries { ... prepare_fulfilled_async_settlement(db, original_tx, &metadata, base_fee, current_block, attributes.suggested_fee_recipient, &mut model_cache) }",
+          "evidence": "The destination constructs the original-settlement pair on demand from pool metadata instead of using a TxBundle enum."
+        }
+      ],
+      "equivalence_argument": "The destination preserves the same pair ingredients and metadata linkage through function arguments and PreparedAsyncSettlement, but it is a decomposed execution path rather than an exact bundle type.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Submit a fulfilled async entry whose settlement preparation succeeds and assert the destination executes the fulfilled original and generated settlement together, with both RLP lengths reflected in block size accounting.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed covered. PreparedAsyncSettlement carries original/settlement txs, RLP sizes, miner fee, and settlement calldata gas; metadata stays in the candidate."
+    },
+    {
+      "record_id": "file-0088-atom-0004",
+      "file_index": 88,
+      "atom_index": 4,
+      "atoms_total": 11,
+      "source_path": "crates/ethereum/payload/src/bundle.rs",
+      "source_hunk_hint": "@@ -0,0 +61,75 @@",
+      "source_kind": "new_field",
+      "source_snippet": "TxBundle::DeliverySettlement { pool_tx, settlement_tx, settlement_tx_size, metadata, effective_tip }",
+      "semantic_claim": "A Phase 2 delivery settlement bundle carries the pool entry, generated settlement transaction, settlement size, async metadata, and pre-extracted effective tip for tip-sortable delivery inclusion.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "async-fsm",
+        "fee-gas-accounting",
+        "transaction-identity"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "PreparedDeliverySettlement",
+            "prepare_delivery_settlement_transaction"
+          ],
+          "snippet": "pub(crate) struct PreparedDeliverySettlement { pub(crate) settlement_tx: Recovered<TransactionSigned>, pub(crate) settlement_rlp_len: usize }",
+          "evidence": "The destination represents the prepared settlement and size, while pool_tx and AsyncTxMetadata stay in the caller loop and no effective_tip field is stored."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "pool.get_delivery_ready_original_async_transactions"
+          ],
+          "snippet": "for (pool_tx, metadata) in delivery_ready_async_entries { ... prepare_delivery_settlement_transaction(db, original_tx, &metadata, base_fee, current_block) }",
+          "evidence": "The destination delivery path keeps pool metadata at the loop boundary and prepares the settlement immediately before execution."
+        }
+      ],
+      "equivalence_argument": "The delivery settlement construction is present but split across the payload loop and PreparedDeliverySettlement, and the source's explicit pre-extracted sorting tip has no exact destination field.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Submit two delivery-ready entries with different DeliveryConfig fee parameters and assert the destination's inclusion order and settlement gas-price behavior are intentional and documented.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed covered. PreparedDeliverySettlement now includes settlement tx, RLP size, and effective_tip; the caller tracks the original tx hash."
+    },
+    {
+      "record_id": "file-0088-atom-0005",
+      "file_index": 88,
+      "atom_index": 5,
+      "atoms_total": 11,
+      "source_path": "crates/ethereum/payload/src/bundle.rs",
+      "source_hunk_hint": "@@ -0,0 +78,94 @@",
+      "source_kind": "call_ordering",
+      "source_snippet": "pub fn effective_tip_per_gas(&self, base_fee: u64) -> Option<u128> { Single => tx.effective_tip_per_gas(base_fee), FulfilledAsyncPair => original_tx.effective_tip_per_gas(base_fee), DeliverySettlement => Some(*effective_tip) }",
+      "semantic_claim": "Every bundle exposes a comparable effective tip so single, fulfilled-async, and delivery-settlement work can participate in one tip-maximizing ordering surface.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "fee-gas-accounting",
+        "async-fsm",
+        "execution-ordering"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "PayloadCandidate::effective_tip",
+            "build_payload"
+          ],
+          "snippet": "sort_candidates_by_effective_tip(&mut payload_candidates, PayloadCandidate::effective_tip, PayloadCandidate::original_index);",
+          "evidence": "The destination now sorts fulfilled async, delivery, and regular payload candidates by descending effective tip with original collection order as the tie-breaker."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/sequencing_rights.rs",
+          "symbols": [
+            "sort_candidates_by_effective_tip"
+          ],
+          "snippet": "effective_tip(right).cmp(&effective_tip(left)).then_with(|| original_index(left).cmp(&original_index(right)))",
+          "evidence": "The shared sorter implements the source comparator behavior for destination payload candidates."
+        }
+      ],
+      "equivalence_argument": "The destination does not preserve TxBundle::effective_tip_per_gas, but PayloadCandidate::effective_tip plus sort_candidates_by_effective_tip gives fulfilled async, delivery, and regular candidates one tip-ordered surface before sequencing-rights reordering.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Create a block-building fixture where a low-tip fulfilled async entry, high-tip regular transaction, and high-tip delivery settlement all fit, then assert the destination ordering matches the intended tip-maximizing policy.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed covered after ba3727354e. sort_candidates_by_effective_tip globally sorts PayloadCandidate values by descending effective tip with original-index tie break."
+    },
+    {
+      "record_id": "file-0088-atom-0006",
+      "file_index": 88,
+      "atom_index": 6,
+      "atoms_total": 11,
+      "source_path": "crates/ethereum/payload/src/bundle.rs",
+      "source_hunk_hint": "@@ -0,0 +96,108 @@",
+      "source_kind": "call_ordering",
+      "source_snippet": "pub fn primary_tx(&self) -> &Recovered<TransactionSigned> { Single => tx, FulfilledAsyncPair => original_tx, DeliverySettlement => settlement_tx }",
+      "semantic_claim": "Each bundle exposes the transaction that should drive sequencing-rights classification: the single transaction, the fulfilled original, or the delivery settlement.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "sequencing-rights",
+        "execution-ordering",
+        "async-fsm"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "PayloadCandidate::primary_tx",
+            "build_payload"
+          ],
+          "snippet": "fn primary_tx(&self) -> &Recovered<TransactionSigned> { ... FulfilledAsync => &prepared.original_tx, Delivery => &prepared.settlement_tx, Regular => &candidate.tx }",
+          "evidence": "The destination now exposes the same primary transaction choice for fulfilled async, delivery, and regular candidates."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/sequencing_rights.rs",
+          "symbols": [
+            "reorder_payload_candidates"
+          ],
+          "snippet": "reorder_payload_candidates(payload_candidates, parent_header.header(), &client, |candidate| { candidate.primary_tx() })",
+          "evidence": "Sequencing-rights classification now operates over the primary transaction of every payload candidate type."
+        }
+      ],
+      "equivalence_argument": "The source primary_tx helper moved into PayloadCandidate and is passed into a generic sequencing-rights reorder helper. This preserves the primary transaction surface without preserving the TxBundle type.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Construct fulfilled-async and delivery-settlement transactions targeting sequencing-rights-protected contracts and assert the destination builder either reorders them with regular candidates or fails a verifier parity test.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed covered after ba3727354e. PayloadCandidate::primary_tx feeds reorder_payload_candidates for fulfilled async originals, delivery settlements, and regular txs."
+    },
+    {
+      "record_id": "file-0088-atom-0007",
+      "file_index": 88,
+      "atom_index": 7,
+      "atoms_total": 11,
+      "source_path": "crates/ethereum/payload/src/bundle.rs",
+      "source_hunk_hint": "@@ -0,0 +110,129 @@",
+      "source_kind": "other",
+      "source_snippet": "pub fn estimated_gas(&self) -> u64 { Single => tx.gas_limit(), FulfilledAsyncPair => original_tx.gas_limit().saturating_add(calculate_calldata_gas(settlement_tx.input()).unwrap_or(21_000)), DeliverySettlement => calculate_calldata_gas(settlement_tx.input()).unwrap_or(21_000) }",
+      "semantic_claim": "Bundle gas accounting uses declared gas for ordinary originals, calldata-based gas for async settlements, and saturating addition for fulfilled-original plus settlement estimates.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "fee-gas-accounting",
+        "async-fsm",
+        "negative-paths"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/gas.rs",
+          "symbols": [
+            "calculate_calldata_gas",
+            "effective_gas_limit_for_block"
+          ],
+          "snippet": "pub fn calculate_calldata_gas(input: &[u8]) -> Result<u64, &'static str> { ... TX_BASE_COST.checked_add(calldata_cost).ok_or(\"Calldata gas calculation overflow\") } ... if tx_type == TX_TYPE_ASYNC_COMMITMENT { Ok(0) } else if is_system_transaction(tx_type) { calculate_calldata_gas(input) } else { Ok(gas_limit) }",
+          "evidence": "The destination keeps calldata-based system transaction gas accounting in the async-fees crate."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "original_exceeds_gas_limit"
+          ],
+          "snippet": "let original_block_gas_limit = match effective_gas_limit_for_block(prepared.original_tx.ty(), prepared.original_tx.input(), prepared.original_tx.gas_limit()) { ... }; ... saturating_sub(prepared.settlement_calldata_gas)",
+          "evidence": "The destination checks original gas against remaining capacity after reserving settlement calldata gas."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "execute_async_settlement"
+          ],
+          "snippet": "let calldata_gas = match calculate_calldata_gas(settlement_tx.input()) { Ok(gas) => gas, Err(err) => return Err(BlockExecutionError::msg(format!(\"Gas calculation overflow: {err}\"))) };",
+          "evidence": "The destination executes settlements with calldata gas and explicit overflow handling rather than the source helper's 21,000 fallback."
+        }
+      ],
+      "equivalence_argument": "The destination implements the same calldata-vs-declared-gas accounting policy at execution time, but differs materially by surfacing overflow as skip/error behavior rather than using the source's 21,000 fallback.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use an async settlement with calldata large enough to stress gas accounting and assert fulfilled-original execution is not committed unless both original and settlement fit within the block gas limit.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed covered. Gas accounting uses ritual-async-fees helpers and explicit overflow skip/error handling rather than the old fallback helper."
+    },
+    {
+      "record_id": "file-0088-atom-0008",
+      "file_index": 88,
+      "atom_index": 8,
+      "atoms_total": 11,
+      "source_path": "crates/ethereum/payload/src/bundle.rs",
+      "source_hunk_hint": "@@ -0,0 +131,140 @@",
+      "source_kind": "other",
+      "source_snippet": "pub fn total_size(&self) -> usize { Single => *tx_size, FulfilledAsyncPair => original_tx_size.saturating_add(*settlement_tx_size), DeliverySettlement => *settlement_tx_size }",
+      "semantic_claim": "Bundle size accounting sums paired async original and settlement sizes with saturating_add and uses the settlement size alone for delivery settlements.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "block-size-accounting",
+        "async-fsm"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "PreparedAsyncSettlement",
+            "PreparedDeliverySettlement"
+          ],
+          "snippet": "original_rlp_len: original_tx.inner().length(), settlement_rlp_len: settlement_tx.inner().length(); ... PreparedDeliverySettlement { settlement_rlp_len: settlement_tx.inner().length(), settlement_tx }",
+          "evidence": "The destination computes the same RLP-length ingredients during async preparation."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "estimated_block_size_with_pair",
+            "estimated_block_size_with_settlement"
+          ],
+          "snippet": "block_transactions_rlp_length.saturating_add(prepared.original_rlp_len).saturating_add(prepared.settlement_rlp_len) ... block_transactions_rlp_length.saturating_add(prepared.settlement_rlp_len)",
+          "evidence": "The destination enforces Osaka block-size accounting with the same paired-vs-delivery size distinction."
+        }
+      ],
+      "equivalence_argument": "The destination preserves the size accounting behavior in-line in the payload loop, using the same saturating pattern for block-size estimates rather than a total_size helper.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Under Osaka block-size limits, create an async original plus settlement whose combined RLP length would exceed the limit and assert the destination skips the pair before original execution.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed covered. The payload loop uses prepared RLP lengths and checked/saturating size estimates for pairs and delivery settlements."
+    },
+    {
+      "record_id": "file-0088-atom-0009",
+      "file_index": 88,
+      "atom_index": 9,
+      "atoms_total": 11,
+      "source_path": "crates/ethereum/payload/src/bundle.rs",
+      "source_hunk_hint": "@@ -0,0 +142,164 @@",
+      "source_kind": "other",
+      "source_snippet": "pub fn source(&self) -> TxSource { ... } pub fn pool_tx(&self) -> &PoolTx { ... } pub fn primary_tx_hash(&self) -> alloy_primitives::B256 { *self.primary_tx().tx_hash() }",
+      "semantic_claim": "Bundle helper methods expose source classification, the pool transaction reference for invalidation/removal, and the primary transaction hash for identity-sensitive payload operations.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "transaction-identity",
+        "negative-paths",
+        "async-fsm"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "pool_tx",
+            "tx_hash",
+            "best_txs.mark_invalid"
+          ],
+          "snippet": "for (pool_tx, metadata) in fulfilled_async_entries { let original_tx = pool_tx.to_consensus(); let tx_hash = *original_tx.tx_hash(); ... } ... best_txs.mark_invalid(&pool_tx, ...)",
+          "evidence": "The destination keeps pool transaction references and transaction hashes in local variables rather than exposing helper methods."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/async_pool.rs",
+          "symbols": [
+            "remove_by_hash"
+          ],
+          "snippet": "pub fn remove_by_hash(&self, original_tx_hash: &TxHash) -> Option<AsyncTxMetadata<T>> { ... }",
+          "evidence": "Async lifecycle removal remains keyed by original transaction hash in the pool layer."
+        }
+      ],
+      "equivalence_argument": "The destination preserves the identity data flow through local variables and pool APIs, but there is no exact bundle helper surface and async skip paths generally continue rather than marking the pool transaction invalid.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Inject malformed fulfilled async metadata and assert the destination leaves, removes, or invalidates the pool entry according to a documented policy rather than silently losing transaction identity.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed covered for behavior. Hash and identity data flow is local rather than exposed through TxBundle helper accessors."
+    },
+    {
+      "record_id": "file-0088-atom-0010",
+      "file_index": 88,
+      "atom_index": 10,
+      "atoms_total": 11,
+      "source_path": "crates/ethereum/payload/src/bundle.rs",
+      "source_hunk_hint": "@@ -0,0 +166,183 @@",
+      "source_kind": "encoding_rule",
+      "source_snippet": "pub fn extract_delivery_tip(_input: &Bytes, _base_fee: u64) -> u128 { ... 0 }",
+      "semantic_claim": "Delivery settlement sorting has a dedicated extraction hook for DeliveryConfig EIP-1559-style priority fee data, currently failing closed to zero until ABI decoding is wired.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "fee-gas-accounting",
+        "async-fsm",
+        "execution-ordering"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "PreparedDeliverySettlement::effective_tip",
+            "prepare_delivery_settlement_transaction"
+          ],
+          "snippet": "let effective_tip = effective_fee_per_gas.saturating_sub(U256::from(base_fee)); ... PreparedDeliverySettlement { settlement_rlp_len, settlement_tx, effective_tip }",
+          "evidence": "Delivery config fee data is decoded into an effective tip stored on PreparedDeliverySettlement."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "PayloadCandidate::Delivery",
+            "sort_candidates_by_effective_tip"
+          ],
+          "snippet": "let effective_tip = prepared.effective_tip; payload_candidates.push(PayloadCandidate::Delivery { prepared, tx_hash, effective_tip, original_index });",
+          "evidence": "The delivery effective tip now participates in the same candidate tip sort as fulfilled async and regular candidates."
+        }
+      ],
+      "equivalence_argument": "The destination supersedes the old zero-valued extract_delivery_tip stub by decoding DeliveryConfig into an effective tip and feeding that value into unified payload-candidate sorting.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Create delivery-ready entries whose DeliveryConfig max_fee_per_gas is below, equal to, and above base fee, and assert both settlement gas price and any inclusion ordering use the intended effective priority policy.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed covered/superseded. Delivery config is decoded and effective_tip is computed, stored on PreparedDeliverySettlement, and used in candidate sorting."
+    },
+    {
+      "record_id": "file-0088-atom-0011",
+      "file_index": 88,
+      "atom_index": 11,
+      "atoms_total": 11,
+      "source_path": "crates/ethereum/payload/src/bundle.rs",
+      "source_hunk_hint": "@@ -0,0 +185,194 @@",
+      "source_kind": "test_fixture",
+      "source_snippet": "fn test_tx_source_equality() { assert_eq!(TxSource::Scheduled, TxSource::Scheduled); assert_ne!(TxSource::Scheduled, TxSource::Regular); }",
+      "semantic_claim": "The new module includes a minimal unit test proving TxSource equality and inequality semantics.",
+      "high_risk": false,
+      "risk_tags": [
+        "test-coverage",
+        "transaction-identity"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src",
+          "symbols": [
+            "tests"
+          ],
+          "snippet": "No TxSource type or TxSource equality test exists in the destination payload modules.",
+          "evidence": "Exact searches for TxSource in the v2.2 port and the other requested destination repos found no match."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "The test is absent because the destination has no equivalent enum."
+    }
+  ],
+  "high_risk_atoms_total": 10,
+  "non_exact_atoms_total": 11,
+  "adversarial_reviews": [
+    {
+      "review_record_id": "review-files-0077-0089-mechanical",
+      "required": false,
+      "status": "completed",
+      "reason": "Mechanical review completed; remaining non-exact atoms are now confirmed covered, confirmed missing, intentionally absent, or support/test/telemetry only."
+    }
+  ],
+  "summary": "Mechanical review complete. The recent payload commit confirms the behavior formerly represented by bundle.rs is covered by PayloadCandidate, cross-source effective-tip sorting, primary_tx sequencing, async settlement preparation, and gas/size accounting. The exact TxBundle/TxSource module and its tiny equality test remain absent.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Updated after ba3727354e: payload/src/lib.rs introduced PayloadCandidate, sort_candidates_by_effective_tip, and reorder_payload_candidates over primary_tx. No exact TxBundle/TxSource module or TxSource equality test exists. Mechanical review review-files-0077-0089-mechanical completed; all prior needs-review atoms have definitive verdicts."
+}

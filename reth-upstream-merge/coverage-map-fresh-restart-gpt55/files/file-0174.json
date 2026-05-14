@@ -1,0 +1,33 @@
+{
+  "record_type": "file",
+  "file_index": 174,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/net/network/src/transactions/fetcher.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "network",
+    "transactions",
+    "fetcher"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The transaction fetcher divergence is rustfmt-only noise in return/break/continue statements, response-size conditions, and arithmetic wrapping; no transaction fetch behavior changed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 174: M\tcrates/net/network/src/transactions/fetcher.rs.",
+    "The isolated patch adds semicolons to existing early returns, breaks, continues, and closure returns, and reformats arithmetic and comparison expressions.",
+    "No inflight peer accounting, idle peer selection, request packing, fallback peer retry handling, capacity checks, egress channel handling, pending hash fill logic, fetch event classification, response verification, or stream polling behavior changed."
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "The dispatcher returns defined ZK Phase 1 fees for 0x0806 using fixed executor fee, input commitment fee, and 64-byte inclusion output.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn calculate_zk_fees_phase1(input_len: usize) -> AsyncFees {\n    let executor_fee = U256::from(ZK_PHASE1_SETTLEMENT_FEE_WEI);\n    let commitment_fee = async_commitment_fee(input_len);\n    let inclusion_fee = async_inclusion_fee(input_len, 64);\n    AsyncFees::new(executor_fee, commitment_fee, inclusion_fee)\n}\n...\nif precompile_address == ZK_TWO_PHASE_PRECOMPILE {\n    return Ok(calculate_zk_fees_phase1(input_len));\n}",
+      "symbols": [
+        "calculate_zk_fees_phase1",
+        "calculate_async_fees"
+      ]
+    }
+  ],
+  "equivalence_argument": "ZK_TWO_PHASE_PRECOMPILE no longer falls through to unknown-precompile handling; it is routed before generic HTTP/LLM pricing to calculate_zk_fees_phase1.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/constants.rs",
+    "crates/ritual-async-fees/src/lib.rs"
+  ],
+  "invariant_id": "cur-c2130c7588-phase-phase-defined-settlement-fees",
+  "invariant_index": 486,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This maps directly to the ZK phase-one fee branch.",
+  "rationale": "The primary diff adds `ZK_PHASE1_SETTLEMENT_FEE_WEI`, `calculate_zk_fees_phase1`, and a dispatch branch in `calculate_async_fees` for `ZK_TWO_PHASE_PRECOMPILE`; the commit body says the missing branch caused payload settlement construction to fail as an unknown precompile. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "2a28ffe45934a585eb7eeb05dede50791e90f017"
+  ],
+  "statement": "For `ZK_TWO_PHASE_PRECOMPILE` (`0x0806`), `calculate_async_fees` must return Phase 1 fees using a fixed executor fee, normal async commitment fee for the input length, and inclusion fee computed with a small 64-byte Phase 1 output size.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call `calculate_async_fees(ZK_TWO_PHASE_PRECOMPILE, input, output)` for representative input and assert it returns `AsyncFees::new(U256::from(ZK_PHASE1_SETTLEMENT_FEE_WEI), async_commitment_fee(input.len()), async_inclusion_fee(input.len(), 64))` rather than an unknown-precompile error."
+  ],
+  "summary": "ZK two-phase Phase 1 has explicit settlement fees.",
+  "test_or_falsification_candidate": "Call `calculate_async_fees(ZK_TWO_PHASE_PRECOMPILE, input, output)` for representative input and assert it returns `AsyncFees::new(U256::from(ZK_PHASE1_SETTLEMENT_FEE_WEI), async_commitment_fee(input.len()), async_inclusion_fee(input.len(), 64))` rather than an unknown-precompile error.",
+  "title": "ZK two-phase Phase 1 has defined settlement fees",
+  "total_invariants": 1954
+}

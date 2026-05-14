@@ -1,0 +1,78 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Model metadata is resolved by exact model name from ModelPricingRegistry contract storage; missing models return None.",
+      "path": "crates/ritual-async-fees/src/registry.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let base_slot = compute_string_mapping_slot(model_name, 0);\nlet params_b_u256 = db.storage(contract, base_slot)?;\nlet theta_u256 = db.storage(contract, base_slot + U256::from(1))?;\n...\nif exists_u256.is_zero() { return Ok(None); }",
+      "symbols": [
+        "read_model_from_db",
+        "read_model_from_db_cached"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "LLM pricing requires the exact decoded model to exist in the on-chain registry and explicitly ignores executor-supplied metadata for pricing.",
+      "path": "crates/ritual-async-fees/src/llm.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let info = read_model_from_db_cached(db, contract, model_name, cache)?.ok_or_else(|| format!(\"Model '{model_name}' not in LLM registry\"))?;\n...\n\"Ignoring executor-supplied LLM metadata for pricing; registry remains authoritative\"",
+      "symbols": [
+        "resolve_llm_model_config",
+        "decode_llm_response"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "The shared fee calculation passes the database and model registry contract into the LLM pricing path and propagates missing-model errors.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "compute_llm_executor_fee(db, model_registry_contract, output, is_encrypted, model_cache)?",
+      "symbols": [
+        "calculate_async_fees"
+      ]
+    }
+  ],
+  "equivalence_argument": "Static registry and candidate-name fallback are absent from the port async-fees crate; the effective LLM path uses exact contract storage lookup and fails when the exact model name is missing.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/llm.rs",
+    "crates/ritual-async-fees/src/registry.rs",
+    "crates/ritual-async-fees/src/lib.rs"
+  ],
+  "invariant_id": "cur-4a7ad134ce-pricing-uses-exact-chain-model-data",
+  "invariant_index": 371,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to the port model registry reader and LLM pricing resolver.",
+  "rationale": "The primary commit removes the static LLM_MODEL_REGISTRY and llm_model_candidates fallback path, adds read_model_from_db(), and changes compute_llm_executor_fee()/calculate_async_fees() to require a database and model registry contract for LLM pricing. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "ac7ac299a75e0c35f4d5e83c5bf6617c92087aea"
+  ],
+  "statement": "LLM executor fee calculation must resolve the model by exact name from the ModelPricingRegistry contract storage and must not use the removed static model registry, candidate-name normalization, executor metadata, or byte-based HTTP pricing as a fallback when the model is missing.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Populate a mock ModelPricingRegistry storage with one exact model name and verify compute_llm_executor_fee succeeds only for that exact name; then call it with a case-normalized, shortened, missing, or metadata-only model and assert it returns an error rather than falling back to static defaults or HTTP byte pricing."
+  ],
+  "summary": "LLM pricing uses exact on-chain model registry data and rejects missing models.",
+  "test_or_falsification_candidate": "Populate only one exact model name in registry storage and assert case-normalized, shortened, missing, or metadata-only names return Err rather than fallback pricing.",
+  "title": "LLM pricing uses exact on-chain model data",
+  "total_invariants": 1954
+}

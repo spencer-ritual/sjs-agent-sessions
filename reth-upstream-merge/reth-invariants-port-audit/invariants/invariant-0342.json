@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No equivalent unified read_executor_public_keys call or SpcExecutorRegistryReadFailed mapping was found in the active SPC block-verification path.",
+  "evidence_files": [
+    "Cargo.toml",
+    "crates/ritual-block-verification/Cargo.toml",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-7634162bc7-verification-uses-unified-registry-reader",
+  "invariant_index": 342,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ritual-block-verification/src/error.rs",
+      "crates/ritual-tee-registry-reader/src/reader.rs",
+      "crates/node/src/executor.rs"
+    ],
+    "checked_queries": [
+      "ritual_executor_registry_reader",
+      "read_executor_public_keys",
+      "SpcExecutorRegistryReadFailed",
+      "read_expected_executor",
+      "ritual_tee_registry_reader"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "ritual_executor_registry_reader::read_executor_public_keys",
+      "read_executor_public_keys",
+      "read_expected_executor",
+      "SpcExecutorRegistryReadFailed"
+    ],
+    "missing_behavior": "SPC block verification does not call the unified read_executor_public_keys helper for the specific executor set and does not map registry-reader failures into SpcExecutorRegistryReadFailed.",
+    "related_but_insufficient_code": [
+      "crates/ritual-tee-registry-reader/src/reader.rs exposes read_executor_public_keys, and BlockVerificationError defines SpcExecutorRegistryReadFailed, but verify_spc_calls uses read_expected_executor/read_executor and maps failures to InvalidSpc instead."
+    ]
+  },
+  "notes": "Confirmed by exact symbol searches across the audited local repos.",
+  "rationale": "The primary diff adds the registry-reader crate as a workspace and block-verification dependency, removes the local verifier method, and replaces self.read_executor_public_keys with the unified crate function at the SPC verification key-read point. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "48896ba696cb119028faee3f3731511f663c3d41"
+  ],
+  "statement": "When ritual-block-verification verifies SPC calls, it must read executor public keys through ritual_executor_registry_reader::read_executor_public_keys for the specific executor addresses being verified, and map reader failures into SpcExecutorRegistryReadFailed.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Construct a block with an SPC call from a registered executor and assert verification succeeds when read_executor_public_keys returns that executor's public key; force the reader to fail or omit the key and assert block verification returns SpcExecutorRegistryReadFailed or the subsequent signature failure rather than silently accepting."
+  ],
+  "summary": "SPC verification does not use the unified public-key reader/error mapping required by the invariant.",
+  "test_or_falsification_candidate": "Force a registry read failure during verify_spc_calls and assert the current code returns InvalidSpc rather than SpcExecutorRegistryReadFailed, demonstrating the missing mapping.",
+  "title": "SPC verification uses unified registry reader",
+  "total_invariants": 1954
+}

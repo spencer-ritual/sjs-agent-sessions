@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "910f91cf4b627222a8222f3976af0db517075458",
+      "evidence": "Canonical metadata maps image/audio/video precompile addresses to ImageCall, AudioCall, and VideoCall tags.",
+      "path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "AsyncPrecompileMetadata { address: IMAGE_CALL_PRECOMPILE, capability_tag: AsyncPrecompileCapabilityTag::ImageCall, settlement: AsyncPrecompileSettlement::TwoPhase, spc_block_verified: true, short_settlement_enabled: false },\nAsyncPrecompileMetadata { address: AUDIO_CALL_PRECOMPILE, capability_tag: AsyncPrecompileCapabilityTag::AudioCall, settlement: AsyncPrecompileSettlement::TwoPhase, spc_block_verified: true, short_settlement_enabled: false },\nAsyncPrecompileMetadata { address: VIDEO_CALL_PRECOMPILE, capability_tag: AsyncPrecompileCapabilityTag::VideoCall, settlement: AsyncPrecompileSettlement::TwoPhase, spc_block_verified: true, short_settlement_enabled: false },",
+      "symbols": [
+        "ALL_ASYNC_PRECOMPILE_METADATA",
+        "expected_capability_tag"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "910f91cf4b627222a8222f3976af0db517075458",
+      "evidence": "RPC validation converts the metadata tag to a registry Capability and rejects executors whose capability differs.",
+      "path": "crates/rpc/rpc/src/async_tx_validator.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let expected = Capability::try_from(metadata.expected_capability_tag().as_u8()).map_err(|_| { ... })?;\nlet executor = read_executor(db, registry, executor_address)?\n    .ok_or_else(|| format!(\"TEE executor {executor_address} not found\"))?;\nif executor.capability != expected {\n    return Err(format!(\"TEE executor {executor_address} has capability {:?}, expected {:?}\", executor.capability, expected));\n}",
+      "symbols": [
+        "validate_executor"
+      ]
+    }
+  ],
+  "equivalence_argument": "Because RPC admission uses expected_capability_tag for the exact precompile address, image/audio/video transactions require matching ImageCall/AudioCall/VideoCall executors and reject LLM-only executors.",
+  "evidence_files": [
+    "crates/rpc/rpc/src/async_tx_validator.rs",
+    "crates/ritual-tee-registry-reader/src/types.rs"
+  ],
+  "invariant_id": "cur-6b07d348ed-multimodal-precompiles-require-matching-capabilities",
+  "invariant_index": 463,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This supersedes the older generic-LLM mapping for media executor validation.",
+  "rationale": "The primary merge removes image/audio/video from the LLM capability branch, adds separate required capabilities for each precompile, and extends the TEE registry reader Capability enum with ImageCall=7, AudioCall=8, and VideoCall=9. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "cd0f30dc2eac1d62d67fc30eadd4a012659daec5"
+  ],
+  "statement": "RPC async transaction validation should require IMAGE_CALL precompiles to use executors with ImageCall capability, AUDIO_CALL precompiles to use AudioCall capability, and VIDEO_CALL precompiles to use VideoCall capability, instead of accepting generic LLM capability for those precompiles.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Register or mock executors with Llm, ImageCall, AudioCall, and VideoCall capabilities, then validate image/audio/video async transactions and assert each precompile accepts only the matching multimodal capability and rejects an LLM-only executor."
+  ],
+  "summary": "Multimodal precompiles require matching media capabilities.",
+  "test_or_falsification_candidate": "Register or mock executors with Llm, ImageCall, AudioCall, and VideoCall capabilities, then validate image/audio/video async transactions and assert each precompile accepts only the matching multimodal capability and rejects an LLM-only executor.",
+  "title": "Multimodal precompiles require matching capabilities",
+  "total_invariants": 1954
+}

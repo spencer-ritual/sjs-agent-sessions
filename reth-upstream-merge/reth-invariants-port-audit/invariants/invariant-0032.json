@@ -1,0 +1,126 @@
+{
+  "cluster_key": "scheduler:locks-observability",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Canonical commitments store explicit commit block and contract expiry metadata.",
+      "path": "crates/transaction-pool/src/pool/mod.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "commit_block = new_tip.number(); contract_expiry_block = commit_block.checked_add(async_commitment.ttl)...; add_committed_async_tx(..., commit_block, contract_expiry_block)",
+      "symbols": [
+        "PoolInner::process_async_commitment_transactions"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Async pool expiry is metadata-driven, inclusive through contract_expiry_block, and two-phase deadlines use checked addition.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "AsyncTxMetadata { commit_block, max_poll_block, contract_expiry_block }; current_block <= contract_expiry_block; settlement_block.checked_add(phase2_offset)",
+      "symbols": [
+        "AsyncTxMetadata",
+        "AsyncPool::cleanup_expired",
+        "AsyncPool::mark_awaiting_delivery",
+        "Phase2DeadlineOverflow"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Verifier simulation metadata is not the authoritative expiry source.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "Simulation validates call count/precompile/input, not expiry authority.",
+      "symbols": [
+        "SimulatedAsyncCall",
+        "verify_async_commitments"
+      ]
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "f4f4f2c7cbf201bd9f3fb6fe7b9cdd18c6aecdec",
+      "evidence": "Dependency execution no longer treats commit_block as an authoritative transaction field.",
+      "path": "crates/evm/src/tx.rs",
+      "repo": "/home/ritual/repos/ritual-alloy-evm-internal",
+      "snippet": "commit_block was removed - the contract now uses block.number for expiry calculation.",
+      "symbols": [
+        "FromRecoveredTx<TxAsyncCommitment> for TxEnv"
+      ]
+    }
+  ],
+  "equivalence_argument": "The old detector behavior is split across payload/verification and transaction-pool metadata; expiry authority lives in AsyncTxMetadata, not simulated call metadata or transaction execution fields.",
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/async_pool.rs",
+    "crates/transaction-pool/src/pool/mod.rs",
+    "crates/ritual-async/src/detector.rs"
+  ],
+  "invariant_id": "cur-3c090b3008-async-pool-expiry-metadata-driven",
+  "invariant_index": 32,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+    "/home/ritual/repos/ritual-alloy-evm-internal"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/transaction-pool/src/pool/mod.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/evm/src/tx.rs",
+      "crates/consensus/src/transaction/async_commitment.rs"
+    ],
+    "checked_queries": [
+      "contract_expiry_block|max_poll_block|expiry|ttl|commit_block",
+      "phase2_deadline_offset|Phase2DeadlineOverflow|cleanup_expired"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "contract_expiry_block",
+      "max_poll_block",
+      "phase2_deadline_offset",
+      "Phase2DeadlineOverflow",
+      "AsyncTxMetadata",
+      "SimulatedAsyncCall",
+      "TxAsyncCommitment"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "revm AsyncContext carries block_number for SPC creation, but not pool expiry; Alloy TxAsyncCommitment has ttl/precompile data but no commit_block expiry field."
+    ]
+  },
+  "notes": "Mapped in port async pool and canonical processing.",
+  "rationale": "The async expiry candidates evolve from a direct commit_block + ttl formula to stored contract_expiry_block metadata and Phase 2 offset-based pool deadlines, while preserving that verifier re-simulation commit_block is the simulation target block, not the expiry source.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "0b54ba80584c290171dcb93681b219279226ad5f",
+    "3cc9c0e64cf03b8e46f69562f4b77f1c121fad04",
+    "fbb0d3065a1638e82a2ab0763a5076f7ffcc0511",
+    "31b547e67d834c37926771f69c6ece79ae301077",
+    "a4f1ebbb0cc5482dc9ac582fcf7945999cfe821b"
+  ],
+  "statement": "Async pool entries must carry contract-sourced expiry metadata when added; Phase 1 finalized commitments set contract_expiry_block to finalized block plus ttl, Phase 2 pool deadlines are conservatively approximated as commit_block plus the extracted offset with checked addition, and detector commit_block remains the simulation block used for verifier re-simulation rather than the authoritative expiry source.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Process a finalized async commitment at block N with ttl T and assert pool metadata stores contract_expiry_block N+T and expires only after that inclusive boundary; force missing expiry metadata and assert the entry is treated as expired/invariant-violating.",
+    "Insert two-phase commitments with known commit blocks and offsets and assert max_poll_block equals commit_block + offset, with overflow producing no derived deadline rather than wrapping.",
+    "Create an async commitment simulated at target block T but included at block I and assert verifier re-simulation uses T while expiry/deadline checks use contract or pool deadline metadata rather than treating T as the inclusion block."
+  ],
+  "summary": "Async pool expiry is metadata-driven in the port.",
+  "test_or_falsification_candidate": "Canonicalize commitment at block N/ttl T, assert expiry N+T and replay eligibility through expiry; settle two-phase at S with offset O and assert checked S+O extension.",
+  "title": "Async pool expiry is metadata-driven",
+  "total_invariants": 1954
+}

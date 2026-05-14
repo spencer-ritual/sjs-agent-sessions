@@ -1,0 +1,63 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping was found: current HTTP async decoding uses ABI HTTPCallRequest decoding, not RLP decoding of a first-list-item executor address.",
+  "evidence_files": [
+    "crates/ritual-async/src/detector.rs"
+  ],
+  "invariant_id": "cur-9be3c0f8b0-async-http-calls-require-executor-address",
+  "invariant_index": 222,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async/src/detector.rs",
+      "crates/ritual-precompile-codecs/src/validation.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/rpc/rpc/src/async_tx_validator.rs"
+    ],
+    "checked_queries": [
+      "alloy_rlp|Rlp|HTTP_CALL_PRECOMPILE|executor_address|HTTPCallRequest::from_abi|try_decode_precompile_data"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "HTTP_CALL_PRECOMPILE",
+      "try_decode_precompile_data",
+      "HTTPCallRequest::from_abi",
+      "AsyncCallResult",
+      "executor_address"
+    ],
+    "missing_behavior": "Missing RLP input decoding that treats the first item as executor address and rejects invalid/non-address RLP for HTTP async detection.",
+    "related_but_insufficient_code": [
+      "ritual-precompile-codecs::try_decode_precompile_data decodes HTTP_CALL_PRECOMPILE with HTTPCallRequest::from_abi and returns request.executor.",
+      "build_short_async_commitment_transaction validates the async call through validate_async_payload and try_decode_precompile_data, then propagates decoded.executor.",
+      "No audited ritual-async detector.rs exists in the v2.2.0 port checkout; detector behavior has moved into inspector/payload validation."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The commit adds alloy-rlp, introduces a dedicated extractor, stores executor_address as a required AsyncCallResult field, returns None when extraction fails, and adds tests for valid, invalid, empty, and wrong-type inputs. That points to node behavior, not just internal representation. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "0dfeddeb517440c48785eb69c34c1b91f74ddc0e"
+  ],
+  "statement": "After an HTTP_CALL precompile invocation is detected, the detector must decode the input as RLP and treat the first item as the executor address; successful async detection exposes that address in AsyncCallResult.executor_address, while invalid, empty, missing, or non-address RLP input must prevent the transaction from being considered async.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Construct HTTP_CALL precompile transactions whose input is an RLP list with a first Address, malformed bytes, empty bytes, and an RLP list whose first item is not an Address. Run detect_async_call: the valid case should return Some with executor_address equal to the first item, and every invalid case should return None without creating an async system transaction."
+  ],
+  "summary": "The old RLP executor-address detector behavior is not present in the audited repo set.",
+  "test_or_falsification_candidate": "Pass an RLP-list HTTP_CALL input with a first Address and otherwise non-ABI payload; current ABI decoder should reject it instead of producing AsyncCallResult.executor_address.",
+  "title": "Async HTTP calls require RLP executor address",
+  "total_invariants": 1954
+}

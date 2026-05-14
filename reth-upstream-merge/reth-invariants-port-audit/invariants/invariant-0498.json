@@ -1,0 +1,75 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "RPC loads canonical SPC job metadata from AsyncJobTracker state.",
+      "path": "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let jobs = read_jobs_for_spc_verification(&mut db, None, &[tx_hash])?;\njobs.get(&tx_hash).cloned().ok_or_else(|| format!(\"job {tx_hash} not found in AsyncJobTracker\"))",
+      "symbols": [
+        "load_spc_job_from_contract"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "The RPC request is checked against contract metadata and the verifier request is built from the canonical job fields.",
+      "path": "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if request.precompile_address != job.precompile_address { return Err(...); }\nif request.block_number != job.commit_block { return Err(...); }\nif keccak256(&request.input) != job.input_hash { return Err(...); }\nif request.executor != job.executor_address { return Err(...); }\nOk(SpcVerificationRequest { block_number: job.commit_block, tx_hash: job.tx_hash, executor: job.executor_address, ... })",
+      "symbols": [
+        "build_spc_verification_request"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "Result submission verifies against canonical AsyncJobTracker context before updating the pool.",
+      "path": "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let job = load_spc_job_from_contract(&context.provider, tx_hash)?;\nlet spc_request = build_spc_verification_request(&request, &job)?;\ncontext.spc_verifier.verify_single(&spc_request).await",
+      "symbols": [
+        "submit_async_result",
+        "SpcVerifier::verify_single"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port moved this RPC behavior to ethereum/node, but it still rejects request/contract mismatches and verifies with AsyncJobTracker-sourced executor, precompile, commit block, input hash, and prior block context.",
+  "evidence_files": [
+    "crates/rpc/rpc/src/ritual.rs"
+  ],
+  "invariant_id": "cur-3a6881c798-async-result-verification-uses-canonical-metadata",
+  "invariant_index": 498,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This mapping covers Phase 1 async result submission, not Phase 2 delivery submission.",
+  "rationale": "The commit body says RPC-side verification must use canonical async metadata. The diff changes result submission to require `get_async_transaction_by_hash`, reject request/context mismatches, derive the canonical executor from stored input, and call `verify_result` plus `submit_async_result` with canonical metadata rather than trusting request fields. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "70225f8992ed10af8559fc7a276eade5614bb7ff"
+  ],
+  "statement": "RPC async result submission must load the canonical async metadata from the async pool, reject precompile address, block number, or input mismatches, derive the executor from the committed input, and use those canonical values for SPC result verification and pool update.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Submit an async result whose request input, precompile address, block number, or executor differs from the async pool metadata and assert RPC returns failure without updating the pool; submit matching data and assert verification uses the canonical executor from input."
+  ],
+  "summary": "RPC async result verification uses canonical AsyncJobTracker metadata.",
+  "test_or_falsification_candidate": "Submit async results with mismatched precompile, block number, input hash, or executor and assert the pool is not updated; submit matching data with a valid proof and assert success.",
+  "title": "RPC async result verification uses canonical metadata",
+  "total_invariants": 1954
+}

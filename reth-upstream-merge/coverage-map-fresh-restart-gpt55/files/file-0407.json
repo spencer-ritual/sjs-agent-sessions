@@ -1,0 +1,85 @@
+{
+  "record_type": "file",
+  "file_index": 407,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/rpc/rpc/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "module-wiring",
+    "non-exact",
+    "ritual-rpc",
+    "mapped",
+    "structural-equivalent",
+    "review-closed",
+    "relocated"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0407-atom-0001",
+      "file_index": 407,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/rpc/rpc/src/lib.rs",
+      "source_hunk_hint": "@@ -33,6 +33,7 @@; @@ -40,6 +41,7 @@; @@ -54,6 +56,7 @@",
+      "source_kind": "module_wiring",
+      "source_snippet": "mod async_tx_validator;\npub mod ritual;\npub use ritual::RitualApi;",
+      "semantic_claim": "The old `reth-rpc` crate root wires the RPC async transaction validator module and publicly exports the Ritual RPC API implementation.",
+      "high_risk": true,
+      "risk_tags": [
+        "rpc",
+        "module-wiring",
+        "ritual-rpc"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/ritual_async_rpc.rs",
+          "symbols": [
+            "module",
+            "RitualAsyncRpcContext",
+            "submit_async_result",
+            "submit_async_result_batch",
+            "submit_delivery_result"
+          ],
+          "evidence": "The current port registers selected Ritual result/delivery RPC methods from ethereum/node rather than exporting a `reth-rpc::RitualApi` module."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/node.rs",
+          "symbols": [
+            "EthereumAddOns::launch_add_ons"
+          ],
+          "evidence": "Ethereum node add-ons construct the SPC verifier and merge the relocated Ritual async RPC module into the active RPC server."
+        }
+      ],
+      "equivalence_argument": "False positive for core RPC behavior: old `reth-rpc` crate-root module/export wiring is replaced by ethereum/node add-on registration. The old Rust API path is non-exact, but active result/delivery RPC behavior is not missing. Public typed API compatibility remains tracked by files 0364/0365 if that surface is required.",
+      "test_strategy": "RPC module registration and public API check",
+      "negative_test_candidate": "Attempt to import `reth_rpc::RitualApi` or use `crate::async_tx_validator` in the destination; both should be unavailable.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Closed as relocation/duplicate. Do not ask an implementation agent to recreate crate-root `reth-rpc::RitualApi` just to restore core runtime behavior."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "False positive closed for core behavior: old `reth-rpc` crate-root Ritual module wiring is relocated to ethereum/node add-ons and `ritual_async_rpc`; typed API compatibility is tracked separately.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Current runtime registration happens through ethereum/node add-ons and `ritual_async_rpc::module`.",
+    "This closes only the crate-root relocation/duplicate finding; files 0364/0365 still represent old typed API compatibility if that must be preserved."
+  ]
+}

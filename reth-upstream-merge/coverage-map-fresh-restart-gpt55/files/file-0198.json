@@ -1,0 +1,33 @@
+{
+  "record_type": "file",
+  "file_index": 198,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/node/core/src/args/debug.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "semicolon",
+    "node-core",
+    "debug-args"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The debug-args divergence is semicolon-only rustfmt noise in the empty invalid-block selection return; no CLI parsing behavior changed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 198: M\tcrates/node/core/src/args/debug.rs.",
+    "The isolated patch only changes `return Ok(Self(Default::default()))` to `return Ok(Self(Default::default()));`.",
+    "No invalid-block selection parsing, hook splitting, or error handling changed."
+  ]
+}

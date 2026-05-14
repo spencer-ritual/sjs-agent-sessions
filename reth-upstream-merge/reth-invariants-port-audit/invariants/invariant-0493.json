@@ -1,0 +1,64 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "The active check is true only when executor is nonzero and expiryBlock is strictly greater than the current block.",
+      "path": "crates/ritual-async-registry/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if executor.is_zero() {\n    return Ok(false);\n}\n...\nif expiry_block <= current_block_number {\n    return Ok(false);\n}\nOk(true)",
+      "symbols": [
+        "job_exists_and_active"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "Tests document the exact expiry boundary: equal to current block is expired; one before is active.",
+      "path": "crates/ritual-async-registry/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let result = job_exists_and_active(&mut db, Some(contract), job_id, 100);\nassert_eq!(result.unwrap(), false, \"Job should be expired AT its expiry block (<=)\");\n...\nlet result = job_exists_and_active(&mut db, Some(contract), job_id, 99);\nassert_eq!(result.unwrap(), true, \"Job should be active one block before expiry\");",
+      "symbols": [
+        "test_job_exists_and_active_boundary_exact",
+        "test_job_exists_and_active_boundary_one_before"
+      ]
+    }
+  ],
+  "equivalence_argument": "The code and tests align with the strict greater-than rule: missing executor is false, expiry == current is false, expiry < current is false, and expiry > current is true.",
+  "evidence_files": [
+    "crates/ritual-async-registry/src/lib.rs"
+  ],
+  "invariant_id": "cur-9656f3a4a3-active-check-expires-boundary",
+  "invariant_index": 493,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This maps both implementation and boundary tests.",
+  "rationale": "The added boundary tests explicitly align Rust with the contract rule expiryBlock[id] <= block.number, covering missing, active, expired, exact-boundary, and one-before-boundary cases. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "5a756cb1a73ef7bb6de357f2f3456b1b7b6e4d50"
+  ],
+  "statement": "job_exists_and_active must return false for a missing job, true only when jobExecutor is nonzero and expiryBlock is strictly greater than the current block, and false when expiryBlock is equal to or less than the current block.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "For a job with nonzero executor and expiryBlock 100, assert job_exists_and_active is true at block 99 and false at blocks 100 and 101; also assert a zero executor returns false regardless of expiry."
+  ],
+  "summary": "Active job checks expire at the exact boundary.",
+  "test_or_falsification_candidate": "For a job with nonzero executor and expiryBlock 100, assert job_exists_and_active is true at block 99 and false at blocks 100 and 101; also assert a zero executor returns false regardless of expiry.",
+  "title": "Active job check expires at boundary",
+  "total_invariants": 1954
+}

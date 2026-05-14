@@ -1,0 +1,72 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-23bae1f472-video-phase-pixel-second",
+  "invariant_index": 450,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-async-fees/src/registry.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs",
+      "ritual-revm-internal/crates/precompile/src/video_call.rs"
+    ],
+    "checked_queries": [
+      "calculate_video_fees_phase2",
+      "video_fee_wei_per_pixel_second",
+      "pixel-second",
+      "extract_video",
+      "unsupported precompile address for Phase 2 fee calculation"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "calculate_video_fees_phase2",
+      "video_fee_wei_per_pixel_second",
+      "calculate_async_fees_phase2",
+      "VIDEO_CALL_PRECOMPILE",
+      "extract_video_dimensions_and_duration_from_delivery"
+    ],
+    "missing_behavior": "The audited v2.2 port lacks Video Phase 2 pricing that extracts width, height, and duration and charges executor fees by rounded-up pixel-seconds with zero validator fees.",
+    "related_but_insufficient_code": [
+      "The v2.2 port registry type contains a video_fee_wei_per_pixel_second field, but no fee function uses it.",
+      "calculate_async_fees_phase2 only supports long-running HTTP, ZK, and persistent-agent Phase 2, otherwise returning unsupported precompile address.",
+      "VIDEO_CALL_PRECOMPILE is registered as a two-phase precompile, and revm has video precompile comments, but the audited port lacks builder/verifier Phase 2 video fee calculation."
+    ]
+  },
+  "notes": "Create a Video Phase 2 settlement for 0x081A with encoded width, height, and duration; the current port has no calculate_video_fees_phase2 path and cannot verify the expected fee.",
+  "rationale": "The fee function and verifier both route image Phase 2 to dimension extraction and `calculate_image_fees_phase2(width, height)`. Audio Phase 2 explicitly extracts `outputDurationSeconds` and uses `calculate_audio_fees_phase2(duration_seconds)`. Video Phase 2 uses `calculate_video_fees_phase2(width, height, duration_ms)` and the fee code converts duration from milliseconds to rounded-up seconds before applying the pixel-second formula. Collapsed 3 closely related historical candidate statements into the latest effective formulation.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "982a833ec63d740e3076d56e43c28b7bb25cba69"
+  ],
+  "statement": "Video Phase 2 settlement pricing extracts output width, height, and duration milliseconds, rounds duration up to seconds, and charges executor fees based on pixel-seconds, with zero validator fees in Phase 2.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Verify an image Phase 2 settlement whose delivery result encodes width and height; assert expected executor fee changes with `width * height` and malformed/missing dimensions reject the settlement.",
+    "Verify audio Phase 2 settlements with different encoded durations and assert executor fee scales with duration; assert a too-short delivery result is rejected.",
+    "Verify video Phase 2 settlements with fixed dimensions and varying duration, and fixed duration with varying dimensions; assert fees scale by rounded-up pixel-seconds and malformed metadata rejects."
+  ],
+  "summary": "Video Phase 2 pixel-second pricing is not ported.",
+  "test_or_falsification_candidate": "Verify an image Phase 2 settlement whose delivery result encodes width and height; assert expected executor fee changes with `width * height` and malformed/missing dimensions reject the settlement.",
+  "title": "Video Phase 2 is per pixel-second",
+  "total_invariants": 1954
+}

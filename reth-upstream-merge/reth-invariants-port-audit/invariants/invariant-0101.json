@@ -1,0 +1,58 @@
+{
+  "cluster_key": "scheduler:scheduler-event-reject-31793805",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/scheduling/src/contract.rs"
+  ],
+  "invariant_id": "cur-b079b77929-scheduler-event-reject-overflow",
+  "invariant_index": 101,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/scheduling/src/contract.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "u256_to_u64|EventDecodingError|EnhancedCallEvent|callId|executionIndex|totalExecutions"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "u256_to_u64",
+      "EnhancedCallEvent",
+      "SchedulingError::EventDecodingError"
+    ],
+    "missing_behavior": "Missing EnhancedCallEvent construction with u64 overflow rejection; no local scheduler event parser was found in port or dependency repos.",
+    "related_but_insufficient_code": [
+      "This overlaps invariant 100 but is kept as a separate terminal gap because it specifically names EnhancedCallEvent state construction."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The current scheduler contract event parser calls u256_to_u64 for callId across parsed event variants and for executionIndex or totalExecutions where those event values are stored in the u64 execution_index field; u256_to_u64 maps overflow to EventDecodingError.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "0039c50da5ab1550758c9fec9ca33502f1b2d38d"
+  ],
+  "statement": "Scheduler event decoding must reject callId, executionIndex, and totalExecutions values greater than u64::MAX instead of truncating them while constructing EnhancedCallEvent state.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Decode each EnhancedCallEvent-producing Scheduler event with oversized callId/executionIndex/totalExecutions and assert rejection.",
+    "Assert no event with oversized identifiers reaches u64 state."
+  ],
+  "summary": "Scheduler event ID overflow rejection is absent.",
+  "test_or_falsification_candidate": "Current port lacks EnhancedCallEvent and u256_to_u64 overflow checks.",
+  "title": "Scheduler event IDs reject u64 overflow",
+  "total_invariants": 1954
+}

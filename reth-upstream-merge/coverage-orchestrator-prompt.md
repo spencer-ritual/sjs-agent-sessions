@@ -67,6 +67,40 @@ When classifying atoms, prioritize:
 Labels like `structural_equivalent` or `intentionally_absent` **explain** a
 non-exact mapping; they **do not** downgrade a true **behavioral** omission.
 
+### Cross-repo executor capability contract (async precompiles)
+
+Reth-only evidence (decode gates, two-phase registration, SPC allowlists) is **not**
+sufficient when settlement compares the TEE registry executor’s `Capability` to
+`expected_capability_tag` for the job precompile. For **parity with the legacy stack**,
+always trace the full chain when classifying or closing atoms:
+
+`precompile address` → `expected_capability_tag` / registry u8 → traffic-gen
+`ExecutorSelector` capability → node `configgen` / executor `CAPABILITIES=` → payload
+builder + block verifier expectations.
+
+A **name-plausible** mapping (e.g. Sovereign Agent → `AutonomousAgent`) can still
+**break localnet** if downstream continues to pin **HTTP_CALL** executors. Prefer
+**executable** atoms: destination tests or cross-repo citations, not “reasonable
+abstraction” arguments. Multimodal (`IMAGE_CALL`, `AUDIO_CALL`, `VIDEO_CALL`) and
+`FHE` should use the same checklist against `image_call.py`, `audio_call.py`,
+`video_call.py`, `fhe_inference.py`, and `docker.py` capability wiring.
+
+### Feature completion hard gate (merge-auditable)
+
+A **feature** (section in `feature-map.md`, or a named cross-cutting concern such as
+“async precompile registry contracts”) is **not complete** while **any** of the following
+remain anywhere in that feature’s atom footprint:
+
+- `mapping_status` is `blocked`
+- `needs_atomization` is true
+- `review_required` is true **without** a recorded adversarial review **or** an explicit
+  decision note in the atom
+- `semantic_claim` is broad/feature-derived **without** a machine-checkable proof path
+  (tests, or a script such as `coverage-map/verify_async_precompile_cross_repo.py`)
+
+Orchestrators must not treat “some atoms are green” as featuredone. **`coverage_tools.py validate`**
+must pass, and for async precompile work **verify_async_precompile_cross_repo.py** must exit 0.
+
 ## Scope Boundary
 
 This is a mapping and audit pass only. The orchestrator and child agents must not

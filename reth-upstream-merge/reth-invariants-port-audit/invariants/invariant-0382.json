@@ -1,0 +1,56 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "During block execution, nodebuilder reads executors through ritual_tee_registry_reader and updates the SPC verifier registry with payment address, TEE address, key, workload, and capability.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "let executors = read_all_executors(&mut self.db, contract)?;\nlet executor_tuples: Vec<_> = executors.into_iter().map(|e| (e.payment_address, e.tee_address, e.tee_type, e.public_key, e.workload_id, e.capability as u8)).collect();\nspc_verifier.update_registry_from_data(executor_tuples, block.number())?;",
+      "symbols": [
+        "update_executor_registry_from_block",
+        "read_all_executors",
+        "update_registry_from_data"
+      ]
+    }
+  ],
+  "equivalence_argument": "Executor discovery for block execution lives in nodebuilder; the dependency uses the TEE Service Registry address and unified reader rather than the legacy executor registry.",
+  "evidence_files": [
+    "Cargo.toml",
+    "crates/node/Cargo.toml",
+    "crates/node/src/executor.rs"
+  ],
+  "invariant_id": "cur-6f600829a9-executor-discovery-uses-service-registry",
+  "invariant_index": 382,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in nodebuilder dependency.",
+  "rationale": "The merge subject and body identify a TEE Registry migration. The diff replaces the executor registry reader dependency and imports with the TEE registry reader, changes the environment variable and default contract address to the TEE Service Registry, and adapts the returned capability for the executor tuple. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "842be7edcdb2576f9b276c114437c5bed2281d01"
+  ],
+  "statement": "During block execution, executor discovery must read executor records through `ritual_tee_registry_reader` from the TEE Service Registry address, using `TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS` when set and the new default registry address otherwise.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Run executor discovery with `TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS` set to a test registry containing one executor and `EXECUTOR_REGISTRY_CONTRACT_ADDRESS` set to a different address; assert the node reads from the TEE registry and maps the executor capability correctly."
+  ],
+  "summary": "Executor discovery uses the TEE service registry reader.",
+  "test_or_falsification_candidate": "Set TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS to a test registry and assert block execution populates the SPC verifier from that registry regardless of EXECUTOR_REGISTRY_CONTRACT_ADDRESS.",
+  "title": "Executor discovery uses TEE service registry",
+  "total_invariants": 1954
+}

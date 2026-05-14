@@ -1,0 +1,97 @@
+{
+  "record_type": "file",
+  "file_index": 521,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/transaction-pool/src/blocking_handlers.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "structural_equivalent",
+    "reviewed",
+    "txpool",
+    "scheduled"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0521-atom-0001",
+      "file_index": 521,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/transaction-pool/src/blocking_handlers.rs",
+      "source_hunk_hint": "@@ -0,0 +1,284 @@",
+      "source_kind": "canonical_handler",
+      "source_snippet": "use crate::{\n    traits::{PoolTransaction, TransactionPool, TransactionPoolExt},\n    EthPooledTransaction, Pool, ValidPoolTransaction,\n};\nuse alloy_consensus::BlockHeader;\nuse alloy_primitives::{Address, TxKind, B256};\nuse alloy_sol_macro::sol;\nuse alloy_sol_types::SolCall;\nuse reth_chainspec::ChainSpecProvider;\nuse reth_ethereum_primitives::TransactionSigned;",
+      "semantic_claim": "The old divergence adds `blocking_handlers.rs` to process canonical state synchronously for scheduled transactions, async pool updates, heartbeat revival routing, and Scheduler cleanup.",
+      "high_risk": true,
+      "risk_tags": [
+        "txpool",
+        "scheduled",
+        "canonical-state",
+        "heartbeat",
+        "missing"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/mod.rs",
+          "symbols": [
+            "process_blocking_canonical_state_change",
+            "process_async_commitment_transactions",
+            "process_async_settlement_transactions",
+            "cleanup_expired_async"
+          ],
+          "evidence": "Destination does not keep the old `blocking_handlers.rs` file, but the txpool now has a provider-level blocking canonical hook that processes canonical async commitments, settlements/deliveries, and expiry cleanup before async canonical notifications."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+          "symbols": [
+            "synthesize_heartbeat_revival_transactions",
+            "create_heartbeat_revival_transaction",
+            "select_revival_executor"
+          ],
+          "evidence": "Heartbeat FAILED-agent revival routing is restored in the v2 payload path by scanning parent state, selecting HTTP executors, checking pending async jobs, and synthesizing heartbeat-targeted `reviveAgent` system transactions."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "synthesize_heartbeat_revival_transactions",
+            "PayloadCandidate::Scheduled"
+          ],
+          "evidence": "Payload building injects synthesized heartbeat revival transactions as non-Scheduler-routed scheduled candidates in the same candidate ordering/execution flow."
+        }
+      ],
+      "equivalence_argument": "Reviewed structural equivalent for live txpool behavior: the old txpool-local blocking handler file is not preserved, but its active responsibilities moved to v2 ownership boundaries. Async lifecycle canonical side effects run in the txpool blocking canonical hook; scheduled execution is parent-state payload synthesis plus verifier censorship checks; heartbeat revival is synthesized in the payload builder from parent state. The separate execution-stage catch-up/backfill hook is tracked by file-0431.",
+      "test_strategy": "canonical-state scheduled/heartbeat regression",
+      "negative_test_candidate": "A canonical update that should revive failed heartbeat agents through the old txpool handler needs explicit v2.2 coverage.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed after heartbeat revival restoration: live txpool/scheduled/heartbeat canonical behavior is structurally covered outside the old txpool `blocking_handlers.rs` file."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Reviewed: the old txpool blocking handler file is not exact-preserved, but live async canonical handling, scheduled synthesis, Scheduler cleanup, and heartbeat revival routing are structurally covered by v2 txpool/payload/verifier paths.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0521: A\tcrates/transaction-pool/src/blocking_handlers.rs.",
+    "Source diff lines 90077-90366; first hunk `@@ -0,0 +1,284 @@`.",
+    "Fresh destination evidence was checked against /home/ritual/repos/ritual-reth-internal-v2.2.0-port.",
+    "Review conclusion: no live txpool blocking-handler gap remains here; staged sync/backfill side-effect reconstruction is tracked separately in file-0431."
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "FHE_PRECOMPILE metadata declares the expected Fhe capability tag.",
+      "path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "AsyncPrecompileMetadata {\n    address: FHE_PRECOMPILE,\n    capability_tag: AsyncPrecompileCapabilityTag::Fhe,\n    settlement: AsyncPrecompileSettlement::TwoPhase,\n    spc_block_verified: true,\n}",
+      "symbols": [
+        "FHE_PRECOMPILE",
+        "AsyncPrecompileCapabilityTag::Fhe"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "RPC async admission decodes the expected capability from metadata and rejects executors whose registry capability differs.",
+      "path": "crates/rpc/rpc/src/async_tx_validator.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let expected = Capability::try_from(metadata.expected_capability_tag().as_u8())?;\n...\nif executor.capability != expected { return Err(format!(\"TEE executor {executor_address} has capability {:?}, expected {:?}\", executor.capability, expected)); }",
+      "symbols": [
+        "validate_executor",
+        "metadata.expected_capability_tag"
+      ]
+    }
+  ],
+  "equivalence_argument": "FHE admission resolves FHE_PRECOMPILE to Capability::Fhe and rejects non-FHE executor capabilities.",
+  "evidence_files": [
+    "crates/rpc/rpc/src/async_tx_validator.rs"
+  ],
+  "invariant_id": "cur-de9b74baa1-precompile-requires-executor-capability",
+  "invariant_index": 537,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The capability check is metadata-driven, so it shares the same precompile capability registry as other async precompiles.",
+  "rationale": "The commit body explicitly calls out requiring FHE capability, and the validator maps FHE_PRECOMPILE to Capability::Fhe in the recognized precompile routing. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "301ef306499228033c994446ea1b139bd2d729bd"
+  ],
+  "statement": "RPC async executor registration validation must require Capability::Fhe for FHE_PRECOMPILE requests rather than skipping capability validation or accepting a different executor capability.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Register one executor with Capability::Fhe and another with HttpCall or Llm, then validate identical FHE_PRECOMPILE payloads against each; only the FHE-capable executor should pass validation."
+  ],
+  "summary": "FHE precompile requires FHE executor capability.",
+  "test_or_falsification_candidate": "Validate an FHE_PRECOMPILE payload against Fhe and HttpCall executors; only the Fhe executor should pass.",
+  "title": "FHE precompile requires FHE executor capability",
+  "total_invariants": 1954
+}

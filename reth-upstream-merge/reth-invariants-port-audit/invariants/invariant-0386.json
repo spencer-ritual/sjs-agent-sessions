@@ -1,0 +1,68 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "The ZK two-phase address is registered as a two-phase, SPC block-verified async precompile with ZkCall capability.",
+      "path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const ZK_TWO_PHASE_PRECOMPILE: Address = address!(\"0x0000000000000000000000000000000000000806\");\n...\nAsyncPrecompileMetadata { address: ZK_TWO_PHASE_PRECOMPILE, capability_tag: AsyncPrecompileCapabilityTag::ZkCall, settlement: AsyncPrecompileSettlement::TwoPhase, spc_block_verified: true, short_settlement_enabled: false }\n...\nALL_TWO_PHASE_PRECOMPILE_ADDRESSES = [..., ZK_TWO_PHASE_PRECOMPILE, ...];",
+      "symbols": [
+        "ZK_TWO_PHASE_PRECOMPILE",
+        "ALL_ASYNC_PRECOMPILE_METADATA",
+        "ALL_TWO_PHASE_PRECOMPILE_ADDRESSES"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Registry capability value 5 maps to ZkCall and is considered executor-capable.",
+      "path": "crates/ritual-tee-registry-reader/src/types.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "5 => Ok(Capability::ZkCall)\n...\nCapability::ZkCall | ... => true",
+      "symbols": [
+        "Capability::ZkCall",
+        "Capability::is_executor_capability"
+      ]
+    }
+  ],
+  "equivalence_argument": "Async eligibility, block-verification filtering, and registry capability decoding all derive from the shared precompile metadata and capability enum.",
+  "evidence_files": [
+    "crates/ritual-async-commitment-validator/src/lib.rs",
+    "crates/ritual-async-fees/src/constants.rs",
+    "crates/ritual-tee-registry-reader/src/types.rs"
+  ],
+  "invariant_id": "cur-7bdec4238c-phase-valid-async-precompile",
+  "invariant_index": 386,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in the port precompile metadata and registry reader.",
+  "rationale": "The diff adds the 0x0806 ZK two-phase constant, includes it in commitment precompile-address validation, and adds ZkCall = 5 as a recognized executor capability. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "7a74a52e0113a13b5e18cf32c640c504f7f26c34"
+  ],
+  "statement": "The ZK two-phase precompile at 0x0806 must be recognized anywhere async precompile eligibility is validated, including async commitment validation and TEE registry capability handling where capability value 5 maps to ZkCall and is considered an executor capability.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create an async commitment whose precompile_address is 0x0806 and assert validate_commitment_structure accepts it, then decode registry capability value 5 and assert it maps to ZkCall and is_executor_capability() returns true."
+  ],
+  "summary": "ZK two-phase is registered as a valid async precompile.",
+  "test_or_falsification_candidate": "Submit a 0x0806 commitment and decode registry capability 5; both should be accepted as ZK two-phase executor-capable behavior.",
+  "title": "ZK two-phase is a valid async precompile",
+  "total_invariants": 1954
+}

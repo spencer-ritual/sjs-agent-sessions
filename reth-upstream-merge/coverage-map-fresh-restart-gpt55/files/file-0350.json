@@ -1,0 +1,115 @@
+{
+  "record_type": "file",
+  "file_index": 350,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-spc-verification/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "spc-verification",
+    "crate-root"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0350-atom-0001",
+      "file_index": 350,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/ritual-spc-verification/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,78 @@; crate docs, modules, re-exports, version",
+      "source_kind": "spc_verification_crate_root_exports",
+      "source_snippet": "pub mod client;\npub mod error;\npub mod types;\npub mod verifier;\npub use client::VerificationClient;\npub use error::{VerificationError, VerificationResult};\npub use types::{...};\npub use verifier::{verify_signature_core, SpcVerifier};\npub const VERSION: &str = env!(\"CARGO_PKG_VERSION\");",
+      "semantic_claim": "The old divergence adds SPC verification crate documentation, module declarations, public re-exports for client/types/verifier/errors, and package version export.",
+      "high_risk": false,
+      "risk_tags": [
+        "crate-root",
+        "public-api",
+        "spc-verification"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/lib.rs",
+          "symbols": [
+            "VerificationClient",
+            "VerificationError",
+            "SpcVerificationRequest",
+            "SpcVerifier",
+            "VERSION"
+          ],
+          "evidence": "Destination lines 1-78 exactly match source-added diff lines 73879-73956."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the crate's public API and documentation surface.",
+      "test_strategy": "spc_verification_public_api_compile_tests",
+      "negative_test_candidate": "Removing `SpcVerificationRequest` from re-exports should break downstream request construction.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0350-atom-0002",
+      "file_index": 350,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/ritual-spc-verification/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +79,105 @@; verifier factory functions",
+      "source_kind": "spc_verification_factory_functions",
+      "source_snippet": "pub fn create_verifier<P>(provider: P) -> VerificationResult<SpcVerifier<P>> where P: reth_storage_api::HeaderProvider + Send + Sync + Clone + 'static, P::Header: reth_primitives_traits::BlockHeader { ... }\npub fn create_verifier_with_config<P>(config: VerificationConfig, executor_registry: Arc<RwLock<ExecutorRegistry>>, provider: P) -> VerificationResult<SpcVerifier<P>> { ... }",
+      "semantic_claim": "The old divergence adds convenience constructors for default and custom-config SPC verifiers over a `HeaderProvider`.",
+      "high_risk": false,
+      "risk_tags": [
+        "factory",
+        "header-provider",
+        "executor-registry"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/lib.rs",
+          "symbols": [
+            "create_verifier",
+            "create_verifier_with_config"
+          ],
+          "evidence": "Destination lines 79-105 exactly match source-added diff lines 73958-73984."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps verifier construction semantics unchanged.",
+      "test_strategy": "create_verifier_compile_and_constructor_tests",
+      "negative_test_candidate": "A provider whose header type does not implement `BlockHeader` should fail trait bounds.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The SPC verification crate root is exact-port preserved, including docs, module exports, public API re-exports, and verifier factory functions.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 350: A\tcrates/ritual-spc-verification/src/lib.rs.",
+    "Source-added hunk spans diff lines 73879-73984 with header `@@ -0,0 +1,105 @@`.",
+    "Destination `crates/ritual-spc-verification/src/lib.rs` has 105 lines and matches the source-added content exactly.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

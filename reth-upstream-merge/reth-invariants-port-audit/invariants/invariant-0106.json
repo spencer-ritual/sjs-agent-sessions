@@ -1,0 +1,81 @@
+{
+  "cluster_key": "scheduler:receipt-rpc",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Receipt construction detects scheduled transactions via as_scheduled and fills origin_tx, call_id, index, initial_block, frequency, expiry/max_block, ttl, caller, gas, fees, and value.",
+      "path": "crates/rpc/rpc-eth-types/src/receipt.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if let Some(scheduled) = transaction.as_scheduled().map(|tx| tx.tx()) {\n    receipt.origin_tx = Some(scheduled.origin_tx);\n    receipt.call_id = Some(scheduled.call_id);\n    receipt.index = Some(scheduled.index);\n    receipt.initial_block = Some(scheduled.initial_block);\n    receipt.frequency = Some(scheduled.frequency);\n    receipt.max_block = Some(scheduled.expiry_block());\n    receipt.ttl = Some(scheduled.ttl);\n    receipt.caller = Some(scheduled.caller);\n    receipt.gas = Some(scheduled.gas);\n    receipt.max_fee_per_gas = Some(scheduled.max_fee_per_gas);\n    receipt.max_priority_fee_per_gas = Some(scheduled.max_priority_fee_per_gas);\n    receipt.value = Some(scheduled.value);\n}",
+      "symbols": [
+        "build_receipt",
+        "TransactionSigned::as_scheduled"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Otterscan receipt shape includes scheduled fields but leaves them unset when transaction context is unavailable.",
+      "path": "crates/rpc/rpc/src/otterscan.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "origin_tx: None, call_id: None, index: None, initial_block: None, frequency: None, max_block: None, ttl: None, caller: None, gas: None, max_fee_per_gas: None, max_priority_fee_per_gas: None",
+      "symbols": [
+        "Otterscan receipt conversion"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port: scheduled receipt metadata is populated from the scheduled transaction when transaction context is present; generic paths leave scheduled fields unset.",
+  "evidence_files": [
+    "ritual-reth-internal/crates/rpc/rpc-eth-types/src/receipt.rs",
+    "ritual-reth-internal/crates/rpc/rpc/src/otterscan.rs",
+    "ritual-reth-nodebuilder-internal/docs/specs/scheduled_receipts.md",
+    "ritual-reth-internal/crates/primitives-traits/src/transaction/signed.rs"
+  ],
+  "invariant_id": "cur-733c6159b8-scheduled-receipts-expose-scheduled-metadata",
+  "invariant_index": 106,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/rpc/rpc-eth-types/src/receipt.rs",
+      "crates/rpc/rpc/src/otterscan.rs"
+    ],
+    "checked_queries": [
+      "as_scheduled|origin_tx|call_id|initial_block|frequency|ttl|caller|ReceiptEnvelope::Scheduled"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "build_receipt",
+      "as_scheduled"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The current receipt builder maps TxType::Scheduled to ReceiptEnvelope::Scheduled and extracts scheduled data through as_scheduled. The local Otterscan path exposes the same shape but leaves scheduled fields None because it lacks the transaction context.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "305f5ef052a36e781e062b37021740c453e07385",
+    "39fe7141f8832ed14ad2a10daafe6382468d0564",
+    "7efe7ee15cdca5db635152a68b741a174dd820bd",
+    "7a1271c7425f6349f82a8c246f4d45f1f21e4c5d",
+    "57ea7632fc478e1769d1a40f69cd9e67da1384d0"
+  ],
+  "statement": "RPC receipt construction for scheduled transactions must use the Scheduled receipt envelope and populate scheduled fields from the transaction via as_scheduled, including origin_tx, call_id, index, initial_block, frequency, max_block/expiry, ttl, caller, gas, fee, and value metadata; non-scheduled receipts leave scheduled fields unset.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Build a receipt for a scheduled transaction and assert all scheduled extension fields are populated; build a legacy receipt and assert they remain None."
+  ],
+  "summary": "Scheduled RPC receipts expose scheduled metadata.",
+  "test_or_falsification_candidate": "Scheduled receipt conversion should expose scheduled metadata from TransactionSigned::as_scheduled.",
+  "title": "Scheduled RPC receipts expose scheduled metadata",
+  "total_invariants": 1954
+}

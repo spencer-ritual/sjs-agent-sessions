@@ -9,22 +9,19 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "blocked",
+  "file_classification": "structural_equivalent",
   "tags": [
-    "blocked",
-    "async-fsm",
-    "fees",
     "high-risk",
     "non-exact",
-    "needs-review"
+    "structural_equivalent"
   ],
-  "atoms_total": 1,
+  "atoms_total": 13,
   "atoms": [
     {
       "record_id": "file-0280-atom-0001",
       "file_index": 280,
       "atom_index": 1,
-      "atoms_total": 1,
+      "atoms_total": 13,
       "source_path": "crates/ritual-async-fees/src/lib.rs",
       "source_hunk_hint": "@@ -0,0 +1,1820 @@",
       "source_kind": "other",
@@ -35,9 +32,21 @@
         "async-fsm",
         "fees"
       ],
-      "mapping_status": "blocked",
-      "destinations": [],
-      "equivalence_argument": null,
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "calculate_async_fees",
+            "calculate_async_fees_phase2",
+            "verify_wallet_for_commitment"
+          ],
+          "snippet": "shared fee, wallet, registry, and delivery pricing helpers",
+          "evidence": "The v2.2 port keeps fee/wallet logic in ritual-async-fees and consumes it from builder and verifier paths."
+        }
+      ],
+      "equivalence_argument": "Fee, wallet, registry, gas accounting, and delivery-pricing helpers are preserved in ritual-async-fees. Runtime-inactive precompile families remain gated/fail-closed elsewhere.",
       "test_strategy": "adapted_equivalence_test",
       "negative_test_candidate": "Exercise the crates/ritual-async-fees/src/lib.rs behavior boundary in the port and verify the downstream path-specific behavior still exists; absence or changed rejection/ordering would falsify the mapping.",
       "adversarial_review": {
@@ -46,16 +55,654 @@
         "review_record_id": null
       },
       "review_required": true,
-      "notes": "Same-path destination file exists, but automated symbol overlap was too weak to assert semantic carry-forward.",
-      "required_change": "Resolve whether the downstream crates/ritual-async-fees/src/lib.rs behavior is still implemented in the destination module at the same relative path or whether it must be restored explicitly.",
+      "notes": "Mapped to shared fee crate.",
       "human_question": "The destination file still exists but lacks enough shared structure for a reliable automated equivalence claim."
+    },
+    {
+      "record_id": "file-0280-atom-0002",
+      "file_index": 280,
+      "atom_index": 2,
+      "atoms_total": 13,
+      "source_path": "crates/ritual-async-fees/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,1820 @@",
+      "source_kind": "state_transition",
+      "source_snippet": "        );\n    }\n\n    #[test]\n    fn test_delivery_has_error_true() {\n        let mut data = vec![0u8; 32];\n        data[31] = 1; // hasError = true\n        assert!(delivery_has_error(Some(&Bytes::from(data))));\n    }\n\n    #[test]\n    fn test_delivery_has_error_false() {\n        let data = vec![0u8; 32];\n        assert!(!delivery_has_error(Some(&Bytes::from(data))));\n    }\n\n    #[test]\n    fn test_delivery_has_error_none() {\n        assert!(!delivery_has_error(None));\n    }\n\n    #[test]\n---\n        assert!(delivery_has_error(Some(&Bytes::from(data))));\n    }\n\n    #[test]\n    fn test_delivery_has_error_false() {\n        let data = vec![0u8; 32];\n        assert!(!delivery_has_error(Some(&Bytes::from(data))));\n    }\n\n    #[test]\n    fn test_delivery_has_error_none() {\n        assert!(!delivery_has_error(None));\n    }\n\n    #[test]\n    fn test_delivery_has_error_too_short() {\n        let data = vec![0u8; 16]; // < 32 bytes\n        assert!(!delivery_has_error(Some(&Bytes::from(data))));\n    }\n\n    #[test]\n    fn test_da_error_fees_phase2_constant() {\n---\n        assert!(!delivery_has_error(Some(&Bytes::from(data))));\n    }\n\n    #[test]\n    fn test_delivery_has_error_none() {\n        assert!(!delivery_has_error(None));\n    }\n\n    #[test]\n    fn test_delivery_has_error_too_short() {\n        let data = vec![0u8; 16]; // < 32 bytes\n        assert!(!delivery_has_error(Some(&Bytes::from(data))));\n    }\n\n    #[test]\n    fn test_da_error_fees_phase2_constant() {\n        let fees = calculate_da_error_fees_phase2();\n        assert_eq!(fees.executor_fee, U256::from(DA_ERROR_PHASE2_FEE_WEI));\n        assert_eq!(fees.commitment_fee, U256::ZERO);\n        assert_eq!(fees.inclusion_fee, U256::ZERO);\n        assert_eq!(fees.total, U256::from(DA_ERROR_PHASE2_",
+      "semantic_claim": "delivery has error preserves the fee/gas/accounting behavior covered by downstream tests: test_delivery_has_error_true, test_delivery_has_error_false, test_delivery_has_error_none, test_delivery_has_error_too_short.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "gas",
+        "fees",
+        "rewards",
+        "negative-path",
+        "consensus-constant"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "calculate_async_fees",
+            "calculate_async_fees_phase2",
+            "verify_wallet_for_commitment"
+          ],
+          "snippet": "shared fee, wallet, registry, and delivery pricing helpers",
+          "evidence": "The v2.2 port keeps fee/wallet logic in ritual-async-fees and consumes it from builder and verifier paths."
+        }
+      ],
+      "equivalence_argument": "Fee, wallet, registry, gas accounting, and delivery-pricing helpers are preserved in ritual-async-fees. Runtime-inactive precompile families remain gated/fail-closed elsewhere.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_delivery_has_error_true, test_delivery_has_error_false, test_delivery_has_error_none, test_delivery_has_error_too_short, test_da_error_fees_phase2_constant, test_da_error_fee_less_than_phase1_escrow, test_delivery_has_error_realistic_image_error.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to shared fee crate.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_delivery_has_error_true",
+        "test_delivery_has_error_false",
+        "test_delivery_has_error_none",
+        "test_delivery_has_error_too_short",
+        "test_da_error_fees_phase2_constant",
+        "test_da_error_fee_less_than_phase1_escrow",
+        "test_delivery_has_error_realistic_image_error"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0280-atom-0015",
+        "test-file-0280-atom-0016",
+        "test-file-0280-atom-0017",
+        "test-file-0280-atom-0018",
+        "test-file-0280-atom-0019",
+        "test-file-0280-atom-0020",
+        "test-file-0280-atom-0021"
+      ]
+    },
+    {
+      "record_id": "file-0280-atom-0003",
+      "file_index": 280,
+      "atom_index": 3,
+      "atoms_total": 13,
+      "source_path": "crates/ritual-async-fees/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,1820 @@",
+      "source_kind": "error_path",
+      "source_snippet": "        assert!(result.unwrap_err().contains(\"Missing LLM executor output\"));\n    }\n\n    #[test]\n    fn test_dkms_explicit_pricing() {\n        // Test that DKMS uses explicit fixed pricing, not HTTP fallback\n        let input = Bytes::from(vec![0u8; 256]);\n        let output = Bytes::from(vec![0u8; 20]); // DKMS output is always 20 bytes (address)\n\n        let mut db = EmptyDB::default();\n        let registry_address = Address::ZERO;\n        let mut cache = ModelCache::new();\n\n        let fees = calculate_async_fees(\n            &mut db,\n            registry_address,\n            DKMS_KEY_PRECOMPILE,\n            &input,\n            Some(&output),\n            &mut cache,\n        )\n        .exp\n---\n        assert_eq!(escrow, fees.total);\n    }\n\n    #[test]\n    fn test_dkms_executor_fee_is_fixed() {\n        // Verify DKMS fee doesn't change with input/output size\n        let fee1 = dkms_executor_fee();\n        let fee2 = dkms_executor_fee();\n        assert_eq!(fee1, fee2);\n        assert_eq!(fee1, U256::from(DKMS_EXECUTOR_FEE_WEI));\n    }\n\n    #[test]\n    fn test_unknown_precompile_fails_explicitly() {\n        // Unknown precompile should fail explicitly, not fall through\n        let input = Bytes::from(vec![0u8; 256]);\n        let output = Bytes::from(vec![0u8; 100]);\n\n        let mut db = EmptyDB::default();\n        let registry_address = Address::ZERO;\n        let mut cache = ModelCa\n---\n        assert_eq!(fee1, U256::from(DKMS_EXECUTOR_FEE_WEI));\n    }\n\n    #[test]\n    fn test_unknown_precompile_fails_explicitly() {\n        // Unknown precompile should fail explicitly, not fall through\n        let input = Bytes::from(vec![0u8; 256]);\n        let output = Bytes::from(vec![0u8; 100]);\n\n        let mut db = EmptyDB::default();\n        let registry_address = Address::ZERO;\n        let mut cache = ModelCache::new();\n\n        // Use an address that's not a known precompile\n        let unknown_precompile = Address::from([0x99; 20]);\n\n        let result = calculate_async_fees(\n            &mut db,\n            registry_address,\n            unknown_precompile,\n            &input,\n   ",
+      "semantic_claim": "dkms preserves the fee/gas/accounting behavior covered by downstream tests: test_dkms_explicit_pricing, test_dkms_executor_fee_is_fixed, test_unknown_precompile_fails_explicitly.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "fees",
+        "negative-path",
+        "executor-selection",
+        "gas",
+        "rewards"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "calculate_async_fees",
+            "calculate_async_fees_phase2",
+            "verify_wallet_for_commitment"
+          ],
+          "snippet": "shared fee, wallet, registry, and delivery pricing helpers",
+          "evidence": "The v2.2 port keeps fee/wallet logic in ritual-async-fees and consumes it from builder and verifier paths."
+        }
+      ],
+      "equivalence_argument": "Fee, wallet, registry, gas accounting, and delivery-pricing helpers are preserved in ritual-async-fees. Runtime-inactive precompile families remain gated/fail-closed elsewhere.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_dkms_explicit_pricing, test_dkms_executor_fee_is_fixed, test_unknown_precompile_fails_explicitly.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to shared fee crate.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_dkms_explicit_pricing",
+        "test_dkms_executor_fee_is_fixed",
+        "test_unknown_precompile_fails_explicitly"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0280-atom-0004",
+        "test-file-0280-atom-0005",
+        "test-file-0280-atom-0006"
+      ]
+    },
+    {
+      "record_id": "file-0280-atom-0004",
+      "file_index": 280,
+      "atom_index": 4,
+      "atoms_total": 13,
+      "source_path": "crates/ritual-async-fees/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,1820 @@",
+      "source_kind": "error_path",
+      "source_snippet": "        );\n    }\n\n    #[test]\n    fn test_extract_ux_params_too_short_fails() {\n        // Input too short to read output config word should fail\n        let input = Bytes::from(vec![0u8; 32]); // Way too short\n        let result = extract_output_ux_params_from_input(&input);\n        assert!(result.is_err(), \"Too short input should fail extraction\");\n    }\n\n    #[test]\n    fn test_extract_ux_params_dynamic_output() {\n        let head_len = MULTIMODAL_REQUEST_FIELD_COUNT * 32;\n        let tail_len = OUTPUT_CONFIG_HEAD_WORDS * 32;\n        let mut bytes = vec![0u8; head_len + tail_len];\n        let output_offset = head_len as u128;\n        let offset_bytes = U256::from(output_offset).to_be_byte\n---\n        assert!(result.is_err(), \"Too short input should fail extraction\");\n    }\n\n    #[test]\n    fn test_extract_ux_params_dynamic_output() {\n        let head_len = MULTIMODAL_REQUEST_FIELD_COUNT * 32;\n        let tail_len = OUTPUT_CONFIG_HEAD_WORDS * 32;\n        let mut bytes = vec![0u8; head_len + tail_len];\n        let output_offset = head_len as u128;\n        let offset_bytes = U256::from(output_offset).to_be_bytes::<32>();\n        bytes[MULTIMODAL_OUTPUT_WORD_INDEX * 32..(MULTIMODAL_OUTPUT_WORD_INDEX + 1) * 32]\n            .copy_from_slice(&offset_bytes);\n\n        let steps_word = U256::from(60u16).to_be_bytes::<32>();\n        let fps_word = U256::from(24u8).to_be_bytes::<32>();\n     \n---\n        assert_eq!(params.fps, 24);\n    }\n\n    #[test]\n    fn test_extract_ux_params_out_of_bounds_fails() {\n        // Valid offset pointing beyond data should fail\n        let head_len = MULTIMODAL_REQUEST_FIELD_COUNT * 32;\n        let mut bytes = vec![0u8; head_len];\n        // Set output offset to point beyond the data\n        let output_offset = (head_len + 1000) as u128;\n        let offset_bytes = U256::from(output_offset).to_be_bytes::<32>();\n        bytes[MULTIMODAL_OUTPUT_WORD_INDEX * 32..(MULTIMODAL_OUTPUT_WORD_INDEX + 1) * 32]\n            .copy_from_slice(&offset_bytes);\n\n        let result = extract_output_ux_params_from_input(&Bytes::from(bytes));\n        assert!(result.is_err()",
+      "semantic_claim": "extract ux preserves the encoding, decoding, storage, or proof boundary covered by downstream tests: test_extract_ux_params_too_short_fails, test_extract_ux_params_dynamic_output, test_extract_ux_params_out_of_bounds_fails.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "fees",
+        "negative-path",
+        "gas",
+        "rewards"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "calculate_async_fees",
+            "calculate_async_fees_phase2",
+            "verify_wallet_for_commitment"
+          ],
+          "snippet": "shared fee, wallet, registry, and delivery pricing helpers",
+          "evidence": "The v2.2 port keeps fee/wallet logic in ritual-async-fees and consumes it from builder and verifier paths."
+        }
+      ],
+      "equivalence_argument": "Fee, wallet, registry, gas accounting, and delivery-pricing helpers are preserved in ritual-async-fees. Runtime-inactive precompile families remain gated/fail-closed elsewhere.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_extract_ux_params_too_short_fails, test_extract_ux_params_dynamic_output, test_extract_ux_params_out_of_bounds_fails.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to shared fee crate.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_extract_ux_params_too_short_fails",
+        "test_extract_ux_params_dynamic_output",
+        "test_extract_ux_params_out_of_bounds_fails"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0280-atom-0012",
+        "test-file-0280-atom-0013",
+        "test-file-0280-atom-0014"
+      ]
+    },
+    {
+      "record_id": "file-0280-atom-0005",
+      "file_index": 280,
+      "atom_index": 5,
+      "atoms_total": 13,
+      "source_path": "crates/ritual-async-fees/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,1820 @@",
+      "source_kind": "test_fixture",
+      "source_snippet": "        assert!(result.unwrap_err().contains(\"Unknown precompile address\"));\n    }\n\n    /// Create a test ModelInfo with valid image pricing for testing\n    fn test_model_info_image() -> ModelInfo {\n        ModelInfo {\n            params_b: 0.0,\n            theta: 0.0,\n            max_seq_len: None,\n            image_fee_wei_per_pixel: IMAGE_FEE_WEI_PER_PIXEL,\n            image_min_fee_wei: IMAGE_MIN_FEE_WEI,\n            image_steps_baseline: IMAGE_STEPS_BASELINE,\n            audio_fee_wei_per_second: 0,\n            audio_min_fee_wei: 0,\n            video_base_fee_wei: 0,\n            video_fee_wei_per_pixel_second: 0,\n            video_steps_baseline: 0,\n            video_fps_baseline: 0,\n  \n---\n        }\n    }\n\n    #[test]\n    fn test_image_steps_multiplier_applies() {\n        let model = test_model_info_image();\n        let base = image_phase2_execution_fee(512, 512, OutputUxParams::default(), &model);\n        let ux = OutputUxParams { num_inference_steps: (IMAGE_STEPS_BASELINE * 2) as u16, fps: 0 };\n        let boosted = image_phase2_execution_fee(512, 512, ux, &model);\n        assert!(boosted > base);\n        let expected_multiplier =\n            normalized_multiplier_x100(IMAGE_STEPS_BASELINE * 2, IMAGE_STEPS_BASELINE);\n        assert_eq!(boosted, apply_multiplier_x100(base, expected_multiplier));\n    }\n\n    #[test]\n    fn test_video_steps_fps_multiplier_applies() {\n        let\n---\n        assert_eq!(boosted, apply_multiplier_x100(base, expected_multiplier));\n    }\n\n    #[test]\n    fn test_video_steps_fps_multiplier_applies() {\n        let model = test_model_info_video();\n        let base = video_phase2_execution_fee(512, 512, 1000, OutputUxParams::default(), &model);\n        let steps_only = video_phase2_execution_fee(\n            512,\n            512,\n            1000,\n            OutputUxParams { num_inference_steps: (VIDEO_STEPS_BASELINE * 2) as u16, fps: 0 },\n            &model,\n        );\n        let steps_fps = video_phase2_execution_fee(\n            512,\n            512,\n            1000,\n            OutputUxParams {\n                num_inference_steps: (VIDEO_",
+      "semantic_claim": "fee preserves the fee/gas/accounting behavior covered by downstream tests: test_model_info_image, test_image_steps_multiplier_applies, test_video_steps_fps_multiplier_applies.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "gas",
+        "fees",
+        "rewards"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "calculate_async_fees",
+            "calculate_async_fees_phase2",
+            "verify_wallet_for_commitment"
+          ],
+          "snippet": "shared fee, wallet, registry, and delivery pricing helpers",
+          "evidence": "The v2.2 port keeps fee/wallet logic in ritual-async-fees and consumes it from builder and verifier paths."
+        }
+      ],
+      "equivalence_argument": "Fee, wallet, registry, gas accounting, and delivery-pricing helpers are preserved in ritual-async-fees. Runtime-inactive precompile families remain gated/fail-closed elsewhere.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_model_info_image, test_image_steps_multiplier_applies, test_video_steps_fps_multiplier_applies.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to shared fee crate.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_model_info_image",
+        "test_image_steps_multiplier_applies",
+        "test_video_steps_fps_multiplier_applies"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0280-atom-0007",
+        "test-file-0280-atom-0009",
+        "test-file-0280-atom-0010"
+      ]
+    },
+    {
+      "record_id": "file-0280-atom-0006",
+      "file_index": 280,
+      "atom_index": 6,
+      "atoms_total": 13,
+      "source_path": "crates/ritual-async-fees/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,1820 @@",
+      "source_kind": "error_path",
+      "source_snippet": "        assert_eq!(fees.total, fees.executor_fee + fees.commitment_fee + fees.inclusion_fee);\n    }\n\n    #[test]\n    fn test_fees_total_calculation() {\n        let input = Bytes::from(vec![0u8; 100]);\n        let output = Bytes::from(vec![0u8; 500]);\n\n        let mut db = EmptyDB::default();\n        let registry_address = Address::ZERO;\n        let mut cache = ModelCache::new();\n\n        let fees = calculate_async_fees(\n            &mut db,\n            registry_address,\n            HTTP_CALL_PRECOMPILE,\n            &input,\n            Some(&output),\n            &mut cache,\n        )\n        .expect(\"HTTP fees should always succeed\");\n\n---\n        assert_eq!(fees.total, fees.executor_fee + fees.commitment_fee + fees.inclusion_fee);\n    }\n\n    #[test]\n    fn test_llm_fees_fail_without_output() {\n        let input = Bytes::from(vec![0u8; 256]);\n\n        let mut db = EmptyDB::default();\n        let registry_address = Address::ZERO;\n        let mut cache = ModelCache::new();\n\n        let result = calculate_async_fees(\n            &mut db,\n            registry_address,\n            LLM_CALL_PRECOMPILE,\n            &input,\n            None,\n            &mut cache,\n        );\n\n        // LLM operations without output should fail (not fallback)\n        assert!(result.is_err());",
+      "semantic_claim": "fees preserves the fee/gas/accounting behavior covered by downstream tests: test_fees_total_calculation, test_llm_fees_fail_without_output.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "gas",
+        "fees",
+        "rewards",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "calculate_async_fees",
+            "calculate_async_fees_phase2",
+            "verify_wallet_for_commitment"
+          ],
+          "snippet": "shared fee, wallet, registry, and delivery pricing helpers",
+          "evidence": "The v2.2 port keeps fee/wallet logic in ritual-async-fees and consumes it from builder and verifier paths."
+        }
+      ],
+      "equivalence_argument": "Fee, wallet, registry, gas accounting, and delivery-pricing helpers are preserved in ritual-async-fees. Runtime-inactive precompile families remain gated/fail-closed elsewhere.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_fees_total_calculation, test_llm_fees_fail_without_output.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to shared fee crate.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_fees_total_calculation",
+        "test_llm_fees_fail_without_output"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0280-atom-0002",
+        "test-file-0280-atom-0003"
+      ]
+    },
+    {
+      "record_id": "file-0280-atom-0007",
+      "file_index": 280,
+      "atom_index": 7,
+      "atoms_total": 13,
+      "source_path": "crates/ritual-async-fees/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,1820 @@",
+      "source_kind": "error_path",
+      "source_snippet": "        assert!(steps_fps > steps_only);\n    }\n\n    #[test]\n    fn test_extract_ux_params_legacy_fails() {\n        // Legacy format (inline output config) should now FAIL, not return defaults\n        // This ensures consensus-critical pricing is not silently degraded\n        let head_len = MULTIMODAL_REQUEST_FIELD_COUNT * 32;\n        let input = Bytes::from(vec![0u8; head_len]);\n        let result = extract_output_ux_params_from_input(&input);\n        assert!(result.is_err(), \"Legacy format should fail extraction\");\n        assert!(\n            result.unwrap_err().contains(\"5-field OutputConfig format\"),\n            \"Error should mention 5-field format\"\n        );\n    }\n\n    #[test]\n    fn t",
+      "semantic_claim": "pricing preserves the fee/gas/accounting behavior covered by downstream tests: test_extract_ux_params_legacy_fails.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "fees",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "calculate_async_fees",
+            "calculate_async_fees_phase2",
+            "verify_wallet_for_commitment"
+          ],
+          "snippet": "shared fee, wallet, registry, and delivery pricing helpers",
+          "evidence": "The v2.2 port keeps fee/wallet logic in ritual-async-fees and consumes it from builder and verifier paths."
+        }
+      ],
+      "equivalence_argument": "Fee, wallet, registry, gas accounting, and delivery-pricing helpers are preserved in ritual-async-fees. Runtime-inactive precompile families remain gated/fail-closed elsewhere.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_extract_ux_params_legacy_fails.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to shared fee crate.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_extract_ux_params_legacy_fails"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0280-atom-0011"
+      ]
+    },
+    {
+      "record_id": "file-0280-atom-0008",
+      "file_index": 280,
+      "atom_index": 8,
+      "atoms_total": 13,
+      "source_path": "crates/ritual-async-fees/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 10: Fees, Registries, And Product Economics",
+      "source_kind": "side_effect",
+      "source_snippet": "Feature-preservation claims: Per-call min funding and spawn/day fee calibration. | Preserve wallet/economics: balance and lock-duration checks, per-block async sender uniqueness (`#202`), sovereign/persistent escrow and work/spawn fee models (`#286`)",
+      "semantic_claim": "Feature section 10 (Fees, Registries, And Product Economics) preserves fees economics: Per-call min funding and spawn/day fee calibration; Preserve wallet/economics: balance and lock-duration checks, per-block async sender uniqueness (`#202`), sovereign/persistent escrow and work/spawn fee models (`#286`).",
+      "high_risk": true,
+      "risk_tags": [
+        "fees",
+        "async-fsm",
+        "executor-selection"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "calculate_async_fees",
+            "calculate_async_fees_phase2",
+            "verify_wallet_for_commitment"
+          ],
+          "snippet": "shared fee, wallet, registry, and delivery pricing helpers",
+          "evidence": "The v2.2 port keeps fee/wallet logic in ritual-async-fees and consumes it from builder and verifier paths."
+        }
+      ],
+      "equivalence_argument": "Fee, wallet, registry, gas accounting, and delivery-pricing helpers are preserved in ritual-async-fees. Runtime-inactive precompile families remain gated/fail-closed elsewhere.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Feature section 10 (Fees, Registries, And Product Economics) preserves fees economics: Per-call min funding and spawn/day fee calibration; Preserve wallet/economics: balance and lock-duration checks, per-block async sender uniqueness (`#202`), sovereign/persistent escrow and work/spawn fee models (`#286`).",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to shared fee crate.",
+      "feature_derived": true,
+      "feature_sections": [
+        10
+      ],
+      "source_feature_ids": [
+        "feature-raw-0114",
+        "feature-raw-0118"
+      ],
+      "source_feature_claims": [
+        "Per-call min funding and spawn/day fee calibration.",
+        "Preserve wallet/economics: balance and lock-duration checks, per-block async sender uniqueness (`#202`), sovereign/persistent escrow and work/spawn fee models (`#286`)"
+      ],
+      "needs_atomization": true
+    },
+    {
+      "record_id": "file-0280-atom-0009",
+      "file_index": 280,
+      "atom_index": 9,
+      "atoms_total": 13,
+      "source_path": "crates/ritual-async-fees/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 10: Fees, Registries, And Product Economics",
+      "source_kind": "state_transition",
+      "source_snippet": "Feature-preservation claims: Preserve changed constants: ZK Phase 1 fee (`#266`), async TTL default `500` (`#265`), capability IDs `AUTONOMOUS_AGENT=11` and `TELEMETRY=12` (`#333`), persistent spawn fee `0.10 RIT` and sovereign iteration/tool fees (`#356`) | Preserve multimodal/DA/error pricing: image/video steps, FPS, output extraction (`#251`), FHE output-size Phase 2 pricing (`#264`), LLM error settlement fee (`#314`), constant DA-error settlements (`#315`)",
+      "semantic_claim": "Feature section 10 (Fees, Registries, And Product Economics) preserves payload validation: Preserve changed constants: ZK Phase 1 fee (`#266`), async TTL default `500` (`#265`), capability IDs `AUTONOMOUS_AGENT=11` and `TELEMETRY=12` (`#333`), persistent spawn fee `0.10 RIT` and sovereign iteration/tool fees (`#356`); Preserve multimodal/DA/error pricing: image/video steps, FPS, output extraction (`#251`), FHE output-size Phase 2 pricing (`#264`), LLM error settlement fee (`#314`), constant DA-error settlements (`#315`).",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "fees",
+        "executor-selection",
+        "consensus-constant"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "calculate_async_fees",
+            "calculate_async_fees_phase2",
+            "verify_wallet_for_commitment"
+          ],
+          "snippet": "shared fee, wallet, registry, and delivery pricing helpers",
+          "evidence": "The v2.2 port keeps fee/wallet logic in ritual-async-fees and consumes it from builder and verifier paths."
+        }
+      ],
+      "equivalence_argument": "Fee, wallet, registry, gas accounting, and delivery-pricing helpers are preserved in ritual-async-fees. Runtime-inactive precompile families remain gated/fail-closed elsewhere.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Feature section 10 (Fees, Registries, And Product Economics) preserves payload validation: Preserve changed constants: ZK Phase 1 fee (`#266`), async TTL default `500` (`#265`), capability IDs `AUTONOMOUS_AGENT=11` and `TELEMETRY=12` (`#333`), persistent spawn fee `0.10 RIT` and sovereign iteration/tool fees (`#356`); Preserve multimodal/DA/error pricing: image/video steps, FPS, output extraction (`#251`), FHE output-size Phase 2 pricing (`#264`), LLM error settlement fee (`#314`), constant DA-error settlements (`#315`).",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to shared fee crate.",
+      "feature_derived": true,
+      "feature_sections": [
+        10
+      ],
+      "source_feature_ids": [
+        "feature-raw-0119",
+        "feature-raw-0120"
+      ],
+      "source_feature_claims": [
+        "Preserve changed constants: ZK Phase 1 fee (`#266`), async TTL default `500` (`#265`), capability IDs `AUTONOMOUS_AGENT=11` and `TELEMETRY=12` (`#333`), persistent spawn fee `0.10 RIT` and sovereign iteration/tool fees (`#356`)",
+        "Preserve multimodal/DA/error pricing: image/video steps, FPS, output extraction (`#251`), FHE output-size Phase 2 pricing (`#264`), LLM error settlement fee (`#314`), constant DA-error settlements (`#315`)"
+      ],
+      "needs_atomization": true
+    },
+    {
+      "record_id": "file-0280-atom-0010",
+      "file_index": 280,
+      "atom_index": 10,
+      "atoms_total": 13,
+      "source_path": "crates/ritual-async-fees/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 7: Block Verification And Consensus Gates",
+      "source_kind": "state_transition",
+      "source_snippet": "Feature-preservation claims: Settlement, delivery, and executor fee verification.",
+      "semantic_claim": "Settlement, delivery, and executor fee verification.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "verifier",
+        "fees",
+        "executor-selection",
+        "consensus-constant"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "calculate_async_fees",
+            "calculate_async_fees_phase2",
+            "verify_wallet_for_commitment"
+          ],
+          "snippet": "shared fee, wallet, registry, and delivery pricing helpers",
+          "evidence": "The v2.2 port keeps fee/wallet logic in ritual-async-fees and consumes it from builder and verifier paths."
+        }
+      ],
+      "equivalence_argument": "Fee, wallet, registry, gas accounting, and delivery-pricing helpers are preserved in ritual-async-fees. Runtime-inactive precompile families remain gated/fail-closed elsewhere.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Settlement, delivery, and executor fee verification.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to shared fee crate.",
+      "feature_derived": true,
+      "feature_sections": [
+        7
+      ],
+      "source_feature_ids": [
+        "feature-raw-0078"
+      ],
+      "source_feature_claims": [
+        "Settlement, delivery, and executor fee verification."
+      ],
+      "needs_atomization": true
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 280,
+      "source_path": "crates/ritual-async-fees/src/lib.rs",
+      "source_hunk_hint": "crates/ritual-async-fees/src/lib.rs:115-136",
+      "source_kind": "state_transition",
+      "source_snippet": "/// - executor_fee: iterations \u00d7 ITERATION_FEE + tool_calls \u00d7 TOOL_CALL_FEE\n/// - commitment_fee: 0 (already paid in Phase 1)\n/// - inclusion_fee: 0 (already paid in Phase 1)\npub fn calculate_agent_fees_phase2_work(iterations: u16, tool_calls: u16) -> AsyncFees {\n    let executor_fee = agent_phase2_execution_fee(iterations, tool_calls);\n    AsyncFees::new(executor_fee, U256::ZERO, U256::ZERO)\n}\n\n// ============================================================================\n// IMAGE CALL (0x0818) PRICING FUNCTIONS\n// ============================================================================\n\n/// Calculate image escrow lockup using model-specific pricing\n///\n/// This is the amount the user must have locked up when submitting an image call.\n/// Uses maximum resolution (2048\u00d72048) with model-specific per-pixel fee.\n///\n/// # Arguments\n/// * `model_info` - Model pricing info from registry\n/// * `model_name` - Model name for error messages\n///\n/// # Returns",
+      "semantic_claim": "Sovereign-agent Phase 2 pricing charges actual work through iterations and tool calls, with zero commitment and inclusion fees because Phase 1 already paid them.",
+      "high_risk": true,
+      "risk_tags": [
+        "fees",
+        "async-fsm",
+        "executor-selection"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "calculate_async_fees",
+            "calculate_async_fees_phase2",
+            "verify_wallet_for_commitment"
+          ],
+          "snippet": "shared fee, wallet, registry, and delivery pricing helpers",
+          "evidence": "The v2.2 port keeps fee/wallet logic in ritual-async-fees and consumes it from builder and verifier paths."
+        }
+      ],
+      "equivalence_argument": "Fee, wallet, registry, gas accounting, and delivery-pricing helpers are preserved in ritual-async-fees. Runtime-inactive precompile families remain gated/fail-closed elsewhere.",
+      "test_strategy": "flow_equivalence_regression",
+      "negative_test_candidate": "Replay the smallest Sovereign Agent Precompile Trace, Product Economics Compatibility scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "Sovereign Agent Precompile Trace",
+        "Product Economics Compatibility"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0023"
+      ],
+      "notes": "Mapped to shared fee crate.",
+      "atom_index": 11,
+      "record_id": "file-0280-atom-0011",
+      "atoms_total": 13
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 280,
+      "source_path": "crates/ritual-async-fees/src/lib.rs",
+      "source_hunk_hint": "crates/ritual-async-fees/src/lib.rs:241-262",
+      "source_kind": "state_transition",
+      "source_snippet": "/// # Returns\n/// * `Ok(AsyncFees)` - Calculated fees (executor_fee only, Phase 1 fees are zero)\n/// * `Err(String)` - If model has no image pricing configured\npub fn calculate_image_fees_phase2(\n    width: u32,\n    height: u32,\n    ux: OutputUxParams,\n    model_info: &ModelInfo,\n    model_name: &str,\n) -> Result<AsyncFees, String> {\n    // Validate model has image pricing configured\n    if model_info.image_fee_wei_per_pixel == 0 && model_info.image_min_fee_wei == 0 {\n        return Err(format!(\"Image model '{}' has no Phase 2 pricing configured\", model_name));\n    }\n\n    let executor_fee = image_phase2_execution_fee(width, height, ux, model_info);\n    // Validators not paid in Phase 2 (already paid in Phase 1)\n    Ok(AsyncFees::new(executor_fee, U256::ZERO, U256::ZERO))\n}\n\n// ============================================================================\n// AUDIO CALL (0x0819) PRICING FUNCTIONS",
+      "semantic_claim": "Image Phase 2 pricing uses model-specific per-pixel and minimum fees plus UX step multipliers, and returns executor fee only after Phase 1.",
+      "high_risk": true,
+      "risk_tags": [
+        "fees",
+        "async-fsm",
+        "precompile"
+      ],
+      "mapping_status": "blocked",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "calculate_async_fees_phase2"
+          ],
+          "snippet": "media-specific fee helpers absent",
+          "evidence": "Old image Phase 2 model-specific per-pixel pricing is not implemented in the v2 fee crate; current runtime keeps media delivery fail-closed."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "flow_equivalence_regression",
+      "negative_test_candidate": "Replay the smallest Multimodal Precompile Trace, Product Economics Compatibility scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "flow_titles": [
+        "Multimodal Precompile Trace",
+        "Product Economics Compatibility"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0024"
+      ],
+      "notes": "Reclassified from structural_equivalent. Shared fee crate presence is not behavioral proof; the old model-specific pricing branch is absent and must stay blocked.",
+      "atom_index": 12,
+      "record_id": "file-0280-atom-0012",
+      "atoms_total": 13,
+      "required_change": "Port old image Phase 2 model-specific per-pixel pricing and associated model-registry reads before enabling this family."
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 280,
+      "source_path": "crates/ritual-async-fees/src/lib.rs",
+      "source_hunk_hint": "crates/ritual-async-fees/src/lib.rs:311-332",
+      "source_kind": "state_transition",
+      "source_snippet": "/// # Returns\n/// * `Ok(U256)` - Escrow amount in wei\n/// * `Err(String)` - If model pricing is invalid\npub fn video_escrow_lockup(model_info: &ModelInfo, model_name: &str) -> Result<U256, String> {\n    // Validate model has video pricing configured\n    if model_info.video_fee_wei_per_pixel_second == 0 && model_info.video_base_fee_wei == 0 {\n        return Err(format!(\n            \"Video model '{}' has no pricing configured (fee_per_pixel_second=0, base_fee=0)\",\n            model_name\n        ));\n    }\n\n    // Worst case: max resolution at max duration\n    let max_pixels = (VIDEO_MAX_WIDTH as u64) * (VIDEO_MAX_HEIGHT as u64);\n    let max_duration_sec = VIDEO_MAX_DURATION_MS / 1000;\n\n    // Calculate pixel-second fee using model-specific pricing\n    let pixel_seconds = (max_pixels as u128) * (max_duration_sec as u128);\n    let pixel_second_fee =\n        U256::from(model_info.video_fee_wei_per_pixel_second) * U256::from(pixel_seconds);\n    let base_fee = U256::from(model_info.video_base_fee_wei) + pixel_second_fee;\n",
+      "semantic_claim": "Video escrow pricing reserves worst-case max resolution and duration with model-specific pixel-second fees and step and FPS multipliers before long-running video work is admitted.",
+      "high_risk": true,
+      "risk_tags": [
+        "fees",
+        "async-fsm",
+        "precompile"
+      ],
+      "mapping_status": "blocked",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "calculate_async_fees_phase2"
+          ],
+          "snippet": "media-specific fee helpers absent",
+          "evidence": "Old video/audio-style multimodal escrow/model-specific pricing is not implemented in the v2 fee crate; current runtime keeps media delivery fail-closed."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "flow_equivalence_regression",
+      "negative_test_candidate": "Replay the smallest Multimodal Precompile Trace, Product Economics Compatibility scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "flow_titles": [
+        "Multimodal Precompile Trace",
+        "Product Economics Compatibility"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0025"
+      ],
+      "notes": "Reclassified from structural_equivalent. Shared fee crate presence is not behavioral proof; the old model-specific pricing branch is absent and must stay blocked.",
+      "atom_index": 13,
+      "record_id": "file-0280-atom-0013",
+      "atoms_total": 13,
+      "required_change": "Port old video/audio-style multimodal escrow/model-specific pricing and associated model-registry reads before enabling this family."
     }
   ],
-  "high_risk_atoms_total": 1,
-  "non_exact_atoms_total": 1,
+  "high_risk_atoms_total": 13,
+  "non_exact_atoms_total": 13,
   "adversarial_reviews": [],
-  "summary": "No reliable destination evidence was found for the downstream file-level behavior.",
+  "summary": "Fee atoms now distinguish supported sovereign/persistent/HTTP/ZK pricing from blocked multimodal/FHE pricing gaps.",
   "review_required": true,
   "status": "needs_review",
-  "notes": "Same-path destination file exists, but automated symbol overlap was too weak to assert semantic carry-forward."
+  "notes": "First-principles audit blocked media fee atoms that were previously broad structural-equivalent claims."
 }

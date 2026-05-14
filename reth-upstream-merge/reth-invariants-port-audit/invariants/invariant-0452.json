@@ -1,0 +1,67 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/async_pool.rs"
+  ],
+  "invariant_id": "cur-772b1c47d7-awaitingexecution-move-awaiting-delivery",
+  "invariant_index": 452,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/transaction-pool/src/pool/mod.rs",
+      "crates/transaction-pool/src/lib.rs",
+      "crates/transaction-pool/src/traits.rs"
+    ],
+    "checked_queries": [
+      "mark_async_awaiting_delivery",
+      "mark_awaiting_delivery",
+      "AwaitingExecution",
+      "AwaitingDelivery",
+      "metadata.state != AsyncState::Fulfilled"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "mark_awaiting_delivery",
+      "mark_async_awaiting_delivery",
+      "AsyncState::AwaitingExecution",
+      "AsyncState::Fulfilled",
+      "AsyncState::AwaitingDelivery"
+    ],
+    "missing_behavior": "mark_async_awaiting_delivery does not accept AwaitingExecution; it only transitions Fulfilled entries to AwaitingDelivery.",
+    "related_but_insufficient_code": [
+      "AsyncTxMetadata::time_expiry_reference treats AwaitingExecution and Fulfilled similarly for expiry while awaiting delivery is pending.",
+      "mark_awaiting_delivery currently returns InvalidState unless metadata.state == AsyncState::Fulfilled.",
+      "Pool facade methods delegate to this strict mark_awaiting_delivery implementation."
+    ]
+  },
+  "notes": "Insert a two-phase async pool entry in AwaitingExecution and call mark_async_awaiting_delivery; current code returns InvalidState instead of moving to AwaitingDelivery.",
+  "rationale": "The state check changes from requiring Fulfilled only to allowing Fulfilled or AwaitingExecution, with comments identifying the race where on-chain Phase 1 settlement occurs before local result processing. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "820d8fe4c0be50b2add399a811d1fb7cb0cc901c"
+  ],
+  "statement": "mark_async_awaiting_delivery accepts two-phase async pool entries in either Fulfilled or AwaitingExecution state, allowing Phase 1 settlement to move a job toward delivery even if the executor result has not yet updated local pool state.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Insert a two-phase async pool entry in AwaitingExecution and call mark_async_awaiting_delivery for its hash. Assert the transition succeeds. Repeat with an unrelated invalid state and assert InvalidState is returned."
+  ],
+  "summary": "AwaitingExecution cannot move directly to awaiting delivery in the v2 port.",
+  "test_or_falsification_candidate": "Insert a two-phase async pool entry in AwaitingExecution and call mark_async_awaiting_delivery for its hash. Assert the transition succeeds. Repeat with an unrelated invalid state and assert InvalidState is returned.",
+  "title": "AwaitingExecution can move to awaiting delivery",
+  "total_invariants": 1954
+}

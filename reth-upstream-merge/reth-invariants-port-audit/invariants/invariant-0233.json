@@ -1,0 +1,63 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "At capacity, registration attempts remove only inactive executors and choose the oldest inactive registration_time before inserting the new executor.",
+      "path": "crates/ritual-spc-verification/src/types.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if self.executors.len() >= self.max_executors {\n    self.remove_oldest_inactive();\n}\n...\nlet oldest_inactive = self.executors.iter()\n    .filter(|(_, info)| !info.is_active)\n    .min_by_key(|(_, info)| info.registration_time)\n    .map(|(addr, _)| *addr);\nif let Some(address) = oldest_inactive {\n    self.executors.remove(&address);\n}",
+      "symbols": [
+        "ExecutorRegistry::register_executor",
+        "ExecutorRegistry::remove_oldest_inactive"
+      ]
+    }
+  ],
+  "equivalence_argument": "ExecutorRegistry::register_executor invokes capacity handling before insertion, and the helper targets the inactive entry with the minimum registration_time.",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/types.rs"
+  ],
+  "invariant_id": "cur-3032209a34-capacity-eviction-targets-oldest-inactive-executor",
+  "invariant_index": 233,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-spc-verification/src/types.rs"
+    ],
+    "checked_queries": [
+      "max_executors|remove_oldest_inactive|registration_time|filter\\(.*is_active"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "ExecutorRegistry::register_executor",
+      "ExecutorRegistry::remove_oldest_inactive",
+      "registration_time"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The registration path invokes capacity handling and the helper chooses the minimum registration_time among inactive entries, preserving newer inactive records and all active records when possible. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "71f0156e2a83c51d57191e946a8502f679c40308"
+  ],
+  "statement": "When registering an executor while the registry has reached max_executors, the registry attempts to make room by removing the inactive executor with the oldest registration_time before inserting the new entry.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create a registry at capacity with multiple inactive executors whose registration_time values differ, register a new executor, and assert the oldest inactive address was removed while newer inactive and active entries remain."
+  ],
+  "summary": "Capacity eviction targets the oldest inactive executor.",
+  "test_or_falsification_candidate": "Fill a registry to capacity with multiple inactive executors of different registration_time values and one active executor, then register a new executor and assert the oldest inactive one was removed.",
+  "title": "Capacity eviction targets oldest inactive executor",
+  "total_invariants": 1954
+}

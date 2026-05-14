@@ -1,0 +1,65 @@
+{
+  "cluster_key": "scheduler:payload-building:part-01",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/evm/src/execute.rs",
+    "crates/ritual-metrics/src/block.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-03136a7c3e-payload-verification-phases-emit-timing-metrics",
+  "invariant_index": 94,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-metrics/src/block.rs",
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "BlockBuildPhaseTrace|record_block_build_attempt|log_payload_phase|record.*phase|payload_async_collection|verification phases"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "BlockBuildPhaseTrace",
+      "record_block_build_attempt",
+      "log_payload_phase"
+    ],
+    "missing_behavior": "Missing end-to-end per-phase timing emission from payload building, block execution, and block verification. Metrics structs/log helpers exist, but local payload and verifier code do not call them for async/scheduled/regular/finalization/verification phases.",
+    "related_but_insufficient_code": [
+      "ritual-metrics defines BlockBuildPhaseTrace, BlockBuildAttemptTrace, record_block_build_attempt, log_payload_phase, and RPC conversion for traces.",
+      "Searches found no wiring from ethereum/payload or ritual-block-verification into these phase metrics."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The instrumentation lineage starts with payload phases, expands to execution phases, and adds verification phases while preserving the same phase-recording concept.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "31e38a763254d9095c3e1515a5aed85772fe5a7f",
+    "8d06da47da19058f3992334f1e3f739d884ba832",
+    "075f71cafbf1363ed21db44917f298ed3f6a7fd1"
+  ],
+  "statement": "Payload building, block execution, and block verification should emit per-phase timing metrics with phase labels, block number, timestamp/duration information, and relevant transaction or event counts for async, scheduled, regular, finalization, and verification phases.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Build a payload with scheduled, async, and regular candidates and assert emitted BlockBuildAttemptTrace.phases contains per-phase labels/counts/durations.",
+    "Run block verification and assert verification phase metrics are emitted."
+  ],
+  "summary": "Phase timing metric infrastructure exists, but payload/verifier phase emission is absent.",
+  "test_or_falsification_candidate": "Enable block-build trace collection and build/verify a block; current code has trace types but no payload/verifier phase emission sites.",
+  "title": "Payload and verification phases emit timing metrics",
+  "total_invariants": 1954
+}

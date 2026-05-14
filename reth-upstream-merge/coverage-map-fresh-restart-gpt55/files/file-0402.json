@@ -1,0 +1,100 @@
+{
+  "record_type": "file",
+  "file_index": 402,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/rpc/rpc/src/eth/helpers/pending_block.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "partial",
+  "tags": [
+    "non-exact",
+    "pending-block",
+    "rpc",
+    "confirmed-gap",
+    "non-fsm",
+    "extra-data"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0402-atom-0001",
+      "file_index": 402,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/rpc/rpc/src/eth/helpers/pending_block.rs",
+      "source_hunk_hint": "@@ -72,6 +72,7 @@",
+      "source_kind": "pending_env_field",
+      "source_snippet": "withdrawals: None,\nextra_data: None,",
+      "semantic_claim": "The old pending-block helper explicitly initializes the new `extra_data` next-block environment field to `None` when building pending block attributes.",
+      "high_risk": false,
+      "risk_tags": [
+        "rpc",
+        "pending-block",
+        "payload-metadata",
+        "non-fsm-api-detail"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc-eth-api/src/helpers/pending_block.rs",
+          "symbols": [
+            "BuildPendingEnv for NextBlockEnvAttributes"
+          ],
+          "evidence": "Current pending env builder sets `extra_data: parent.extra_data().clone()`."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/evm/evm/src/lib.rs",
+          "symbols": [
+            "NextBlockEnvAttributes"
+          ],
+          "evidence": "Current `NextBlockEnvAttributes.extra_data` is a required `Bytes` value, so the old optional `None`/no-override value cannot be represented in this type."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/evm/src/lib.rs",
+          "symbols": [
+            "context_for_next_block"
+          ],
+          "evidence": "The next-block execution context forwards `attributes.extra_data` into the block execution context."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/evm/src/build.rs",
+          "symbols": [
+            "EthBlockAssembler",
+            "extra_data"
+          ],
+          "evidence": "Block assembly writes `ctx.extra_data` into the assembled block header, so pending-block RPC header metadata can differ when the parent has non-default extraData."
+        }
+      ],
+      "equivalence_argument": "Definitive classification: confirmed non-FSM pending-block metadata/API difference. The current code copies parent header extraData into locally derived pending blocks, while the old downstream atom explicitly used `extra_data: None` in the optional next-block attributes. This does not alter transaction selection/execution FSM, but it can change `eth_getBlockByNumber(\"pending\")` header `extraData` when parent extraData differs from the intended default/no-override value.",
+      "test_strategy": "pending block extraData response regression",
+      "negative_test_candidate": "Build a derived pending block over a parent with distinct non-empty extraData and compare pending header extraData against the old optional-None/no-override behavior.",
+      "adversarial_review": {
+        "required": false,
+        "status": "closed_confirmed_non_fsm_gap",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Review closed as confirmed non-FSM API/metadata gap; no ambiguity remains."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Ambiguity resolved: pending-block extraData is a confirmed non-FSM metadata/API difference, not an execution FSM bug.",
+  "review_required": false,
+  "status": "confirmed_gap",
+  "notes": [
+    "Current BuildPendingEnv copies parent extraData.",
+    "Current NextBlockEnvAttributes cannot represent the old optional `None` no-override value.",
+    "The value reaches assembled pending block headers through context_for_next_block and EthBlockAssembler.",
+    "This is user-facing pending-block header metadata, not transaction execution FSM."
+  ]
+}

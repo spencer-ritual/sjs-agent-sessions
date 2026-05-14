@@ -1,0 +1,86 @@
+{
+  "record_type": "file",
+  "file_index": 420,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/scheduling/src/service.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "high-risk",
+    "non-exact",
+    "needs-review",
+    "scheduled",
+    "service-loop"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0420-atom-0001",
+      "file_index": 420,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/scheduling/src/service.rs",
+      "source_hunk_hint": "@@ -0,0 +1,58 @@",
+      "source_kind": "service_loop",
+      "source_snippet": "Block processing service for scheduling transactions; SchedulerService owns SchedulerContract and processes BlockEvent messages.",
+      "semantic_claim": "The old file wraps the scheduler contract monitor in a block-processing service loop.",
+      "high_risk": true,
+      "risk_tags": [
+        "scheduled",
+        "service-loop",
+        "async-fsm"
+      ],
+      "mapping_status": "partial",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "PayloadCandidate::Scheduled"
+          ],
+          "evidence": "Destination performs scheduled work inside the payload builder rather than through a standalone scheduling service loop."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "verify_scheduled_censorship"
+          ],
+          "evidence": "Destination verifier enforces that due scheduled obligations are present or validly skipped."
+        }
+      ],
+      "equivalence_argument": "The old service loop is not exact-preserved; its execution responsibility is absorbed by payload assembly and verification hooks.",
+      "test_strategy": "payload-builder/verifier scheduled E2E",
+      "negative_test_candidate": "Disable payload scheduled obligation synthesis and confirm verifier catches a censorable due call, proving the service-loop responsibility moved to payload/verifier hooks.",
+      "adversarial_review": {
+        "required": true,
+        "status": "queued",
+        "review_record_id": "review-file-0420-atom-0001"
+      },
+      "review_required": true,
+      "notes": "No destination service loop by this name or shape was found; behavior is distributed."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [
+    {
+      "review_record_id": "review-file-0420-atom-0001",
+      "atom_id": "file-0420-atom-0001",
+      "status": "queued",
+      "reason": "Standalone scheduling service loop is replaced by payload/verifier hooks."
+    }
+  ],
+  "summary": "The old scheduling service loop is not exact-preserved; v2.2 distributes the responsibility into payload construction and block verification.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": [
+    "Queue entry verified as file 420: A\tcrates/scheduling/src/service.rs.",
+    "Source hunk begins at divergence diff line 82875."
+  ]
+}

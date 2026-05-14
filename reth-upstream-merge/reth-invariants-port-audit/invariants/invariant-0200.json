@@ -1,0 +1,78 @@
+{
+  "cluster_key": "executor delivery:delivery-settlements-require-b1a788ec",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The pool rejects empty delivery proofs before storing delivery result metadata and records the proof for DeliveryReady entries.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if submission.delivery_proof.is_empty() {\n    return Err(AsyncPoolError::MissingDeliveryProof);\n}\n...\nmetadata.delivery_proof = Some(submission.delivery_proof);",
+      "symbols": [
+        "AsyncDeliverySubmission::delivery_proof",
+        "AsyncPoolError::MissingDeliveryProof",
+        "submit_delivery_result_with_context"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The Phase 2 settlement builder independently requires a nonempty proof and embeds it in delivery_spc_calls.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let delivery_proof = metadata.delivery_proof.as_ref()\n    .filter(|proof| !proof.is_empty())\n    .ok_or_else(|| \"delivery-ready async entry missing delivery proof\".to_string())?;\n...\nlet delivery_spc_call = SpcCall::new(..., delivery_proof.clone(), contract_job.commit_block);\nsettlement_tx.delivery_spc_calls = Some(vec![delivery_spc_call]);",
+      "symbols": [
+        "prepare_delivery_settlement_transaction",
+        "SpcCall::new"
+      ]
+    }
+  ],
+  "equivalence_argument": "The pool and payload builder both fail closed on missing/empty delivery proofs, and successful Phase 2 settlements carry the proof in delivery_spc_calls.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-e3dc94b267-delivery-settlements-require-nonempty-proof",
+  "invariant_index": 200,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/ethereum/payload/src/ritual_async.rs"
+    ],
+    "checked_queries": [
+      "delivery_proof|MissingDeliveryProof|delivery-ready async entry missing delivery proof|delivery_spc_calls"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "MissingDeliveryProof",
+      "delivery_proof",
+      "SpcCall::new",
+      "delivery_spc_calls"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The merge changes delivery settlement construction from defaulting missing delivery_proof to empty bytes to explicitly erroring when the proof is absent or empty, then stores the proof in SpcCall data. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "a0e5174a8348b5b5995e2733d09eaf04e96162d2"
+  ],
+  "statement": "When creating a Phase 2 delivery settlement transaction, the payload builder requires pool metadata to contain a nonempty delivery proof and embeds that proof in a delivery_spc_calls entry; missing or empty delivery proofs cause settlement transaction creation to fail.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Attempt to build a Phase 2 delivery settlement with metadata.delivery_proof None, empty, and valid; assert the first two fail before producing a transaction and the valid proof is present in settlement_tx.delivery_spc_calls[0].proof."
+  ],
+  "summary": "Phase 2 delivery settlements require and preserve a nonempty delivery proof.",
+  "test_or_falsification_candidate": "Attempt Phase 2 delivery with None/empty proof and assert pool/builder reject; repeat with a proof and assert delivery_spc_calls[0] contains it.",
+  "title": "Delivery settlements require nonempty proof",
+  "total_invariants": 1954
+}

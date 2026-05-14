@@ -1,0 +1,74 @@
+{
+  "record_type": "file",
+  "file_index": 524,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/transaction-pool/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "structural_equivalent",
+  "tags": [
+    "structural_equivalent",
+    "reviewed",
+    "txpool",
+    "async"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0524-atom-0001",
+      "file_index": 524,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/transaction-pool/src/lib.rs",
+      "source_hunk_hint": "@@ -172,15 +172,25 @@ pub use crate::{",
+      "source_kind": "txpool_api",
+      "source_snippet": "use crate::{\n    identifier::TransactionId,\n    pool::{\n        async_pool::{AsyncConversionError, AsyncTxMeta, AsyncUpdateError},\n        txpool::TxPool,\n        PoolInner,\n    },\n};\nuse alloy_consensus::transaction::OriginalTransaction;\nuse alloy_primitives::{Address, Bytes, TxHash, B256, U256};",
+      "semantic_claim": "The old diff expands `Pool`/`TransactionPool` with async result submission, async metadata queries, and fulfilled original transaction replay helpers.",
+      "high_risk": true,
+      "risk_tags": [
+        "txpool",
+        "async",
+        "api"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/lib.rs",
+          "symbols": [
+            "submit_async_result",
+            "get_async_metadata",
+            "get_fulfilled_original_async_commitment_transactions"
+          ],
+          "evidence": "Destination exposes context-rich async result submission and metadata/replay helpers, but not the old direct add-scheduled/add-async API shape."
+        }
+      ],
+      "equivalence_argument": "Reviewed structural equivalent: behavior is carried by a refactored v2.2 API centered on canonical async metadata, context-checked result submissions, delivery submissions, and fulfilled-original replay helpers. Exact old direct insertion method names are absent, but active RPC and payload callers use the safer v2 APIs.",
+      "test_strategy": "RPC async-result submission plus payload replay regression",
+      "negative_test_candidate": "Submitting a result without finalized commitment context should remain rejected.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed: async result/delivery submission, metadata lookup, and fulfilled original replay surfaces are present in the v2 API."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Reviewed: TransactionPool public async-result behavior is structurally preserved through context-rich metadata/result/delivery APIs and fulfilled-original replay helpers.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0524: M\tcrates/transaction-pool/src/lib.rs.",
+    "Source diff lines 90491-90760; first hunk `@@ -172,15 +172,25 @@ pub use crate::{`.",
+    "Fresh destination evidence was checked against /home/ritual/repos/ritual-reth-internal-v2.2.0-port.",
+    "Review conclusion: no remaining public async txpool API gap for active RPC/payload callers."
+  ]
+}

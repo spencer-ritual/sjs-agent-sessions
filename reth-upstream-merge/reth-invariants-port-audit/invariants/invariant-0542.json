@@ -1,0 +1,67 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "AutonomousAgent and Telemetry are enum values but are intentionally absent from the executor-capability match set.",
+      "path": "crates/ritual-tee-registry-reader/src/types.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub enum Capability { ... Fhe = 10, AutonomousAgent = 11, Telemetry = 12 }\n...\npub fn is_executor_capability(&self) -> bool {\n    matches!(self, Capability::HttpCall | Capability::Llm | Capability::WormholeQuery | Capability::ZkCall | Capability::ImageCall | Capability::AudioCall | Capability::VideoCall | Capability::Fhe)\n}",
+      "symbols": [
+        "Capability",
+        "Capability::is_executor_capability"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "Local tests explicitly assert the service capabilities are not executor capabilities.",
+      "path": "crates/ritual-tee-registry-reader/src/reader.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "assert!(!Capability::AutonomousAgent.is_executor_capability());\nassert!(!Capability::Telemetry.is_executor_capability());",
+      "symbols": [
+        "test_capability_is_executor"
+      ]
+    }
+  ],
+  "equivalence_argument": "AutonomousAgent and Telemetry are decoded registry capabilities but not classified as executor capabilities.",
+  "evidence_files": [
+    "crates/ritual-tee-registry-reader/src/reader.rs",
+    "crates/ritual-tee-registry-reader/src/types.rs"
+  ],
+  "invariant_id": "cur-f61952d139-agent-registry-capabilities-executor-capabilities",
+  "invariant_index": 542,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The comment still says autonomous agent executor capability, but the executable predicate and tests keep it out of executor filtering.",
+  "rationale": "The tests add explicit assertions that AutonomousAgent and Telemetry return false for is_executor_capability, and the commit message says they should be kept out because they are service capabilities. The primary diff adds tests asserting both new capabilities return false from `is_executor_capability`, preserving the separation between executor service capabilities and registry/telemetry agent capabilities. Collapsed 2 closely related historical candidate statements into the latest effective formulation.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "de73b7b55c42a7d9f3580284cd2daf15fed842c4",
+    "c1b639b5d50d29200d1dc7bf3fa6340984cb37a6"
+  ],
+  "statement": "`AutonomousAgent` and `Telemetry` capabilities must not be classified as executor capabilities by `Capability::is_executor_capability()`.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Assert Capability::AutonomousAgent.is_executor_capability() and Capability::Telemetry.is_executor_capability() both return false while executor-serving capabilities continue to return true.",
+    "Assert `Capability::AutonomousAgent.is_executor_capability()` and `Capability::Telemetry.is_executor_capability()` both return false, while existing executor precompile capabilities still return true."
+  ],
+  "summary": "Agent registry capabilities remain separate from executor capabilities.",
+  "test_or_falsification_candidate": "Assert AutonomousAgent and Telemetry return false while Fhe/HttpCall/Audio/Video executor capabilities return true.",
+  "title": "Agent registry capabilities are not executor capabilities",
+  "total_invariants": 1954
+}

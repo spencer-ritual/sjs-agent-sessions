@@ -1,0 +1,87 @@
+{
+  "record_type": "file",
+  "file_index": 96,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/ethereum/primitives/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "dropped",
+  "tags": [
+    "dropped",
+    "non-exact",
+    "manifest",
+    "primitives",
+    "reviewed"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0096-atom-0001",
+      "file_index": 96,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ethereum/primitives/Cargo.toml",
+      "source_hunk_hint": "@@ -35,6 +35,7 @@ rand_08 = { workspace = true, optional = true }",
+      "source_kind": "other",
+      "source_snippet": "tracing = { workspace = true }",
+      "semantic_claim": "The downstream reth-ethereum-primitives manifest adds an unconditional workspace tracing dependency, making tracing macros available to the primitives crate.",
+      "high_risk": false,
+      "risk_tags": [
+        "manifest",
+        "dependency",
+        "build-surface"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/primitives/Cargo.toml",
+          "symbols": [
+            "dependencies"
+          ],
+          "snippet": "[dependencies]\nreth-codecs = { workspace = true, optional = true, features = [\"alloy\"] }\nreth-primitives-traits.workspace = true\nalloy-eips = { workspace = true, features = [\"k256\"] }\nalloy-primitives.workspace = true\nalloy-consensus = { workspace = true, features = [\"serde\"] }\nalloy-rpc-types-eth = { workspace = true, optional = true }\nserde = { workspace = true, optional = true }",
+          "evidence": "The destination equivalent reth-ethereum-primitives manifest omits tracing, and a search of crates/ethereum/primitives found no tracing macro or tracing:: call sites that would require the dependency."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "Cargo.toml",
+          "symbols": [
+            "workspace.dependencies.tracing"
+          ],
+          "snippet": "tracing = { version = \"0.1.0\", default-features = false, features = [\"attributes\"] }",
+          "evidence": "The workspace still provides tracing for crates that need it, so the absence is scoped to the primitives crate dependency surface rather than an unavailable workspace package."
+        },
+        {
+          "repo": "ritual-reth-nodebuilder-internal",
+          "path": "crates/precompiles/Cargo.toml",
+          "symbols": [
+            "dependencies.tracing"
+          ],
+          "snippet": "tracing = { workspace = true }",
+          "evidence": "Other destination crates declare tracing directly where they have logging call sites; this supports treating the primitives omission as deliberate rather than a workspace-wide missing dependency."
+        }
+      ],
+      "equivalence_argument": "The destination crate does not need the added dependency because the v2 primitives code has no tracing call sites; crates with active logging declare tracing in their own manifests.",
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Confirmed support-only absence: current primitives code has no tracing use, and crates with logging declare tracing directly."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Mechanical review complete. The tracing manifest dependency is intentionally absent because the current primitives crate has no tracing call sites; this is not a runtime, FSM, or encoding gap.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Support-only manifest review closed; no action needed unless future primitives code adds tracing macros."
+}

@@ -9,22 +9,19 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "mapped",
+  "file_classification": "structural_equivalent",
   "tags": [
-    "mapped",
-    "execution",
     "high-risk",
     "non-exact",
-    "reth-port",
-    "alloy-evm"
+    "structural_equivalent"
   ],
-  "atoms_total": 1,
+  "atoms_total": 2,
   "atoms": [
     {
       "record_id": "file-0107-atom-0001",
       "file_index": 107,
       "atom_index": 1,
-      "atoms_total": 1,
+      "atoms_total": 2,
       "source_path": "crates/evm/src/execute.rs",
       "source_hunk_hint": "@@ -256,0 +257,17 @@ pub trait BlockBuilder {",
       "source_kind": "other",
@@ -65,18 +62,85 @@
         "status": "pass",
         "review_record_id": "review-file-0107-atom-0001"
       },
-      "review_required": false,
+      "review_required": true,
       "notes": "First-pass review found the behavior split between the v2 Reth block-builder trait and Alloy EVM executor implementation.",
       "required_change": null
+    },
+    {
+      "record_type": "pr_preservation_derived_atom",
+      "pr_preservation_derived": true,
+      "pr_preservation_grounded": true,
+      "file_index": 107,
+      "source_path": "crates/evm/src/execute.rs",
+      "source_hunk_hint": "crates/evm/src/execute.rs:26-46",
+      "source_kind": "state_transition",
+      "source_snippet": "\n/// A type that knows how to execute a block. It is assumed to operate on a\n/// [`crate::Evm`] internally and use [`State`] as database.\npub trait Executor<DB: Database>: Sized {\n    /// The primitive types used by the executor.\n    type Primitives: NodePrimitives;\n    /// The error type returned by the executor.\n    type Error;\n\n    /// Executes a single block and returns [`BlockExecutionResult`], without the state changes.\n    fn execute_one(\n        &mut self,\n        block: &RecoveredBlock<<Self::Primitives as NodePrimitives>::Block>,\n    ) -> Result<BlockExecutionResult<<Self::Primitives as NodePrimitives>::Receipt>, Self::Error>;\n\n    /// Executes the EVM with the given input and accepts a state hook closure that is invoked with\n    /// the EVM state after execution.\n    fn execute_one_with_state_hook<F>(\n        &mut self,\n        block: &RecoveredBlock<<Self::Primitives as NodePrimitives>::Block>,\n        state_hook: F,",
+      "semantic_claim": "PR preservation `#149` `executor-migration` keeps live downstream behavior: direct registry storage reads for executor/SPC public key data.",
+      "high_risk": true,
+      "risk_tags": [
+        "executor-selection",
+        "fees",
+        "precompile"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "Async context construction",
+            "build_short_async_commitment_transaction"
+          ],
+          "snippet": "payload creates async commitments from EVM-detected async calls and parent context",
+          "evidence": "The active async execution path moved from old EVM helper APIs into payload/revm async context integration."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-revm-internal",
+          "path": "crates/context/interface/src/async_context.rs",
+          "symbols": [
+            "AsyncContextTr",
+            "ExecutionMode"
+          ],
+          "snippet": "async context state and SPC call tracking live in revm context dependency",
+          "evidence": "Async-context behavior is preserved in the dependency graph and exercised through async-context feature checks."
+        }
+      ],
+      "equivalence_argument": "Async context behavior is preserved through dependency async-context plumbing and payload integration.",
+      "test_strategy": "pr_diff_equivalence_regression",
+      "negative_test_candidate": "Replay or unit-test the smallest downstream scenario introduced by #149 that exercises `direct registry storage reads for executor/SPC public key data` and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "source_prs": [
+        {
+          "key": "#149",
+          "slug": "executor-migration",
+          "merge_commit": "bf113c77db7cd3bfaf7fc87e76965c4dfb1cdf78"
+        }
+      ],
+      "source_pr_claims": [
+        "direct registry storage reads for executor/SPC public key data"
+      ],
+      "source_flow_ids": [
+        "pr-raw-0042"
+      ],
+      "notes": "Mapped to async-context feature propagation and payload integration.",
+      "atom_index": 2,
+      "record_id": "file-0107-atom-0002",
+      "atoms_total": 2,
+      "needs_atomization": true
     }
   ],
-  "high_risk_atoms_total": 1,
-  "non_exact_atoms_total": 1,
+  "high_risk_atoms_total": 2,
+  "non_exact_atoms_total": 2,
   "adversarial_reviews": [
     "coverage-map/reviews/review-file-0107-atom-0001.json"
   ],
-  "summary": "The downstream explicit-gas system transaction hook is preserved across the v2 Reth block-builder trait and Alloy EVM executor implementation.",
-  "review_required": false,
-  "status": "complete",
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": true,
+  "status": "needs_review",
   "notes": "Reclassified from missing after locating the v2 split destination evidence."
 }

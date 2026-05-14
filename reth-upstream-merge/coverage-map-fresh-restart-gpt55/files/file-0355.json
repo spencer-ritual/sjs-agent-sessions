@@ -1,0 +1,71 @@
+{
+  "record_type": "file",
+  "file_index": 355,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-tee-registry-reader/src/error.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "tee-registry-reader",
+    "errors"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0355-atom-0001",
+      "file_index": 355,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-tee-registry-reader/src/error.rs",
+      "source_hunk_hint": "@@ -0,0 +1,22 @@; registry read errors",
+      "source_kind": "tee_registry_reader_error_surface",
+      "source_snippet": "pub enum RegistryReadError { AccountLoadFailed(String), StorageReadFailed { slot: String, executor: Address, reason: String }, ExecutorCountExceeded { count: usize, max: usize }, PublicKeyLengthExceeded { length: usize, max: usize, executor: Address }, ExecutorNotFound { executor: Address } }",
+      "semantic_claim": "The old divergence adds the TEE registry reader error taxonomy for account load failures, per-slot storage failures, excessive service counts, excessive public-key lengths, and missing executors.",
+      "high_risk": false,
+      "risk_tags": [
+        "errors",
+        "storage-reader",
+        "bounds"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-tee-registry-reader/src/error.rs",
+          "symbols": [
+            "RegistryReadError"
+          ],
+          "evidence": "Destination lines 1-22 exactly match source-added diff lines 75269-75291."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves storage-read failure reporting.",
+      "test_strategy": "registry_read_error_display_tests",
+      "negative_test_candidate": "A public key longer than the configured max should return `PublicKeyLengthExceeded` with executor context.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The TEE registry reader error surface is exact-port preserved.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 355: A\tcrates/ritual-tee-registry-reader/src/error.rs.",
+    "Destination file has 22 lines and matches the source-added content exactly.",
+    "No review queue entry required because the atom is exact."
+  ]
+}

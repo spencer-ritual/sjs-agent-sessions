@@ -1,0 +1,157 @@
+{
+  "record_type": "file",
+  "file_index": 342,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-sequencing-rights/src/types.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "sequencing-rights",
+    "types"
+  ],
+  "atoms_total": 3,
+  "atoms": [
+    {
+      "record_id": "file-0342-atom-0001",
+      "file_index": 342,
+      "atom_index": 1,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-sequencing-rights/src/types.rs",
+      "source_hunk_hint": "@@ -0,0 +1,92 @@; sequencing ordering and selector set types",
+      "source_kind": "sequencing_rights_core_types",
+      "source_snippet": "pub enum SequencingOrdering { TimeBased, FeeBased, Custom(Address), Invalid }\npub type Selector = [u8; 4];\npub struct SelectorSet { selectors: HashSet<Selector> }\nimpl SelectorSet { pub fn new() -> Self { ... } pub fn contains(&self, selector: &Selector) -> bool { ... } pub fn insert(&mut self, selector: Selector) { ... } }",
+      "semantic_claim": "The old divergence adds core sequencing-rights types: ordering modes, 4-byte selector alias, and selector-set wrapper with construction, membership, insertion, length, and empty checks.",
+      "high_risk": false,
+      "risk_tags": [
+        "types",
+        "sequencing-ordering",
+        "selector-set"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-sequencing-rights/src/types.rs",
+          "symbols": [
+            "SequencingOrdering",
+            "Selector",
+            "SelectorSet"
+          ],
+          "evidence": "Destination lines 1-92 exactly match source-added diff lines 69332-69423."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps public type semantics and selector-set operations unchanged.",
+      "test_strategy": "sequencing_rights_type_tests",
+      "negative_test_candidate": "A newly created selector set should be empty and not contain any selector.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0342-atom-0002",
+      "file_index": 342,
+      "atom_index": 2,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-sequencing-rights/src/types.rs",
+      "source_hunk_hint": "@@ -0,0 +94,198 @@; type unit tests",
+      "source_kind": "sequencing_rights_type_unit_tests",
+      "source_snippet": "#[cfg(test)]\nmod tests { #[test] fn test_sequencing_ordering_from_u8() { ... } #[test] fn test_selector_set() { ... } #[test] fn test_selector_set_from_vec() { ... } #[test] fn test_ordering_equality() { ... } }",
+      "semantic_claim": "The old divergence adds unit tests covering ordering byte conversion, selector set insertion/membership/from-vector behavior, and ordering equality/debug semantics.",
+      "high_risk": false,
+      "risk_tags": [
+        "tests",
+        "types",
+        "selector-set"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-sequencing-rights/src/types.rs",
+          "symbols": [
+            "test_sequencing_ordering_from_u8",
+            "test_selector_set",
+            "test_selector_set_from_vec",
+            "test_ordering_equality"
+          ],
+          "evidence": "Destination lines 94-198 exactly match source-added diff lines 69425-69529."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves unit coverage for core type behavior.",
+      "test_strategy": "cargo test -p ritual-sequencing-rights types",
+      "negative_test_candidate": "Duplicate selector insertion should not increase selector-set length.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Test atom only."
+    },
+    {
+      "record_id": "file-0342-atom-0003",
+      "file_index": 342,
+      "atom_index": 3,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-sequencing-rights/src/types.rs",
+      "source_hunk_hint": "@@ -0,0 +200,369 @@; type property tests",
+      "source_kind": "sequencing_rights_type_property_tests",
+      "source_snippet": "proptest! { #[test] fn prop_ordering_from_u8_never_panics(...) { ... } #[test] fn prop_selector_set_deduplicates(...) { ... } #[test] fn prop_selector_set_contains_inserted(...) { ... } #[test] fn prop_selector_set_len_bounded(...) { ... } }",
+      "semantic_claim": "The old divergence adds property tests asserting ordering conversion totality, selector-set deduplication, membership, and bounded length invariants.",
+      "high_risk": false,
+      "risk_tags": [
+        "property-tests",
+        "types",
+        "determinism",
+        "deduplication"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-sequencing-rights/src/types.rs",
+          "symbols": [
+            "prop_ordering_from_u8_never_panics",
+            "prop_selector_set_deduplicates",
+            "prop_selector_set_contains_inserted",
+            "prop_selector_set_len_bounded"
+          ],
+          "evidence": "Destination lines 200-369 exactly match source-added diff lines 69531-69700."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps randomized guards for type-level invariants.",
+      "test_strategy": "cargo test -p ritual-sequencing-rights types::tests::prop_",
+      "negative_test_candidate": "Any `u8` outside known ordering values should map to `SequencingOrdering::Invalid`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Property test atom only."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The sequencing-rights core types are exact-port preserved, including ordering modes, selector-set behavior, and tests.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 342: A\tcrates/ritual-sequencing-rights/src/types.rs.",
+    "Source-added hunk spans diff lines 69332-69700 with header `@@ -0,0 +1,369 @@`.",
+    "Destination `crates/ritual-sequencing-rights/src/types.rs` has 369 lines and matches the source-added file exactly.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

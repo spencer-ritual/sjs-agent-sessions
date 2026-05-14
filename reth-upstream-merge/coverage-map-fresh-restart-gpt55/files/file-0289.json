@@ -1,0 +1,33 @@
+{
+  "record_type": "file",
+  "file_index": 289,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-async-inspector/src/utils.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "documentation-only",
+    "empty-module",
+    "async-inspector"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The async-inspector utility module addition is documentation-only: it declares no functions, types, constants, or behavior-bearing code, and exists as an empty documented module noting that target-block extraction helpers were removed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 289: A\tcrates/ritual-async-inspector/src/utils.rs.",
+    "The source diff adds only four module-level doc comment lines at lines 42555-42564.",
+    "Destination `crates/ritual-async-inspector/src/utils.rs` contains the same documentation-only empty module.",
+    "No atom or review queue entry was required because there is no behavior-bearing source to map."
+  ]
+}

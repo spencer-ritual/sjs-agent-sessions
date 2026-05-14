@@ -1,0 +1,74 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The verifier delegates executor validation to the registry active-state query and fails closed if the registry lock cannot be read.",
+      "path": "crates/ritual-spc-verification/src/verifier.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn validate_executor(&self, executor_address: &Address) -> bool {\n    match self.executor_registry.read() {\n        Ok(registry) => registry.is_executor_active(executor_address),\n        Err(_) => {\n            tracing::warn!(...);\n            false\n        }\n    }\n}",
+      "symbols": [
+        "SpcVerifier::validate_executor"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The registry returns true only for registered active executors and false for inactive or unknown addresses.",
+      "path": "crates/ritual-spc-verification/src/types.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn is_executor_active(&self, address: &Address) -> bool {\n    self.executors.get(&normalized_address).map(|info| info.is_active).unwrap_or(false)\n}",
+      "symbols": [
+        "ExecutorRegistry::is_executor_active"
+      ]
+    }
+  ],
+  "equivalence_argument": "SpcVerifier owns an ExecutorRegistry and validate_executor is exactly the active-registry predicate with a false result on lock errors.",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-906a49d4e9-verifier-validates-active-executors-through-registry",
+  "invariant_index": 234,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-spc-verification/src/verifier.rs",
+      "crates/ritual-spc-verification/src/types.rs"
+    ],
+    "checked_queries": [
+      "validate_executor|is_executor_active|executor_registry|Failed to acquire read lock"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "SpcVerifier::validate_executor",
+      "ExecutorRegistry::is_executor_active",
+      "executor_registry"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The primary diff adds an ExecutorRegistry field to SpcVerifier, requires it at construction, and adds validate_executor as the public validation method that delegates to registry.is_executor_active while failing closed on lock errors. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "1039916d0cd57b159eb59696e4e2723f7e6ed696"
+  ],
+  "statement": "After this commit, SpcVerifier.validate_executor(address) must return true only when the verifier's ExecutorRegistry reports that address as an active executor, and must return false for inactive, unregistered, or unreadable registry state.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Construct a SpcVerifier with a test ExecutorRegistry, register one active executor and leave another address unregistered or inactive, then assert validate_executor returns true for the active address and false for the others; also poison or mock a failing registry read lock and assert it returns false."
+  ],
+  "summary": "SPC verifier executor validation is backed by active registry state and fails closed.",
+  "test_or_falsification_candidate": "Create a verifier with one active executor plus inactive/unknown addresses and assert validate_executor returns true only for the active executor; poison/mock the lock and assert false.",
+  "title": "SPC verifier validates active executors through its registry",
+  "total_invariants": 1954
+}

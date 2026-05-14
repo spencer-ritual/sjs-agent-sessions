@@ -1,0 +1,71 @@
+{
+  "record_type": "file",
+  "file_index": 391,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/rpc/rpc-eth-types/src/utils.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "partial",
+    "rpc-eth-types",
+    "decode-error"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0391-atom-0001",
+      "file_index": 391,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/rpc/rpc-eth-types/src/utils.rs",
+      "source_hunk_hint": "@@ -12,11 +12,11 @@",
+      "source_kind": "raw_transaction_decode_error_detail",
+      "source_snippet": "let transaction = T::decode_2718(&mut data)\n    .map_err(|e| EthApiError::FailedToDecodeSignedTransaction(e.to_string()))?;",
+      "semantic_claim": "The old divergence propagates the underlying EIP-2718 decode error string into `EthApiError::FailedToDecodeSignedTransaction` when recovering raw transactions.",
+      "high_risk": false,
+      "risk_tags": [
+        "decode-error",
+        "rpc-error",
+        "partial"
+      ],
+      "mapping_status": "partial",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc-eth-types/src/utils.rs",
+          "symbols": [
+            "recover_raw_transaction"
+          ],
+          "evidence": "Destination uses `decode_2718_exact(data)` for stricter no-trailing-bytes decoding, but maps errors to the unit `EthApiError::FailedToDecodeSignedTransaction` and therefore drops the source error detail."
+        }
+      ],
+      "equivalence_argument": "Partial: destination improves exact input consumption but does not preserve detailed decode error propagation; the public error-type gap is queued under `file-0384-atom-0001`.",
+      "test_strategy": "malformed raw transaction RPC error detail test",
+      "negative_test_candidate": "Malformed bytes with a concrete decode error should surface that detail in the RPC invalid params string.",
+      "adversarial_review": {
+        "required": false,
+        "status": "covered_by_existing_review",
+        "review_record_id": "review-file-0384-atom-0001"
+      },
+      "review_required": false,
+      "notes": "Do not duplicate review queue entry; this is the call-site counterpart to `file-0384-atom-0001`."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Raw transaction recovery partially maps the old decode path: destination has stricter exact decoding but omits detailed decode error propagation already queued under `file-0384`.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0391: M\tcrates/rpc/rpc-eth-types/src/utils.rs.",
+    "Source hunk spans diff lines 78071-78082.",
+    "No new review entry added because the same public error semantic gap is already queued as `file-0384-atom-0001`."
+  ]
+}

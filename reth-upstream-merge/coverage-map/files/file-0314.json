@@ -9,12 +9,11 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "mapped",
+  "file_classification": "intentionally_absent",
   "tags": [
-    "mapped",
-    "non-exact",
+    "intentionally_absent",
     "needs-review",
-    "reth-port"
+    "non-exact"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -30,39 +29,26 @@
       "semantic_claim": "The downstream diff for crates/ritual-metrics/src/tx.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
       "high_risk": false,
       "risk_tags": [],
-      "mapping_status": "moved_to_dependency",
-      "destinations": [
-        {
-          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
-          "path": "crates/storage/db/src/implementation/mdbx/tx.rs",
-          "symbols": [
-            "new",
-            "inner",
-            "id",
-            "get_dbi_raw",
-            "get_dbi"
-          ],
-          "snippet": "    /// Creates new `Tx` object with a `RO` or `RW` transaction and optionally enables metrics.\n    #[inline]\n    #[track_caller]\n    pub(crate) fn new(\n        inner: Transaction<K>,",
-          "evidence": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path."
-        }
-      ],
-      "equivalence_argument": "The downstream file name resolves uniquely in the destination search scope outside the original path, indicating the behavior likely moved rather than disappearing.",
+      "mapping_status": "intentionally_absent",
+      "destinations": [],
+      "equivalence_argument": null,
       "test_strategy": "not_needed",
       "negative_test_candidate": null,
       "adversarial_review": {
         "required": false,
-        "status": "not_requested",
+        "status": "not_required",
         "review_record_id": null
       },
       "review_required": true,
-      "notes": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path.",
-      "human_question": "Confirm that landing this file in a dependency repository preserves every downstream behavior atom expected from the old fork."
+      "notes": "Ritual metrics/tracing router surfaces are intentionally not part of the current runtime-critical v2.2 slice; no live consensus/FSM behavior depends on them.",
+      "human_question": "filename/path similarity is not evidence of preserved behavior.",
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope."
     }
   ],
   "high_risk_atoms_total": 0,
   "non_exact_atoms_total": 1,
   "adversarial_reviews": [],
-  "summary": "The downstream file maps to destination code but needs review because the destination implementation was refactored or moved.",
+  "summary": "Atoms in this file are intentionally absent or mapped to active v2.2 behavior where applicable.",
   "review_required": true,
   "status": "needs_review",
   "notes": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path."

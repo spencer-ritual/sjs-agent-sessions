@@ -1,0 +1,68 @@
+{
+  "cluster_key": "scheduler:pool-accounting:part-02",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/engine/tree/src/tree/cached_state.rs"
+  ],
+  "invariant_id": "cur-ee664f4d6d-pinned-contract-cache-entries-expire",
+  "invariant_index": 45,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/engine/tree/src/tree/cached_state.rs",
+      "crates/engine/execution-cache/src/cached_state.rs",
+      "crates/engine/tree/src/tree/precompile_cache.rs"
+    ],
+    "checked_queries": [
+      "pinned|PINNED|system contract|time_to_live|time_to_idle",
+      "CacheBuilder|FixedCache|ExecutionCache|account_cache|storage_cache",
+      "pinned contract cache entries"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "pinned account cache",
+      "pinned storage cache",
+      "time_to_live",
+      "time_to_idle",
+      "FixedCache",
+      "ExecutionCache",
+      "account_cache",
+      "storage_cache",
+      "code_cache"
+    ],
+    "missing_behavior": "Missing separate pinned account and storage caches for pinned system contract reads/inserts, and missing distinction where non-pinned addresses continue using regular TTL/idle caches.",
+    "related_but_insufficient_code": [
+      "execution-cache/src/cached_state.rs uses a single FixedCache for account_cache and storage_cache plus a code_cache. ExecutionCache::new builds capacity-limited caches and contains no pinned account/storage caches or TTL/idle policy.",
+      "engine/tree/src/tree/precompile_cache.rs uses moka CacheBuilder with LRU for precompile outputs, not pinned contract account/storage reads.",
+      "Searches for pinned/system-contract cache handling in the port only found unrelated comments and no separate pinned cache implementation."
+    ]
+  },
+  "notes": "Confirmed gap: current execution cache is capacity/epoch based and not split into pinned vs non-pinned TTL caches.",
+  "rationale": "Although this is cache plumbing rather than scheduler-specific pool accounting, the candidate directly states a current invariant for pinned system contract reads.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "4be0ca0da79d98dec9d90658a9a1a506d26dc028"
+  ],
+  "statement": "At current tip, pinned contract account and storage reads/inserts must use separate pinned caches without time_to_live or time_to_idle, while non-pinned addresses continue using regular TTL/idle caches.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Configure one pinned and one non-pinned contract, read account and storage for both, advance beyond the regular cache idle time, and assert pinned entries remain in pinned caches while non-pinned entries follow regular expiry behavior."
+  ],
+  "summary": "Pinned contract account/storage cache behavior is absent.",
+  "test_or_falsification_candidate": "Configure one pinned and one non-pinned contract and advance beyond the regular cache idle time; current port has no pinned cache configuration or TTL/idle policy to make this behavior observable.",
+  "title": "Pinned contract cache entries do not TTL-expire",
+  "total_invariants": 1954
+}

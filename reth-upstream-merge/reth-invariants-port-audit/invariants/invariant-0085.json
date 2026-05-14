@@ -1,0 +1,69 @@
+{
+  "cluster_key": "scheduler:scheduled-target-scheduler-26fc8a7a",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Full scheduled verification enforces C8 target equality with the configured Scheduler address.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let scheduler = scheduler_contract.unwrap_or_else(get_scheduler_address); ... if info.target != Some(scheduler) { return Err(ScheduledConstraintViolation::InvalidTarget { ... }); }",
+      "symbols": [
+        "verify_scheduled_transactions_full_with_predicate_evaluator",
+        "C8InvalidTarget",
+        "get_scheduler_address"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in port full scheduled verification.",
+  "evidence_files": [
+    "crates/ritual-scheduled-verification/src/lib.rs"
+  ],
+  "invariant_id": "cur-d32695496f-scheduled-verification-requires-scheduler-target",
+  "invariant_index": 85,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-scheduled-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "C8InvalidTarget|InvalidTarget|target != Some\\(scheduler\\)|get_scheduler_address"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "verify_scheduled_transactions_full_with_predicate_evaluator",
+      "get_scheduler_address"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped exactly.",
+  "rationale": "The cluster contains one candidate and no bounded successor or conflict.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "c3cc78635e46b0c41e1a102902bc4f41691d64df"
+  ],
+  "statement": "Full scheduled transaction verification rejects scheduled transactions whose target address is not the configured Scheduler contract address, and accepts the target-address check when the target is the configured Scheduler address.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Construct Scheduler and non-Scheduler target fixtures for full verification."
+  ],
+  "summary": "Scheduled target validation is mapped in the port.",
+  "test_or_falsification_candidate": "Full scheduled verification target-address fixture.",
+  "title": "Scheduled verification requires Scheduler target",
+  "total_invariants": 1954
+}

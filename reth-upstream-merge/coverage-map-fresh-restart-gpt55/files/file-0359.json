@@ -1,0 +1,150 @@
+{
+  "record_type": "file",
+  "file_index": 359,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-tee-registry-reader/src/types.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "tee-registry-reader",
+    "types"
+  ],
+  "atoms_total": 3,
+  "atoms": [
+    {
+      "record_id": "file-0359-atom-0001",
+      "file_index": 359,
+      "atom_index": 1,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-tee-registry-reader/src/types.rs",
+      "source_hunk_hint": "@@ -0,0 +1,79 @@; capability enum and executor predicate",
+      "source_kind": "tee_registry_capability_type",
+      "source_snippet": "pub enum Capability { HttpCall = 0, Llm = 1, WormholeQuery = 2, Streaming = 3, VllmProxy = 4, ZkCall = 5, Dkms = 6, ImageCall = 7, AudioCall = 8, VideoCall = 9, Fhe = 10, AutonomousAgent = 11, Telemetry = 12 }\nimpl TryFrom<u8> for Capability { ... }\nimpl Capability { pub fn is_executor_capability(&self) -> bool { ... } }",
+      "semantic_claim": "The old divergence adds the TEEServiceRegistry capability enum, byte conversion, and executor-capability predicate used to filter registry services relevant to SPC execution.",
+      "high_risk": false,
+      "risk_tags": [
+        "capability",
+        "executor-filter",
+        "tee-registry"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-tee-registry-reader/src/types.rs",
+          "symbols": [
+            "Capability",
+            "Capability::try_from",
+            "Capability::is_executor_capability"
+          ],
+          "evidence": "Destination lines 1-79 exactly match source-added diff lines 75873-75951."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves capability numbering and executor filtering.",
+      "test_strategy": "test_capability_is_executor and test_capability_try_from",
+      "negative_test_candidate": "Capability byte 13 should fail conversion.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0359-atom-0002",
+      "file_index": 359,
+      "atom_index": 2,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-tee-registry-reader/src/types.rs",
+      "source_hunk_hint": "@@ -0,0 +81,99 @@; TEE type and executor info",
+      "source_kind": "tee_registry_executor_info_type",
+      "source_snippet": "pub enum TeeType { Debug = 0, Tdx = 1 }\npub struct ExecutorInfo { pub payment_address: Address, pub tee_address: Address, pub tee_type: u8, pub capability: Capability, pub public_key: Vec<u8>, pub cert_hash: B256, pub workload_id: FixedBytes<32> }",
+      "semantic_claim": "The old divergence adds TEE type values and the executor info structure decoded from TEEServiceRegistry storage.",
+      "high_risk": false,
+      "risk_tags": [
+        "executor-info",
+        "tee-type",
+        "storage-decoding"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-tee-registry-reader/src/types.rs",
+          "symbols": [
+            "TeeType",
+            "ExecutorInfo"
+          ],
+          "evidence": "Destination lines 81-99 exactly match source-added diff lines 75953-75971."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves decoded executor metadata shape.",
+      "test_strategy": "executor_info_storage_decode_tests",
+      "negative_test_candidate": "A decoded TEE type byte should be retained in `ExecutorInfo::tee_type`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0359-atom-0003",
+      "file_index": 359,
+      "atom_index": 3,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-tee-registry-reader/src/types.rs",
+      "source_hunk_hint": "@@ -0,0 +101,114 @@; SPC verifier tuple conversion",
+      "source_kind": "tee_registry_executor_tuple_conversion",
+      "source_snippet": "impl From<ExecutorInfo> for (Address, Address, u8, Vec<u8>, FixedBytes<32>, u8) { fn from(s: ExecutorInfo) -> Self { ... } }",
+      "semantic_claim": "The old divergence adds conversion from decoded registry executor info into the tuple format consumed by the SPC verifier registry update path.",
+      "high_risk": false,
+      "risk_tags": [
+        "conversion",
+        "spc-verifier-integration",
+        "executor-registry"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-tee-registry-reader/src/types.rs",
+          "symbols": [
+            "From<ExecutorInfo> for (Address, Address, u8, Vec<u8>, FixedBytes<32>, u8)"
+          ],
+          "evidence": "Destination lines 101-114 exactly match source-added diff lines 75973-75986."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves SPC verifier integration tuple ordering.",
+      "test_strategy": "executor_info_tuple_conversion_tests",
+      "negative_test_candidate": "Swapping payment and TEE addresses in tuple conversion should break registry-key semantics downstream.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The TEE registry reader type module is exact-port preserved, including capability mapping, TEE/executor metadata, and SPC verifier tuple conversion.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 359: A\tcrates/ritual-tee-registry-reader/src/types.rs.",
+    "Destination file has 114 lines and matches the source-added content exactly.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

@@ -9,11 +9,10 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "missing",
+  "file_classification": "structural_equivalent",
   "tags": [
-    "missing",
     "non-exact",
-    "needs-review"
+    "structural_equivalent"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -29,26 +28,35 @@
       "semantic_claim": "The downstream diff for crates/era/src/era1_file.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
       "high_risk": false,
       "risk_tags": [],
-      "mapping_status": "missing",
-      "destinations": [],
-      "equivalence_argument": null,
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/era/src/era1/file.rs",
+          "symbols": [
+            "Era1Reader"
+          ],
+          "snippet": "duplicate accumulator and block-index entries return E2sError::Ssz",
+          "evidence": "The old era1_file.rs behavior moved to era1/file.rs with the same duplicate-entry failure checks."
+        }
+      ],
+      "equivalence_argument": "ERA1 duplicate-entry validation is preserved after upstream file layout changes.",
       "test_strategy": "not_needed",
       "negative_test_candidate": null,
       "adversarial_review": {
         "required": false,
-        "status": "not_requested",
+        "status": "not_required",
         "review_record_id": null
       },
-      "review_required": true,
-      "notes": "No same-path or uniquely named destination evidence was found in the configured search scope.",
-      "required_change": "Restore or intentionally replace the downstream behavior carried by crates/era/src/era1_file.rs; no reliable destination evidence was found in the configured search scope."
+      "review_required": false,
+      "notes": "Mapped to upstream v2.2 era1/file.rs."
     }
   ],
   "high_risk_atoms_total": 0,
   "non_exact_atoms_total": 1,
   "adversarial_reviews": [],
-  "summary": "No reliable destination evidence was found for the downstream file-level behavior.",
-  "review_required": true,
-  "status": "needs_review",
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": false,
+  "status": "complete",
   "notes": "No same-path or uniquely named destination evidence was found in the configured search scope."
 }

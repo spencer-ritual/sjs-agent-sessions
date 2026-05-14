@@ -1,0 +1,85 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "The canonical metadata registers 0x081B as DKMS, assigns HttpCall capability, enables short settlement, and excludes it from the two-phase address list.",
+      "path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const DKMS_KEY_PRECOMPILE: Address = address!(\"0x000000000000000000000000000000000000081b\");\nAsyncPrecompileMetadata {\n    address: DKMS_KEY_PRECOMPILE,\n    capability_tag: AsyncPrecompileCapabilityTag::HttpCall,\n    settlement: AsyncPrecompileSettlement::ShortSettlement,\n    spc_block_verified: true,\n    short_settlement_enabled: true,\n}",
+      "symbols": [
+        "DKMS_KEY_PRECOMPILE",
+        "ALL_ASYNC_PRECOMPILE_METADATA",
+        "is_two_phase_precompile"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "The validation router decodes DKMS payloads and enforces executor, owner, and TTL bounds.",
+      "path": "crates/ritual-precompile-codecs/src/validation.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "DKMS_KEY_PRECOMPILE => validate_dkms_key_payload(input, max_ttl),\n...\nlet request = DkmsKeyRequest::from_abi(input).map_err(decode_error(\"DkmsKeyRequest\"))?;\nvalidate_executor_base_fields(request.executor, request.ttl, &request.encrypted_secrets, &request.user_public_key, max_ttl)?;\nif request.owner.is_zero() {\n    return Err(PayloadValidationError::OwnerZeroAddress);\n}",
+      "symbols": [
+        "validate_async_payload",
+        "validate_dkms_key_payload",
+        "try_decode_precompile_data"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "RPC admission uses the same metadata-routed payload validation and expected capability tag, so DKMS requires the metadata HttpCall capability.",
+      "path": "crates/rpc/rpc/src/async_tx_validator.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "validate_async_payload(async_call.precompile_address, async_call.input.as_ref(), MAX_SHORT_ASYNC_TTL_BLOCKS)?;\nlet decoded = try_decode_precompile_data(async_call.precompile_address, async_call.input.as_ref())?;\nvalidate_executor(db, decoded.executor, metadata)?;\n...\nlet expected = Capability::try_from(metadata.expected_capability_tag().as_u8())?;",
+      "symbols": [
+        "validate_detected_async_call",
+        "validate_executor"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port preserves the DKMS invariant through a metadata matrix: 0x081B is known and short-settlement-enabled, the inspector records known async precompiles, validation decodes DkmsKeyRequest and rejects invalid executor/owner/TTL, RPC checks the metadata capability, and DKMS is not in the two-phase list.",
+  "evidence_files": [
+    "crates/evm/src/lib.rs",
+    "crates/ritual-async-inspector/src/inspector.rs",
+    "crates/ritual-async-commitment-validator/src/lib.rs",
+    "crates/ritual-async/src/validation.rs",
+    "crates/ritual-precompile-codecs/src/dkms_key.rs",
+    "crates/rpc/rpc/src/async_tx_validator.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-c53b5656d1-dkms-validated-async-precompile",
+  "invariant_index": 475,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This maps the combined DKMS registration, validation, capability, and single-phase behavior to the current metadata-routed implementation.",
+  "rationale": "The primary merge diff adds DKMS_KEY_PRECOMPILE constants, includes 0x081B in async inspector and commitment precompile allowlists, adds DkmsKeyRequest decoding and validation with nonzero executor/owner and TTL bounds, maps the RPC capability requirement to HttpCall, and documents it as not two-phase in verifier tests. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "2f0ab41e2a7428e307d8336fba146ac2a224112b"
+  ],
+  "statement": "Precompile address 0x000000000000000000000000000000000000081B should be detected and accepted as an async DKMS Key precompile, should validate executor, owner, and TTL from DkmsKeyRequest payloads, should require HttpCall executor capability at RPC validation, and should be treated as a single-phase precompile rather than a two-phase delivery precompile.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Submit ABI-encoded DKMS Key payloads to async validation with zero executor, zero owner, ttl 0, ttl above max_ttl_blocks, and a valid payload. Assert the first four are rejected with the expected validation errors and the valid payload is accepted, detected by the async inspector, and commitment validation accepts 0x081B while is_two_phase_precompile returns false."
+  ],
+  "summary": "DKMS 0x081B is registered, validated, HttpCall-gated, and single-phase.",
+  "test_or_falsification_candidate": "Submit ABI-encoded DKMS Key payloads to async validation with zero executor, zero owner, ttl 0, ttl above max_ttl_blocks, and a valid payload. Assert the first four are rejected with the expected validation errors and the valid payload is accepted, detected by the async inspector, and commitment validation accepts 0x081B while is_two_phase_precompile returns false.",
+  "title": "DKMS Key is a validated async precompile",
+  "total_invariants": 1954
+}

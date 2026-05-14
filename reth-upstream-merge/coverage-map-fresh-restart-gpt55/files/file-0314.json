@@ -1,0 +1,315 @@
+{
+  "record_type": "file",
+  "file_index": 314,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-metrics/src/tx.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "ritual-metrics",
+    "transaction-lifecycle",
+    "txpool",
+    "async",
+    "observability"
+  ],
+  "atoms_total": 5,
+  "atoms": [
+    {
+      "record_id": "file-0314-atom-0001",
+      "file_index": 314,
+      "atom_index": 1,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-metrics/src/tx.rs",
+      "source_hunk_hint": "@@ -0,0 +1,168 @@; timestamp helper plus commit, P2P, and RPC lifecycle logs",
+      "source_kind": "transaction_commit_network_and_rpc_logging",
+      "source_snippet": "pub fn current_timestamp_micros() -> u64 { ... }\npub fn log_tx_commit_start(tx_hash: &str, block_number: u64) { ... }\npub fn log_tx_commit_end(tx_hash: &str, block_number: u64, error: Option<&str>) { ... }\npub fn log_p2p_tx_announce<H, P>(tx_hash: &H, peer_id: &P, version: &str) { ... }\npub fn log_p2p_tx_broadcast<H>(tx_hash: &H) { ... }\npub fn log_p2p_tx_receive<H, P>(tx_hash: &H, peer_id: &P) { ... }\npub fn log_rpc_receive<H>(tx_hash: &H) { ... }\npub fn log_rpc_verified<H>(tx_hash: &H) { ... }",
+      "semantic_claim": "The old divergence adds transaction lifecycle timestamping plus structured logs for transaction commit start/end, P2P announcement/broadcast/receive, RPC receipt, and RPC verification under the stable transaction lifecycle tracing target.",
+      "high_risk": false,
+      "risk_tags": [
+        "observability",
+        "transaction-lifecycle",
+        "p2p",
+        "rpc",
+        "commit-logging"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-metrics/src/tx.rs",
+          "symbols": [
+            "current_timestamp_micros",
+            "log_tx_commit_start",
+            "log_tx_commit_end",
+            "log_p2p_tx_announce",
+            "log_p2p_tx_broadcast",
+            "log_p2p_tx_receive",
+            "log_rpc_receive",
+            "log_rpc_verified"
+          ],
+          "evidence": "Destination lines 1-168 exactly match source-added diff lines 56000-56167."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "log_tx_commit_start",
+            "log_tx_commit_end"
+          ],
+          "evidence": "Payload builder logs transaction commit start/end around payload execution."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/net/network/src/network.rs",
+          "symbols": [
+            "log_p2p_tx_announce"
+          ],
+          "evidence": "Network code logs eth66/eth68 transaction announcements through the preserved helper."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc/src/eth/helpers/transaction.rs",
+          "symbols": [
+            "log_rpc_receive",
+            "log_rpc_verified"
+          ],
+          "evidence": "RPC transaction helper logs raw transaction receipt and verification through the preserved helpers."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps transaction intake/commit labels, target, timestamps, peer/version fields, and optional error semantics unchanged.",
+      "test_strategy": "transaction_commit_network_rpc_logging_tests",
+      "negative_test_candidate": "A failed transaction commit should emit `tx_commit` with `ts_end`, transaction hash, block number, and the provided error string.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0314-atom-0002",
+      "file_index": 314,
+      "atom_index": 2,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-metrics/src/tx.rs",
+      "source_hunk_hint": "@@ -0,0 +170,256 @@; txpool add/remove/validation logging",
+      "source_kind": "txpool_lifecycle_logging",
+      "source_snippet": "pub fn log_txpool_add<H, P>(tx_hash: &H, subpool: &P) { ... }\npub fn log_txpool_remove<H>(tx_hash: &H, reason: &str) { ... }\npub fn log_txpool_validate<H>(tx_hash: &H, status: &str, error: Option<&dyn Display>) { ... }",
+      "semantic_claim": "The old divergence adds structured transaction-pool logs for transaction add, removal reason, and validation status, including distinct handling for valid, invalid/error with display error, and status-only cases.",
+      "high_risk": false,
+      "risk_tags": [
+        "observability",
+        "txpool",
+        "validation",
+        "removal-reason"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-metrics/src/tx.rs",
+          "symbols": [
+            "log_txpool_add",
+            "log_txpool_remove",
+            "log_txpool_validate"
+          ],
+          "evidence": "Destination lines 170-256 exactly match source-added diff lines 56169-56255."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/txpool.rs",
+          "symbols": [
+            "log_txpool_add"
+          ],
+          "evidence": "Txpool insertion path logs subpool addition through the preserved helper."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/lib.rs",
+          "symbols": [
+            "log_txpool_validate"
+          ],
+          "evidence": "Transaction pool validation logs valid and error cases through the preserved helper."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/scheduled.rs",
+          "symbols": [
+            "log_txpool_remove"
+          ],
+          "evidence": "Scheduled txpool cleanup paths log removals through the preserved helper."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves txpool log labels, status/error branching, subpool debug formatting, and removal reason fields.",
+      "test_strategy": "txpool_lifecycle_logging_tests",
+      "negative_test_candidate": "A txpool validation error should emit `txpool_validate` with status and error fields, while a valid transaction should omit the error field.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0314-atom-0003",
+      "file_index": 314,
+      "atom_index": 3,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-metrics/src/tx.rs",
+      "source_hunk_hint": "@@ -0,0 +258,418 @@; transaction verification, error, finalization, and scheduled tx field logging",
+      "source_kind": "transaction_verification_and_finalization_logging",
+      "source_snippet": "pub fn log_tx_verify_start<H, B>(tx_hash: &H, block_hash: &B, block_number: u64) { ... }\npub fn log_tx_verify_error<H>(tx_hash: &H, error: &str) { ... }\npub fn log_tx_finalized_chain_update<N>(chain_update: &NewCanonicalChain<N>) { ... }\npub fn log_tx_verify_end<SignedTx: FullSignedTx, B256: Display>(txn: &SignedTx, block_hash: &B256, block_number: u64, gas_used: u64) { ... }",
+      "semantic_claim": "The old divergence adds transaction verification start/error/end logs and canonical-chain finalization logs, with scheduled transactions receiving extra origin transaction, call id, execution index, expiry, initial block, and frequency fields in both finalization and verification end logs.",
+      "high_risk": false,
+      "risk_tags": [
+        "observability",
+        "transaction-verification",
+        "canonical-finalization",
+        "scheduled-transaction"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-metrics/src/tx.rs",
+          "symbols": [
+            "log_tx_verify_start",
+            "log_tx_verify_error",
+            "log_tx_finalized_chain_update",
+            "log_tx_verify_end"
+          ],
+          "evidence": "Destination lines 258-418 exactly match source-added diff lines 56257-56417."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps verification/finalization labels, scheduled transaction enrichment fields, gas metadata, signer/to recovery behavior, and chain update handling unchanged.",
+      "test_strategy": "transaction_verification_finalization_logging_tests",
+      "negative_test_candidate": "A scheduled transaction finalized in a reorg's new chain should log `tx_finalized` with origin transaction, scheduled id, index, expiry, initial block, and frequency fields.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0314-atom-0004",
+      "file_index": 314,
+      "atom_index": 4,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-metrics/src/tx.rs",
+      "source_hunk_hint": "@@ -0,0 +420,601 @@; async simulation, commitment, RPC, SPC, and generic transaction error logs",
+      "source_kind": "async_transaction_lifecycle_logging",
+      "source_snippet": "pub fn log_async_simulation_start<H>(tx_hash: &H) { ... }\npub fn log_async_simulation_end<H>(tx_hash: &H) { ... }\npub fn log_async_commitment_tx_start<H, S>(tx_hash: &H, commitment_tx: &S) { ... }\npub fn log_async_commitment_tx_end<H, S>(tx_hash: &H, commitment_tx: &S) { ... }\npub fn log_async_commitment_txpool_add<H, S>(tx_hash: &H, commitment_tx: &S, block_number: u64) { ... }\npub fn log_async_rpc_received<H>(tx_hash: &H) { ... }\npub fn log_async_spc_verify_start<H>(tx_hash: &H) { ... }\npub fn log_async_spc_verify_end<H>(tx_hash: &H) { ... }\npub fn log_tx_error<H>(label: &str, error: &str, tx_hash: &H) { ... }",
+      "semantic_claim": "The old divergence adds async transaction lifecycle observability for async simulation, system commitment transaction start/end, commitment txpool add with block number, async RPC receipt, async SPC verification start/end, and generic labeled transaction error logging.",
+      "high_risk": false,
+      "risk_tags": [
+        "observability",
+        "async-transaction",
+        "commitment-transaction",
+        "spc",
+        "error-logging"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-metrics/src/tx.rs",
+          "symbols": [
+            "log_async_simulation_start",
+            "log_async_simulation_end",
+            "log_async_commitment_tx_start",
+            "log_async_commitment_tx_end",
+            "log_async_commitment_txpool_add",
+            "log_async_rpc_received",
+            "log_async_spc_verify_start",
+            "log_async_spc_verify_end",
+            "log_tx_error"
+          ],
+          "evidence": "Destination lines 420-601 exactly match source-added diff lines 56419-56600."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves async-specific log labels, original/commitment transaction correlation fields, SPC timestamps, and generic error labels.",
+      "test_strategy": "async_transaction_logging_tests",
+      "negative_test_candidate": "An async commitment txpool add should emit `async_commitment_txpool_add` with original tx hash, commitment tx hash, and commitment block number.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0314-atom-0005",
+      "file_index": 314,
+      "atom_index": 5,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-metrics/src/tx.rs",
+      "source_hunk_hint": "@@ -0,0 +603,651 @@; per-transaction payload unified execution logging",
+      "source_kind": "payload_transaction_execution_logging",
+      "source_snippet": "fn duration_ms(ts_start: u64, ts_end: u64) -> f64 { ... }\n\npub fn log_payload_tx_execution(\n    payload_id: &str,\n    block_number: u64,\n    attempt_id: u64,\n    attempt_kind: &str,\n    execution_index: usize,\n    bundle_kind: &str,\n    tx_hash: &str,\n    origin_tx_hash: Option<&str>,\n    settlement_tx_hash: Option<&str>,\n    ts_start: u64,\n    ts_end: u64,\n    gas_used: Option<u64>,\n    cumulative_gas_used_before: u64,\n    cumulative_gas_used_after: u64,\n    outcome: &str,\n    reason: Option<&str>,\n) { ... }",
+      "semantic_claim": "The old divergence adds per-transaction payload unified execution logs with payload id, block number, attempt metadata, execution index, bundle kind, original/settlement tx correlation, timing/duration, gas deltas, outcome, and optional reason.",
+      "high_risk": false,
+      "risk_tags": [
+        "observability",
+        "payload-build",
+        "unified-execution",
+        "gas-accounting",
+        "transaction-correlation"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-metrics/src/tx.rs",
+          "symbols": [
+            "duration_ms",
+            "log_payload_tx_execution"
+          ],
+          "evidence": "Destination lines 603-651 exactly match source-added diff lines 56602-56650."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/unified_execution.rs",
+          "symbols": [
+            "log_payload_tx_execution"
+          ],
+          "evidence": "Unified payload execution logs per-transaction execution attempts through this preserved helper."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps payload execution field names, duration calculation, optional correlation defaults, gas fields, outcome, and reason behavior unchanged.",
+      "test_strategy": "payload_transaction_execution_logging_tests",
+      "negative_test_candidate": "A failed unified execution attempt with a reason should emit `payload_tx_execution` with outcome, reason, gas before/after, and any origin or settlement tx hash correlation fields.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The transaction metrics module is exact-port preserved, including transaction commit, P2P/RPC intake, txpool add/remove/validation, verification/finalization with scheduled transaction fields, async simulation/commitment/SPC logs, generic transaction errors, and per-transaction payload unified execution logs.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 314: A\tcrates/ritual-metrics/src/tx.rs.",
+    "Source-added hunk spans diff lines 56000-56650 with header `@@ -0,0 +1,651 @@`; the next diff starts at line 56651.",
+    "Destination `crates/ritual-metrics/src/tx.rs` has 651 lines and matches the source-added content exactly.",
+    "Bounded usage evidence found calls from payload builder commit paths, network P2P transaction paths, RPC transaction helpers, transaction pool add/remove/validation paths, and unified payload execution.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

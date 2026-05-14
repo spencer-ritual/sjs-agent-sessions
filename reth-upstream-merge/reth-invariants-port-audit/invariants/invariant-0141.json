@@ -1,0 +1,67 @@
+{
+  "cluster_key": "executor delivery:async-backlog-block-e1c3a7cf",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "evidence": "The port payload builder now reads RETH_MAX_FULFILLED_ASYNC_PER_BLOCK and RETH_MAX_DELIVERY_PER_BLOCK with default 64 and truncates fulfilled async and delivery-ready entry vectors before preparing per-entry payload candidates.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "cap_async_phase_entries(entries, configured_async_phase_entry_cap(RETH_MAX_FULFILLED_ASYNC_PER_BLOCK), ...)\ncap_async_phase_entries(entries, configured_async_phase_entry_cap(RETH_MAX_DELIVERY_PER_BLOCK), ...)",
+      "symbols": [
+        "DEFAULT_ASYNC_PHASE_ENTRY_CAP",
+        "configured_async_phase_entry_cap",
+        "cap_async_phase_entries",
+        "default_ethereum_payload"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port after the local parity fix: fulfilled async and delivery-ready Phase B/C entry vectors are capped with the downstream environment variable names, invalid or absent values default to 64, and truncation happens before expensive settlement preparation.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-3c262b569a-async-backlog-block-capped",
+  "invariant_index": 141,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs"
+    ],
+    "checked_queries": [
+      "RETH_MAX_FULFILLED_ASYNC_PER_BLOCK|RETH_MAX_DELIVERY_PER_BLOCK|fulfilled_async_entries|delivery_ready_async_entries|truncate|take(64)|default 64"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "fulfilled_async_entries",
+      "delivery_ready_async_entries",
+      "RETH_MAX_FULFILLED_ASYNC_PER_BLOCK",
+      "RETH_MAX_DELIVERY_PER_BLOCK"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "Before the local parity fix, payload building collected fulfilled async entries and delivery-ready async entries and looped all of them.",
+      "The local fix now caps both entry vectors before per-entry preparation."
+    ]
+  },
+  "notes": "Mapped after local parity fix: Phase B and Phase C async backlog vectors are bounded by the downstream env vars with default 64.",
+  "rationale": "The diff adds environment-driven caps for fulfilled async and delivery-ready transaction collections, with default 64 and warnings when truncating, to keep unbounded async backlog from consuming the block-building budget. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: The default cap is an operational knob and may change with throughput requirements.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "b974fa58605342b18354a1089fde1b1f624de99f"
+  ],
+  "statement": "Payload building must cap fulfilled async settlements and delivery-ready settlements per block using `RETH_MAX_FULFILLED_ASYNC_PER_BLOCK` and `RETH_MAX_DELIVERY_PER_BLOCK`, defaulting each cap to 64.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Set `RETH_MAX_FULFILLED_ASYNC_PER_BLOCK=2` and provide more than two fulfilled async entries; assert only two are processed for the block. Repeat for `RETH_MAX_DELIVERY_PER_BLOCK`."
+  ],
+  "summary": "Payload building caps fulfilled and delivery-ready async entries per block with the downstream env vars and default 64.",
+  "test_or_falsification_candidate": "Focused payload-builder unit tests cover cap parsing defaults, configured values, and truncation behavior.",
+  "title": "Async backlog per block is capped",
+  "total_invariants": 1954
+}

@@ -9,13 +9,11 @@
     "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
     "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
   },
-  "file_classification": "mapped",
+  "file_classification": "structural_equivalent",
   "tags": [
-    "mapped",
-    "txpool",
     "high-risk",
     "non-exact",
-    "reth-port"
+    "structural_equivalent"
   ],
   "atoms_total": 1,
   "atoms": [
@@ -67,7 +65,7 @@
         "status": "pass",
         "review_record_id": "review-file-0524-atom-0001"
       },
-      "review_required": false,
+      "review_required": true,
       "notes": "The old diff also added Ritual tx lifecycle metrics and direct scheduled/async subpool APIs. Current behavior keeps the async RPC/result and lifecycle APIs, but does not restore the removed metrics crate or dormant scheduled-pool submission path.",
       "human_question": null,
       "required_change": null
@@ -78,8 +76,8 @@
   "adversarial_reviews": [
     "coverage-map/reviews/review-file-0524-atom-0001.json"
   ],
-  "summary": "Transaction-pool public async surfaces are preserved in the v2.2 trait and pool wrappers, while old direct scheduled/async subpool insertion APIs are intentionally replaced by canonical async metadata and payload-derived scheduled execution.",
-  "review_required": false,
-  "status": "complete",
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": true,
+  "status": "needs_review",
   "notes": "The old diff also added Ritual tx lifecycle metrics and direct scheduled/async subpool APIs. Current behavior keeps the async RPC/result and lifecycle APIs, but does not restore the removed metrics crate or dormant scheduled-pool submission path."
 }

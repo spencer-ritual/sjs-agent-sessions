@@ -1,0 +1,262 @@
+{
+  "record_type": "file",
+  "file_index": 309,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-heartbeat-tracker/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "heartbeat-tracker",
+    "agent-liveness",
+    "storage-hydration",
+    "phase0b"
+  ],
+  "atoms_total": 4,
+  "atoms": [
+    {
+      "record_id": "file-0309-atom-0001",
+      "file_index": 309,
+      "atom_index": 1,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-heartbeat-tracker/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,109 @@; module setup, agent state, singleton, timing, and read queries",
+      "source_kind": "heartbeat_tracker_state_and_queries",
+      "source_snippet": "pub mod events;\n\npub enum AgentState { Monitored, Failed, Reviving }\npub struct AgentEntry { pub owner: Address, pub last_heartbeat_block: u64, pub heartbeat_timeout_blocks: u64, pub state: AgentState, pub cooldown_end_block: u64 }\npub struct HeartbeatTracker { pub agents: HashMap<Address, AgentEntry>, pub last_synced_block: u64, pub hydrated: bool }\nstatic LAST_PHASE0B_DURATION_MICROS: AtomicU64 = AtomicU64::new(0);\nimpl HeartbeatTracker { pub fn new() -> Self { ... } pub fn instance() -> &'static RwLock<HeartbeatTracker> { ... } pub fn is_synced(&self, current_block: u64) -> bool { ... } pub fn get_expired_agents(&self, current_block: u64) -> Vec<Address> { ... } }",
+      "semantic_claim": "The old divergence defines the in-memory heartbeat tracker model: monitored/failed/reviving states, per-agent liveness entries, a global `RwLock` singleton, lock-free Phase 0b duration telemetry, hydration-aware sync checks, expired-agent lookup for monitored and reviving agents, failed-agent lookup, and owner lookup.",
+      "high_risk": false,
+      "risk_tags": [
+        "heartbeat-tracker",
+        "agent-state",
+        "phase0b-duration",
+        "singleton",
+        "liveness-query"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-heartbeat-tracker/src/lib.rs",
+          "symbols": [
+            "AgentState",
+            "AgentEntry",
+            "HeartbeatTracker",
+            "record_phase0b_duration_micros",
+            "last_phase0b_duration_micros",
+            "HeartbeatTracker::new",
+            "HeartbeatTracker::instance",
+            "HeartbeatTracker::is_synced",
+            "HeartbeatTracker::get_expired_agents",
+            "HeartbeatTracker::get_failed_agents",
+            "HeartbeatTracker::get_agent_owner"
+          ],
+          "evidence": "Destination lines 1-109 exactly match source-added diff lines 54461-54569."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "HeartbeatTracker::instance",
+            "record_phase0b_duration_micros",
+            "last_phase0b_duration_micros"
+          ],
+          "evidence": "Payload builder uses the global tracker and Phase 0b duration telemetry around `checkAndRevive()`."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc/src/ritual.rs",
+          "symbols": [
+            "getHeartbeatTrackerState"
+          ],
+          "evidence": "RPC debug endpoint reads the tracker singleton and exposes its current agent state."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the in-memory state model, sync gate, expiration predicates, and telemetry semantics unchanged.",
+      "test_strategy": "heartbeat_tracker_state_query_tests",
+      "negative_test_candidate": "Before storage hydration, `get_expired_agents` should return an empty list even if log processing has populated agents.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0309-atom-0002",
+      "file_index": 309,
+      "atom_index": 2,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-heartbeat-tracker/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +110,194 @@; heartbeat contract log processing",
+      "source_kind": "heartbeat_tracker_log_processing",
+      "source_snippet": "pub fn process_block_logs(&mut self, block_number: u64, logs: &[Log], heartbeat_contract: Address) {\n    // route AgentRegistered, Heartbeat, AgentFailed, AgentRemoved,\n    // RevivalInitiated, and AgentRevived events by topic and update agents\n    self.last_synced_block = block_number;\n}",
+      "semantic_claim": "The old divergence updates tracker state from heartbeat contract logs only: registration inserts monitored agents with owner/timeout, heartbeat refreshes liveness, failure marks agents failed, removal deletes agents, revival marks reviving and decodes cooldown from byte offset 64, revived returns agents to monitored state, and `last_synced_block` advances after processing.",
+      "high_risk": false,
+      "risk_tags": [
+        "log-processing",
+        "heartbeat-contract",
+        "agent-registration",
+        "revival",
+        "cooldown-decoding"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-heartbeat-tracker/src/lib.rs",
+          "symbols": [
+            "HeartbeatTracker::process_block_logs"
+          ],
+          "evidence": "Destination lines 110-194 exactly match source-added diff lines 54570-54654."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/blocking_handlers.rs",
+          "symbols": [
+            "HeartbeatTracker::instance",
+            "process_block_logs"
+          ],
+          "evidence": "Transaction-pool blocking handlers update the heartbeat tracker from canonical-state logs."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/scheduling/src/canonical.rs",
+          "symbols": [
+            "HeartbeatTracker::instance"
+          ],
+          "evidence": "Scheduling canonical handling also consults/hydrates heartbeat tracker state."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves contract-address filtering, topic routing, state transitions, timeout/cooldown decoding, and last-synced advancement.",
+      "test_strategy": "heartbeat_log_processing_tests",
+      "negative_test_candidate": "A log from a non-heartbeat contract, a malformed topic list, or a revival event with truncated data should not incorrectly mutate agent state.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0309-atom-0003",
+      "file_index": 309,
+      "atom_index": 3,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-heartbeat-tracker/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +196,242 @@; parent-state storage hydration",
+      "source_kind": "heartbeat_tracker_storage_hydration",
+      "source_snippet": "pub fn sync_from_storage<DB: Database>(&mut self, db: &mut DB, contract: Address, current_block: u64) -> Result<(), String> {\n    use ritual_scheduled_verification::{read_heartbeat_agent_at, read_heartbeat_agent_count, read_heartbeat_agent_liveness};\n    // hydrate every agent from contract storage and mark tracker hydrated\n}",
+      "semantic_claim": "The old divergence adds parent-state storage hydration: it reads the heartbeat agent count, enumerates each agent address, reads each agent's liveness storage, rebuilds the in-memory map with owner, heartbeat, timeout, state, and cooldown, sets `last_synced_block`, and marks the tracker hydrated.",
+      "high_risk": false,
+      "risk_tags": [
+        "storage-hydration",
+        "heartbeat-contract",
+        "parent-state",
+        "scheduled-verification-readers"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-heartbeat-tracker/src/lib.rs",
+          "symbols": [
+            "HeartbeatTracker::sync_from_storage",
+            "read_heartbeat_agent_count",
+            "read_heartbeat_agent_at",
+            "read_heartbeat_agent_liveness"
+          ],
+          "evidence": "Destination lines 196-242 exactly match source-added diff lines 54656-54702."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/lib.rs",
+          "symbols": [
+            "read_heartbeat_agent_count",
+            "read_heartbeat_agent_at",
+            "read_heartbeat_agent_liveness"
+          ],
+          "evidence": "The scheduled-verification crate supplies the storage reader functions consumed by tracker hydration."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves fail-fast storage read errors, state conversion, map replacement, and hydration/sync markers.",
+      "test_strategy": "heartbeat_storage_hydration_tests",
+      "negative_test_candidate": "A storage read failure for any agent index or liveness entry should return an error and not silently mark the tracker hydrated.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0309-atom-0004",
+      "file_index": 309,
+      "atom_index": 4,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-heartbeat-tracker/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +245,436 @@; unit tests",
+      "source_kind": "heartbeat_tracker_unit_tests",
+      "source_snippet": "#[cfg(test)]\nmod tests {\n    // tracker initialization, sync gating, log-only hydration behavior,\n    // expiration for monitored/reviving agents, failed-agent lookup,\n    // registration/heartbeat/failure log processing\n}",
+      "semantic_claim": "The old divergence adds unit tests covering empty tracker initialization, hydration-aware sync checks, log-only state not counting as storage hydration, expiration for monitored and reviving agents, failed-agent lookup, and registration/heartbeat/failure log processing.",
+      "high_risk": false,
+      "risk_tags": [
+        "tests",
+        "heartbeat-tracker",
+        "log-processing",
+        "expiration"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-heartbeat-tracker/src/lib.rs",
+          "symbols": [
+            "mod tests",
+            "test_new_tracker_is_empty",
+            "test_is_synced",
+            "test_logs_only_do_not_mark_synced_without_hydration",
+            "test_get_expired_agents_monitored",
+            "test_get_expired_agents_reviving",
+            "test_get_failed_agents",
+            "test_process_block_logs_registration",
+            "test_process_block_logs_heartbeat",
+            "test_process_block_logs_failed"
+          ],
+          "evidence": "Destination lines 245-436 exactly match source-added diff lines 54705-54896."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the source regression coverage embedded in the heartbeat tracker module.",
+      "test_strategy": "cargo test -p ritual-heartbeat-tracker",
+      "negative_test_candidate": "Run the crate tests to confirm sync gating and log-state transitions still match the preserved expectations.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Test atom only."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The heartbeat tracker library is exact-port preserved, including state/query behavior, Phase 0b duration telemetry, heartbeat contract log processing, storage hydration from scheduled-verification readers, and unit tests.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 309: A\tcrates/ritual-heartbeat-tracker/src/lib.rs.",
+    "Source-added hunk spans diff lines 54461-54896 with header `@@ -0,0 +1,436 @@`.",
+    "Destination `crates/ritual-heartbeat-tracker/src/lib.rs` has 436 lines and matches the source-added file exactly.",
+    "Bounded usage evidence found heartbeat tracker consumption in payload builder Phase 0b, txpool blocking handlers, scheduling canonical handling, and Ritual RPC debug state.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

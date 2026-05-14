@@ -1,0 +1,152 @@
+{
+  "record_type": "file",
+  "file_index": 201,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/node/core/src/cli/config.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "partial",
+  "tags": [
+    "partial",
+    "high-risk",
+    "non-exact",
+    "node-core",
+    "payload-builder",
+    "config-trait",
+    "empty-payload",
+    "block-size",
+    "reviewed",
+    "intentional-architecture"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0201-atom-0001",
+      "file_index": 201,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/node/core/src/cli/config.rs",
+      "source_hunk_hint": "@@ -24,11 +24,17 @@",
+      "source_kind": "public_api",
+      "source_snippet": "/// Grace period before an `Earliest` resolve spawns an empty payload fallback.\nfn empty_payload_grace(&self) -> Duration;",
+      "semantic_claim": "The old payload-builder config trait exposes empty-payload grace as a required config value, making the empty-payload fallback timing control available to payload builder consumers.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload-building",
+        "empty-payload",
+        "config-api",
+        "timing-config"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/node/core/src/args/payload_builder.rs",
+          "symbols": [
+            "PayloadBuilderArgs"
+          ],
+          "evidence": "Current payload-builder CLI args expose interval, deadline, max_payload_tasks, max_blobs_per_block, max_block_size_bytes, and extra_data. There is no builder.empty-payload-grace flag, no empty_payload_grace field, and no duration parser path for this setting."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/node/core/src/cli/config.rs",
+          "symbols": [
+            "PayloadBuilderConfig"
+          ],
+          "evidence": "Current PayloadBuilderConfig exposes payload timing and resource controls, including max_block_size_bytes, but has no empty_payload_grace method."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/payload.rs",
+          "symbols": [
+            "EthereumPayloadBuilder::build_payload_builder"
+          ],
+          "evidence": "The Ethereum node payload builder hardcodes EthereumBuilderConfig::with_await_payload_on_missing(false) and forwards max_block_size_bytes and extra_data. It does not forward any empty-payload grace duration."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "EthereumPayloadBuilder::on_missing_payload"
+          ],
+          "evidence": "On missing payload, current behavior is binary: AwaitInProgress when await_payload_on_missing is true, otherwise RaceEmptyPayload immediately. There is no grace-period delay before racing/building an empty payload."
+        }
+      ],
+      "equivalence_argument": "Reviewed against actual production usage: the old PayloadBuilderConfig::empty_payload_grace method only exposed PayloadKind::Earliest fallback timing. Ritual's production getPayload path used PayloadKind::WaitForPending downstream, and the v2.2.0 port's PayloadStore::resolve path also uses WaitForPending. Because this config API is not used by Ritual's hot path, the destination intentionally does not port it.",
+      "test_strategy": "not_required_for_production_path",
+      "negative_test_candidate": "No production-path config regression is required for PayloadBuilderConfig::empty_payload_grace because Ritual does not use PayloadKind::Earliest for getPayload. If Earliest support becomes product behavior, add compile/config coverage for the optional grace setting then.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed 2026-05-11 and reclassified: PayloadBuilderConfig::empty_payload_grace is absent, but it only applies to PayloadKind::Earliest. Ritual production uses WaitForPending, so this is intentionally unported rather than a hot-path config gap."
+    },
+    {
+      "record_id": "file-0201-atom-0002",
+      "file_index": 201,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/node/core/src/cli/config.rs",
+      "source_hunk_hint": "@@ -24,11 +24,17 @@",
+      "source_kind": "public_api",
+      "source_snippet": "/// Maximum block size in bytes. If None, no size limit is enforced.\nfn max_block_size_bytes(&self) -> Option<usize>;",
+      "semantic_claim": "The old payload-builder config trait exposes an optional total block-size byte limit to payload builder consumers.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload-building",
+        "block-size",
+        "config-api",
+        "resource-limit"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/node/core/src/cli/config.rs",
+          "symbols": [
+            "PayloadBuilderConfig"
+          ],
+          "evidence": "Current destination `PayloadBuilderConfig` exposes `fn max_block_size_bytes(&self) -> Option<usize>;` with the same optional configured total block-size byte cap semantics."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/node/core/src/args/payload_builder.rs",
+          "symbols": [
+            "PayloadBuilderConfig for PayloadBuilderArgs"
+          ],
+          "evidence": "`PayloadBuilderArgs` implements `max_block_size_bytes(&self) -> Option<usize>` by returning the parsed `max_block_size_bytes` field."
+        }
+      ],
+      "equivalence_argument": "The current destination preserves the old config trait surface for a total block-size byte cap. This atom was stale in the previous record and is now exact-covered.",
+      "test_strategy": "covered_by_destination_tests",
+      "negative_test_candidate": "Keep CLI/config coverage for the max-block-size accessor and add payload enforcement regressions if this config path changes.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Rechecked against latest commit c7d36f341b; the trait method and args implementation are present."
+    }
+  ],
+  "high_risk_atoms_total": 2,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Reviewed and reclassified: max_block_size_bytes is exact-covered; empty_payload_grace is intentionally not ported because it only controls PayloadKind::Earliest fallback timing, while Ritual production getPayload uses WaitForPending.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Reviewed 2026-05-11 against current port code.",
+    "PayloadBuilderConfig now includes max_block_size_bytes and PayloadBuilderArgs implements it.",
+    "PayloadBuilderConfig still has no empty_payload_grace method.",
+    "The omitted method controlled PayloadKind::Earliest fallback timing.",
+    "Ritual production getPayload used PayloadKind::WaitForPending downstream, and the port preserves that resolve mode.",
+    "Because Earliest is not Ritual's production hot path, this config API does not need to be ported for behavioral parity."
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "record_type": "file",
+  "file_index": 193,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/node/builder/src/launch/common.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "partial",
+  "tags": [
+    "partial",
+    "high-risk",
+    "non-exact",
+    "node-builder",
+    "launch-context",
+    "spc",
+    "verifier-lifecycle",
+    "reviewed",
+    "structural-equivalent"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0193-atom-0001",
+      "file_index": 193,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/node/builder/src/launch/common.rs",
+      "source_hunk_hint": "@@ -53,6 +53,7 @@; @@ -696,6 +697,7 @@; @@ -864,6 +866,11 @@; @@ -1036,6 +1043,7 @@",
+      "source_kind": "lifecycle",
+      "source_snippet": "use ritual_spc_verification::SpcVerifier;\n\nlet components_container = WithComponents {\n    db_provider_container: WithMeteredProvider { /* ... */ },\n    node_adapter,\n    head,\n    spc_verifier: builder_ctx.spc_verifier().clone(),\n};\n\n/// Returns the shared SPC verifier.\npub const fn spc_verifier(&self) -> &Arc<SpcVerifier<T::Provider>> {\n    &self.right().spc_verifier\n}\n\npub struct WithComponents<T, CB>\nwhere\n    T: FullNodeTypes,\n    CB: NodeComponentsBuilder<T>,\n{\n    db_provider_container: WithMeteredProvider<NodeTypesWithDBAdapter<T::Types, T::DB>>,\n    node_adapter: NodeAdapter<T, CB::Components>,\n    head: Head,\n    spc_verifier: Arc<SpcVerifier<T::Provider>>,\n}",
+      "semantic_claim": "The old launch context carries the builder-owned shared SPC verifier from component construction into the final `WithComponents` launch attachment and exposes an accessor for later launch/add-on code.",
+      "high_risk": true,
+      "risk_tags": [
+        "spc-verification",
+        "launch-context",
+        "verifier-lifecycle",
+        "add-ons-propagation",
+        "public-context-access"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/node.rs",
+          "symbols": [
+            "EthereumAddOns::launch_add_ons"
+          ],
+          "evidence": "Current Ethereum add-ons build an ExecutorRegistry with capacity 100, construct SpcVerifier::new_from_env_simple(...)? with the node provider, and pass the verifier into ritual_async_rpc::module. The ? means verifier construction failure aborts add-on launch instead of allowing the async-result RPC without verifier state."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/ritual_async_rpc.rs",
+          "symbols": [
+            "submit_async_result",
+            "sync_spc_registry_from_state"
+          ],
+          "evidence": "The async-result RPC loads the canonical AsyncJobTracker job, rebuilds the SPC request from canonical job context, syncs the verifier registry from state at the commit block, calls spc_verifier.verify_single, and only then calls pool.submit_async_result. Missing registry/job data, invalid requests, invalid proofs, and verifier errors all return failed async responses before pool state is advanced."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "verify_short_async_block_with_simulators",
+            "verify_spc_calls"
+          ],
+          "evidence": "Block verification still includes the SPC phase: scheduled verification, scheduled censorship, async commitments, settlements, verify_spc_calls, nonce locks, and sequencing rights all run from parent state. This covers verifier-side block acceptance without needing an AddOnsContext-held SpcVerifier object."
+        }
+      ],
+      "equivalence_argument": "Confirmed after mechanical review: the launch-context-held shared verifier object is not exact-preserved, but active runtime behavior is structurally covered by ethereum/node add-ons constructing the verifier at RPC install time and by state-backed block verification. The old WithComponents accessor is an API/ownership difference, not a missing verifier FSM transition.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Keep integration coverage that the async-result RPC is installed only with a constructed verifier and rejects invalid/missing SPC state before pool mutation.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed 2026-05-11: no FSM gap. Launch-context verifier propagation is replaced by ethereum/node RPC-local verifier construction plus state-backed block verification."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Reviewed and downgraded: old launch-context SPC verifier propagation is non-exact API shape, but current runtime verifier behavior is covered by ethereum/node RPC setup and ritual-block-verification.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Reviewed 2026-05-11 against current port code.",
+    "Destination launch/common.rs has no shared verifier field or accessor.",
+    "Ethereum add-ons construct the active verifier immediately before installing ritual_async_rpc.",
+    "The async-result RPC verifies with provider-backed canonical job/registry state before pool mutation.",
+    "No unresolved proof remains for this row."
+  ]
+}

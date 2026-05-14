@@ -1,0 +1,54 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Verifier resolves the expected executor from parent-state registry data and rejects Phase 1 or delivery settlements whose executor_address is not the registry payment address.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let executor = read_expected_executor(&mut db, job.executor_address, metadata, \"phase1 settlement\")?;\nif settlement.executor_address != executor.payment_address { return Err(BlockVerificationError::InvalidAsyncSettlement(...)); }\n...\nlet executor = read_expected_executor(&mut db, job.executor_address, metadata, \"delivery settlement\")?;\nif settlement.executor_address != executor.payment_address { return Err(...); }",
+      "symbols": [
+        "verify_settlements",
+        "read_expected_executor"
+      ]
+    }
+  ],
+  "equivalence_argument": "The verifier owns this in the port crate and fails closed through read_expected_executor errors or explicit payment-address mismatch checks for both settlement phases.",
+  "evidence_files": [
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/ritual-block-verification/src/constants.rs"
+  ],
+  "invariant_id": "cur-04a31eef91-verifier-rejects-payment-address-mismatches",
+  "invariant_index": 381,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in the port block verifier.",
+  "rationale": "The commit body marks this as breaking: settlement verification now fails if payment address lookup fails instead of falling back to TEE address. The verifier obtains parent state, resolves job.executor_address through get_payment_address_for_tee, and compares settlement_tx.executor_address to the resolved payment address. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "c007d9554f63732c9063618990d9d81ac9c65211"
+  ],
+  "statement": "During settlement verification, the verifier must look up the expected payment address for the job's TEE address from TEEServiceRegistry using parent-block state and reject the block if state lookup is unavailable, the TEE is unregistered, registry lookup fails, or the settlement executor_address differs from the expected payment address.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Verify a block containing a settlement for job TEE where registry maps TEE to P and settlement executor_address is P; assert verification succeeds for that check. Then test settlement executor_address=TEE, missing registry state provider, missing TEE record, and storage read failure; each must return a verification error rather than accepting the settlement."
+  ],
+  "summary": "Block verification rejects settlement payment-address mismatches.",
+  "test_or_falsification_candidate": "Verify settlements with registry TEE->P and executor_address=P, then with executor_address=TEE and missing registry data; only the payment-address case should pass this check.",
+  "title": "Verifier rejects payment-address mismatches",
+  "total_invariants": 1954
+}

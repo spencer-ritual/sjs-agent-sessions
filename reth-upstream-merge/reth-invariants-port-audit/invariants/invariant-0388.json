@@ -1,0 +1,53 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The registry read failure path logs target ritual::block_execution with contract and error before returning the BlockExecutionError.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "let executors = read_all_executors(&mut self.db, contract).map_err(|e| {\n    tracing::error!(target: \"ritual::block_execution\", contract = %contract, error = ?e, \"Registry read failed during block execution\");\n    BlockExecutionError::msg(format!(\"Registry read failed: {:?}\", e))\n})?;",
+      "symbols": [
+        "update_executor_registry_from_block"
+      ]
+    }
+  ],
+  "equivalence_argument": "The block execution wrapper that performs registry reads lives in nodebuilder, and it preserves the required observability before error return.",
+  "evidence_files": [
+    "crates/node/src/executor.rs"
+  ],
+  "invariant_id": "cur-8b7fe6602e-executor-registry-read-failures-logged",
+  "invariant_index": 388,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in nodebuilder dependency.",
+  "rationale": "The primary merge adds identical structured `tracing::error!` calls around both block verification failure paths, preserving the returned execution error while making failures observable with block identity. The primary diff wraps `read_all_executors` failure mapping with structured error logging that records the contract address and underlying error. Collapsed 2 closely related historical candidate statements into the latest effective formulation.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "13445304c448c2f3109340435836740f38da9e5d"
+  ],
+  "statement": "If reading executors from the registry contract fails during block execution, the executor must emit an error log on target `ritual::block_execution` containing the registry contract address and read error before returning a registry-read `BlockExecutionError`.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Install a verifier that returns an error, execute both affected block execution paths, capture tracing output, and assert an error event is emitted with target `ritual::block_verification`, the failing block hash, block number, and the verifier error before `BlockExecutionError` is returned.",
+    "Mock `read_all_executors` or the backing database to fail, run the executor path, capture tracing output, and assert a `ritual::block_execution` error event includes the registry contract address and error before the returned `BlockExecutionError`."
+  ],
+  "summary": "Executor registry read failures are logged before returning.",
+  "test_or_falsification_candidate": "Force read_all_executors to fail and assert a ritual::block_execution error log includes contract and error before BlockExecutionError.",
+  "title": "Executor registry read failures are logged",
+  "total_invariants": 1954
+}

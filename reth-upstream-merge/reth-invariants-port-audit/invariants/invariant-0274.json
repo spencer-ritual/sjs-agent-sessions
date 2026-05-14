@@ -1,0 +1,64 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "The settlement builder carries executor/payment and validator fields, but it no longer implements the invariant requirement that inclusion validator comes from VALIDATOR_ADDRESS with a non-zero fallback.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-async/src/detector.rs",
+    "crates/storage/codecs/src/alloy/transaction/asyncexec.rs"
+  ],
+  "invariant_id": "cur-01892753fa-async-settlement-encodes-executor-validator-recipients",
+  "invariant_index": 274,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/storage/codecs/src/alloy/transaction/async_commitment.rs",
+      "crates/storage/codecs/src/alloy/transaction/async_settlement.rs"
+    ],
+    "checked_queries": [
+      "VALIDATOR_ADDRESS inclusion validator fallback",
+      "settleAsyncTransaction commitment validator executor",
+      "async exec codec commitment_validator",
+      "suggested_fee_recipient inclusion_validator"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-alloy-internal"
+    ],
+    "checked_symbols": [
+      "prepare_fulfilled_async_settlement",
+      "TxAsyncSettlement::new",
+      "VALIDATOR_ADDRESS",
+      "commitment_validator",
+      "inclusion_validator",
+      "TxAsyncCommitment"
+    ],
+    "missing_behavior": "No audited repo reads VALIDATOR_ADDRESS or applies a non-zero fallback for inclusion validator when encoding async settlement calldata; the builder uses payload attributes.suggested_fee_recipient instead.",
+    "related_but_insufficient_code": [
+      "crates/ethereum/payload/src/ritual_async.rs encodes settlement calldata with executor.payment_address, contract_job.commitment_validator, and a caller-provided inclusion_validator.",
+      "crates/ethereum/payload/src/lib.rs passes attributes.suggested_fee_recipient as inclusion_validator.",
+      "crates/storage/codecs/src/alloy/transaction/async_commitment.rs and async_settlement.rs persist validator fields for current transaction types, but there is no async-exec codec path named in the invariant."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The detector now includes a commitment_validator in TxAsyncExec, the async-exec codec persists it, and the payload builder extracts both executor_address and commitment_validator from the system async-exec transaction instead of hardcoding the commitment validator in settlement calldata. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "fb6b3c50385b8d535aa04a4d4814f7a5664f9a0c"
+  ],
+  "statement": "Async settlement calldata encodes the executor address and commitment validator from the async-exec system transaction, and encodes the inclusion validator from VALIDATOR_ADDRESS with a non-zero fallback address.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Set VALIDATOR_ADDRESS to a distinctive validator, construct an async exec system transaction with a distinctive executor, round-trip it through the async-exec codec, build the settlement transaction, decode settleAsyncTransaction calldata, and assert the executor and commitment validator match the system transaction while the inclusion validator matches VALIDATOR_ADDRESS. Repeat without VALIDATOR_ADDRESS and assert the documented fallback addresses are used."
+  ],
+  "summary": "Async settlement encoding lacks the VALIDATOR_ADDRESS inclusion-validator fallback.",
+  "test_or_falsification_candidate": "Unset and set VALIDATOR_ADDRESS while building an async settlement; current code has no env read, so inclusion_validator follows suggested_fee_recipient rather than the documented fallback rule.",
+  "title": "Async settlement encodes executor and validator recipients",
+  "total_invariants": 1954
+}

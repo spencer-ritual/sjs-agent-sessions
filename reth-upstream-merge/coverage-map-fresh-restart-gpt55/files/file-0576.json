@@ -1,0 +1,25 @@
+{
+  "record_type": "file",
+  "file_index": 576,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "scripts/multi_tx_analysis.py",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "Non-crates source path is outside the audit atomization scope.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Crates-only scope rule classifies every source path not starting with crates/ as noise. No atomization or destination mapping was performed."
+}
