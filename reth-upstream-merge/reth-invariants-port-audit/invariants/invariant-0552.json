@@ -1,0 +1,66 @@
+{
+  "cluster_key": "block building:block-build-trace-cd512e8b",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "The RPC debug attempt type includes a demotions array and maps it from the retained metrics trace.",
+      "path": "crates/rpc/rpc-api/src/ritual.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub struct BlockBuildAttemptDebug {\n    pub phases: Vec<BlockBuildPhaseDebug>,\n    pub demotions: Vec<BlockBuildDemotionDebug>,\n    #[serde(rename = \"includedTxCount\")] pub included_tx_count: usize,\n}\n...\ndemotions: trace.demotions.into_iter().map(Into::into).collect(),",
+      "symbols": [
+        "BlockBuildAttemptDebug",
+        "BlockBuildDemotionDebug"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "ritual_getBlockBuildTrace returns the retained metrics attempts using the RPC mapping that includes demotions.",
+      "path": "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let attempts = ritual_metrics::block::recent_block_build_attempts(limit.unwrap_or(capacity)).into_iter().map(Into::into).collect();\nGetBlockBuildTraceResponse { attempts, retained_count, capacity, enabled }",
+      "symbols": [
+        "get_block_build_trace",
+        "ritual_getBlockBuildTrace"
+      ]
+    }
+  ],
+  "equivalence_argument": "The block build trace RPC response includes demotions on each returned attempt object.",
+  "evidence_files": [
+    "crates/rpc/rpc-api/src/ritual.rs",
+    "crates/rpc/rpc/src/ritual.rs"
+  ],
+  "invariant_id": "cur-c634d75997-block-build-trace-includes-demotions",
+  "invariant_index": 552,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This maps the response schema, not the producer completeness covered by invariant 551.",
+  "rationale": "The commit body says callers need to see exactly which policy demotions fired, and the diff adds BlockBuildDemotionDebug plus maps demotion entries out of the metrics ring buffer. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Block Building",
+  "source_commits": [
+    "5d188de1ba938ce6ffa0c9a8dbdb6cc4d2c2be4d"
+  ],
+  "statement": "Each block build attempt returned by ritual_getBlockBuildTrace includes a demotions array whose entries expose workClass, reason, and elapsedMicros for policy demotions recorded during that attempt.",
+  "status": "current",
+  "subsystem": "block building",
+  "suggested_falsification_tests": [
+    "Record a payload build attempt with a demotion in the metrics ring buffer, call ritual_getBlockBuildTrace, and assert the returned attempt contains a demotions entry with matching workClass, reason, and elapsedMicros."
+  ],
+  "summary": "Block build trace RPC exposes demotions.",
+  "test_or_falsification_candidate": "Seed the metrics ring buffer with an attempt containing a demotion and assert ritual_getBlockBuildTrace returns workClass, reason, and elapsedMicros.",
+  "title": "Block build trace includes demotions",
+  "total_invariants": 1954
+}

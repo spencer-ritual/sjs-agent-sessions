@@ -1,0 +1,75 @@
+{
+  "cluster_key": "executor delivery:builder-skips-commitments-d3ffd5ad",
+  "confidence": "high",
+  "destinations": [
+    {
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "files": [
+        "crates/ritual-scheduled-block-building/src/lib.rs",
+        "crates/ethereum/payload/src/lib.rs"
+      ],
+      "evidence": "Scheduled synthesis now skips on active-job read failures, and the regular async commitment path pre-checks parent-state active jobs before building a commitment, marking pool-sourced duplicates invalid on active jobs or lookup errors."
+    }
+  ],
+  "equivalence_argument": "Mapped in the port: synthesized scheduled transactions fail closed on active-job lookup errors, and the regular async commitment path now checks parent-state AsyncJobTracker active-job state before commitment construction. Active existing jobs and lookup failures skip the original async candidate and mark pool-sourced transactions invalid; inactive/expired jobs are still allowed to proceed, matching the current downstream expiry-aware behavior.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-0b506679c3-builder-skips-commitments-existing-jobs",
+  "invariant_index": 170,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-async-registry/src/lib.rs",
+      "crates/transaction-pool/src",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "job_exists_and_active|job_exists\\(|InvalidAsync|cached as invalid|async_cache|skip.*existing|existing.*job|contract-state job",
+      "build_short_async_commitment_transaction|validate_short_commitment_parent_state|best_txs.mark_invalid|InvalidAsyncCommitment"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "job_exists_and_active",
+      "job_exists",
+      "build_short_async_commitment_transaction",
+      "validate_short_commitment_parent_state",
+      "best_txs.mark_invalid",
+      "InvalidAsyncCommitment"
+    ],
+    "missing_behavior": "",
+    "related_but_insufficient_code": [
+      "Before the local fix, the scheduled path skipped only successful active-job detections and the regular async path relied on verifier protection. The builder now performs the active-job precheck before regular commitment construction."
+    ]
+  },
+  "notes": "Resolved locally.",
+  "rationale": "The source commit describes the pool update race and introduced parent-state job existence checks before adding detected async transactions. Later code made the check expiry-aware via job_exists_and_active, so expired jobs may be re-committed while active jobs and lookup failures still skip conservatively. The stable invariant is using synchronous parent contract state, rather than async pool state, to avoid duplicate active commitments.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "f454907d6504e5c81982c84313a1c9bc632ba416"
+  ],
+  "statement": "When building a block, scheduled and regular async transactions must be skipped if their tx hash already exists as an active, non-expired job in parent-state AsyncJobTracker, or if the contract-state active-job check fails; pool-sourced candidates should also be marked invalid so the builder does not repeatedly attempt the same duplicate commitment.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Set parent AsyncJobTracker.jobExecutor[tx_hash] and active expiry state for a scheduled and regular async transaction, then run payload building; both should be skipped and not produce async commitments. Also force the active-job read to fail and assert the transaction is skipped, with pool-sourced candidates marked invalid."
+  ],
+  "summary": "Duplicate active-job builder skip behavior is mapped in the port.",
+  "test_or_falsification_candidate": "Preload active AsyncJobTracker state for scheduled and regular async candidates, then build a payload; the mapped port path should skip both, mark pool-sourced candidates invalid, and not produce duplicate commitments.",
+  "title": "Builder skips commitments for existing jobs",
+  "total_invariants": 1954
+}

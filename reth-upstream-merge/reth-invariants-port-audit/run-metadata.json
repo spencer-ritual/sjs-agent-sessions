@@ -1,0 +1,48 @@
+{
+  "atlas_bundle_path": "/home/ritual/repos/sjs-agent-sessions/reth-upstream-merge/reth-invariants-port-audit/atlas-bundle.generated-2026-05-10.json",
+  "atlas_generated": "2026-05-10",
+  "atlas_url": "https://invariants-atlas-59313947041.us-central1.run.app/data/bundle.json",
+  "created_at_utc": "2026-05-12T20:13:32Z",
+  "queue_order": "atlas bundle refined_invariants order filtered by status == current",
+  "queue_path": "/home/ritual/repos/sjs-agent-sessions/reth-upstream-merge/reth-invariants-port-audit/queue.current-invariants.jsonl",
+  "record_type": "invariant_audit_run_metadata",
+  "repo_revisions": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "169074f08721705fbb99cc9531ea798b61e9f3cc",
+      "repo": "/home/ritual/repos/ritual-alloy-internal"
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "f4f4f2c7cbf201bd9f3fb6fe7b9cdd18c6aecdec",
+      "repo": "/home/ritual/repos/ritual-alloy-evm-internal"
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "c7845a2265d1245116728116e7418f636ef3b8af",
+      "repo": "/home/ritual/repos/ritual-revm-internal"
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "1e83e2a7cab7f0edb17a4bb0e8cae226af4efade",
+      "repo": "/home/ritual/repos/ritual-revm-inspectors-internal"
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "8ea559f829876db456afac67fcd04e77d3019ee6",
+      "repo": "/home/ritual/repos/ritual-node-internal"
+    }
+  ],
+  "total_current_invariants": 1954,
+  "total_refined_invariants": 1993
+}

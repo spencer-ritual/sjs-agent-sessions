@@ -1,0 +1,71 @@
+{
+  "record_type": "file",
+  "file_index": 301,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-block-verification/src/error.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "structural_equivalent",
+  "tags": [
+    "high-risk",
+    "non-exact",
+    "structural_equivalent"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0301-atom-0001",
+      "file_index": 301,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-block-verification/src/error.rs",
+      "source_hunk_hint": "@@ -0,0 +1,167 @@",
+      "source_kind": "error_path",
+      "source_snippet": "use alloy_primitives::{Address, B256};\nuse reth_primitives::TxType;\n\n/// Error classification for block verification failures.\n///\n/// - `BlockLocal`: The block contains invalid data (bad signature, missing data, etc.)",
+      "semantic_claim": "The downstream diff for crates/ritual-block-verification/src/error.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": true,
+      "risk_tags": [
+        "verifier",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/error.rs",
+          "symbols": [
+            "BlockVerificationError",
+            "ErrorClass",
+            "BlockVerificationError::error_class"
+          ],
+          "snippet": "pub enum BlockVerificationError { ... InvalidAsyncCommitment(String), InvalidAsyncSettlement(String), InvalidSpc(String), ParentState(String), ... }",
+          "evidence": "The destination keeps the typed verifier error enum and block-local/system classification surface, with v2.2-specific grouped variants for async settlement, SPC, nonce-lock, scheduled, and parent-state failures."
+        }
+      ],
+      "equivalence_argument": "The old downstream verifier error surface is preserved behaviorally in the v2.2 port. Some detailed variants were grouped into v2.2-specific string-carrying categories (`InvalidSpc`, `ParentState`, `InvalidAsyncSettlement`, `InvalidNonceLock`, `InvalidScheduled`), but the verifier still distinguishes block-local rejection from system/provider failures through `ErrorClass` and `is_system_error`.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Construct representative `BlockVerificationError` values and assert provider/database/pool access failures classify as `System` while malformed SPC/async/scheduled errors classify as `BlockLocal`.",
+      "adversarial_review": {
+        "required": true,
+        "status": "pass",
+        "review_record_id": "review-file-0301-atom-0001"
+      },
+      "review_required": true,
+      "notes": "First-pass review found the verifier negative-path classification surface in the v2.2 destination crate.",
+      "required_change": null
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [
+    "coverage-map/reviews/review-file-0301-atom-0001.json"
+  ],
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "Reclassified from missing after locating the v2.2 verifier error and classification surface."
+}

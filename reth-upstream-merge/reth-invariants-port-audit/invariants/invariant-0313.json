@@ -1,0 +1,67 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The RPC handler verifies the submitted async result through SpcVerifier::verify_single and returns failed_async_response for invalid or errored verification before constructing the fulfilled submission.",
+      "path": "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "match context.spc_verifier.verify_single(&spc_request).await { Ok(result) if result.is_valid => {}, Ok(_) => return failed_async_response(...), Err(VerificationError::InvalidRequest(err)) => return failed_async_response(...), Err(err) => return failed_async_response(...) }\nlet submission = AsyncResultSubmission { ... };",
+      "symbols": [
+        "handle_submit_async_result",
+        "SpcVerifier::verify_single",
+        "AsyncResultSubmission"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Block verification rejects missing matching SPC calls, too-short proofs, missing executor keys, signature verification errors, and invalid signatures before accepting a block.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if spc_call.proof.len() < 65 { return Err(BlockVerificationError::InvalidSpc(...)); }\nlet valid = verify_signature_core(public_key, job.commit_block, job.tx_hash, job.precompile_address, &spc_call.input, &spc_call.output, ...)?;\nif !valid { return Err(BlockVerificationError::InvalidSpc(format!(\"signature invalid for job {}\", settlement.origin_tx))); }",
+      "symbols": [
+        "verify_spc_calls",
+        "verify_signature_core",
+        "BlockVerificationError::InvalidSpc"
+      ]
+    }
+  ],
+  "equivalence_argument": "This is the same enforcement as invariant 310 expressed with block-validity wording: submitted async results are verified at RPC before the pool can mark them fulfilled, and validators re-verify settlement SPC calls during block verification.",
+  "evidence_files": [
+    "docs/async-transaction-fsm.md"
+  ],
+  "invariant_id": "cur-b0eb6237e4-async-results-verified-before-acceptance-block-validity",
+  "invariant_index": 313,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped through RPC result verification and consensus SPC block verification.",
+  "rationale": "The doc repeatedly marks immediate RPC verification and validator re-verification as critical security boundaries for executor-provided non-deterministic outputs. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "d01eaa56a56ebb6054c43ed8a1a3e465a80fbaed"
+  ],
+  "statement": "Executor-submitted async results must be signature-verified against the registered executor key before moving a pending async transaction to fulfilled, and validators must reject a block if any included SpcCall signature fails verification.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Submit an async result with a proof that does not recover to the executor's registered public key and assert ritual_submitAsyncResult rejects it; separately construct a block with a transaction.spc_calls entry containing an invalid proof and assert validation rejects the block."
+  ],
+  "summary": "Async result fulfillment and block validity both require successful SPC signature verification.",
+  "test_or_falsification_candidate": "Submit an async result with a wrong-key proof and assert no fulfilled transition, then validate a block containing an invalid settlement SpcCall and assert rejection.",
+  "title": "Async results are verified before acceptance and block validity",
+  "total_invariants": 1954
+}

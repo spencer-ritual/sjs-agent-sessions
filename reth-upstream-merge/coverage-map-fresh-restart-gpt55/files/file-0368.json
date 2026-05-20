@@ -1,0 +1,31 @@
+{
+  "record_type": "file",
+  "file_index": 368,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/rpc/rpc-builder/src/cors.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "rpc-builder"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "RPC builder CORS change is a rustfmt-only semicolon insertion after an error return expression.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 368: M\tcrates/rpc/rpc-builder/src/cors.rs.",
+    "Diff hunk at lines 76855-76860 only adds a semicolon.",
+    "No semantic atoms or review entries required."
+  ]
+}

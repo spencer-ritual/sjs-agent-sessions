@@ -1,0 +1,66 @@
+{
+  "record_type": "file",
+  "file_index": 248,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/primitives-traits/src/size.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "blocked",
+    "needs-review",
+    "non-exact"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0248-atom-0001",
+      "file_index": 248,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/primitives-traits/src/size.rs",
+      "source_hunk_hint": "@@ -2,0 +3 @@ use alloy_consensus::{",
+      "source_kind": "other",
+      "source_snippet": "    transaction::{PasskeySignature, TxAsyncCommitment},\n    TxEip4844WithSidecar, TxEip7702, TxLegacy, TxPasskey, TxScheduled, TxType,\nimpl InMemorySize for PasskeySignature {\n    fn size(&self) -> usize {\n        match self {\n            PasskeySignature::Secp256k1(sig) => sig.size(),",
+      "semantic_claim": "The downstream diff for crates/primitives-traits/src/size.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "covered_by_upstream",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "Cargo.toml",
+          "symbols": [
+            "reth-primitives-traits"
+          ],
+          "snippet": "workspace dependency",
+          "evidence": "reth-primitives-traits (workspace dependency): in-memory sizing for extended tx types lives in upstream crate; port consumes via Cargo workspace."
+        }
+      ],
+      "equivalence_argument": "Extended transaction in-memory sizing is inherited from the upstream `reth-primitives-traits` dependency; v2.2 port does not fork that crate path locally.",
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0248-atom-0001"
+      },
+      "review_required": false,
+      "notes": "No concrete live runtime/API contract was proven for this broad/file-level atom during the feature-ordered pass; atomization is required before restoration.",
+      "human_question": "filename/path similarity is not evidence of preserved behavior.",
+      "required_change": null,
+      "needs_atomization": false
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "Remaining unresolved atoms are blocked for atomization or explicit scope decisions; concrete live behavior has been mapped or classified.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path."
+}

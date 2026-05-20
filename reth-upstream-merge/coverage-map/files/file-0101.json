@@ -1,0 +1,250 @@
+{
+  "record_type": "file",
+  "file_index": 101,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/evm/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "high-risk",
+    "moved_to_dependency",
+    "needs-review",
+    "non-exact",
+    "structural_equivalent"
+  ],
+  "atoms_total": 4,
+  "atoms": [
+    {
+      "record_id": "file-0101-atom-0001",
+      "file_index": 101,
+      "atom_index": 1,
+      "atoms_total": 4,
+      "source_path": "crates/evm/Cargo.toml",
+      "source_hunk_hint": "@@ -23,8 +23,11 @@",
+      "source_kind": "other",
+      "source_snippet": "revm-context.workspace = true\nrevm-precompile.workspace = true",
+      "semantic_claim": "The core `reth-evm` crate directly depends on `revm-context` and `revm-precompile` so async-aware execution context and precompile dispatch are available from the EVM layer itself.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "execution",
+        "precompile-dispatch"
+      ],
+      "mapping_status": "moved_to_dependency",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/Cargo.toml",
+          "symbols": [
+            "reth-ethereum-payload-builder dependencies"
+          ],
+          "snippet": "revm.workspace = true\nrevm-context = { path = \"../../../../ritual-revm-internal/crates/context\", features = [\"async-context\", \"optional_no_base_fee\", \"optional_fee_charge\"] }\nalloy-evm = { workspace = true, features = [\"async-context\"] }",
+          "evidence": "The port moved explicit async EVM context enablement out of `reth-evm` and into the Ritual payload builder crate that owns async block-building."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-revm-internal",
+          "path": "crates/revm/Cargo.toml",
+          "symbols": [
+            "revm async-context feature"
+          ],
+          "snippet": "async-context = [\"context/async-context\", \"handler/async-context\", \"precompile/async-context\"]",
+          "evidence": "In the ported dependency graph, enabling `revm/async-context` transitively enables `revm-precompile/async-context`, so the precompile half is now reached through dependency features rather than a direct `reth-evm` manifest entry."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "builder.evm_mut().ctx_mut().async_context_mut"
+          ],
+          "snippet": "*builder.evm_mut().ctx_mut().async_context_mut() = async_context;",
+          "evidence": "The port actively initializes async context during Ritual payload execution, but that wiring lives in payload code rather than core `reth-evm`."
+        }
+      ],
+      "equivalence_argument": "The async context and async precompile machinery still exists in the ported stack, but ownership moved from the core `reth-evm` crate to Ritual payload-building code plus revm feature propagation. This preserves the active Ritual payload path, but not the old `reth-evm`-level API surface.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Build a minimal consumer that depends only on `reth-evm` and `reth-evm-ethereum` and tries to initialize async precompile execution from the EVM layer. Downstream should compile and expose the async path; the port should require the Ritual payload crate or fail to provide equivalent core wiring.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "human_question": "Confirm that moving async context and precompile ownership out of core `reth-evm` and into Ritual payload/verifier crates is an acceptable API-surface change for downstream consumers.",
+      "notes": "Behavior moved, but scope narrowed from core EVM crate to payload-builder-owned async execution."
+    },
+    {
+      "record_id": "file-0101-atom-0002",
+      "file_index": 101,
+      "atom_index": 2,
+      "atoms_total": 4,
+      "source_path": "crates/evm/Cargo.toml",
+      "source_hunk_hint": "@@ -35,7 +38,13 @@",
+      "source_kind": "side_effect",
+      "source_snippet": "reth-transaction-pool.workspace = true\nritual-metrics.workspace = true\nritual-tee-registry-reader = { workspace = true }\ntracing.workspace = true\ntokio = { workspace = true, features = [\"rt\"] }",
+      "semantic_claim": "The downstream `reth-evm` crate owns async runtime helpers and observability for Ritual execution, including txpool access, TEE registry reads, metrics, and runtime support.",
+      "high_risk": true,
+      "risk_tags": [
+        "txpool",
+        "async-fsm",
+        "verification"
+      ],
+      "mapping_status": "moved_to_dependency",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/Cargo.toml",
+          "symbols": [
+            "reth-ethereum-payload-builder dependencies"
+          ],
+          "snippet": "reth-transaction-pool.workspace = true\nritual-async-inspector.workspace = true\nritual-async-fees.workspace = true\nritual-async-registry.workspace = true\nritual-tee-registry-reader.workspace = true\ntracing.workspace = true",
+          "evidence": "The ported payload-builder crate now carries the txpool, registry, and tracing dependencies that downstream had attached to `reth-evm`."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "verify_short_async_block"
+          ],
+          "snippet": "use ritual_tee_registry_reader::{get_tee_registry_address, read_executor, Capability, ExecutorInfo};\nuse tracing::debug;",
+          "evidence": "TEE-registry-backed verification was split into a dedicated verifier crate rather than staying in `reth-evm`."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+          "path": "crates/node/Cargo.toml",
+          "symbols": [
+            "ritual-node dependencies"
+          ],
+          "snippet": "ritual-metrics.workspace = true\nritual-tee-registry-reader.workspace = true\nreth-transaction-pool.workspace = true",
+          "evidence": "The remaining Ritual node-level metrics and integration dependencies were rehomed into the nodebuilder side of the stack."
+        }
+      ],
+      "equivalence_argument": "The added runtime/helper dependencies were not preserved in `reth-evm`; they were decomposed into port-side payload, verification, and node crates. The active Ritual execution pipeline still consumes txpool, registry, tracing, and metrics, but only through those split components.",
+      "test_strategy": "integration_traffic",
+      "negative_test_candidate": "Exercise the old `reth-evm`-owned async verification/pool-management path by importing `reth_evm::pool_manager` or running a short async settlement flow through `reth-evm` alone. Downstream supports that ownership model; the port should fail because the logic was redistributed across payload/verifier/node crates.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "human_question": "Confirm that rehoming txpool, registry, metrics, and async runtime support out of core `reth-evm` preserves the downstream Ritual execution path sufficiently for all consumers that previously depended on `reth-evm` directly.",
+      "notes": "This is a real ownership move, not noise; downstream source code used these deps directly in `crates/evm/src/pool_manager.rs` and async tests."
+    },
+    {
+      "record_id": "file-0101-atom-0003",
+      "file_index": 101,
+      "atom_index": 3,
+      "atoms_total": 4,
+      "source_path": "crates/evm/Cargo.toml",
+      "source_hunk_hint": "@@ -45,7 +54,7 @@",
+      "source_kind": "side_effect",
+      "source_snippet": "default = [\"std\", \"async-context\"]",
+      "semantic_claim": "Building `reth-evm` with default features enables the async-context execution path by default.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/evm/evm/Cargo.toml",
+          "symbols": [
+            "features.default",
+            "features.async-context"
+          ],
+          "snippet": "default = [\"std\", \"async-context\"]",
+          "evidence": "reth-evm default features now include async-context again."
+        }
+      ],
+      "equivalence_argument": "The downstream default async-context contract is restored for reth-evm.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Create a fresh crate that depends on `reth-evm` with default features and expects async-enabled APIs/behavior without extra feature flags. The downstream default build should satisfy that assumption; the ported `reth-evm` default build should not.",
+      "adversarial_review": {
+        "required": true,
+        "status": "pass",
+        "review_record_id": "review-file-0101-atom-0003"
+      },
+      "review_required": true,
+      "required_change": null,
+      "notes": "Default feature graph now includes async-context.",
+      "human_question": null
+    },
+    {
+      "record_id": "file-0101-atom-0004",
+      "file_index": 101,
+      "atom_index": 4,
+      "atoms_total": 4,
+      "source_path": "crates/evm/Cargo.toml",
+      "source_hunk_hint": "@@ -72,3 +81,4 @@",
+      "source_kind": "side_effect",
+      "source_snippet": "async-context = [\"alloy-evm/async-context\", \"revm-precompile/async-context\", \"revm-context/async-context\", \"reth-ethereum-primitives\", \"reth-execution-errors/async-context\"]",
+      "semantic_claim": "The `reth-evm` crate exposes an `async-context` feature that forwards all required async execution feature gates through alloy, revm, ethereum primitives, and execution errors.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "execution",
+        "precompile-dispatch",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/evm/evm/Cargo.toml",
+          "symbols": [
+            "features.async-context"
+          ],
+          "snippet": "async-context = [\"alloy-evm/async-context\", \"revm/async-context\", \"reth-execution-errors/async-context\"]",
+          "evidence": "reth-evm now forwards async-context into alloy-evm, revm, and reth-execution-errors."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-revm-internal",
+          "path": "crates/precompile/src/async_common.rs",
+          "symbols": [
+            "abi_encode_bytes_pair"
+          ],
+          "snippet": "use std::vec::Vec;\n...\nbuffer.extend(core::iter::repeat(0).take(first_padded - first_len));",
+          "evidence": "The dependency feature path now compiles under async-context after restoring explicit no_std-compatible imports."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-alloy-evm-internal",
+          "path": "crates/evm/src/precompiles.rs",
+          "symbols": [
+            "async-context format usage"
+          ],
+          "snippet": "#[cfg(feature = \"async-context\")]\nuse alloc::format;",
+          "evidence": "The alloy-evm async-context feature path now imports the alloc format macro needed by async precompile errors."
+        }
+      ],
+      "equivalence_argument": "The reth-evm async-context feature is restored and proven to resolve through the lower dependency graph after fixing feature-path compilation issues in dependency crates.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Attempt to build a consumer with `reth-evm = { features = [\"async-context\"] }` and run an async-precompile execution path. Downstream should resolve the feature graph; the port should fail at manifest resolution or omit required async behavior because `reth-evm` no longer forwards the feature.",
+      "adversarial_review": {
+        "required": true,
+        "status": "pass",
+        "review_record_id": "review-file-0101-atom-0004"
+      },
+      "review_required": true,
+      "required_change": null,
+      "notes": "Feature graph check passed for reth-evm --features async-context.",
+      "human_question": null
+    }
+  ],
+  "high_risk_atoms_total": 4,
+  "non_exact_atoms_total": 4,
+  "adversarial_reviews": [
+    "coverage-map/reviews/review-file-0101-atom-0003.json",
+    "coverage-map/reviews/review-file-0101-atom-0004.json"
+  ],
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "Updated during Core async first pass; unresolved atoms in the same feature remain separate and require active-consumer or runtime evidence."
+}

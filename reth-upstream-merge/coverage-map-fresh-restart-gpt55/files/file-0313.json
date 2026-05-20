@@ -1,0 +1,204 @@
+{
+  "record_type": "file",
+  "file_index": 313,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-metrics/src/scheduling.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "ritual-metrics",
+    "scheduling",
+    "scheduled-incidents",
+    "observability"
+  ],
+  "atoms_total": 3,
+  "atoms": [
+    {
+      "record_id": "file-0313-atom-0001",
+      "file_index": 313,
+      "atom_index": 1,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-metrics/src/scheduling.rs",
+      "source_hunk_hint": "@@ -0,0 +1,210 @@; scheduled incident schema, env config, buffer setup, and input encoding",
+      "source_kind": "scheduled_incident_trace_model_and_config",
+      "source_snippet": "pub const SCHEDULED_INCIDENT_TRACE_ENABLED_ENV: &str = \"RITUAL_SCHEDULED_INCIDENT_TRACE_ENABLED\";\npub const SCHEDULED_INCIDENT_TRACE_CAPACITY_ENV: &str = \"RITUAL_SCHEDULED_INCIDENT_TRACE_CAPACITY\";\npub const DEFAULT_SCHEDULED_INCIDENT_TRACE_CAPACITY: usize = 1024;\npub const MAX_SCHEDULED_INCIDENT_TRACE_CAPACITY: usize = 50_000;\npub const MAX_INCIDENT_INPUT_BYTES: usize = 2048;\n\npub struct ScheduledIncidentInput { ... }\npub struct ScheduledIncidentTrace { ... }\nfn incident_trace_config() -> &'static ScheduledIncidentTraceConfig { ... }\nfn encode_input(input: &[u8]) -> (String, bool) { ... }\npub fn scheduled_incident_trace_enabled() -> bool { ... }\npub fn scheduled_incident_trace_capacity() -> usize { ... }\npub fn scheduled_incident_trace_count() -> usize { ... }",
+      "semantic_claim": "The old divergence adds the scheduled-transaction incident trace schema and configuration: env-controlled enablement/capacity, bounded calldata retention, input/trace structs carrying transaction, decoded scheduler, revert, and error-chain details, buffer initialization, timestamping, hex input truncation, and read helpers.",
+      "high_risk": false,
+      "risk_tags": [
+        "observability",
+        "scheduled-incidents",
+        "env-config",
+        "ring-buffer",
+        "calldata-truncation"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-metrics/src/scheduling.rs",
+          "symbols": [
+            "SCHEDULED_INCIDENT_TRACE_ENABLED_ENV",
+            "SCHEDULED_INCIDENT_TRACE_CAPACITY_ENV",
+            "DEFAULT_SCHEDULED_INCIDENT_TRACE_CAPACITY",
+            "MAX_SCHEDULED_INCIDENT_TRACE_CAPACITY",
+            "MAX_INCIDENT_INPUT_BYTES",
+            "ScheduledIncidentInput",
+            "ScheduledIncidentTrace",
+            "incident_trace_config",
+            "incident_trace_buffer",
+            "encode_input",
+            "scheduled_incident_trace_enabled",
+            "scheduled_incident_trace_capacity",
+            "scheduled_incident_trace_count"
+          ],
+          "evidence": "Destination lines 1-210 exactly match source-added diff lines 55579-55788."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc-api/src/ritual.rs",
+          "symbols": [
+            "ScheduledIncidentDebug",
+            "From<ScheduledIncidentTrace>"
+          ],
+          "evidence": "RPC API has a field-by-field conversion from `ScheduledIncidentTrace` into the public debug response type."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the incident schema, env parsing, capacity clamp, input truncation, and exported count helpers unchanged.",
+      "test_strategy": "scheduled_incident_trace_config_and_schema_tests",
+      "negative_test_candidate": "A calldata input longer than `MAX_INCIDENT_INPUT_BYTES` should be stored as truncated hex with `input_truncated: true` and the original `input_len` retained.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0313-atom-0002",
+      "file_index": 313,
+      "atom_index": 2,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-metrics/src/scheduling.rs",
+      "source_hunk_hint": "@@ -0,0 +212,298 @@; scheduled incident recording, contention counter, and newest-first snapshots",
+      "source_kind": "scheduled_incident_recording_and_snapshot",
+      "source_snippet": "pub fn record_scheduled_incident(input: ScheduledIncidentInput) {\n    if !scheduled_incident_trace_enabled() { return; }\n    let (input_hex, input_truncated) = encode_input(&input.input);\n    let entry = ScheduledIncidentTrace { sequence: SCHEDULED_INCIDENT_TRACE_SEQUENCE.fetch_add(1, Ordering::Relaxed), ... };\n    match incident_trace_buffer().try_lock() { ... }\n}\n\npub fn scheduled_incident_dropped_on_contention() -> u64 { ... }\npub fn recent_scheduled_incidents(limit: usize) -> Vec<ScheduledIncidentTrace> { ... }",
+      "semantic_claim": "The old divergence records scheduled-transaction execution incidents into a bounded in-memory ring buffer using `try_lock` on the payload-builder hot path, drops samples on lock contention while incrementing an exposed counter, recovers from poisoned locks, evicts oldest entries at capacity, and exposes newest-first incident snapshots.",
+      "high_risk": false,
+      "risk_tags": [
+        "observability",
+        "scheduled-incidents",
+        "payload-builder-hot-path",
+        "try-lock",
+        "dropped-sample-counter"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-metrics/src/scheduling.rs",
+          "symbols": [
+            "record_scheduled_incident",
+            "scheduled_incident_dropped_on_contention",
+            "recent_scheduled_incidents"
+          ],
+          "evidence": "Destination lines 212-298 exactly match source-added diff lines 55790-55876."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "maybe_record_scheduled_incident",
+            "record_scheduled_incident",
+            "ScheduledIncidentInput"
+          ],
+          "evidence": "Payload builder constructs `ScheduledIncidentInput` and records scheduled transaction execution errors through this metrics module."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc/src/ritual.rs",
+          "symbols": [
+            "recent_scheduled_incidents",
+            "scheduled_incident_trace_count"
+          ],
+          "evidence": "Ritual RPC reads recent scheduled incidents and retained count for the debug API response."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves best-effort hot-path write behavior, loss accounting, FIFO eviction, poison recovery, and snapshot ordering.",
+      "test_strategy": "scheduled_incident_ring_buffer_tests",
+      "negative_test_candidate": "When the incident buffer lock is contended, `record_scheduled_incident` should not block and should increment `scheduled_incident_dropped_on_contention`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0313-atom-0003",
+      "file_index": 313,
+      "atom_index": 3,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-metrics/src/scheduling.rs",
+      "source_hunk_hint": "@@ -0,0 +300,415 @@; scheduling performance structured logs",
+      "source_kind": "scheduling_performance_logging",
+      "source_snippet": "pub fn log_scheduler_state_stats(block_number: u64, calls_count: usize) { ... }\npub fn log_storage_access(block_number: u64, ts_start: u64, ts_end: u64, index: u64) { ... }\npub fn log_block_processing(block_number: u64, ts_start: u64, ts_end: u64) { ... }\npub fn log_event_discovery(block_number: u64, ts_start: u64, ts_end: u64) { ... }\npub fn log_event_processing(block_number: u64, ts_start: u64, ts_end: u64) { ... }\npub fn log_chain_block_fetch(block_number: u64, ts_start: u64, ts_end: u64) { ... }\npub fn log_chain_receipts_fetch(block_number: u64, tx_size: usize, ts_start: u64, ts_end: u64) { ... }",
+      "semantic_claim": "The old divergence adds structured scheduling performance logs for state size, storage access, block processing, event discovery, event processing, chain block fetch, and chain receipts fetch, all under the stable scheduling tracing target.",
+      "high_risk": false,
+      "risk_tags": [
+        "observability",
+        "scheduling",
+        "performance-logging",
+        "structured-logs"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-metrics/src/scheduling.rs",
+          "symbols": [
+            "log_scheduler_state_stats",
+            "log_storage_access",
+            "log_block_processing",
+            "log_event_discovery",
+            "log_event_processing",
+            "log_chain_block_fetch",
+            "log_chain_receipts_fetch"
+          ],
+          "evidence": "Destination lines 300-415 exactly match source-added diff lines 55878-55993."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps scheduling log labels, target, timing fields, and per-operation metadata unchanged.",
+      "test_strategy": "scheduling_metrics_logging_tests",
+      "negative_test_candidate": "A receipts fetch log should emit label `scheduled_chain_receipts_fetch` with block number, transaction count, start timestamp, and end timestamp.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The scheduling metrics module is exact-port preserved, including scheduled incident trace schema/config, hot-path best-effort incident recording and snapshots, contention loss accounting, and structured scheduling performance logs.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 313: A\tcrates/ritual-metrics/src/scheduling.rs.",
+    "Source-added hunk spans diff lines 55579-55993 with header `@@ -0,0 +1,415 @@`; the next diff starts at line 55994.",
+    "Destination `crates/ritual-metrics/src/scheduling.rs` has 415 lines and matches the source-added content exactly.",
+    "Bounded usage evidence found scheduled incident recording in the payload builder and incident snapshot exposure through Ritual RPC/RPC API conversion.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

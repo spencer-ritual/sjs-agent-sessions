@@ -1,0 +1,64 @@
+{
+  "cluster_key": "scheduler:pool-accounting:part-02",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/transaction-pool/src/blocking_handlers.rs"
+  ],
+  "invariant_id": "cur-c6aa75bc8f-duplicate-pending-reviveagent-submissions-skipped",
+  "invariant_index": 52,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/blocking_handlers.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs",
+      "crates/ethereum/payload/src/lib.rs"
+    ],
+    "checked_queries": [
+      "reviveAgent|pending scheduled|scheduled_pool|agentAddr",
+      "has_pending_job_for_sender|try_synthesize_heartbeat_revival_transactions"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "reviveAgent",
+      "try_synthesize_heartbeat_revival_transactions",
+      "has_pending_job_for_sender",
+      "scheduled_pool",
+      "pending reviveAgent",
+      "agentAddr"
+    ],
+    "missing_behavior": "Missing canonical-state guard that scans the scheduled pool for an existing pending reviveAgent(agent) and skips submitting a duplicate for the same target agent while allowing distinct agents.",
+    "related_but_insufficient_code": [
+      "Heartbeat revival synthesis checks AsyncJobTracker pending jobs for the owner before creating reviveAgent, which is related but keyed to async jobs, not a pending scheduled reviveAgent transaction for the same agent.",
+      "No blocking_handlers.rs scheduled-pool scanner or pending reviveAgent-by-agent dedupe path exists in the port."
+    ]
+  },
+  "notes": "Confirmed gap; async job owner check is related but not equivalent.",
+  "rationale": "The heartbeat candidate adds a current scheduled-pool submission guard for reviveAgent transactions targeting the same agent.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "f9d53d191b56a56805603c4da6bc02d53c2c2ce8"
+  ],
+  "statement": "At current tip, when canonical state handling prepares an AgentHeartbeat reviveAgent scheduled transaction, it must extract the target agent and skip submission if the scheduled pool already contains a pending reviveAgent transaction for that same agent.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Populate the scheduled pool with a reviveAgent transaction to the heartbeat contract for agent A, then process another canonical update that would submit reviveAgent(A), and assert no new transaction is submitted.",
+    "Repeat with reviveAgent(B) and assert the distinct-agent transaction is submitted."
+  ],
+  "summary": "Duplicate pending reviveAgent scheduled submissions are not guarded by scheduled-pool scan.",
+  "test_or_falsification_candidate": "Put reviveAgent(A) in the scheduled pool then process another canonical update for A and B; current port lacks the scheduled pool scan needed to skip A and submit B.",
+  "title": "Duplicate pending reviveAgent submissions are skipped",
+  "total_invariants": 1954
+}

@@ -1,0 +1,67 @@
+{
+  "cluster_key": "scheduler:payload-building:part-01",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-async/src/detector.rs",
+    "crates/ritual-async/src/wallet.rs"
+  ],
+  "invariant_id": "cur-edf229bd15-async-payload-collection-uses-cached-simulation-gates",
+  "invariant_index": 88,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-async-fees/src/wallet.rs"
+    ],
+    "checked_queries": [
+      "async_cache|cached simulation|current-cycle|collect async|AsyncSims|pre-reading async pool|validate_short_commitment_parent_state"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "async_cache",
+      "SharedAsyncPrecompileInspector",
+      "validate_short_commitment_parent_state"
+    ],
+    "missing_behavior": "Missing cached async payload collection model: no async_cache by tx hash, no current-cycle simulation gate, no pre-normal-loop async collection/execution of recovered async system txs, and no rule that skips unsimulated originals in normal loops.",
+    "related_but_insufficient_code": [
+      "The port detects async calls opportunistically during scheduled/regular execution and validates wallet/parent state before commitments."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The early async execution design is refined by cached detection and current-cycle simulation checks.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "14ff7a87239208508e7778123ee05898bd87b9ef",
+    "97c2fef685c2e471664b3e66939e13ac63741fd0",
+    "89d4f83bb2da64c4819f76c9be32bf06bde7dffb",
+    "6b8e117b20efb9bc14862d36f02faef052a24618",
+    "d2f9b1d444c97b5f48841628e457dff719d8b44a",
+    "d1b3e950f338047e61e548bc878687b3ddd78514",
+    "bbdeb15b8da70fded205f7556253281eeedc794f",
+    "43a79b47a044a96d1182fe20f064a5c0217482a3"
+  ],
+  "statement": "Payload building must collect async transactions from scheduled and regular sources before normal transaction execution, execute recovered async system transactions before scheduled and regular loops, cache async detection results by transaction hash, skip original async transactions in normal loops, skip transactions not simulated in the current cycle, avoid pre-reading/pruning the async pool before simulation, and apply wallet validation plus current sender/job gates before accepting async commitments.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Require current-cycle async_cache entries for scheduled and regular async candidates."
+  ],
+  "summary": "Cached async payload collection gates are absent.",
+  "test_or_falsification_candidate": "Search for async_cache/current-cycle simulation gates; current port lacks this collection model.",
+  "title": "Async payload collection uses cached simulation gates",
+  "total_invariants": 1954
+}

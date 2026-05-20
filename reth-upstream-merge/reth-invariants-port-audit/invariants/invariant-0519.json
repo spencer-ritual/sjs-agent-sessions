@@ -1,0 +1,67 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "85b41ec83e0009175c328eb0b9a07c92c3008129",
+      "evidence": "The validator enforces executor/TTL bounds, prompt/model non-emptiness, ECIES/user-key formats, supported type allowlist 0/4/5/6, and Phase 2 offset bounds.",
+      "path": "crates/ritual-precompile-codecs/src/validation.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "validate_executor_and_ttl_bounds(request.executor, request.ttl, max_ttl)?;\nvalidate_ecies_blob(&request.encrypted_secrets)?;\nvalidate_user_public_key(&request.user_public_key)?;\nif request.prompt.trim().is_empty() { return Err(EmptyPrompt); }\nif request.model.trim().is_empty() { return Err(EmptyModel); }\nif !matches!(request.sovereign_agent_type, ClaudeCode | OpenClaw | Crush | ZeroClaw) { return Err(UnsupportedAgentType { ... }); }\nvalidate_phase2_deadline_offset(request.max_poll_block, request.ttl)?;",
+      "symbols": [
+        "validate_sovereign_agent_payload",
+        "validate_phase2_deadline_offset",
+        "MAX_PHASE2_DEADLINE_OFFSET"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "85b41ec83e0009175c328eb0b9a07c92c3008129",
+      "evidence": "The codec exposes the fields that validation gates: max_poll_block, type, prompt, and model.",
+      "path": "crates/ritual-precompile-codecs/src/sovereign_agent.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub enum SovereignAgentType { ClaudeCode = 0, Codex = 1, Aider = 2, Mcp = 3, OpenClaw = 4, Crush = 5, ZeroClaw = 6 }\n...\nmax_poll_block: u64_token(&tokens[4], \"max_poll_block\")?,\nsovereign_agent_type: u16_token(&tokens[11], \"sovereign_agent_type\")?.try_into()?,\nprompt: string_token(&tokens[12], \"prompt\")?,\nmodel: string_token(&tokens[18], \"model\")?,",
+      "symbols": [
+        "SovereignAgentRequest::from_abi",
+        "SovereignAgentType"
+      ]
+    }
+  ],
+  "equivalence_argument": "The accepted sovereign-agent type variants are exactly 0, 4, 5, and 6, and validate_phase2_deadline_offset rejects offsets <= ttl and offsets above the canonical 70,000 cap.",
+  "evidence_files": [
+    "crates/ritual-async/src/validation.rs",
+    "crates/rpc/rpc/src/async_tx_validator.rs"
+  ],
+  "invariant_id": "cur-9b9ac7df14-sovereign-agent-payloads-have-explicit-constraints",
+  "invariant_index": 519,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The three neighboring sovereign-agent invariants share the same validation evidence and differ only in emphasis.",
+  "rationale": "The commit summary lists seven new Sovereign Agent checks, and the implementation adds concrete error variants and validation for model, cliType allowlist, ECIES/user key formats, and Phase 2 offset bounds. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "4e01f5cf0a738daced79a27858de471014ee3495"
+  ],
+  "statement": "Sovereign Agent 0x080C payload validation must require a nonempty prompt and model, supported cliType limited to 0, 4, 5, or 6, valid ECIES encrypted_secrets, valid optional user_public_key, nonzero executor, TTL within bounds, max_poll_block offset greater than ttl, and max_poll_block offset no greater than 70,000.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Submit Sovereign Agent payloads varying one field at a time: empty prompt, empty model, cliType 1/2/3/7, invalid ECIES blob, invalid user_public_key, max_poll_block equal to ttl, max_poll_block greater than 70,000, and valid controls. Assert only the valid control passes and each invalid case maps to the corresponding structured AsyncValidationError."
+  ],
+  "summary": "Sovereign-agent RPC constraints are enforced.",
+  "test_or_falsification_candidate": "Build sovereign-agent payloads with unsupported types, empty model or prompt, invalid ECIES/user key, max_poll_block <= ttl, max_poll_block > 70_000, and valid boundary controls; assert only valid controls pass.",
+  "title": "Sovereign Agent payloads have explicit RPC constraints",
+  "total_invariants": 1954
+}

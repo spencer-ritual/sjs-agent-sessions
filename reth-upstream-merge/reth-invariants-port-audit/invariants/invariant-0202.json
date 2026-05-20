@@ -1,0 +1,60 @@
+{
+  "cluster_key": "executor delivery:delivery-submit-recovers-0939f353",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping was found: the current pool explicitly rejects Fulfilled delivery submissions and reserves the Fulfilled -> AwaitingDelivery transition for canonical settlement processing.",
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/async_pool.rs"
+  ],
+  "invariant_id": "cur-c49a706fb2-delivery-submit-recovers-missed-awaiting-transition",
+  "invariant_index": 202,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/transaction-pool/src/pool/mod.rs"
+    ],
+    "checked_queries": [
+      "submit_delivery_result_with_context|AsyncState::Fulfilled|InvalidState|mark_awaiting_delivery|sender_locks.remove"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "submit_delivery_result_with_context",
+      "mark_awaiting_delivery",
+      "AsyncState::Fulfilled",
+      "sender_locks.remove"
+    ],
+    "missing_behavior": "Missing recovery path that accepts delivery while Fulfilled, releases the sender lock, transitions to AwaitingDelivery, stores delivery data, and then moves to DeliveryReady.",
+    "related_but_insufficient_code": [
+      "submit_delivery_result_with_context returns InvalidState(Fulfilled) before storing delivery data.",
+      "mark_awaiting_delivery is the only code path that transitions Fulfilled to AwaitingDelivery and releases sender_locks after canonical settlement.",
+      "The test submit_delivery_result_rejects_fulfilled_before_awaiting_delivery codifies the opposite behavior."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The diff replaces a strict AwaitingDelivery-only check with a Fulfilled recovery branch that removes the sender from sender_index, logs a warning, sets AwaitingDelivery, then continues to store delivery data and set DeliveryReady. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "a5be1396136caf79405755ec98e2d9ceb131f730"
+  ],
+  "statement": "When submit_delivery_result is called for a long-running or ZK async transaction that is still in Fulfilled state, the async pool must release the sender lock, transition it to AwaitingDelivery as a recovery path, then store the delivery result/proof and move it to DeliveryReady instead of rejecting the delivery as an invalid state.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Place a long-running async transaction in Fulfilled with an execution result and sender lock still present, call submit_delivery_result, and assert it succeeds, removes the sender lock, stores delivery_result and delivery_proof, and ends in DeliveryReady; assert a non-delivery-capable transaction in Fulfilled is still rejected."
+  ],
+  "summary": "The missed-awaiting-transition recovery path is not present in current code.",
+  "test_or_falsification_candidate": "Place a two-phase async entry in Fulfilled and call submit_delivery_result_with_context; current code should return InvalidState(Fulfilled), not recover to DeliveryReady.",
+  "title": "Delivery submit recovers missed awaiting transition",
+  "total_invariants": 1954
+}

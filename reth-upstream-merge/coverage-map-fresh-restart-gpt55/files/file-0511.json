@@ -1,0 +1,90 @@
+{
+  "record_type": "file",
+  "file_index": 511,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/tracing/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "missing",
+    "needs-review",
+    "tracing"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0511-atom-0001",
+      "file_index": 511,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/tracing/Cargo.toml",
+      "source_hunk_hint": "@@ -20,3 +20,4 @@ tracing-logfmt.workspace = true",
+      "source_kind": "manifest_dependency",
+      "source_snippet": "serde_json = \"1.0\"",
+      "semantic_claim": "The old divergence adds `serde_json` to the tracing crate for a custom Ritual JSON router.",
+      "high_risk": false,
+      "risk_tags": [
+        "observability",
+        "tracing",
+        "missing"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/tracing/Cargo.toml",
+          "symbols": [
+            "serde_json"
+          ],
+          "evidence": "Destination tracing manifest has no `serde_json` dependency because the Ritual router surface is absent."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/tracing-otlp/src/lib.rs",
+          "symbols": [
+            "span_layer",
+            "log_layer",
+            "OtlpConfig",
+            "OtlpLogsConfig"
+          ],
+          "evidence": "The port has a `reth-tracing-otlp` crate for OpenTelemetry span/log export, but searches found no `RitualRouter`, `RitualJsonLayer`, `with_json_targets`, or target-specific Ritual JSON router API there."
+        }
+      ],
+      "equivalence_argument": "Not equivalent: the dependency needed by the old custom JSON router is not present. Current `reth-tracing-otlp` is not a behavioral replacement for the old target-specific Ritual JSON router.",
+      "test_strategy": "compile a tracing crate user with RitualRouter enabled",
+      "negative_test_candidate": "`RitualRouter` cannot compile from the destination tracing crate while the dependency and module are absent.",
+      "adversarial_review": {
+        "required": true,
+        "status": "queued",
+        "review_record_id": "review-file-0511-atom-0001"
+      },
+      "review_required": true,
+      "notes": "Rechecked with `crates/tracing-otlp`: OTLP export exists, but it does not restore the old Ritual JSON router API or target-specific JSON routing."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [
+    {
+      "review_record_id": "review-file-0511-atom-0001",
+      "atom_id": "file-0511-atom-0001",
+      "status": "queued",
+      "reason": "The old divergence adds `serde_json` to the tracing crate for a custom Ritual JSON router."
+    }
+  ],
+  "summary": "Tracing manifest does not carry the old JSON-router dependency.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": [
+    "Queue entry verified as file-0511: M\tcrates/tracing/Cargo.toml.",
+    "Source diff lines 89256-89264; first hunk `@@ -20,3 +20,4 @@ tracing-logfmt.workspace = true`.",
+    "Fresh destination evidence was checked against /home/ritual/repos/ritual-reth-internal-v2.2.0-port.",
+    "Current port includes `crates/tracing-otlp`, but it does not contain the old Ritual JSON router symbols."
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "RPC admission checks latest TEE registry state and rejects absent or wrong-capability executors.",
+      "path": "crates/rpc/rpc/src/async_tx_validator.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let executor = read_executor(db, registry, executor_address)?\n    .ok_or_else(|| format!(\"TEE executor {executor_address} not found\"))?;\nif executor.capability != expected { return Err(...); }",
+      "symbols": [
+        "validate_executor",
+        "read_executor"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "The registry validation happens before local pool insertion, so failed executors cannot remain in the pool.",
+      "path": "crates/rpc/rpc/src/eth/helpers/transaction.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "validate_rpc_async_admission::<N>(...) .await?;\n...\nlet AddedTransactionOutcome { hash, .. } = self.inner.add_pool_transaction(origin, pool_transaction).await?;",
+      "symbols": [
+        "send_transaction",
+        "add_pool_transaction"
+      ]
+    }
+  ],
+  "equivalence_argument": "The source invariant described post-insertion removal, but the port preserves the same safety property by moving registry validation before insertion; an executor failure returns InvalidParams and no async transaction is retained in the pool.",
+  "evidence_files": [
+    "crates/rpc/rpc/src/eth/helpers/transaction.rs",
+    "crates/rpc/rpc/src/async_tx_validator.rs"
+  ],
+  "invariant_id": "cur-2657a0f043-removes-async-whose-executor-fails-registry-validation",
+  "invariant_index": 413,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped by pre-insertion admission validation, which is stricter than remove-after-insert.",
+  "rationale": "The primary merge runs pool insertion and state validation together, reads latest state, validates executor registration and capability through the TEE registry reader, and removes the transaction from the pool on validation failure. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "33ac6bbf926323bd11d852fbfb42319c7af9fd2b"
+  ],
+  "statement": "For statically valid async PrecompileConsumer calls, RPC submission must validate the payload executor against latest TEE registry state and remove the transaction from the pool if the executor is unregistered or lacks the required capability.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Submit a valid async transaction whose executor is absent from latest TEE registry state and another whose executor has the wrong capability; assert send_raw_transaction returns InvalidParams and remove_transactions is called for the inserted hash."
+  ],
+  "summary": "RPC keeps executor-invalid async transactions out of the pool.",
+  "test_or_falsification_candidate": "Submit a statically valid async call whose executor is missing or has the wrong registry capability and assert RPC returns InvalidParams and the transaction hash is absent from the pool.",
+  "title": "RPC removes async transactions whose executor fails registry validation",
+  "total_invariants": 1954
+}

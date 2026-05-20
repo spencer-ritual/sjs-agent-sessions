@@ -1,0 +1,63 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-3d120240fc-http-executor-prices-normalized-constants",
+  "invariant_index": 308,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-async-fees/src/constants.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-async-fees/src/http.rs"
+    ],
+    "checked_queries": [
+      "25_000_000_000_000",
+      "3_500_000_000",
+      "HTTP_EXECUTOR_BASE_FEE_WEI",
+      "HTTP_EXECUTOR_FEE_PER_INPUT_BYTE_WEI",
+      "HTTP_EXECUTOR_FEE_PER_OUTPUT_BYTE_WEI"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "HTTP_EXECUTOR_BASE_FEE_WEI",
+      "HTTP_EXECUTOR_FEE_PER_INPUT_BYTE_WEI",
+      "HTTP_EXECUTOR_FEE_PER_OUTPUT_BYTE_WEI",
+      "http_executor_fee"
+    ],
+    "missing_behavior": "HTTP executor fee calculation does not use the required normalized constants: base 25,000,000,000,000 wei and 3,500,000,000 wei per input/output byte.",
+    "related_but_insufficient_code": [
+      "The port defines HTTP_EXECUTOR_BASE_FEE_WEI = 2_500_000_000_000 and per-input/per-output byte fees = 350_000_000, then http_executor_fee uses those constants.",
+      "Searches in audited dependency repos did not find the required 25_000_000_000_000 / 3_500_000_000 HTTP executor pricing constants."
+    ]
+  },
+  "notes": "Confirmed in the port async-fees constants and no audited dependency defines the required values.",
+  "rationale": "The commit title says prices were normalized and the diff changes the three HTTP executor fee constants used by payload fee calculation. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "ad7bbcd364b9202e5e3f32d19c25f7c8ec158a52"
+  ],
+  "statement": "HTTP async executor fee calculation in payload building must use a base fee of 25,000,000,000,000 wei and per-input-byte and per-output-byte fees of 3,500,000,000 wei each.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Calculate HTTP executor fee for known input/output byte lengths and assert it equals 25_000_000_000_000 + 3_500_000_000 * input_len + 3_500_000_000 * output_len, not the prior 0.01 ETH plus asymmetric byte fees."
+  ],
+  "summary": "HTTP executor pricing constants are ten times lower than this invariant requires.",
+  "test_or_falsification_candidate": "Compute http_executor_fee for known input/output lengths and assert current output uses 2_500_000_000_000 + 350_000_000 per byte, not the invariant-required values.",
+  "title": "HTTP executor prices use normalized constants",
+  "total_invariants": 1954
+}

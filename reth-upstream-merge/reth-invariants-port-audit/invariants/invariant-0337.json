@@ -1,0 +1,54 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "SPC verification uses a parent-state database, reads job context from AsyncJobTracker, matches call block_number to job commit_block, reads the executor key from contract state, and verifies the signature over job and previous-block fields.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let mut db = StateProviderDatabase::new(parent_state);\nlet jobs = ritual_async_registry::read_jobs_for_spc_verification(&mut db, None, &settlement_job_ids)?;\n... call.block_number == job.commit_block && keccak256(&call.input) == job.input_hash ...\nlet executor = read_expected_executor(&mut db, job.executor_address, metadata, \"SPC\")?;\nlet valid = verify_signature_core(public_key, job.commit_block, job.tx_hash, job.precompile_address, &spc_call.input, &spc_call.output, job.previous_block_hash, job.previous_block_number, job.previous_block_timestamp, \"\", &spc_call.proof)?;",
+      "symbols": [
+        "verify_spc_calls",
+        "read_expected_executor"
+      ]
+    }
+  ],
+  "equivalence_argument": "Although the current port reads executor metadata through the TEE registry reader helper, it still sources the data from parent contract state and rejects mismatched block numbers, inputs, outputs, previous-block context, or signatures.",
+  "evidence_files": [
+    "crates/ritual-block-verification/src/constants.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-16cf78cff9-signatures-verify-against-parent-contract-state",
+  "invariant_index": 337,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to the port block-verification SPC path.",
+  "rationale": "The implementation filters SPC calls to HTTP and LLM precompile addresses, obtains parent state by block.parent_hash(), reads jobs and executor keys from contracts, checks block number equality, and calls verify_signature_core with the job's tx hash, precompile address/input, previous block data, SPC output, and proof. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "7a8f8630766dbca485a1d9606b66ead623212f15"
+  ],
+  "statement": "For each extracted HTTP/LLM SPC call, verification must read job metadata from AsyncJobTracker and executor public keys from ExecutorRegistry using the block parent state, require the SPC block_number to equal the job commit_block, and verify the signature over the job fields, SPC output, and previous-block context.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create parent state with an AsyncJobTracker job and ExecutorRegistry public key, then verify two otherwise identical blocks: one SPC call whose block_number and signature match the job context should pass, while changing either the block_number, output bytes, previous-block context, or executor key should make verification fail."
+  ],
+  "summary": "SPC signatures are verified against parent-state job and executor registry data.",
+  "test_or_falsification_candidate": "Mutate SPC block_number, output, previous block hash, or executor public key in parent state and assert block verification rejects each mutation.",
+  "title": "SPC signatures verify against parent contract state",
+  "total_invariants": 1954
+}

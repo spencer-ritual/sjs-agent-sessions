@@ -1,0 +1,523 @@
+{
+  "record_type": "file",
+  "file_index": 332,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-scheduled-verification/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "scheduled-verification",
+    "scheduler",
+    "heartbeat",
+    "c1-c11"
+  ],
+  "atoms_total": 10,
+  "atoms": [
+    {
+      "record_id": "file-0332-atom-0001",
+      "file_index": 332,
+      "atom_index": 1,
+      "atoms_total": 10,
+      "source_path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,119 @@; module exports, scheduled tx constants, environment-derived addresses, heartbeat detection",
+      "source_kind": "scheduled_verification_public_surface_and_addresses",
+      "source_snippet": "pub mod error;\npub mod predicate;\npub mod slots;\npub const SYSTEM_SENDER: Address = address!(\"000000000000000000000000000000000000fa7e\");\npub const EXPECTED_SIGNATURE_R: U256 = U256::ZERO;\npub const EXPECTED_SIGNATURE_S: U256 = U256::ZERO;\npub const EXPECTED_SIGNATURE_V: bool = false;\npub struct ScheduledTxInfo { ... }\npub fn get_scheduler_address() -> Address { ... }\npub fn get_heartbeat_address() -> Address { ... }\npub fn is_heartbeat_tx(to: Option<Address>) -> bool { ... }",
+      "semantic_claim": "The old divergence adds the scheduled-verification crate root public surface, system/dummy-signature constants, `ScheduledTxInfo`, environment-overridable Scheduler/RitualWallet/system/heartbeat addresses, and heartbeat target detection.",
+      "high_risk": false,
+      "risk_tags": [
+        "public-api",
+        "addresses",
+        "dummy-signature",
+        "heartbeat"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/lib.rs",
+          "symbols": [
+            "SYSTEM_SENDER",
+            "EXPECTED_SIGNATURE_R",
+            "EXPECTED_SIGNATURE_S",
+            "EXPECTED_SIGNATURE_V",
+            "ScheduledTxInfo",
+            "get_scheduler_address",
+            "get_ritual_wallet_address",
+            "get_system_account_address",
+            "get_heartbeat_address",
+            "is_heartbeat_tx"
+          ],
+          "evidence": "Destination lines 1-119 exactly match source-added diff lines 62310-62428."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the address defaults, environment overrides, and scheduled transaction metadata boundary unchanged.",
+      "test_strategy": "scheduled_verification_address_and_signature_constant_tests",
+      "negative_test_candidate": "A nonzero dummy signature component should fail C7 in both filter and full verification paths.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0332-atom-0002",
+      "file_index": 332,
+      "atom_index": 2,
+      "atoms_total": 10,
+      "source_path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +121,399 @@; heartbeat storage layout and liveness/revival readers",
+      "source_kind": "heartbeat_storage_readers",
+      "source_snippet": "pub struct HeartbeatAgentLiveness { ... }\npub struct HeartbeatAgentRevivalData { ... }\npub fn read_heartbeat_default_timeout<DB: Database>(...) -> Result<u64, String> { ... }\npub fn read_heartbeat_agent_count<DB: Database>(...) -> Result<u64, String> { ... }\npub fn read_heartbeat_agent_at<DB: Database>(...) -> Result<Address, String> { ... }\npub fn read_heartbeat_agent_state<DB: Database>(...) -> Result<u8, String> { ... }\npub fn read_heartbeat_agent_revival_data<DB: Database>(...) -> Result<HeartbeatAgentRevivalData, String> { ... }\npub fn get_failed_agents<DB: Database>(...) -> Result<Vec<Address>, String> { ... }",
+      "semantic_claim": "The old divergence adds raw storage readers for the AgentHeartbeat contract, including agent count/list traversal, default timeout, owner/state/liveness fields, dynamic bytes/string reads, revival data, failed-agent enumeration, and contract population checks.",
+      "high_risk": false,
+      "risk_tags": [
+        "heartbeat",
+        "storage-layout",
+        "liveness",
+        "revival"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/lib.rs",
+          "symbols": [
+            "HeartbeatAgentLiveness",
+            "HeartbeatAgentRevivalData",
+            "read_heartbeat_default_timeout",
+            "read_heartbeat_agent_count",
+            "read_heartbeat_agent_at",
+            "read_heartbeat_agent_state",
+            "read_heartbeat_agent_owner",
+            "read_heartbeat_agent_revival_data",
+            "read_heartbeat_agent_liveness",
+            "get_failed_agents",
+            "heartbeat_has_agents"
+          ],
+          "evidence": "Destination lines 121-399 exactly match source-added diff lines 62430-62708."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "read_heartbeat_agent_state"
+          ],
+          "evidence": "Block verification imports heartbeat state readers from scheduled-verification."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves heartbeat storage offsets and liveness/revival read semantics needed by verifier and heartbeat scheduling flows.",
+      "test_strategy": "heartbeat_storage_reader_tests",
+      "negative_test_candidate": "A FAILED heartbeat agent should be enumerated by `get_failed_agents`, while non-FAILED states should be skipped.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0332-atom-0003",
+      "file_index": 332,
+      "atom_index": 3,
+      "atoms_total": 10,
+      "source_path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +406,745 @@; ScheduledCall model, timing helpers, raw Scheduler call/wallet/executed reads",
+      "source_kind": "scheduled_call_storage_and_timing",
+      "source_snippet": "pub struct ScheduledCall { ... }\npub struct ActiveScheduledCalls { ... }\npub fn compute_max_block_number_u64(...) -> u64 { ... }\nimpl ScheduledCall { pub fn expected_block(&self, execution_index: u64) -> u64 { ... } pub fn ttl_deadline(&self, execution_index: u64) -> u64 { ... } pub fn expiry_block(&self) -> u64 { ... } }\npub fn read_scheduled_call<DB: Database>(...) -> Result<Option<ScheduledCall>, SchedulerError> { ... }\npub fn read_wallet_balance<DB: Database>(...) -> Result<U256, SchedulerError> { ... }\npub fn is_executed<DB: Database>(...) -> Result<bool, SchedulerError> { ... }",
+      "semantic_claim": "The old divergence adds the Scheduler call model, max-block and due/expiry timing helpers, raw Scheduler `Call` storage unpacking, wallet balance reads, and primary/overflow executed bitmap checks.",
+      "high_risk": false,
+      "risk_tags": [
+        "scheduler-storage",
+        "scheduled-call",
+        "packed-fields",
+        "wallet-balance",
+        "executed-bitmap"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/lib.rs",
+          "symbols": [
+            "ScheduledCall",
+            "ActiveScheduledCalls",
+            "compute_max_block_number_u64",
+            "compute_max_block_number_u32_saturating",
+            "ScheduledCall::expected_block",
+            "ScheduledCall::ttl_deadline",
+            "ScheduledCall::expiry_block",
+            "read_scheduled_call",
+            "read_wallet_balance",
+            "is_executed"
+          ],
+          "evidence": "Destination lines 406-745 exactly match source-added diff lines 62715-63054."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "read_scheduled_call"
+          ],
+          "evidence": "Block verifier reads scheduled call state through this exported helper."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps Scheduler storage decoding, timing math, and executed-state checks aligned with the contract layout.",
+      "test_strategy": "scheduled_call_storage_and_timing_tests",
+      "negative_test_candidate": "A call with mismatched stored callId or zero target should return `Ok(None)` from `read_scheduled_call`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0332-atom-0004",
+      "file_index": 332,
+      "atom_index": 4,
+      "atoms_total": 10,
+      "source_path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +747,892 @@; legacy C10 filter, FilterResult taxonomy, pool-removal policy",
+      "source_kind": "scheduled_filter_result_and_legacy_filter",
+      "source_snippet": "#[deprecated]\npub fn filter_scheduled_for_block_building<DB: Database>(...) -> Result<Vec<bool>, SchedulerError> { ... }\n\npub enum FilterResult { Valid, C1CallNotFound, C2InvalidState, C3IndexOutOfBounds, C4TooEarly, C5TooLate, C6Expired, C7InvalidSignature, C8InvalidTarget, C9InsufficientFunds, C10AlreadyExecuted, C10InBlockDuplicate, C11PredicateFalse, C11PredicateReverted, C11PredicateOutOfGas, DatabaseError }\nimpl FilterResult { pub fn is_valid(&self) -> bool { ... } pub fn should_remove_from_pool(&self) -> bool { ... } }",
+      "semantic_claim": "The old divergence adds a deprecated C10-only block-building filter plus the `FilterResult` taxonomy and permanent-vs-temporary pool removal policy used by the full filter.",
+      "high_risk": false,
+      "risk_tags": [
+        "filter-result",
+        "pool-removal",
+        "legacy-filter",
+        "c10"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/lib.rs",
+          "symbols": [
+            "filter_scheduled_for_block_building",
+            "FilterResult",
+            "FilterResult::is_valid",
+            "FilterResult::should_remove_from_pool"
+          ],
+          "evidence": "Destination lines 747-892 exactly match source-added diff lines 63056-63201."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves legacy duplicate/executed filtering and the result classification consumed by builders/pool cleanup.",
+      "test_strategy": "scheduled_filter_result_policy_tests",
+      "negative_test_candidate": "C4 too-early and C9 base-fee failures should not be permanent pool removals.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0332-atom-0005",
+      "file_index": 332,
+      "atom_index": 5,
+      "atoms_total": 10,
+      "source_path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +894,1190 @@; full block-building filter C1-C10 with deferred C11",
+      "source_kind": "scheduled_full_block_building_filter",
+      "source_snippet": "pub fn filter_scheduled_for_block_building_full<DB: Database>(db: &mut DB, scheduler_contract: Option<Address>, wallet_contract: Option<Address>, block_number: u64, scheduled_txs: &[ScheduledTxInfo]) -> Vec<FilterResult> { ... }",
+      "semantic_claim": "The old divergence adds the full block-building filter for C1-C10, including batch scheduled-call reads, duplicate detection, dummy-signature and target checks, call state/index/timing/TTL validation, base-fee eligibility, deliberate wallet-balance C9 contract eviction behavior, executed bitmap checks, and deferred C11 predicate-address reads.",
+      "high_risk": false,
+      "risk_tags": [
+        "block-building-filter",
+        "c1-c10",
+        "c11-deferred",
+        "base-fee",
+        "contract-eviction"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/lib.rs",
+          "symbols": [
+            "filter_scheduled_for_block_building_full"
+          ],
+          "evidence": "Destination lines 894-1190 exactly match source-added diff lines 63203-63499."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+          "symbols": [
+            "filter_scheduled_for_block_building_full"
+          ],
+          "evidence": "Scheduled block-building delegates C1-C10 pool filtering to this function."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps builder-side scheduled filtering behavior identical to the old divergence, including the base-fee vs wallet-balance C9 distinction.",
+      "test_strategy": "scheduled_full_block_building_filter_tests",
+      "negative_test_candidate": "An underfunded wallet should still pass the filter for contract eviction, but base fee greater than maxFeePerGas should be filtered as C9.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0332-atom-0006",
+      "file_index": 332,
+      "atom_index": 6,
+      "atoms_total": 10,
+      "source_path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1192,1287 @@; batch scheduled call reads and active scheduled call scan",
+      "source_kind": "scheduled_call_batch_and_active_scan",
+      "source_snippet": "pub fn batch_read_scheduled_calls<DB: Database>(...) -> Result<HashMap<u64, ScheduledCall>, SchedulerError> { ... }\npub fn read_active_scheduled_calls<DB: Database>(...) -> Result<ActiveScheduledCalls, SchedulerError> { ... }",
+      "semantic_claim": "The old divergence adds batch scheduled call reads and an active-call scanner that walks Scheduler `slots[]`, skips empty/deleted or duplicate slots, reuses `read_scheduled_call`, and returns only SCHEDULED calls for startup hydration.",
+      "high_risk": false,
+      "risk_tags": [
+        "batch-read",
+        "active-call-scan",
+        "startup-hydration",
+        "scheduler-storage"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/lib.rs",
+          "symbols": [
+            "batch_read_scheduled_calls",
+            "read_active_scheduled_calls"
+          ],
+          "evidence": "Destination lines 1192-1287 exactly match source-added diff lines 63501-63596."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves batched read behavior and Scheduler-state hydration semantics.",
+      "test_strategy": "scheduled_active_call_scan_tests",
+      "negative_test_candidate": "An active scan over mixed call states should return only calls in `call_state::SCHEDULED`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0332-atom-0007",
+      "file_index": 332,
+      "atom_index": 7,
+      "atoms_total": 10,
+      "source_path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1289,1558 @@; ScheduledObligation, due-index window, and obligation computation",
+      "source_kind": "scheduled_obligation_computation",
+      "source_snippet": "pub struct ScheduledObligation { ... }\nimpl ScheduledObligation { pub fn scheduler_overhead(&self) -> u64 { ... } pub fn total_gas_required(&self) -> u64 { ... } }\npub const SCHEDULER_MAX_TTL_BLOCKS: u64 = 500;\npub fn due_index_bounds(...) -> Option<(u64, u64)> { ... }\npub fn compute_obligations<DB: Database>(...) -> Result<Vec<ScheduledObligation>, SchedulerError> { ... }",
+      "semantic_claim": "The old divergence adds scheduled obligation representation, scheduler overhead gas accounting, bounded due-index window calculation, TTL protocol bound, and contract-state obligation enumeration for C1-C10 with deadline/cap handling, heartbeat skipping, base-fee filtering, u128 fee-field guard, and executed-bitmap checks.",
+      "high_risk": false,
+      "risk_tags": [
+        "obligations",
+        "due-window",
+        "ttl-bound",
+        "gas-overhead",
+        "censorship-detection"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/lib.rs",
+          "symbols": [
+            "ScheduledObligation",
+            "ScheduledObligation::scheduler_overhead",
+            "ScheduledObligation::total_gas_required",
+            "SCHEDULER_MAX_TTL_BLOCKS",
+            "due_index_bounds",
+            "compute_obligations"
+          ],
+          "evidence": "Destination lines 1289-1558 exactly match source-added diff lines 63598-63867."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+          "symbols": [
+            "compute_obligations",
+            "due_index_bounds"
+          ],
+          "evidence": "Scheduled block-building uses these helpers for augmentation and pool-state obligation windows."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps builder/verifier obligation sets, scan bounds, and gas accounting aligned.",
+      "test_strategy": "scheduled_obligation_computation_tests",
+      "negative_test_candidate": "A schedule with TTL above `SCHEDULER_MAX_TTL_BLOCKS` should produce no obligations.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0332-atom-0008",
+      "file_index": 332,
+      "atom_index": 8,
+      "atoms_total": 10,
+      "source_path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1560,1683 @@; predicate filtering of obligations",
+      "source_kind": "scheduled_obligation_predicate_filtering",
+      "source_snippet": "pub struct PredicateFilterResult { pub obligations: Vec<ScheduledObligation>, pub total_predicate_gas: u64, pub dropped_predicate: usize, pub dropped_gas_budget: usize }\npub fn filter_obligations_by_predicates<DB: Database, F>(...) -> Result<PredicateFilterResult, SchedulerError> { ... }",
+      "semantic_claim": "The old divergence adds the C11 obligation predicate filtering boundary, including result accounting, default-predicate pass-through, per-block gas budget enforcement, evaluator callback integration, and drop accounting for predicate failures/errors.",
+      "high_risk": false,
+      "risk_tags": [
+        "predicate",
+        "c11",
+        "obligations",
+        "gas-budget"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/lib.rs",
+          "symbols": [
+            "PredicateFilterResult",
+            "filter_obligations_by_predicates"
+          ],
+          "evidence": "Destination lines 1560-1683 exactly match source-added diff lines 63869-63992."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the shared C11 filtering contract intended for both builder and verifier obligation sets.",
+      "test_strategy": "scheduled_obligation_predicate_filter_tests",
+      "negative_test_candidate": "Once `MAX_BLOCK_PREDICATE_GAS` is exhausted, remaining obligations should be dropped and counted as gas-budget drops.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0332-atom-0009",
+      "file_index": 332,
+      "atom_index": 9,
+      "atoms_total": 10,
+      "source_path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1685,1993 @@; legacy and full scheduled transaction verification",
+      "source_kind": "scheduled_transaction_verification",
+      "source_snippet": "pub fn verify_scheduled_transactions<DB: Database>(...) -> Result<(), ScheduledConstraintViolation> { ... }\npub fn verify_scheduled_transactions_full<DB: Database>(...) -> Result<(), ScheduledConstraintViolation> { ... }",
+      "semantic_claim": "The old divergence adds legacy C1-C6/C10 verification and full C1-C10 verification for block verifier paths, including duplicate checks, dummy signature, target, state/index/timing/expiry, base-fee eligibility, executed-bitmap replay protection, and deferred C11 predicate-address reads.",
+      "high_risk": false,
+      "risk_tags": [
+        "block-verifier",
+        "c1-c10",
+        "dummy-signature",
+        "base-fee",
+        "c11-deferred"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/lib.rs",
+          "symbols": [
+            "verify_scheduled_transactions",
+            "verify_scheduled_transactions_full"
+          ],
+          "evidence": "Destination lines 1685-1993 exactly match source-added diff lines 63994-64302."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "read_scheduled_call",
+            "verify scheduled transaction constraints"
+          ],
+          "evidence": "Block verification consumes scheduled-verification helpers for scheduled transaction validation."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps verifier-side scheduled transaction checks aligned with builder filtering and the old fork behavior.",
+      "test_strategy": "scheduled_transaction_verification_tests",
+      "negative_test_candidate": "A scheduled tx with a target other than the Scheduler contract should fail full verification with `InvalidTarget`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0332-atom-0010",
+      "file_index": 332,
+      "atom_index": 10,
+      "atoms_total": 10,
+      "source_path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1995,3813 @@; scheduled-verification unit tests",
+      "source_kind": "scheduled_verification_tests",
+      "source_snippet": "#[cfg(test)]\nmod tests {\n    #[test] fn test_get_default_addresses() { ... }\n    #[test] fn test_read_active_scheduled_calls_filters_mixed_states() { ... }\n    #[test] fn test_is_executed_primary_bitmap() { ... }\n    #[test] fn test_compute_obligations_skips_out_of_range_fee_fields() { ... }\n    #[test] fn test_c1_call_not_found() { ... }\n    #[test] fn test_c7_invalid_signature_nonzero_r() { ... }\n    #[test] fn test_full_filter_mixed_results() { ... }\n    #[test] fn test_due_index_bounds_ttl_window_can_span_multiple_indices() { ... }\n}",
+      "semantic_claim": "The old divergence adds extensive scheduled-verification tests covering default addresses, timing helpers, active call scans, read-not-found behavior, primary/overflow execution bitmaps, legacy and full verification failures C1-C10, base-fee vs wallet-balance C9 behavior, full block-building filter results, pool-removal policy, obligation computation, and due-index window edge cases.",
+      "high_risk": false,
+      "risk_tags": [
+        "tests",
+        "scheduled-verification",
+        "c1-c10",
+        "obligations",
+        "due-window",
+        "executed-bitmap"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/lib.rs",
+          "symbols": [
+            "test_get_default_addresses",
+            "test_read_active_scheduled_calls_filters_mixed_states",
+            "test_is_executed_primary_bitmap",
+            "test_is_executed_overflow_bitmap",
+            "test_compute_obligations_skips_out_of_range_fee_fields",
+            "test_c1_call_not_found",
+            "test_c7_invalid_signature_nonzero_r",
+            "test_full_filter_mixed_results",
+            "test_filter_result_should_remove_from_pool",
+            "test_due_index_bounds_ttl_window_can_span_multiple_indices"
+          ],
+          "evidence": "Destination lines 1995-3813 exactly match source-added diff lines 64304-66122."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the regression suite for scheduled state reads, constraints, filters, obligations, and due-window math.",
+      "test_strategy": "cargo test -p ritual-scheduled-verification",
+      "negative_test_candidate": "Changing wallet-balance C9 to filter instead of allowing contract eviction should fail the C9 underfunded tests.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Test atom only."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The scheduled-verification core is exact-port preserved, including address/signature constants, heartbeat state readers, Scheduler call storage decoding, execution bitmap and wallet reads, full C1-C10 builder filtering, active call hydration, obligation/due-window computation, C11 predicate filtering boundary, verifier-side scheduled transaction checks, and extensive tests.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 332: A\tcrates/ritual-scheduled-verification/src/lib.rs.",
+    "Source-added hunk spans diff lines 62310-66122 with header `@@ -0,0 +1,3813 @@`; the next diff starts at line 66123.",
+    "Destination `crates/ritual-scheduled-verification/src/lib.rs` has 3813 lines and matches the source-added file exactly.",
+    "Bounded usage evidence found scheduled block-building imports for filtering/obligation helpers and block-verification imports for scheduled call and heartbeat state readers.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

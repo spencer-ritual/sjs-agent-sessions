@@ -1,0 +1,95 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "910f91cf4b627222a8222f3976af0db517075458",
+      "evidence": "The local port names 0x080C Sovereign Agent, but registers it as a two-phase SPC-verified async precompile.",
+      "path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const SOVEREIGN_AGENT_PRECOMPILE: Address = address!(\"0x000000000000000000000000000000000000080c\");\nAsyncPrecompileMetadata {\n    address: SOVEREIGN_AGENT_PRECOMPILE,\n    capability_tag: AsyncPrecompileCapabilityTag::HttpCall,\n    settlement: AsyncPrecompileSettlement::TwoPhase,\n    spc_block_verified: true,\n    short_settlement_enabled: false,\n}",
+      "symbols": [
+        "SOVEREIGN_AGENT_PRECOMPILE",
+        "ALL_ASYNC_PRECOMPILE_METADATA"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "910f91cf4b627222a8222f3976af0db517075458",
+      "evidence": "The inspector records calls to any canonical async precompile, including the 0x080C metadata entry.",
+      "path": "crates/ritual-async-inspector/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if !is_known_async_precompile(target) { return; }\nself.has_async_call = true;\nself.precompile_address = Some(target);",
+      "symbols": [
+        "AsyncPrecompileInspector::observe_call",
+        "is_known_async_precompile"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "910f91cf4b627222a8222f3976af0db517075458",
+      "evidence": "Block verification supports 0x080C as a two-phase precompile and validates its payload before settlement checks.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "matches!(precompile_address, LONG_RUNNING_HTTP_PRECOMPILE | ZK_TWO_PHASE_PRECOMPILE | SOVEREIGN_AGENT_PRECOMPILE | PERSISTENT_AGENT_PRECOMPILE | AUDIO_CALL_PRECOMPILE)\n...\nvalidate_async_payload(commitment.precompile_address, commitment.precompile_input.as_ref(), MAX_SHORT_ASYNC_TTL_BLOCKS)?;",
+      "symbols": [
+        "is_supported_two_phase_precompile",
+        "validate_commitment_structure"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "910f91cf4b627222a8222f3976af0db517075458",
+      "evidence": "The async pool has a dedicated 0x080C/Sovereign Agent Phase 2 deadline slot.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if precompile_address == SOVEREIGN_AGENT_PRECOMPILE { 4 } else if ...",
+      "symbols": [
+        "phase2_deadline_offset"
+      ]
+    }
+  ],
+  "equivalence_argument": "The behavior is mapped by address rather than by the Atlas name: 0x080C is registered as SOVEREIGN_AGENT_PRECOMPILE and is recognized through inspector, pool, verifier, SPC allowlist, and RPC metadata paths.",
+  "evidence_files": [
+    "crates/evm/src/lib.rs",
+    "crates/ritual-async-commitment-validator/src/lib.rs",
+    "crates/ritual-async-inspector/src/inspector.rs",
+    "crates/ritual-block-verification/src/constants.rs",
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/ritual-spc-verification/src/verifier.rs",
+    "crates/transaction-pool/src/pool/async_pool.rs",
+    "crates/rpc/rpc/src/async_tx_validator.rs"
+  ],
+  "invariant_id": "cur-9b446710eb-agent-recognized-long-running-async-precompile",
+  "invariant_index": 465,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The local port uses Sovereign Agent naming for the address the Atlas record calls CLI Agent.",
+  "rationale": "The primary diff adds the `CLI_AGENT_PRECOMPILE` constant and includes it in the same recognition paths used by existing long-running async precompiles. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "10040420016c9c741801a11c9adf73bb7555b183"
+  ],
+  "statement": "Precompile `0x080C` should be treated as a recognized async/two-phase long-running precompile by the EVM inspector, commitment validator, block verifier, SPC verifier, async pool, and RPC executor-registration validation, rather than being rejected as an unknown precompile.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Submit or construct an async commitment targeting `0x080C` and assert it is detected by the async inspector, accepted by commitment structure validation, classified as long-running in the async pool, and included in two-phase block verification instead of failing the unknown-precompile path."
+  ],
+  "summary": "The 0x080C agent precompile is recognized as long-running async work.",
+  "test_or_falsification_candidate": "Submit or construct an async commitment targeting `0x080C` and assert it is detected by the async inspector, accepted by commitment structure validation, classified as long-running in the async pool, and included in two-phase block verification instead of failing the unknown-precompile path.",
+  "title": "CLI Agent is a recognized long-running async precompile",
+  "total_invariants": 1954
+}

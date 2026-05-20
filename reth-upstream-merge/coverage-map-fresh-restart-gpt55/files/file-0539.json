@@ -1,0 +1,72 @@
+{
+  "record_type": "file",
+  "file_index": 539,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/transaction-pool/src/test_utils/mock.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "test-utils",
+    "txpool"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0539-atom-0001",
+      "file_index": 539,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/transaction-pool/src/test_utils/mock.rs",
+      "source_hunk_hint": "@@ -12,7 +12,7 @@ use alloy_consensus::{",
+      "source_kind": "test_fixture",
+      "source_snippet": "    transaction::{PooledTransaction, SpcCall},\n            MockTransaction::Legacy { ref mut $field, .. }\n            | MockTransaction::Eip1559 { ref mut $field, .. }\n            | MockTransaction::Eip4844 { ref mut $field, .. }\n            | MockTransaction::Eip2930 { ref mut $field, .. }\n            | MockTransaction::Eip7702 { ref mut $field, .. } => {\n            MockTransaction::Legacy { $field, .. }\n            | MockTransaction::Eip1559 { $field, .. }\n            | MockTransaction::Eip4844 { $field, .. }\n            | MockTransaction::Eip2930 { $field, .. }",
+      "semantic_claim": "The old mock transaction utilities include SPC call and commitment/settlement transaction fields for test construction.",
+      "high_risk": false,
+      "risk_tags": [
+        "txpool",
+        "tests",
+        "spc"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/test_utils/mock.rs",
+          "symbols": [
+            "spc_calls",
+            "commitment_tx",
+            "settlement_tx"
+          ],
+          "evidence": "Destination mock transaction constructors initialize `commitment_tx`, `settlement_tx`, and `spc_calls` to `None`."
+        }
+      ],
+      "equivalence_argument": "Exact test fixture fields are present in destination mocks.",
+      "test_strategy": "compile txpool mock transaction tests",
+      "negative_test_candidate": "Mock transactions should default SPC/commitment/settlement fields to None.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": ""
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "Mock transaction SPC/commitment fields are exact-port preserved.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0539: M\tcrates/transaction-pool/src/test_utils/mock.rs.",
+    "Source diff lines 95752-96163; first hunk `@@ -12,7 +12,7 @@ use alloy_consensus::{`.",
+    "Fresh destination evidence was checked against /home/ritual/repos/ritual-reth-internal-v2.2.0-port."
+  ]
+}

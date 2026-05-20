@@ -1,0 +1,67 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "Both node executor construction paths call the worker availability check and convert failures into startup errors.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "ritual_precompiles::jq::ensure_jq_worker_available()\n    .map_err(|e| eyre::eyre!(\"node startup aborted: {e}\"))?;",
+      "symbols": [
+        "RitualExecutorBuilder::build_evm",
+        "build_evm_with_pool",
+        "ensure_jq_worker_available"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The worker check resolves RITUAL_JQ_WORKER_BIN or the adjacent binary, verifies existence, warms the pool, and errors when missing.",
+      "path": "crates/precompiles/src/jq.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "pub fn ensure_jq_worker_available() -> Result<std::path::PathBuf, String> {\n    match resolve_jq_worker_bin(None) {\n        Some(bin) if bin.exists() => { ... pool.warm(); Ok(bin) }\n        Some(bin) => Err(format!(\"ritual-jq-worker binary not found at resolved path: {}\", bin.display())),\n        None => Err(format!(\"ritual-jq-worker binary not found. Set RITUAL_JQ_WORKER_BIN ...\")),\n    }\n}",
+      "symbols": [
+        "ensure_jq_worker_available",
+        "resolve_jq_worker_bin"
+      ]
+    }
+  ],
+  "equivalence_argument": "Node startup checks for ritual-jq-worker in nodebuilder before constructing the EVM/executor, so a missing worker aborts the node instead of deferring to runtime precompile calls.",
+  "evidence_files": [
+    "crates/node/src/executor.rs",
+    "crates/precompiles/src/jq.rs"
+  ],
+  "invariant_id": "cur-ec0d101027-startup-requires-worker",
+  "invariant_index": 545,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Same implementation evidence as invariant 541, with the narrower single-path invariant wording.",
+  "rationale": "The merge adds ensure_jq_worker_available to executor setup and implements that check as a system-wide startup validation for the worker binary. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "44fa75a550ea594bbdc9044294fac3751595796e"
+  ],
+  "statement": "Ritual node executor construction must check that ritual-jq-worker is available and abort startup if the worker binary cannot be resolved or found.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Start the node with RITUAL_JQ_WORKER_BIN pointing to a missing path and assert startup fails; point it to a valid ritual-jq-worker binary and assert startup proceeds."
+  ],
+  "summary": "Node startup requires the JQ worker binary.",
+  "test_or_falsification_candidate": "Start nodebuilder with RITUAL_JQ_WORKER_BIN pointing to a missing path and assert startup fails.",
+  "title": "Node startup requires JQ worker",
+  "total_invariants": 1954
+}

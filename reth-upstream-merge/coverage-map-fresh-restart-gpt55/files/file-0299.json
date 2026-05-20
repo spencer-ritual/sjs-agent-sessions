@@ -1,0 +1,92 @@
+{
+  "record_type": "file",
+  "file_index": 299,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-block-verification/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "block-verification",
+    "manifest",
+    "workspace-wiring",
+    "async-context"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0299-atom-0001",
+      "file_index": 299,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-block-verification/Cargo.toml",
+      "source_hunk_hint": "@@ -0,0 +1,42 @@; block verification crate manifest plus root workspace member/dependency wiring",
+      "source_kind": "ritual_block_verification_manifest_workspace_wiring",
+      "source_snippet": "[package]\nname = \"ritual-block-verification\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\nreth-primitives = { workspace = true }\nreth-primitives-traits = { workspace = true }\nreth-transaction-pool = { workspace = true }\nreth-storage-api = { workspace = true }\nreth-revm = { workspace = true }\nrevm = { workspace = true }\nalloy-primitives = { workspace = true }\nalloy-sol-types = { workspace = true }\nalloy-evm = { workspace = true }\nalloy-consensus = { workspace = true }\nalloy-rlp = { workspace = true }\nreth-ethereum-primitives = { workspace = true }\nritual-metrics = { path = \"../ritual-metrics\" }\nritual-async-commitment-validator = { workspace = true }\nritual-async-fees = { workspace = true }\nritual-precompile-addresses = { workspace = true }\nritual-async-registry = { workspace = true }\nritual-scheduled-verification = { workspace = true }\nritual-heartbeat-tracker = { workspace = true }\nritual-tee-registry-reader = { workspace = true }\nritual-spc-signature = { path = \"../ritual-spc-signature\" }\nritual-sequencing-rights = { path = \"../ritual-sequencing-rights\" }\nritual-precompile-codecs = { workspace = true }\nreth-evm = { workspace = true, features = [\"std\"] }\nreth-evm-ethereum = { workspace = true }\nrayon = { workspace = true }\nritual-async-inspector = { workspace = true }\nthiserror = { workspace = true }\ntracing = { workspace = true }\n\n[dev-dependencies]\nproptest = \"1.4\"\n\n[features]\ndefault = []\nasync-context = [\"reth-evm/async-context\", \"alloy-evm/async-context\"]\n\n# root Cargo.toml wiring:\n\"crates/ritual-block-verification/\"\nritual-block-verification = { path = \"./crates/ritual-block-verification\" }",
+      "semantic_claim": "The old divergence introduces `ritual-block-verification` as the block verifier crate, wiring it to Reth primitives/storage/EVM, transaction pool, async commitment validation, async fees, async registry, scheduled verification, heartbeat tracker, TEE registry, SPC signatures, sequencing rights, precompile codecs/addresses, Rayon, tracing/errors, proptest, and an `async-context` feature that forwards to `reth-evm` and `alloy-evm`.",
+      "high_risk": false,
+      "risk_tags": [
+        "workspace-member",
+        "workspace-dependency",
+        "block-verification-crate",
+        "dependency-graph",
+        "feature-forwarding"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/Cargo.toml",
+          "symbols": [
+            "package:ritual-block-verification",
+            "ritual-async-commitment-validator.workspace",
+            "ritual-async-fees.workspace",
+            "ritual-async-registry.workspace",
+            "ritual-scheduled-verification.workspace",
+            "ritual-async-inspector.workspace",
+            "features.async-context"
+          ],
+          "evidence": "Destination manifest preserves the same 42-line package metadata, dependency list, path dependencies, dev-dependency, and feature forwarding as the source-added file."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "Cargo.toml",
+          "symbols": [
+            "workspace.members",
+            "workspace.dependencies.ritual-block-verification"
+          ],
+          "evidence": "Destination root `Cargo.toml` includes `crates/ritual-block-verification/` in workspace members and `ritual-block-verification = { path = \"./crates/ritual-block-verification\" }` in `[workspace.dependencies]`."
+        }
+      ],
+      "equivalence_argument": "The destination keeps the manifest and root workspace wiring exactly, preserving the source build graph and feature surface for block verification.",
+      "test_strategy": "source_diff_manifest_to_destination_manifest_text_match_plus_root_workspace_wiring_read",
+      "negative_test_candidate": "Removing `ritual-async-registry`, `ritual-async-commitment-validator`, or the `async-context` feature forwarding should break verifier imports or async-context feature builds.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers only the block verification manifest and root workspace wiring, not any `crates/ritual-block-verification/src/*` implementation files."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The `ritual-block-verification` crate manifest and root workspace wiring are exact-port preserved, including verifier dependency graph, proptest dev-dependency, `async-context` feature forwarding, workspace member entry, and workspace dependency path.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 299: A\tcrates/ritual-block-verification/Cargo.toml.",
+    "The source file diff starts at line 48319 and the Cargo.toml hunk ends at line 48366 before the `crates/ritual-block-verification/src/constants.rs` header at line 48367.",
+    "Destination `crates/ritual-block-verification/Cargo.toml` contains the same 42-line manifest body as the source-added file.",
+    "Destination root `Cargo.toml` includes `crates/ritual-block-verification/` in workspace members and `ritual-block-verification = { path = \"./crates/ritual-block-verification\" }` in workspace dependencies.",
+    "No review queue entry was required because the audited manifest and workspace wiring are preserved exactly."
+  ]
+}

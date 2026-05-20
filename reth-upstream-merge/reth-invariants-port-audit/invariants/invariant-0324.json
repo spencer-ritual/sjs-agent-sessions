@@ -1,0 +1,73 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/service.rs",
+    "crates/ritual-spc-verification/src/types.rs"
+  ],
+  "invariant_id": "cur-fd8eba7c32-executor-events-decode-identity-fields",
+  "invariant_index": 324,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-spc-verification/src/service.rs (absent locally)",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-spc-verification/src/types.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-spc-verification/src/verifier.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-tee-registry-reader/src/constants.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-tee-registry-reader/src/reader.rs",
+      "ritual-reth-nodebuilder-internal/crates/node/src/executor.rs",
+      "all audited dependency repos searched for the listed symbols"
+    ],
+    "checked_queries": [
+      "paymentAddress teeAddress teeType workloadId capability publicKey",
+      "capability 2",
+      "publicKey offset 128",
+      "ExecutorUpdated"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "paymentAddress",
+      "teeAddress",
+      "teeType",
+      "workloadId",
+      "capability",
+      "publicKey",
+      "InvalidEventData"
+    ],
+    "missing_behavior": "No local audited repo has event handling that decodes paymentAddress/teeAddress from topics, validates the dynamic publicKey layout, rejects capability > 1, and stores those decoded identity fields from ExecutorRegistry logs.",
+    "related_but_insufficient_code": [
+      "ritual-spc-verification/src/types.rs still defines ExecutorRegistry and deactivate_executor, but it is only an in-memory map and has no log-watching service.",
+      "ritual-tee-registry-reader reads TEEServiceRegistry storage via TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS; it does not decode ExecutorRegistry event logs.",
+      "ritual-reth-nodebuilder-internal/crates/node/src/executor.rs syncs registry state from storage before execution but uses TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS and read_all_executors, not ExecutorRegistry event receipts.",
+      "ritual-tee-registry-reader validates storage-derived capability and public key length, but that is not an ExecutorRegistry event decoder and it accepts the broader TEEServiceRegistry capability enum rather than only 0..=1."
+    ]
+  },
+  "notes": "Confirmed by exact event-symbol searches across all audited local repos; the current local architecture reads registry storage instead of consuming ExecutorRegistry event logs.",
+  "rationale": "The commit removes the old ipAddress/capabilities/attestation ABI decoding, adds manual layout checks for the new event data, validates the single capability enum, and changes ExecutorInfo to contain tee_address, capability, and workload_id. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "bcc5e0542cb65e0f363785aee80b941d7db650b3"
+  ],
+  "statement": "ExecutorRegistered and ExecutorUpdated handling must decode paymentAddress and teeAddress from indexed topics, manually decode teeType, workloadId, capability, and dynamic publicKey from event data, reject malformed data or capability values greater than 1, and store executors with the decoded payment address, tee address, capability, TEE type, workload id, and public key.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Construct valid and invalid ExecutorRegistered/ExecutorUpdated logs for the new ABI; assert valid logs register/update ExecutorInfo with the decoded payment address, tee address, capability, TEE type, workload id, and public key, while short data, a non-128 publicKey offset, truncated publicKey data, or capability 2 are rejected."
+  ],
+  "summary": "Executor identity event decoding and validation is absent.",
+  "test_or_falsification_candidate": "Construct valid and invalid ExecutorRegistry logs and assert the current local code has no handler to store or reject them.",
+  "title": "Executor events decode new identity fields",
+  "total_invariants": 1954
+}

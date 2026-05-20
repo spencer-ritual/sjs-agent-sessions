@@ -1,0 +1,36 @@
+{
+  "record_type": "file",
+  "file_index": 103,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/evm/execution-errors/src/trie.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "execution-errors",
+    "trie",
+    "reviewed"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The downstream trie.rs divergence is deterministic rustfmt noise only: the StateRootError-to-DatabaseError match arm was reflowed from a trailing-pipe pattern to rustfmt's leading-pipe pattern with no branch, conversion, constant, encoding, or negative-path semantic change.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified at line 103 as `M\tcrates/evm/execution-errors/src/trie.rs` before writing.",
+    "Source patch extracted only for crates/evm/execution-errors/src/trie.rs from ritual-reth-internal-downstream-from-divergence.diff; the next diff header begins immediately after the single rustfmt hunk.",
+    "The only source hunk changes `StateRootError::Database(err) | StateRootError::StorageRootError(StorageRootError::Database(err)) => err` formatting to the rustfmt leading-pipe style; the matched variants and returned database error are unchanged.",
+    "Exact-code-first destination search found no exact `impl From<StateRootError> for DatabaseError` copy in the destination repos. The v2.2 port contains the same-path trie.rs with an upstream-shaped `impl From<StateRootError> for ProviderError` and an analogous database/storage database error arm, but this noise record does not rely on structural equivalence because there are no behavior-bearing atoms to map.",
+    "No execution error, trie validation, or negative-path semantic atom was identified; high-risk accounting is therefore zero.",
+    "No index, review queue, validation summary, progress, NEXT_ACTION, or implementation files were modified."
+  ]
+}

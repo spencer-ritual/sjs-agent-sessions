@@ -1,0 +1,80 @@
+{
+  "record_type": "file",
+  "file_index": 248,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/primitives-traits/src/size.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "partial",
+  "tags": [
+    "partial",
+    "non-exact",
+    "confirmed-gap",
+    "primitives-traits",
+    "in-memory-size",
+    "passkey",
+    "scheduled",
+    "async-transactions",
+    "non-fsm"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0248-atom-0001",
+      "file_index": 248,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/primitives-traits/src/size.rs",
+      "source_hunk_hint": "@@ -1,7 +1,8 @@ through @@ -81,6 +143,10 @@",
+      "source_kind": "memory_accounting",
+      "source_snippet": "impl InMemorySize for PasskeySignature { ... }\n\nimpl InMemorySize for alloy_consensus::Signed<TxPasskey, PasskeySignature> { ... }\n\nimpl InMemorySize for alloy_consensus::TxAsyncSettlement { ... }\n\nimpl InMemorySize for TxPasskey { ... }\n\nimpl_in_mem_size!(..., TxScheduled, TxAsyncCommitment, ...);\n\nimpl<T: InMemorySize> InMemorySize for EthereumTxEnvelope<T> {\n    match self {\n        Self::Scheduled(tx) => tx.size(),\n        Self::AsyncCommitment(tx) => tx.size(),\n        Self::AsyncSettlement(tx) => tx.size(),\n        Self::Passkey(tx) => tx.size(),\n        ...\n    }\n}",
+      "semantic_claim": "The old primitives-traits memory accounting adds InMemorySize coverage for passkey signatures and transactions, async settlement transactions, scheduled transactions, async commitment transactions, and the corresponding Ethereum transaction envelope variants.",
+      "high_risk": false,
+      "risk_tags": [
+        "memory-accounting",
+        "transaction-primitives"
+      ],
+      "mapping_status": "partial",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "Cargo.toml / Cargo.lock",
+          "evidence": "The port does not carry local `crates/primitives-traits/src/size.rs`; `reth-primitives-traits` comes from crates.io and has no custom transaction size coverage."
+        },
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/size.rs",
+          "symbols": [
+            "InMemorySize for EthereumTxEnvelope"
+          ],
+          "evidence": "Local Alloy provides active `InMemorySize` support for EthereumTxEnvelope variants including Scheduled, AsyncCommitment, AsyncSettlement, and Passkey, but it sizes custom variants via `tx.tx().size()` and does not include explicit PasskeySignature sizing from the old atom."
+        }
+      ],
+      "equivalence_argument": "Partially covered, not exact: active custom envelope memory accounting moved to local Alloy and covers scheduled/async/passkey transaction bodies, but the old explicit passkey-signature and signed-passkey size coverage is not present. This is memory accounting/support, not an FSM transition.",
+      "test_strategy": "unit_regression",
+      "negative_test_candidate": "Construct a passkey transaction with large non-secp signatures and assert whether memory accounting includes signature bytes; current Alloy envelope sizing appears to count only the transaction body for custom variants.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reclassified from exact to partial confirmed non-FSM accounting gap after current-code recheck."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Custom transaction InMemorySize support moved to local Alloy and covers active custom envelope variants, but the old explicit passkey-signature/signed-passkey accounting is not exact-preserved.",
+  "review_required": false,
+  "status": "confirmed_gap",
+  "notes": [
+    "Current port has no local `crates/primitives-traits/src/size.rs`; crates.io `reth-primitives-traits` lacks this custom size module.",
+    "Local Alloy `EthereumTxEnvelope` sizing handles Scheduled, AsyncCommitment, AsyncSettlement, and Passkey variants via their transaction bodies.",
+    "The old explicit `PasskeySignature` and signed passkey size accounting was not found; classify as non-FSM memory accounting gap."
+  ]
+}

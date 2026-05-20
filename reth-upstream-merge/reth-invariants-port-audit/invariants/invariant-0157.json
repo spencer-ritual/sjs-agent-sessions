@@ -1,0 +1,90 @@
+{
+  "cluster_key": "executor delivery:async-settlement-builders-f85afb9b",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Phase 1 settlement creation reads AsyncJobTracker state, rejects missing/already-settled/expired jobs, and treats contract expiry as authoritative.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let contract_job = settlement_jobs.get(&job_id).ok_or_else(|| format!(\"job {job_id} not found in AsyncJobTracker\"))?;\nif contract_job.is_phase1_settled { return Err(\"job is already phase1 settled\".to_string()); }\nif current_block > contract_job.expiry_block { return Err(format!(\"job expired at block {}, current block {}\", contract_job.expiry_block, current_block)); }",
+      "symbols": [
+        "prepare_fulfilled_async_settlement",
+        "read_jobs_for_settlement"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Phase 1 pricing and SPC metadata use contract_job.precompile_address and contract_job.commit_block, while pool bytes are hash/size-checked against contract state.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let fees = calculate_async_fees(db, get_model_registry_address(), contract_job.precompile_address, &metadata.precompile_input, Some(execution_result), model_cache)?;\n...\nSpcCall::new(contract_job.precompile_address, metadata.precompile_input.clone(), execution_result.clone(), execution_proof.clone(), contract_job.commit_block)",
+      "symbols": [
+        "prepare_fulfilled_async_settlement",
+        "calculate_async_fees",
+        "SpcCall::new"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Phase 2 delivery requires the contract job to be Phase 1 settled, not expired, and uses contract_job precompile and commit_block-derived polling duration for fee calculation and delivery handling.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if !contract_job.is_phase1_settled { return Err(\"job is not phase1 settled\".to_string()); }\nif current_block > contract_job.expiry_block { return Err(format!(\"job expired at block {}, current block {}\", contract_job.expiry_block, current_block)); }\n...\ncalculate_async_fees_phase2(contract_job.precompile_address, blocks_polled, callback_delivery_result.len())",
+      "symbols": [
+        "prepare_delivery_settlement_transaction",
+        "calculate_async_fees_phase2"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port preserves the invariant by making AsyncJobTracker SettlementData the consensus source for settlement identity and pricing. Pool metadata still supplies local bytes and proofs, but precompile address, commit block, phase1Settled, expiry, sender, executor, and commitment validator are read from contract_job and pool bytes are rejected if their hash/size or commitment fields disagree.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-a7034e4d63-async-settlement-builders-contract-metadata",
+  "invariant_index": 157,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-async-registry/src/lib.rs"
+    ],
+    "checked_queries": [
+      "contract_job|phase1Settled|expiry_block|commit_block|precompile_address|calculate_async_fees_phase2"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "prepare_fulfilled_async_settlement",
+      "prepare_delivery_settlement_transaction",
+      "SettlementData",
+      "read_jobs_for_settlement"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The primary diff passes contract_job into both create_settlement_transaction and create_delivery_settlement_transaction, reads Phase 2 job data from AsyncJobTracker before building delivery settlement, checks expiry_block, and replaces pool metadata precompile/commit block uses with contract_job fields for fee and decoding decisions. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: The function parameter reshaping is local builder plumbing; the load-bearing behavior is avoiding builder/verifier divergence by making contract state the source for settlement identity and pricing data.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "3579dd5ccd324ccbe5441b72f460887fdfd88ab0"
+  ],
+  "statement": "Payload builder settlement creation should use AsyncJobTracker-derived contract_job data for consensus-critical fields: Phase 1 fee calculation should use contract_job.precompile_address, Phase 2 delivery should require an on-chain job with phase1 settled, skip delivery after contract_job.expiry_block, and use contract_job.precompile_address plus contract_job.commit_block for ZK handling, delivery config decoding, and Phase 2 fee calculation.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create async pool metadata whose precompile_address or commit_block differs from AsyncJobTracker contract job data. Assert Phase 1 and Phase 2 settlement builders price and decode using the contract job values, skip when phase1Settled is false, skip when block_number exceeds contract_job.expiry_block, and do not use pool metadata for ZK-vs-non-ZK or fee calculation decisions."
+  ],
+  "summary": "Settlement builders use AsyncJobTracker contract metadata for consensus-critical settlement decisions.",
+  "test_or_falsification_candidate": "Create pool metadata with divergent precompile_address/commit_block from AsyncJobTracker state; assert both Phase 1 and Phase 2 builders reject the mismatch and otherwise price using contract_job values while skipping missing, expired, already-settled, and not-yet-settled jobs as appropriate.",
+  "title": "Async settlement builders use contract job metadata",
+  "total_invariants": 1954
+}

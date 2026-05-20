@@ -1,0 +1,71 @@
+{
+  "cluster_key": "scheduler:locks-observability",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-async/src/detector.rs"
+  ],
+  "invariant_id": "cur-eb463b569e-scheduled-async-detection-simulates-parent-execution-block",
+  "invariant_index": 27,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async/src/detector.rs",
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs",
+      "crates/rpc/rpc/src/async_tx_validator.rs",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal/bin/src/main.rs"
+    ],
+    "checked_queries": [
+      "initial_block + frequency * (index + 1) - 1",
+      "extract_target_block_number",
+      "validate_target_block_number",
+      "async_commitment_parent_context",
+      "scheduled async target block"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "detect_async_transaction",
+      "extract_target_block_number",
+      "validate_target_block_number",
+      "async_commitment_parent_context",
+      "create_scheduled_execution_transaction",
+      "TxScheduled::expiry_block"
+    ],
+    "missing_behavior": "Missing exact scheduled async detection rule: initial_block + frequency * (index + 1) - 1, plus non-scheduled calldata target-block extraction where extraction failure classifies as synchronous.",
+    "related_but_insufficient_code": [
+      "The port computes scheduled context as initial_block + frequency * index - 1 and non-scheduled paths use inclusion parent/latest-parent simulation rather than calldata target-block extraction with malformed-calldata-as-sync behavior."
+    ]
+  },
+  "notes": "Confirmed gap; closest port code uses a different scheduled parent-context formula.",
+  "rationale": "The initial scheduled simulation-block formula is historical; the current effective rule is the later parent-execution-block formula, while the non-scheduled calldata extraction path remains intact.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "e8c5fc63abd95b4e8242ff89b6ac346d28e23253",
+    "90cec7c5df9831a1ae8563e38f3d0c122ad0e16b",
+    "94eeadc4e06712d335686aa6dc37c2863512a46a",
+    "84c5f8a32c8ca88b0e69d5d7ac581f01c8bab3a1"
+  ],
+  "statement": "Async detection must derive a scheduled transaction's simulation target block from scheduling metadata as initial_block + frequency * (index + 1) - 1, while non-scheduled transactions must still extract the target block from calldata and classify the transaction as synchronous when extraction fails.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Create scheduled transactions with initial_block 100, frequency 10, and indices 0, 1, and 2; assert async detection targets blocks 109, 119, and 129 even if calldata encodes a different target.",
+    "Pass non-scheduled transactions with valid and invalid target-block calldata and assert valid calldata is used while invalid/missing calldata returns None."
+  ],
+  "summary": "Scheduled async detection target-block formula and non-scheduled extraction fallback are absent.",
+  "test_or_falsification_candidate": "Test scheduled metadata initial_block=100/frequency=10 indices 0,1,2 expecting simulation blocks 109,119,129, plus malformed non-scheduled target block calldata treated as non-async.",
+  "title": "Scheduled async detection simulates parent execution block",
+  "total_invariants": 1954
+}

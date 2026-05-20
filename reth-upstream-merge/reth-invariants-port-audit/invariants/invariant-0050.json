@@ -1,0 +1,96 @@
+{
+  "cluster_key": "scheduler:pool-accounting:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Storage layout pins callPredicates after executedBitmap and executedBitmapOverflow.",
+      "path": "crates/ritual-scheduled-verification/src/slots.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const SCHEDULER_EXECUTED_BITMAP_SLOT: U256 = U256::from_limbs([3, 0, 0, 0]);\npub const SCHEDULER_EXECUTED_OVERFLOW_SLOT: U256 = U256::from_limbs([4, 0, 0, 0]);\npub const SCHEDULER_CALL_PREDICATES_SLOT: U256 = U256::from_limbs([5, 0, 0, 0]);",
+      "symbols": [
+        "SCHEDULER_EXECUTED_BITMAP_SLOT",
+        "SCHEDULER_EXECUTED_OVERFLOW_SLOT",
+        "SCHEDULER_CALL_PREDICATES_SLOT"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Predicate mapping slot derivation uses slot 5 explicitly.",
+      "path": "crates/ritual-scheduled-verification/src/slots.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn call_predicate_slot(call_id: u64) -> U256 {\n    ... data[32..64].copy_from_slice(&SCHEDULER_CALL_PREDICATES_SLOT.to_be_bytes::<32>());\n    U256::from_be_slice(keccak256(&data).as_slice())\n}",
+      "symbols": [
+        "call_predicate_slot"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Runtime filtering consumes the corrected slot helper when predicate checks are needed.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "Scheduled predicate filtering reads predicate storage through the slot helper.",
+      "symbols": [
+        "filter_obligations_by_predicates",
+        "call_predicate_slot"
+      ]
+    }
+  ],
+  "equivalence_argument": "Exact mapping in port scheduled-verification storage layout and predicate-slot helper.",
+  "evidence_files": [
+    "crates/ritual-scheduled-verification/src/slots.rs"
+  ],
+  "invariant_id": "cur-df4b370527-call-predicate-storage-follows-executed-bitmap-slots",
+  "invariant_index": 50,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-scheduled-verification/src/slots.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "callPredicates|executedBitmap|executedBitmapOverflow|slot 5"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "call_predicate_slot",
+      "SCHEDULER_CALL_PREDICATES_SLOT",
+      "SCHEDULER_EXECUTED_BITMAP_SLOT",
+      "SCHEDULER_EXECUTED_OVERFLOW_SLOT"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped exactly.",
+  "rationale": "The slot correction is current storage-layout knowledge: callPredicates shifts after executedBitmap and executedBitmapOverflow occupy slots 3 and 4.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "279351a03f86d09434dd6640517194b5923b11c3"
+  ],
+  "statement": "At current tip, Rust scheduled verification must read Scheduler.callPredicates from storage slot 5, not slot 3, because executedBitmap and executedBitmapOverflow occupy slots 3 and 4.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Store a nonzero predicate for a Scheduler call in callPredicates and assert Rust scheduled verification reads it from slot 5.",
+    "Assert slot 3 is treated as executedBitmap and is not interpreted as callPredicates after executedBitmap restoration."
+  ],
+  "summary": "Call predicate storage follows executed bitmap slots in the port.",
+  "test_or_falsification_candidate": "Store predicate at Scheduler.callPredicates slot 5 and execution bitmap data at slots 3/4; assert predicate filtering reads slot 5 and does not treat slot 3 as predicate storage.",
+  "title": "Call predicate storage follows executed bitmap slots",
+  "total_invariants": 1954
+}

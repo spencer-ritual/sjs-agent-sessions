@@ -1,0 +1,67 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "State-based registry hydration can populate metadata, but it is not the event-log service behavior required by this invariant.",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/service.rs",
+    "crates/ritual-spc-verification/src/types.rs"
+  ],
+  "invariant_id": "cur-e944167789-executor-events-populate-full-registry-metadata",
+  "invariant_index": 262,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-spc-verification/src/service.rs",
+      "crates/ritual-spc-verification/src/types.rs",
+      "crates/ritual-tee-registry-reader/src/reader.rs"
+    ],
+    "checked_queries": [
+      "ExecutorRegistered publicKey capabilities teeType attestation",
+      "ExecutorUpdated publicKey event data",
+      "handle_executor_registered decode event data",
+      "placeholder public key"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "ExecutorRegistered",
+      "ExecutorUpdated",
+      "publicKey",
+      "capabilities",
+      "teeType",
+      "attestation",
+      "ExecutorInfo::new"
+    ],
+    "missing_behavior": "No audited repo handles TeeDA ExecutorRegistered or ExecutorUpdated logs with non-indexed publicKey/capabilities/teeType/attestation fields and populates an in-memory registry entry from those emitted fields.",
+    "related_but_insufficient_code": [
+      "crates/ritual-tee-registry-reader/src/reader.rs reads public_key, tee_type, capability, and workload_id from contract storage, and SpcVerifier::update_registry_from_data inserts that data into ExecutorInfo.",
+      "No audited code decodes non-indexed TeeDA event data or handles publicKey-bearing registered/updated event signatures."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The old handlers explicitly used placeholder public keys and left event-data parsing as TODOs. This commit updates the event hashes for the publicKey-bearing contract events, decodes the event data, extends ExecutorInfo with the decoded metadata, and registers the payment-address entry with that parsed data. This is load-bearing because direct proof verification later compares signatures against the registry public key. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "a9b5c1b7196215dd21c6d72d4a82b20a27b762f7"
+  ],
+  "statement": "When the SPC service handles TeeDA ExecutorRegistered or ExecutorUpdated logs whose event signature includes non-indexed publicKey, capabilities, teeType, and attestation fields, the in-memory executor registry entry for the payment address must be populated from those emitted fields rather than using the payment address or synthetic defaults as the executor public key and metadata.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Feed handle_executor_registered and handle_executor_updated logs encoded with the new TeeDA event signatures and known ipAddress, publicKey, capabilities, teeType, and attestation values, then assert the registry entry keyed by paymentAddress contains exactly those values. A regression is falsified if the public key equals the payment-address topic bytes, the metadata remains default, or a valid new-signature log is ignored."
+  ],
+  "summary": "Event-driven metadata population is absent.",
+  "test_or_falsification_candidate": "Feed new-signature TeeDA registered/updated logs with known public key and metadata; current code has no event handler to populate the registry from those logs.",
+  "title": "Executor events populate full registry metadata",
+  "total_invariants": 1954
+}

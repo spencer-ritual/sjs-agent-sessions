@@ -1,0 +1,79 @@
+{
+  "record_type": "file",
+  "file_index": 545,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/transaction-pool/tests/it/async_exec.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "structural_equivalent",
+  "tags": [
+    "high-risk",
+    "non-exact",
+    "structural_equivalent"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0545-atom-0001",
+      "file_index": 545,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/transaction-pool/tests/it/async_exec.rs",
+      "source_hunk_hint": "@@ -0,0 +1,57 @@",
+      "source_kind": "other",
+      "source_snippet": "//! Test for async-exec transaction inclusion in a block.\n\nmod main;\n\nuse main::runner::{TestRunner, TxPoolSetup};\nuse reth_e2e_test_utils::setup_node;",
+      "semantic_claim": "The downstream diff for crates/transaction-pool/tests/it/async_exec.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "txpool"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/mod.rs",
+          "symbols": [
+            "canonical_async_commitment_moves_original_to_async_pool"
+          ],
+          "snippet": "fn canonical_async_commitment_moves_original_to_async_pool() {\n    ...\n    test_pool.on_canonical_state_change(crate::CanonicalStateUpdate { ... });\n}",
+          "evidence": "The new regression asserts a canonical TxAsyncCommitment prunes the original transaction from normal pools, creates async metadata, records commit/expiry blocks, and locks the original sender."
+        },
+        {
+          "repo": "/home/ritual/repos/sjs-agent-sessions",
+          "path": "reth-upstream-merge/gold1p-batch-results-precompile-registry-rerun.json",
+          "symbols": [
+            "gold1p precompile-sensitive rerun"
+          ],
+          "snippet": "15/15 precompile-sensitive gold1p workloads passed",
+          "evidence": "Traffic evidence exercises async/precompile transaction admission and payload inclusion on the local network."
+        }
+      ],
+      "equivalence_argument": "The exact old integration test is stale because the active transaction type and v2.2 payload flow changed. Its intended invariant is covered by a current txpool unit regression for canonical async commitment finalization and by local-network traffic for async/precompile workloads.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Remove the canonical async commitment processing call from PoolInner::on_canonical_state_change; the new regression should leave the original in the normal pool and fail to find async metadata.",
+      "adversarial_review": {
+        "required": true,
+        "status": "pass",
+        "review_record_id": "review-file-0545-atom-0001"
+      },
+      "review_required": true,
+      "notes": "The old test constructed a pre-v2 TxAsync transaction inclusion path. The current v2.2 behavior under test is canonical TxAsyncCommitment finalization into async lifecycle metadata, which is the active txpool invariant.",
+      "human_question": null,
+      "required_change": null
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [
+    "coverage-map/reviews/review-file-0545-atom-0001.json"
+  ],
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "The old test constructed a pre-v2 TxAsync transaction inclusion path. The current v2.2 behavior under test is canonical TxAsyncCommitment finalization into async lifecycle metadata, which is the active txpool invariant."
+}

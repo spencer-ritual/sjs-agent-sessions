@@ -1,0 +1,156 @@
+{
+  "record_type": "file",
+  "file_index": 320,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-precompile-codecs/src/executor.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "precompile-codecs",
+    "executor-request",
+    "abi"
+  ],
+  "atoms_total": 3,
+  "atoms": [
+    {
+      "record_id": "file-0320-atom-0001",
+      "file_index": 320,
+      "atom_index": 1,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-precompile-codecs/src/executor.rs",
+      "source_hunk_hint": "@@ -0,0 +1,49 @@; base executor request shape and ABI field list",
+      "source_kind": "executor_request_shape",
+      "source_snippet": "pub struct ExecutorRequest {\n    pub executor: Address,\n    pub encrypted_secrets: Vec<Bytes>,\n    pub ttl: u64,\n    pub secret_signature: Vec<Bytes>,\n    pub user_public_key: Bytes,\n}\n\npub fn abi_types() -> Vec<&'static str> { vec![\"address\", \"bytes[]\", \"uint256\", \"bytes[]\", \"bytes\"] }",
+      "semantic_claim": "The old divergence adds the base `ExecutorRequest` codec shape for common executor, encrypted secret blobs, TTL, secret signatures, and user public key fields shared by precompile request codecs.",
+      "high_risk": false,
+      "risk_tags": [
+        "executor-request",
+        "abi-layout",
+        "shared-codec",
+        "encrypted-secrets"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/executor.rs",
+          "symbols": [
+            "ExecutorRequest",
+            "ExecutorRequest::abi_types"
+          ],
+          "evidence": "Destination lines 1-49 exactly match source-added diff lines 57124-57172."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the shared base request ABI layout and public type shape.",
+      "test_strategy": "executor_request_shape_tests",
+      "negative_test_candidate": "A downstream codec using a non-`bytes[]` encrypted secrets shape should fail the shared base decoder.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0320-atom-0002",
+      "file_index": 320,
+      "atom_index": 2,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-precompile-codecs/src/executor.rs",
+      "source_hunk_hint": "@@ -0,0 +51,188 @@; strict base-field ABI decoder and constructor",
+      "source_kind": "executor_request_base_field_decoder",
+      "source_snippet": "pub fn decode_base_fields(data: &[u8]) -> Result<(Address, Vec<Bytes>, u64, Vec<Bytes>, Bytes), CodecError> { ... }\n\npub fn from_base_fields(...) -> Self { ... }",
+      "semantic_claim": "The old divergence adds strict `ethabi` decoding for the five base executor fields, requiring `bytes[]` arrays, taking token ownership to avoid clone overhead, rejecting TTL values that do not fit in `u64`, returning typed `CodecError`s, and constructing `ExecutorRequest` from decoded fields.",
+      "high_risk": false,
+      "risk_tags": [
+        "abi-decoding",
+        "executor-request",
+        "ttl-overflow",
+        "bytes-array",
+        "field-validation"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/executor.rs",
+          "symbols": [
+            "ExecutorRequest::decode_base_fields",
+            "ExecutorRequest::from_base_fields"
+          ],
+          "evidence": "Destination lines 51-188 exactly match source-added diff lines 57174-57311."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the shared base decoder's ABI type requirements, overflow behavior, error messages, and construction semantics unchanged.",
+      "test_strategy": "executor_base_field_decoder_tests",
+      "negative_test_candidate": "A TTL wider than `u64` should produce `CodecError::InvalidFieldValue { field: \"ttl\", ... }` rather than silently truncating.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0320-atom-0003",
+      "file_index": 320,
+      "atom_index": 3,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-precompile-codecs/src/executor.rs",
+      "source_hunk_hint": "@@ -0,0 +190,260 @@; executor decoder unit tests",
+      "source_kind": "executor_request_decoder_tests",
+      "source_snippet": "#[cfg(test)]\nmod tests {\n    fn create_test_executor_request() -> Vec<u8> { ... }\n    #[test] fn test_decode_base_fields_success() { ... }\n    #[test] fn test_decode_base_fields_too_short() { ... }\n    #[test] fn test_from_base_fields() { ... }\n}",
+      "semantic_claim": "The old divergence adds unit tests covering successful base-field decode with bytes-array secrets/signatures, invalid short data returning field extraction errors, and construction from already-decoded base fields.",
+      "high_risk": false,
+      "risk_tags": [
+        "tests",
+        "executor-request",
+        "abi-decoding"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/executor.rs",
+          "symbols": [
+            "test_decode_base_fields_success",
+            "test_decode_base_fields_too_short",
+            "test_from_base_fields"
+          ],
+          "evidence": "Destination lines 190-260 exactly match source-added diff lines 57313-57383."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the local regression coverage for the shared executor decoder.",
+      "test_strategy": "cargo test -p ritual-precompile-codecs executor",
+      "negative_test_candidate": "Short data should fail with `CodecError::FieldExtractionFailed`, matching the preserved test expectation.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Test atom only."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The base executor request codec is exact-port preserved, including shared request shape, strict base-field ABI decoding, overflow-safe TTL handling, constructor helper, and unit tests.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 320: A\tcrates/ritual-precompile-codecs/src/executor.rs.",
+    "Source-added hunk spans diff lines 57124-57383 with header `@@ -0,0 +1,260 @@`; the next diff starts at line 57384.",
+    "Destination `crates/ritual-precompile-codecs/src/executor.rs` has 260 lines and matches the source-added content exactly.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-async-fees/src/lib.rs"
+  ],
+  "invariant_id": "cur-97a7e1c0ee-audio-phase-includes-executor-commitment-minimal-inclusion-fees",
+  "invariant_index": 418,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-async-fees/src/constants.rs",
+      "crates/ritual-async-fees/src/validators.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "calculate_audio_fees_phase1",
+      "AUDIO_PHASE1_SETTLEMENT_FEE_WEI",
+      "audio Phase 1 fee",
+      "audio_escrow_lockup"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "calculate_audio_fees_phase1",
+      "AUDIO_PHASE1_SETTLEMENT_FEE_WEI",
+      "async_commitment_fee",
+      "async_inclusion_fee",
+      "AUDIO_CALL_PRECOMPILE"
+    ],
+    "missing_behavior": "The audited v2.2 port lacks calculate_audio_fees_phase1(input_len) returning executor, commitment, and zero/minimal inclusion fee for audio Phase 1.",
+    "related_but_insufficient_code": [
+      "lib.rs implements DKMS, ZK, persistent agent, sovereign agent, HTTP, and LLM fee paths, but no calculate_audio_fees_phase1 branch.",
+      "constants.rs only has AUDIO_RESPONSE_DURATION_OFFSET and precompile address re-exports, not AUDIO_PHASE1_SETTLEMENT_FEE_WEI.",
+      "payload and verifier helpers reject AUDIO_CALL_PRECOMPILE as unsupported two-phase fee parity."
+    ]
+  },
+  "notes": "Audio is registered but deliberately rejected from the v2 payload/verifier delivery path.",
+  "rationale": "The fixed function body defines the complete Phase 1 fee composition for audio jobs and documents that Phase 1 output is only a small job_id. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "700f7c97a183fe877b1e6c26eaaaf1d9b5060063"
+  ],
+  "statement": "calculate_audio_fees_phase1(input_len) must return AsyncFees with executor_fee equal to AUDIO_PHASE1_SETTLEMENT_FEE_WEI, commitment_fee from async_commitment_fee(input_len), and inclusion_fee from async_inclusion_fee(input_len, 64).",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call calculate_audio_fees_phase1 with a representative input length and assert the returned AsyncFees fields exactly match AUDIO_PHASE1_SETTLEMENT_FEE_WEI, async_commitment_fee(input_len), and async_inclusion_fee(input_len, 64)."
+  ],
+  "summary": "Audio Phase 1 fee composition is not implemented in the audited port.",
+  "test_or_falsification_candidate": "Call calculate_audio_fees_phase1 with a representative input length and assert the returned AsyncFees fields exactly match AUDIO_PHASE1_SETTLEMENT_FEE_WEI, async_commitment_fee(input_len), and async_inclusion_fee(input_len, 64).",
+  "title": "Audio Phase 1 fee includes executor, commitment, and minimal inclusion fees",
+  "total_invariants": 1954
+}

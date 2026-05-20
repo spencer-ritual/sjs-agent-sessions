@@ -1,0 +1,68 @@
+{
+  "record_type": "file",
+  "file_index": 555,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/trie/sparse/src/trie.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "structural_equivalent",
+  "tags": [
+    "needs-review",
+    "non-exact",
+    "structural_equivalent"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0555-atom-0001",
+      "file_index": 555,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/trie/sparse/src/trie.rs",
+      "source_hunk_hint": "@@ -398 +398 @@ impl<P> RevealedSparseTrie<P> {",
+      "source_kind": "other",
+      "source_snippet": "            return Ok(());\n                                    masks.hash_mask.is_some_and(|mask| !mask.is_empty())\n                                        || masks.tree_mask.is_some_and(|mask| !mask.is_empty()),\n                    node @ (SparseNode::Empty\n                    | SparseNode::Extension { .. }\n                    | SparseNode::Branch { .. }) => {",
+      "semantic_claim": "The downstream diff for crates/trie/sparse/src/trie.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/trie/sparse/src/trie.rs",
+          "symbols": [
+            "default",
+            "blind",
+            "revealed_empty",
+            "reveal_root",
+            "is_blind"
+          ],
+          "snippet": "    /// This is the default state. In this state, the trie cannot be directly queried or modified\n    /// until nodes are revealed.\n    ///\n    /// In this state the `RevealableSparseTrie` can optionally carry with it a cleared\n    /// sparse trie. This allows for reusing the trie's allocations between payload executions.",
+          "evidence": "The destination keeps the module at the same relative path with overlapping symbols ['default', 'blind', 'revealed_empty', 'reveal_root', 'is_blind']."
+        }
+      ],
+      "equivalence_argument": "The downstream behavior still resides in the same integration surface in the destination workspace, but the implementation was refactored or reshaped; review is required to confirm full semantic parity.",
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "The destination keeps the module at the same relative path with overlapping symbols ['default', 'blind', 'revealed_empty', 'reveal_root', 'is_blind'].",
+      "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "The destination keeps the module at the same relative path with overlapping symbols ['default', 'blind', 'revealed_empty', 'reveal_root', 'is_blind']."
+}

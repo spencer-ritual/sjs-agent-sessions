@@ -1,0 +1,86 @@
+{
+  "cluster_key": "scheduler:async",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Async pool treats Scheduled and AsyncSettlement originals as system originals that do not lock senders or participate in sender lock removal.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "fn is_system_original(&self) -> bool { matches!(self.original_tx, OriginalTransaction::Scheduled(_) | OriginalTransaction::AsyncSettlement(_)) }\nlet locks_sender = !metadata.is_system_original();\nif locks_sender { ... sender_locks.insert(original_sender, tx_hash); }",
+      "symbols": [
+        "AsyncTxMetadata::is_system_original",
+        "AsyncPool::add_metadata",
+        "AsyncPool::remove_by_hash"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Block verification recovers Scheduled and AsyncSettlement originals with system senders and uses scheduled caller as payer when needed, preserving system/user distinction.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "OriginalTransaction::Scheduled(signed) => (TransactionSigned::from(signed), SCHEDULED_SYSTEM_SENDER)\nOriginalTransaction::AsyncSettlement(signed) => (TransactionSigned::from(signed), ASYNC_SETTLEMENT_SYSTEM_SENDER)\n...\nOriginalTransaction::Scheduled(tx) => tx.tx().caller",
+      "symbols": [
+        "original_transaction_payer",
+        "decode_original_transaction_for_replay",
+        "verify_nonce_locks"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port: async pool sender locks exclude system originals and block verification distinguishes scheduled/settlement origins from user-origin nonce locks.",
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/async_pool.rs",
+    "crates/ritual-block-verification/src/nonce_lock.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-90c5f68038-async-pool-block-nonce-lock-rules-distinguish-system",
+  "invariant_index": 128,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "is_system_original|sender_locks|Scheduled|AsyncSettlement|verify_nonce_locks"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "AsyncTxMetadata::is_system_original",
+      "AsyncPool::add_metadata",
+      "verify_nonce_locks"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The pool and block-verification candidates evolve from sender locking in the async pool to block-level duplicate sender checks, while repeatedly preserving exemptions for scheduled and AsyncSettlement origins.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "4572196e75a786b76753489370333931236250b8",
+    "482d30c981c8d8aa33cf46049fdf101ad3695692",
+    "ee147f0010c9c5b8bfea0e21f3290e3a8baeab3c",
+    "6e01d783dfe1e39e8122063a298aadc0acdf8ea3",
+    "af4d99074594189354a21ae99e6caa13c0953475",
+    "dd9b6b73b3cfd06f3b1c0eb24aef88624780081a"
+  ],
+  "statement": "Async pool insertion and block nonce-lock verification reject duplicate non-scheduled originating senders, skip protocol/system transactions and origin transactions referenced by commitments, and exempt scheduled or AsyncSettlement origins from sender-lock and TransactionId indexing rules.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Add async metadata for two user origins from same sender and assert SenderLocked; repeat with Scheduled/AsyncSettlement originals and assert no sender lock.",
+    "Block fixture with duplicate user-origin async originals but referenced commitment/system origins exempted."
+  ],
+  "summary": "Async pool and block nonce-lock rules distinguish system and user origins.",
+  "test_or_falsification_candidate": "AsyncPool sender-lock tests plus block nonce-lock fixture.",
+  "title": "Async pool and block nonce-lock rules distinguish system and user origins",
+  "total_invariants": 1954
+}

@@ -1,0 +1,77 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "The verifier passes the registry public key and reconstructed request fields into the shared signature verifier and returns its boolean result.",
+      "path": "crates/ritual-spc-verification/src/verifier.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let is_valid = verify_signature_core_impl(public_key, request.block_number, request.tx_hash, request.precompile_address, &request.precompile_input, &request.output, request.previous_block_hash, request.previous_block_number, request.previous_block_timestamp, request.error.as_deref().unwrap_or(\"\"), &request.proof)?;",
+      "symbols": [
+        "SpcVerifier::verify_signature_direct_sync",
+        "verify_signature_core"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "The shared verifier requires signature bytes, recovers the secp256k1 public key over the reconstructed payload hash, and accepts only when it equals the expected executor public key.",
+      "path": "crates/ritual-spc-signature/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if proof.len() < 65 { return Err(\"Proof too short\".to_string()); }\nlet signature_bytes = &proof[proof.len() - 65..];\nlet recovered_pubkey = secp.recover_ecdsa(&message_hash_obj, &recoverable_sig)?;\nlet is_valid = recovered_pubkey_raw == expected_pubkey_raw;",
+      "symbols": [
+        "verify_signature_core"
+      ]
+    }
+  ],
+  "equivalence_argument": "Direct verification is delegated to a pure shared crate, but the semantics match: a malformed proof errors or returns false, and success requires recovered public-key equality with the registry key.",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/verifier.rs",
+    "crates/ritual-spc-verification/Cargo.toml"
+  ],
+  "invariant_id": "cur-deae6a2e67-direct-verifier-requires-matching-recovered",
+  "invariant_index": 261,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-spc-verification/src/verifier.rs",
+      "crates/ritual-spc-signature/src/lib.rs"
+    ],
+    "checked_queries": [
+      "65-byte signature",
+      "recover public key",
+      "expected_pubkey_raw"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "verify_signature_direct_sync",
+      "verify_signature_core"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in port.",
+  "rationale": "The commit message says it completes signature-based verification without sidecar dependency, and the code replaces a placeholder `Ok(true)` path with signature decoding, public-key recovery, and equality comparison against the expected registry key. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "c27b38e9ad94245f31cb1502da91d8f655adbf3f"
+  ],
+  "statement": "HTTP_CALL direct SPC verification must return true only when the proof decodes to a 65-byte secp256k1 recoverable signature over the reconstructed request payload and the recovered uncompressed public key equals the public key from the executor registry.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Construct a `SpcVerificationRequest` with a known executor public key and proof signed by the matching secp256k1 private key, then assert direct verification succeeds; repeat with a different registry public key, malformed hex proof, and non-65-byte proof and assert verification does not succeed."
+  ],
+  "summary": "Direct SPC verification requires recovered-key equality.",
+  "test_or_falsification_candidate": "Verify a request signed by the matching key, then repeat with a mismatched key, short proof, and invalid recovery id.",
+  "title": "Direct verifier requires matching recovered key",
+  "total_invariants": 1954
+}

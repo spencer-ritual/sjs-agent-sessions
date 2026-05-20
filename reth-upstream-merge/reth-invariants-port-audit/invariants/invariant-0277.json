@@ -1,0 +1,54 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The pool-aware builder constructs a BlockVerifier from the supplied pool and injects it into the executor provider as Some(block_verifier).",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "let block_verifier = Arc::new(BlockVerifier::<_, reth_ethereum_primitives::Block, _, _>::new_with_evm_classification(\n    pool.clone(), ctx.provider().clone(), evm_config.clone(), None,\n));\nlet ritual_executor = RitualBlockExecutorProvider::new(evm_config.clone(), spc_verifier, Some(block_verifier));",
+      "symbols": [
+        "RitualExecutorBuilder::build_evm_with_pool",
+        "BlockVerifier::new_with_evm_classification",
+        "RitualBlockExecutorProvider::new"
+      ]
+    }
+  ],
+  "equivalence_argument": "The current provider is RitualBlockExecutorProvider rather than BasicBlockExecutorProvider::new_with_verification, but the preserved behavior is the same: the verifier is constructed from the provided pool and stored on the executor provider that later calls verify_block during execution.",
+  "evidence_files": [
+    "crates/node/src/executor.rs"
+  ],
+  "invariant_id": "cur-d99a43df95-pool-aware-executor-injects-block-verifier",
+  "invariant_index": 277,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in nodebuilder because the custom Ritual executor provider owns verifier injection in this branch.",
+  "rationale": "The commit subject says the executor provider needs a new method to inject the block verifier, and the added method constructs `BlockVerifier::new(pool)` and supplies it as `Some(block_verifier)` to the executor provider. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "72db6a8e401243f89fda8bf00ef0c5ca718000e0"
+  ],
+  "statement": "When `build_evm_with_pool` is used, the node executor provider constructs a `ritual_block_verification::BlockVerifier` from the supplied transaction pool and passes it to `BasicBlockExecutorProvider::new_with_verification`.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Build the node executor through `build_evm_with_pool` with a test transaction pool, execute or inspect the resulting executor provider, and assert block verification is present and queries the supplied pool; the test should fail if `None` is passed for the block verifier or a different pool is used."
+  ],
+  "summary": "The pool-aware nodebuilder path constructs and injects a pool-backed BlockVerifier.",
+  "test_or_falsification_candidate": "Call build_evm_with_pool with a test pool and assert the returned RitualBlockExecutorProvider has a verifier that uses that supplied pool.",
+  "title": "Pool-aware executor injects block verifier",
+  "total_invariants": 1954
+}

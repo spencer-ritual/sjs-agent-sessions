@@ -1,0 +1,91 @@
+{
+  "record_type": "file",
+  "file_index": 310,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-metrics/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "manifest",
+    "ritual-metrics",
+    "workspace"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0310-atom-0001",
+      "file_index": 310,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-metrics/Cargo.toml",
+      "source_hunk_hint": "@@ -0,0 +1,50 @@; Ritual metrics crate manifest",
+      "source_kind": "crate_manifest",
+      "source_snippet": "[package]\nname = \"ritual-metrics\"\nversion = \"0.1.0\"\nedition = \"2021\"\ndescription = \"Standardized instrumentation for Ritual logging\"\n\n[lints]\nworkspace = true\n\n[dependencies]\n# reth\nreth-chain-state.workspace = true\nreth-payload-builder.workspace = true\nreth-primitives-traits.workspace = true\nalloy-consensus.workspace = true\nalloy-primitives.workspace = true\n\n# misc\ntracing.workspace = true\n\n[dev-dependencies]\n# reth\nreth-chain-state = { workspace = true, features = [\"test-utils\"] }\nreth-chainspec.workspace = true\nreth-db-common.workspace = true\nreth-ethereum-consensus.workspace = true\nreth-ethereum-engine-primitives.workspace = true\nreth-exex-types.workspace = true\nreth-network-p2p = { workspace = true, features = [\"test-utils\"] }\nreth-prune-types.workspace = true\nreth-prune.workspace = true\nreth-rpc-types-compat.workspace = true\nreth-stages = { workspace = true, features = [\"test-utils\"] }\nreth-static-file.workspace = true\nreth-testing-utils.workspace = true\nreth-tracing.workspace = true\nreth-trie-db.workspace = true\nreth-node-ethereum.workspace = true\n# alloy\nalloy-rlp.workspace = true\nrevm-state.workspace = true\nassert_matches.workspace = true\ncriterion.workspace = true\ncrossbeam-channel.workspace = true\nproptest.workspace = true\nrand.workspace = true\nrand_08.workspace = true",
+      "semantic_claim": "The old divergence adds the `ritual-metrics` crate manifest with workspace linting, runtime dependencies for chain-state, payload-builder, primitive/block types, Alloy primitives/consensus, and tracing, plus broad dev-dependencies for instrumentation tests and benchmarks.",
+      "high_risk": false,
+      "risk_tags": [
+        "manifest",
+        "metrics",
+        "workspace-member",
+        "instrumentation",
+        "test-dependencies"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-metrics/Cargo.toml",
+          "symbols": [
+            "package:ritual-metrics",
+            "reth-chain-state",
+            "reth-payload-builder",
+            "reth-primitives-traits",
+            "alloy-consensus",
+            "alloy-primitives",
+            "tracing",
+            "dev-dependencies"
+          ],
+          "evidence": "Destination manifest lines 1-50 exactly match source-added diff lines 54903-54952."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "Cargo.toml",
+          "symbols": [
+            "workspace.members",
+            "workspace.dependencies.ritual-metrics"
+          ],
+          "evidence": "Destination workspace includes `crates/ritual-metrics/` and exposes `ritual-metrics` as a workspace dependency."
+        }
+      ],
+      "equivalence_argument": "The metrics manifest is exact-port preserved and remains wired into the workspace with the same runtime/test dependency surface.",
+      "test_strategy": "workspace_manifest_and_metrics_crate_resolution",
+      "negative_test_candidate": "Removing the payload-builder or primitive-traits dependency should break the block metrics module compilation.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact manifest mapping; no review queue entry required."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The Ritual metrics crate manifest is exact-port preserved, retaining workspace linting plus the runtime and test dependency surface for instrumentation modules.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 310: A\tcrates/ritual-metrics/Cargo.toml.",
+    "Source-added hunk spans diff lines 54903-54952 with header `@@ -0,0 +1,50 @@`.",
+    "Destination `crates/ritual-metrics/Cargo.toml` has 50 lines and matches the source-added manifest exactly.",
+    "No review queue entry required because the atom is exact."
+  ]
+}

@@ -1,0 +1,140 @@
+# PR-Preservation Atom Curation Report
+
+- Method: inspected local first-parent PR/branch merge diffs, then verified candidate behaviors against current downstream source files before insertion.
+- PR/merge entries enumerated: 86
+- Existing PR-preservation atoms replaced: 201
+- Raw PR-derived candidates/decision rows: 209
+- Curated grouped atoms: 61
+- Inserted atoms: 61
+
+## Decisions
+- `covered_by_existing_atom`: 130
+- `no_port_noise`: 1
+- `not_located_current_downstream`: 17
+- `promote`: 61
+
+## Inserted By Source Path
+- `crates/ethereum/payload/src/lib.rs`: 13
+- `crates/scheduling/src/canonical.rs`: 4
+- `crates/scheduling/src/types.rs`: 3
+- `crates/transaction-pool/src/traits.rs`: 2
+- `crates/ritual-async/src/detector.rs`: 2
+- `crates/rpc/rpc/src/txpool.rs`: 2
+- `crates/scheduling/src/singleton.rs`: 2
+- `crates/ethereum/primitives/src/transaction.rs`: 2
+- `crates/ritual-block-verification/src/verifier.rs`: 2
+- `crates/ritual-async-fees/src/constants.rs`: 2
+- `crates/ritual-async-fees/src/wallet.rs`: 2
+- `crates/rpc/rpc-api/src/txpool.rs`: 1
+- `crates/node/builder/src/launch/engine.rs`: 1
+- `crates/transaction-pool/src/pool/async_pool.rs`: 1
+- `crates/ritual-spc-verification/src/types.rs`: 1
+- `crates/ritual-async-commitment-validator/src/lib.rs`: 1
+- `crates/evm/src/execute.rs`: 1
+- `crates/scheduling/src/contract.rs`: 1
+- `crates/ritual-async-fees/src/gas.rs`: 1
+- `crates/primitives-traits/src/transaction/signed.rs`: 1
+- `crates/payload/builder/src/service.rs`: 1
+- `crates/rpc/rpc/src/eth/helpers/pending_block.rs`: 1
+- `crates/ritual-scheduled-verification/src/predicate.rs`: 1
+- `crates/chainspec/src/spec.rs`: 1
+- `crates/ethereum/evm/src/execute.rs`: 1
+- `crates/engine/tree/src/tree/mod.rs`: 1
+- `crates/transaction-pool/src/maintain.rs`: 1
+- `crates/stages/api/src/pipeline/mod.rs`: 1
+- `crates/ritual-async-fees/src/llm.rs`: 1
+- `crates/ritual-precompile-codecs/src/long_running.rs`: 1
+- `crates/rpc/rpc/src/ritual.rs`: 1
+- `crates/ritual-tee-registry-reader/src/reader.rs`: 1
+- `crates/ritual-scheduled-verification/src/lib.rs`: 1
+- `crates/transaction-pool/src/blocking_handlers.rs`: 1
+- `crates/rpc/rpc-api/src/ritual.rs`: 1
+- `crates/ritual-metrics/src/scheduling.rs`: 1
+
+## Entry Closure
+- `3393e7a3` `Early branch merge`: {'drop': 1}
+- `ac25b7d7` `Early branch merge`: {'promote': 2}
+- `#32` `ritual_async-execution-checkpoint-12`: {'promote': 1}
+- `8f7946e4` `ritual_move-scheduling-service`: {'promote': 1}
+- `#78` `async_scheduled_fix_bn_sim`: {'covered_by_existing_atom': 1}
+- `#83` `etherscan-investigation`: {'promote': 2}
+- `#84` `address-etherscan-feedback`: {'promote': 1, 'covered_by_existing_atom': 1}
+- `#85` `asyncpool-rpc-rename`: {'promote': 2}
+- `#86` `blocking-state-updates`: {'promote': 1}
+- `#93` `executor-rs`: {'promote': 3, 'drop': 1}
+- `#97` `async-onlyevent`: {'covered_by_existing_atom': 1, 'promote': 2, 'drop': 2}
+- `#99` `block-size-limit`: {'covered_by_existing_atom': 2}
+- `#107` `remove-optimized-ws`: {'drop': 1}
+- `#115` `unified-gas-validation-fixes`: {'covered_by_existing_atom': 2, 'promote': 3, 'drop': 1}
+- `#122` `scheduling-eviction`: {'covered_by_existing_atom': 2, 'promote': 1}
+- `#124` `teeda-policy`: {'promote': 1, 'covered_by_existing_atom': 1}
+- `#145` `valconstraints-async-commitment`: {'promote': 1, 'covered_by_existing_atom': 2}
+- `#146` `unify-fees`: {'covered_by_existing_atom': 2}
+- `#149` `executor-migration`: {'promote': 1, 'drop': 1}
+- `#150` `scheduling-refactor`: {'promote': 1, 'covered_by_existing_atom': 1}
+- `#167` `async-fixes-revive-to-dev`: {'promote': 1, 'covered_by_existing_atom': 2}
+- `#202` `balance-check-valconstraint`: {'covered_by_existing_atom': 2}
+- `#204` `rpc-async-validate`: {'covered_by_existing_atom': 3, 'drop': 1}
+- `#205` `per-block-model-cache-v2`: {'covered_by_existing_atom': 2}
+- `#207` `nonce-lock-valconstraint-perf-enhanced`: {'covered_by_existing_atom': 3}
+- `#208` `contract-optimization`: {'covered_by_existing_atom': 3}
+- `#219` `junglejuice-01`: {'covered_by_existing_atom': 3}
+- `#220` `jungle-scheduled`: {'covered_by_existing_atom': 1, 'promote': 1}
+- `#230` `jungle-ass`: {'covered_by_existing_atom': 1, 'promote': 1}
+- `#231` `rpc-async-feedback`: {'covered_by_existing_atom': 2, 'promote': 1}
+- `#232` `phase2-deadline-offset-semantics`: {'covered_by_existing_atom': 2}
+- `#241` `passkey-support`: {'covered_by_existing_atom': 1}
+- `#242` `increase-ttl`: {'covered_by_existing_atom': 1, 'drop': 1}
+- `#243` `eager-payload`: {'promote': 1}
+- `#246` `separate-capabilities`: {'covered_by_existing_atom': 1, 'promote': 1}
+- `#249` `embed-multisig`: {'covered_by_existing_atom': 3, 'promote': 1}
+- `#251` `mm-ux`: {'covered_by_existing_atom': 1}
+- `#252` `mm-ux-dynamic-model-pricing`: {'covered_by_existing_atom': 2}
+- `#258` `getDkmsAddr`: {'covered_by_existing_atom': 1, 'drop': 1}
+- `#260` `single-node`: {'promote': 1, 'covered_by_existing_atom': 1}
+- `#261` `remove-block-target`: {'covered_by_existing_atom': 1}
+- `#262` `predicate-implementation`: {'promote': 1, 'covered_by_existing_atom': 1, 'drop': 1}
+- `#264` `ckks-merge-dev`: {'covered_by_existing_atom': 3, 'drop': 1}
+- `#265` `second-phase-delivery`: {'covered_by_existing_atom': 1}
+- `#266` `zk-delegate-bugfixes`: {'covered_by_existing_atom': 1}
+- `#268` `async-job-active-fix`: {'promote': 1, 'covered_by_existing_atom': 1}
+- `#269` `upgradeable-contracts`: {'covered_by_existing_atom': 2}
+- `#270` `second-phase-valconstraint`: {'covered_by_existing_atom': 3, 'promote': 2}
+- `#271` `min-stake-stuff`: {'promote': 2}
+- `#273` `fix-second-phase-delivery`: {'covered_by_existing_atom': 4}
+- `#278` `scheduled-censorship`: {'covered_by_existing_atom': 5}
+- `#282` `el-build-timelimit`: {'covered_by_existing_atom': 4}
+- `#286` `agentic-latest`: {'covered_by_existing_atom': 4, 'promote': 1}
+- `#292` `sadpaths-halt-protection`: {'promote': 1, 'covered_by_existing_atom': 3}
+- `#298` `fix-onnx-building-verification-divergence`: {'promote': 2}
+- `#300` `txpool-pending-eviction`: {'promote': 1}
+- `#301` `fix-onnx-blocking-verification-download`: {'promote': 1}
+- `#304` `async-atomicity-pair-precheck-dev`: {'covered_by_existing_atom': 1, 'promote': 1}
+- `#299` `post-292-sequencing-rights-deadline`: {'covered_by_existing_atom': 2}
+- `#305` `schuled-prioriy-overflow`: {'covered_by_existing_atom': 1}
+- `#306` `llm-multi-turn-gcs-da`: {'covered_by_existing_atom': 2}
+- `#307` `sovereign-agent-rpc-validation`: {'covered_by_existing_atom': 3}
+- `#308` `sovereign-da-support`: {'covered_by_existing_atom': 1}
+- `#313` `dev-o1-scheduled-due-window`: {'covered_by_existing_atom': 3}
+- `#314` `llm-error-pricing`: {'covered_by_existing_atom': 1, 'promote': 1}
+- `#317` `spc-addr-consts`: {'covered_by_existing_atom': 2}
+- `#315` `da-standard`: {'promote': 1, 'covered_by_existing_atom': 1}
+- `#319` `remove-agent-call`: {'covered_by_existing_atom': 1}
+- `#321` `add-hermes`: {'covered_by_existing_atom': 1, 'drop': 1, 'promote': 1}
+- `#325` `block-telemetry`: {'covered_by_existing_atom': 2}
+- `#329` `block-telemetry-2`: {'covered_by_existing_atom': 3}
+- `#332` `payload-policy-checkpointing`: {'covered_by_existing_atom': 2, 'promote': 1}
+- `#330` `payload-policy-checkpointing-pr`: {'covered_by_existing_atom': 3}
+- `#331` `heartbeat-static-batch-hydration-pr`: {'covered_by_existing_atom': 1, 'promote': 1, 'drop': 2}
+- `#336` `block-build-demotion-trace`: {'covered_by_existing_atom': 2}
+- `#337` `phase0b-probabilistic-skip`: {'covered_by_existing_atom': 2}
+- `#338` `revival-lane-skip-fifo`: {'covered_by_existing_atom': 1, 'drop': 2}
+- `#333` `agent_telemetry`: {'covered_by_existing_atom': 1, 'promote': 1}
+- `#339` `factory-launch-pass2-sync`: {'covered_by_existing_atom': 2, 'promote': 2}
+- `#341` `strict-scheduler-startup-hydration`: {'covered_by_existing_atom': 1, 'promote': 4}
+- `#342` `revival-executor-agent-entropy`: {'promote': 1}
+- `#345` `scheduled-incidents-debug-rpc`: {'covered_by_existing_atom': 2, 'promote': 2}
+- `#351` `scheduled-gas-extraction-recorder-realign`: {'promote': 1}
+- `#354` `per-category-async-sim-caps`: {'covered_by_existing_atom': 4}
+- `#356` `agent-spawn-fee-cap`: {'covered_by_existing_atom': 1, 'promote': 1}
+- `#357` `scheduler-overflow-bitmap-key`: {'covered_by_existing_atom': 1, 'drop': 1}

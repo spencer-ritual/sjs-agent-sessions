@@ -1,0 +1,58 @@
+{
+  "cluster_key": "scheduler:scheduler-event-decoding-8a2b940e",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/scheduling/src/contract.rs"
+  ],
+  "invariant_id": "cur-520cb2f3e1-scheduler-event-decoding-rejects-oversized-identifiers",
+  "invariant_index": 100,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/scheduling/src/contract.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "u256_to_u64|EventDecodingError|EnhancedCallEvent|totalExecutions|CallScheduled|CallExecuted|executionIndex"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "u256_to_u64",
+      "EventDecodingError",
+      "EnhancedCallEvent"
+    ],
+    "missing_behavior": "Missing scheduler event decoder overflow rejection. The old scheduling event decoder is absent locally; storage-reading code converts U256 storage fields with to::<u64>() but does not implement event decoding rejection for oversized event identifiers.",
+    "related_but_insufficient_code": [
+      "No u256_to_u64/EventDecodingError/EnhancedCallEvent symbols were found in the audited local repos."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The current event parser routes U256 scheduler event identifiers and execution counters through u256_to_u64, which returns SchedulingError::EventDecodingError on overflow, before storing them in u64 fields.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "f8b288b1755c2248e134e2c85f8c30a3944316c1"
+  ],
+  "statement": "Scheduler event decoding must reject oversized U256 values for callId and for execution counters such as executionIndex and totalExecutions when those values exceed u64::MAX, rather than silently truncating them into u64 state.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Decode Scheduler events with callId, executionIndex, and totalExecutions set to u64::MAX + 1 and assert EventDecodingError.",
+    "Assert no truncating u64 state is produced from oversized U256 event fields."
+  ],
+  "summary": "Scheduler event overflow rejection is absent.",
+  "test_or_falsification_candidate": "Current port lacks crates/scheduling/src/contract.rs and the u256_to_u64 event-overflow rejection path.",
+  "title": "Scheduler event decoding rejects oversized identifiers",
+  "total_invariants": 1954
+}

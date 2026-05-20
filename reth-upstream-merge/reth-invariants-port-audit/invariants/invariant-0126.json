@@ -1,0 +1,92 @@
+{
+  "cluster_key": "scheduler:validation",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Block verification runs heartbeat scheduled checks, scheduled C1-C11 verification, scheduled censorship/obligation verification, and async commitment validation with scheduled-origin bypass for heartbeat targets.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "verify_heartbeat_scheduled_transactions(block, parent_state)?;\nverify_scheduled_transactions(block, parent_state, &mut evaluate_predicate)?;\nverify_scheduled_censorship(block, parent_state, &mut evaluate_predicate)?;",
+      "symbols": [
+        "verify_short_async_block_with_simulators",
+        "verify_scheduled_transactions",
+        "verify_scheduled_censorship",
+        "verify_heartbeat_scheduled_transactions"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Scheduled verification enforces C1-C10 plus C11 predicate evaluation; FilterResult classifies permanent versus temporary failures and keeps too-early, insufficient-funds, predicate, duplicate-in-batch, database-error, and valid results out of permanent removal.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "FilterResult::C10InBlockDuplicate => false; FilterResult::C4TooEarly => false; FilterResult::C9InsufficientFunds => false; FilterResult::C11PredicateFalse => false; FilterResult::C11PredicateReverted => false; FilterResult::C11PredicateOutOfGas => false; FilterResult::DatabaseError => false; FilterResult::Valid => false;",
+      "symbols": [
+        "verify_scheduled_transactions_full_with_predicate_evaluator",
+        "filter_scheduled_for_block_building_full",
+        "FilterResult::should_remove_from_pool"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port: parent-state verification covers scheduled constraints and filter results preserve the permanent/temporary distinction.",
+  "evidence_files": [
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/ritual-scheduled-verification/src/lib.rs"
+  ],
+  "invariant_id": "cur-2d81103292-block-verification-enforces-scheduled-constraints",
+  "invariant_index": 126,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "verify_scheduled_transactions|filter_obligations_by_predicates|FilterResult|should_remove_from_pool|heartbeat"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "verify_scheduled_transactions_full_with_predicate_evaluator",
+      "verify_scheduled_censorship",
+      "FilterResult::should_remove_from_pool"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The old singleton/window/index consensus checks are superseded by the parent-state C1-C10 verifier and C11 predicate verifier. Heartbeat and predicate-Create candidates refine the same verification surface.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "270ec4a0350bf2642641964bbdc8587999b13938",
+    "7d161911e54a3cf0a81e986d61391d4818e2f8ed",
+    "18b0d4517efe19132e0f100e49e7ef009bf0f7fe",
+    "ecc2e95789291dc4242654e058a16057ad0e4380",
+    "d0d5222684b8c6c745cf0c026697651097fbb131",
+    "3e10b0feef95e81691ce01e6e969d4072bc88175",
+    "29e5f0939d5e53f703032a754c68a7195172b7fb",
+    "602c454cd4105b145f887f8c9f9c69a0483cf583",
+    "170518c2f5e2b4a0bc9effefb840501a3de72583",
+    "4bbafcde2df5be41d61d350038591a70ebe4dff3",
+    "64b67813746b81c92f10283f93c4899b92c604c3",
+    "69c58336e967b889512382ec5ab0943a73a12af8"
+  ],
+  "statement": "Received blocks containing scheduled transactions must be verified against parent-state Scheduler and RitualWallet constraints C1-C10, custom predicate constraint C11, heartbeat-target bypass rules, and distinct ScheduledConstraintViolation error reporting unless validity constraints are explicitly skipped; block-building filters classify permanent versus temporary scheduled failures without removing temporary predicate, too-early, insufficient-funds, duplicate-in-batch, database-error, or valid results.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Block verification fixture with invalid C1-C11 scheduled txs, heartbeat revival txs, and censored due obligations.",
+    "Unit test FilterResult::should_remove_from_pool classifications."
+  ],
+  "summary": "Block verification enforces scheduled constraints C1-C11.",
+  "test_or_falsification_candidate": "Scheduled verifier and block-verification integration tests.",
+  "title": "Block verification enforces scheduled constraints C1-C11",
+  "total_invariants": 1954
+}

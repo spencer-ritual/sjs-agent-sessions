@@ -1,0 +1,77 @@
+{
+  "record_type": "file",
+  "file_index": 366,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/rpc/rpc-api/src/txpool.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "txpool-rpc",
+    "scheduled",
+    "async"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0366-atom-0001",
+      "file_index": 366,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/rpc/rpc-api/src/txpool.rs",
+      "source_hunk_hint": "@@ -1,6 +1,9 @@; @@ -34,4 +37,16 @@",
+      "source_kind": "txpool_rpc_scheduled_async_extensions",
+      "source_snippet": "use alloy_rpc_types_txpool::{TxpoolAsyncCommitment, TxpoolAsyncContentDetailed, TxpoolContent, TxpoolContentFrom, TxpoolInspect, TxpoolScheduled, TxpoolStatus};\n...\n#[method(name = \"scheduledContent\")]\nasync fn txpool_scheduled_content(&self) -> RpcResult<TxpoolScheduled<T>>;\n#[method(name = \"asyncContent\")]\nasync fn txpool_async_content(&self) -> RpcResult<TxpoolAsyncContentDetailed>;",
+      "semantic_claim": "The old divergence extends the txpool RPC API with Ritual-specific scheduled transaction content and async execution content endpoints, plus the associated txpool response types.",
+      "high_risk": true,
+      "risk_tags": [
+        "public-api",
+        "txpool",
+        "scheduled-transactions",
+        "async-execution",
+        "missing"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc-api/src/txpool.rs",
+          "symbols": [
+            "TxPoolApi",
+            "txpool_scheduled_content",
+            "txpool_async_content"
+          ],
+          "evidence": "Destination `TxPoolApi` now imports `TxpoolScheduled` and `TxpoolAsyncContentDetailed` and exposes `scheduledContent` and `asyncContent` methods."
+        }
+      ],
+      "equivalence_argument": "Exact: scheduled and async txpool RPC endpoints are restored on the public API trait.",
+      "test_strategy": "RPC API compile and method availability tests for `txpool_scheduledContent` and `txpool_asyncContent`",
+      "negative_test_candidate": "A client generated for `TxPoolApiClient::txpool_scheduled_content` should fail against the current destination API.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": "review-file-0366-atom-0001"
+      },
+      "review_required": false,
+      "notes": "Resolved by restoring the public scheduled/async txpool RPC extensions."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The old scheduled and async txpool RPC API extensions are restored in the destination.",
+  "review_required": false,
+  "status": "resolved",
+  "notes": [
+    "Queue entry verified as line 366: M\tcrates/rpc/rpc-api/src/txpool.rs.",
+    "Source hunks span diff lines 76810-76836.",
+    "Resolved in this pass by adding `scheduledContent` and `asyncContent` to the txpool RPC API trait.",
+    "Verified by `cargo check -p reth-rpc-api` as part of the targeted package check."
+  ]
+}

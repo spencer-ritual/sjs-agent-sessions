@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "The SPC signature crate delegates allowlist membership to the canonical precompile-address metadata.",
+      "path": "crates/ritual-spc-signature/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn is_spc_block_verified_precompile(addr: Address) -> bool {\n    canonical_is_spc_block_verified_precompile(addr)\n}",
+      "symbols": [
+        "is_spc_block_verified_precompile"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "Async direct verification uses the shared allowlist, while the optimized synchronous path rejects non-allowlisted requests instead of falling back.",
+      "path": "crates/ritual-spc-verification/src/verifier.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let is_valid = if is_spc_block_verified_precompile(request.precompile_address) {\n    ... direct signature verification ...\n} else {\n    ... sidecar verification ...\n}\n...\nif is_spc_block_verified_precompile(request.precompile_address) { ... } else { return Err(VerificationError::InvalidRequest(...)); }",
+      "symbols": [
+        "SpcVerifier::verify_single",
+        "verify_parallel_optimized",
+        "verify_single_sync"
+      ]
+    }
+  ],
+  "equivalence_argument": "Direct SPC verification is centralized on the shared allowlist; non-allowlisted async verification uses sidecar behavior and optimized sync verification rejects it.",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/verifier.rs",
+    "crates/ritual-spc-signature/src/lib.rs"
+  ],
+  "invariant_id": "cur-3d8ab9ed6a-direct-verification-uses-shared-allowlist",
+  "invariant_index": 538,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The shared predicate is imported through ritual_spc_signature, which itself delegates to ritual_precompile_addresses.",
+  "rationale": "The SPC verifier removes local address constants and hand-written HTTP/LLM conditionals, routing async `verify_single` direct verification through the shared predicate and using the same predicate in the optimized sync verifier. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "f1b99bde4b0a1f395c22bd99102d1b72117479f2"
+  ],
+  "statement": "SPC direct verification must use `is_spc_block_verified_precompile` to decide which precompile requests are verified with executor public keys; non-allowlisted requests use the sidecar path in async verification and are rejected by the optimized synchronous direct path.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "For every address in `ALL_SPC_BLOCK_VERIFIED_PRECOMPILE_ADDRESSES`, assert direct verification attempts registry/public-key signature verification; for an address outside the allowlist, assert `verify_single` uses sidecar behavior and `verify_parallel_optimized` returns an invalid-request error."
+  ],
+  "summary": "Direct SPC verification uses the shared allowlist.",
+  "test_or_falsification_candidate": "Assert every shared allowlist address takes direct verification, and an address outside the allowlist is rejected by verify_parallel_optimized.",
+  "title": "Direct SPC verification uses the shared allowlist",
+  "total_invariants": 1954
+}

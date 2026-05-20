@@ -1,0 +1,117 @@
+{
+  "cluster_key": "scheduler:pool-accounting:part-02",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Block verification explicitly exempts scheduled-origin async commitments from the duplicate commitment sender map, while non-scheduled origins are rejected on duplicate sender.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let is_scheduled_origin = matches!(original_tx, OriginalTransaction::Scheduled(_));\noriginating_tx_hashes.insert(commitment.origin_tx);\nif is_scheduled_origin {\n    continue;\n}\nlet sender = original_tx.sender();\nif let Some(first_commitment) = commitment_senders.insert(sender, *tx.tx_hash()) { ... }",
+      "symbols": [
+        "verify_nonce_locks"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Commitment validation derives the economically responsible payer/caller from scheduled.tx.caller for scheduled origins and sender() otherwise.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "match original_tx { OriginalTransaction::Scheduled(tx) => tx.tx().caller, _ => original_tx.sender() }\n...\nverify_wallet_for_commitment(... original_payer, commitment.precompile_address, ...)",
+      "symbols": [
+        "original_transaction_payer",
+        "verify_async_commitments"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Scheduler-routed payload building uses the scheduled caller as the sender for the generated async commitment and parent-state validation.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let scheduled_sender = obligation.caller;\n...\nbuild_short_async_commitment_transaction(&scheduled_tx, scheduled_sender, async_call, ...)\n...\nvalidate_short_commitment_parent_state(..., scheduled_sender, ...)",
+      "symbols": [
+        "scheduled_sender",
+        "build_short_async_commitment_transaction",
+        "validate_short_commitment_parent_state"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "The pooled transaction branch also switches to scheduled.tx.caller when the original is scheduled and falls back to pool signer for regular transactions.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let original_async_sender = tx.inner().as_scheduled().map(|scheduled| scheduled.tx().caller).unwrap_or_else(|| pool_tx.sender());\n...\nbuild_short_async_commitment_transaction(&tx, original_async_sender, async_call, ...)",
+      "symbols": [
+        "original_async_sender",
+        "build_short_async_commitment_transaction"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port preserves the phase split: block verification exempts scheduled origins from the duplicate sender nonce-lock map, while payload construction and parent-state validation account for scheduled async work using scheduled.tx.caller instead of the system sender.",
+  "evidence_files": [
+    "crates/ritual-block-verification/src/nonce_lock.rs",
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-c5e8299924-scheduled-sender-deduplication-differs-between-verifier-builder-phases",
+  "invariant_index": 43,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-block-verification/src/nonce_lock.rs"
+    ],
+    "checked_queries": [
+      "DuplicateCommitmentSender|duplicate async commitment|is_scheduled_origin",
+      "scheduled.tx().caller|original_async_sender|scheduled_sender",
+      "nonce_lock.rs"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "verify_nonce_locks",
+      "original_transaction_payer",
+      "scheduled_sender",
+      "original_async_sender",
+      "should_skip_sender_locked_tx",
+      "DuplicateCommitmentSender"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "The old nonce_lock.rs file is absent; nonce-lock logic lives in ritual-block-verification/src/lib.rs. Payload builder does not have a literal one-async-per-sender set, but its commitment construction and validation use the scheduled caller, and registry state is checked as candidates execute."
+    ]
+  },
+  "notes": "Mapped with structural equivalence; exact old DuplicateCommitmentSender type name is not present, but the behavior is implemented via InvalidNonceLock duplicate checks.",
+  "rationale": "The candidates describe separate phases: block verification exempts scheduled commitments from duplicate sender rejection, while payload building locally limits async commitments to one economically responsible sender across scheduled and regular pools.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "ee147f0010c9c5b8bfea0e21f3290e3a8baeab3c",
+    "f1b47dd49833bea84ce3798d26a827a10a2d6346"
+  ],
+  "statement": "At current tip, block verification exempts Scheduled origin async commitments from the intra-block duplicate commitment sender check, while payload building still includes at most one async commitment per economically responsible sender, using scheduled_tx.caller for scheduled transactions and tx.signer() otherwise.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Build a block-verification case with two async commitments wrapping scheduled origin transactions that would otherwise share a sender and assert DuplicateCommitmentSender is not returned while origin hashes are exempted from later nonce-lock checks.",
+    "Build a payload from two regular async commitments from the same signer and from one scheduled plus one regular async commitment sharing the scheduled caller, and assert only the first sender commitment is included by the builder."
+  ],
+  "summary": "Scheduled sender deduplication differs between verifier and builder phases and is mapped in current verifier/payload code.",
+  "test_or_falsification_candidate": "Verifier: include two scheduled-origin commitments with same system sender and assert no duplicate-sender nonce-lock error, then include two regular commitments from one sender and assert duplicate rejection. Builder: scheduled async commitment should encode scheduled.caller as original sender.",
+  "title": "Scheduled sender deduplication differs between verifier and builder phases",
+  "total_invariants": 1954
+}

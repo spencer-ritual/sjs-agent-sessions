@@ -1,0 +1,81 @@
+{
+  "record_type": "file",
+  "file_index": 390,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/rpc/rpc-eth-types/src/revm_utils.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "moved_to_dependency",
+  "tags": [
+    "high-risk",
+    "moved_to_dependency",
+    "non-exact"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0390-atom-0001",
+      "file_index": 390,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/rpc/rpc-eth-types/src/revm_utils.rs",
+      "source_hunk_hint": "@@ -114,2 +114,2 @@ impl CallFees {",
+      "source_kind": "other",
+      "source_snippet": "                    if !(max_fee.is_zero() && max_priority_fee_per_gas.is_zero())\n                        && max_fee < block_base_fee\n                        return Err(RpcInvalidTransactionError::FeeCapTooLow.into());\n                        );\n                    return Err(RpcInvalidTransactionError::BlobTransactionMissingBlobHashes.into());",
+      "semantic_claim": "The downstream diff for crates/rpc/rpc-eth-types/src/revm_utils.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": true,
+      "risk_tags": [
+        "execution",
+        "rpc"
+      ],
+      "mapping_status": "moved_to_dependency",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-alloy-evm-internal",
+          "path": "crates/evm/src/rpc/fees.rs",
+          "symbols": [
+            "CallFees::ensure_fees",
+            "get_effective_gas_price"
+          ],
+          "snippet": "if !(max_fee.is_zero() && max_priority_fee_per_gas.is_zero())\n    && max_fee < block_base_fee\n{\n    return Err(CallFeesError::FeeCapTooLow);\n}",
+          "evidence": "The zero max-fee plus zero priority-fee exception from downstream Reth now lives in Alloy EVM's shared RPC fee conversion helper."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc-convert/src/lib.rs",
+          "symbols": [
+            "CallFees",
+            "CallFeesError",
+            "EthTxEnvError"
+          ],
+          "snippet": "pub use alloy_evm::rpc::{CallFees, CallFeesError, EthTxEnvError, TryIntoTxEnv};",
+          "evidence": "Reth v2 consumes the moved fee helper through `reth-rpc-convert` rather than the old `revm_utils.rs` location."
+        }
+      ],
+      "equivalence_argument": "Old downstream patched `crates/rpc/rpc-eth-types/src/revm_utils.rs` so RPC call fee validation treats `maxFeePerGas=0` and `maxPriorityFeePerGas=0` as absent rather than rejecting them below a nonzero base fee. In v2.2, fee conversion moved to Alloy EVM; Reth re-exports and maps the same `CallFees`/`CallFeesError` through `reth-rpc-convert` and `reth-rpc-eth-types`, preserving the externally visible RPC behavior without restoring the old file layout.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Call `CallFees::ensure_fees(None, Some(0), Some(0), nonzero_base_fee, None, None, None)` through the v2 dependency path and assert it returns zero gas price rather than FeeCapTooLow.",
+      "adversarial_review": {
+        "required": true,
+        "status": "pass",
+        "review_record_id": "review-file-0390-atom-0001"
+      },
+      "review_required": true,
+      "notes": "Reclassified after locating the moved fee helper in Alloy EVM and its Reth re-export path.",
+      "required_change": null
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [
+    "coverage-map/reviews/review-file-0390-atom-0001.json"
+  ],
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "Reclassified from missing based on destination code evidence in Alloy EVM and Reth RPC conversion."
+}

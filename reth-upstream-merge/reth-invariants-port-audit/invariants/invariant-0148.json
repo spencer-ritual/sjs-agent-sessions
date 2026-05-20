@@ -1,0 +1,101 @@
+{
+  "cluster_key": "executor delivery:async-payload-phases-fb20b87f",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "evidence": "The port payload builder now checks Instant::now() > global_deadline before fulfilled async collection and delivery-ready collection, returning an empty vector for each phase when the deadline is exceeded. The existing sequencing-rights path already preserves tip-sorted fallback order when the same deadline prevents reordering.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let fulfilled_async_entries = if Instant::now() > global_deadline { Vec::new() } else { ... };\nlet delivery_ready_async_entries = if Instant::now() > global_deadline { Vec::new() } else { ... };",
+      "symbols": [
+        "default_ethereum_payload",
+        "reorder_payload_candidates"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port after the local parity fix: fulfilled async collection, delivery-ready collection, and sequencing-rights reordering are all gated by the configured global build deadline, with the existing tip-sorted fallback order retained if sequencing-rights work is skipped.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ethereum/payload/src/unified_execution.rs"
+  ],
+  "invariant_id": "cur-1f5f035ada-async-payload-phases-respect-build-deadline",
+  "invariant_index": 148,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ethereum/payload/src/config.rs",
+      "crates/ethereum/payload/src/sequencing_rights.rs",
+      "crates/transaction-pool/src/pool/mod.rs",
+      "crates/transaction-pool/src/traits.rs"
+    ],
+    "checked_queries": [
+      "global_deadline|build_deadline|fulfilled_async_entries|delivery_ready_async_entries",
+      "Phase B|Phase C|deadline was exceeded",
+      "get_fulfilled_original_async_commitment_transactions|get_delivery_ready_original_async_transactions"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "global_deadline",
+      "EthereumBuilderConfig::build_deadline",
+      "get_fulfilled_original_async_commitment_transactions",
+      "get_delivery_ready_original_async_transactions",
+      "reorder_payload_candidates"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      {
+        "evidence": "Before the local parity fix, global_deadline was computed, but fulfilled async entries were collected at the pool boundary before the first deadline check around sequencing-rights reorder. The local fix adds a pre-collection fulfilled async deadline guard.",
+        "path": "crates/ethereum/payload/src/lib.rs",
+        "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+        "symbols": [
+          "build_payload"
+        ]
+      },
+      {
+        "evidence": "If the deadline has expired before sequencing rights, the builder preserves tip-sorted payload_candidates, satisfying the fallback-order part.",
+        "path": "crates/ethereum/payload/src/lib.rs",
+        "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+        "symbols": [
+          "reorder_payload_candidates"
+        ]
+      },
+      {
+        "evidence": "Before the local parity fix, the execution loop broke when the deadline expired, but this was after fulfilled/delivery collection and candidate preparation. The local fix adds pre-collection guards for those phases.",
+        "path": "crates/ethereum/payload/src/lib.rs",
+        "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+        "symbols": [
+          "payload execution loop"
+        ]
+      }
+    ]
+  },
+  "notes": "Mapped after local parity fix: the tip-sorted sequencing fallback was already present, and fulfilled/delivery collection now also skip when the global deadline is exceeded.",
+  "rationale": "The merge adds deadline guards before Phase B, Phase C, and sequencing-rights EVM simulation. If sequencing-rights work is skipped, sorting by tip still runs and `apply_sequencing_rights` returns without partially applying reordering when the deadline expires during classification. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: The exact placement of deadline checks is payload-builder scheduling policy; future builders could enforce equivalent deadlines with a different task scheduler.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "b974fa58605342b18354a1089fde1b1f624de99f"
+  ],
+  "statement": "Payload building must skip fulfilled async collection, Phase 2 delivery collection, and sequencing-rights simulation when the configured global build deadline has already expired, while preserving a tip-sorted fallback order for sequencing rights.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Configure a very short payload build deadline, trigger payload building with async/delivery candidates and sequencing-rights candidates, and assert those expensive phases are skipped with no partial sequencing-rights reorder while tip sorting still occurs."
+  ],
+  "summary": "Build deadline handling now skips fulfilled async and delivery-ready collection phases and retains the existing sequencing-rights fallback behavior.",
+  "test_or_falsification_candidate": "Payload-builder tests should cover expired-deadline Phase B/C collection skipping and sequencing-rights fallback order; helper tests cover the cap half added with this fix.",
+  "title": "Async payload phases respect build deadline",
+  "total_invariants": 1954
+}

@@ -1,0 +1,53 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The factory specializes the EVM to RitualPrecompiles and both normal and inspector creation paths install RitualPrecompiles::new().",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "type Evm<DB: Database, I: Inspector<AsyncEthEvmContext<DB>, EthInterpreter>> =\n    RitualEvm<DB, I, RitualPrecompiles>;\nRitualEvm::new(async_context, NoOpInspector::default())\n    .with_precompiles(RitualPrecompiles::new());\nRitualEvm::new(async_context, inspector)\n    .with_precompiles(RitualPrecompiles::new())\n    .with_inspect(true);",
+      "symbols": [
+        "RitualEvmFactory",
+        "RitualPrecompiles::new"
+      ]
+    }
+  ],
+  "equivalence_argument": "Both EVM construction paths replace the default Ethereum precompile provider with RitualPrecompiles, so Ritual precompile dispatch is present regardless of inspector use.",
+  "evidence_files": [
+    "crates/node/src/executor.rs"
+  ],
+  "invariant_id": "cur-b00f5bd26f-installs-precompiles",
+  "invariant_index": 283,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in nodebuilder custom EVM factory.",
+  "rationale": "The EVM type becomes generic over precompile provider, the factory EVM associated type is specialized to RitualPrecompiles, and both creation paths call with_precompiles(RitualPrecompiles::new()). No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "f2830503bec1cdbd7009631a13c9dbf8829f1f34"
+  ],
+  "statement": "RitualEvmFactory-created EVM instances, both with and without inspectors, must use RitualPrecompiles as their precompile provider rather than the default Ethereum precompiles alone.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create EVMs through RitualEvmFactory with and without inspectors and assert Ritual precompile addresses are available/called while default-only EVMs would not handle them."
+  ],
+  "summary": "RitualEvmFactory installs RitualPrecompiles for normal and inspector EVMs.",
+  "test_or_falsification_candidate": "Create normal and inspector EVMs through RitualEvmFactory and assert Ritual precompile addresses dispatch through RitualPrecompiles.",
+  "title": "Ritual EVM installs Ritual precompiles",
+  "total_invariants": 1954
+}

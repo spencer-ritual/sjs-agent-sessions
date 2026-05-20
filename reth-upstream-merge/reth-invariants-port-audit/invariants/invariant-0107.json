@@ -1,0 +1,65 @@
+{
+  "cluster_key": "scheduler:receipt-rpc",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "ritual-reth-internal/crates/scheduling/src/canonical.rs",
+    "ritual-reth-internal/crates/scheduling/src/contract.rs",
+    "ritual-reth-internal/crates/ritual-metrics/src/scheduling.rs"
+  ],
+  "invariant_id": "cur-3b004525fc-scheduler-event-monitoring-receipt-driven-block",
+  "invariant_index": 107,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/scheduling/src/contract.rs",
+      "crates/scheduling/src/canonical.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "SchedulerContract|parse_event_log|CallScheduled|receipts|logs|malformed scheduler logs|known event topics"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "SchedulerContract",
+      "parse_event_log",
+      "CallScheduled",
+      "CallExecuted"
+    ],
+    "missing_behavior": "Missing receipt-log-driven Scheduler event monitor. Local port uses parent-state Scheduler storage readers and does not include a SchedulerContract scanner that reads one block plus receipts, filters scheduler logs by address/topic, records fetch timing, and skips malformed scheduler logs.",
+    "related_but_insufficient_code": [
+      "Generic receipt storage/RPC code exists, but no scheduler-specific event monitor or parse_event_log path was found."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The current contract reader obtains block data and receipts from the provider, filters logs through parse_event_log by address/topic, records fetch timing metrics, and continues after parse errors.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "d5d65f92c517174de90de608f38567d3d49956d1",
+    "ab5b9d2489c75be2097406fda1a8f45e72ed8d59",
+    "844af41e705c1614ea9054e7ff7fc89cef93f6f1",
+    "e701de0d86c7d7ba4496bd3644e29d778837c527",
+    "2bc4e0a9a9c937e6630cce6e19bee26fa80c6023"
+  ],
+  "statement": "SchedulerContract must discover scheduler state changes by scanning one requested block, reading its block and receipts from provider traits, filtering logs by the configured Scheduler contract address and known event topics, warning and skipping malformed scheduler logs without aborting the rest of the block.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Feed a block with valid and malformed Scheduler logs and assert the monitor records valid events while warning and continuing past malformed logs."
+  ],
+  "summary": "Receipt-log-driven scheduler event monitoring is absent.",
+  "test_or_falsification_candidate": "Search local repos for SchedulerContract/parse_event_log/CallScheduled receipt scanning; absent.",
+  "title": "Scheduler event monitoring is receipt-log driven per block",
+  "total_invariants": 1954
+}

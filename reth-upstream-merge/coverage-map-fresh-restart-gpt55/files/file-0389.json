@@ -1,0 +1,155 @@
+{
+  "record_type": "file",
+  "file_index": 389,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/rpc/rpc-eth-types/src/receipt.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "structural",
+    "rpc-eth-types",
+    "receipt",
+    "scheduled",
+    "async"
+  ],
+  "atoms_total": 3,
+  "atoms": [
+    {
+      "record_id": "file-0389-atom-0001",
+      "file_index": 389,
+      "atom_index": 1,
+      "atoms_total": 3,
+      "source_path": "crates/rpc/rpc-eth-types/src/receipt.rs",
+      "source_hunk_hint": "@@ -76,6 +76,104 @@; scheduled transaction receipt fields",
+      "source_kind": "rpc_receipt_scheduled_fields",
+      "source_snippet": "let scheduled_tx_data = transaction.as_scheduled();\nlet (origin_tx, call_id, index, initial_block, frequency, max_block, ttl, caller, gas, max_fee_per_gas, max_priority_fee_per_gas, value) = if let Some(scheduled) = scheduled_tx_data { ... };",
+      "semantic_claim": "The old divergence enriches RPC receipts for scheduled transactions with call id, execution index, initial block, frequency, expiry/max block, TTL, caller, gas, fee caps, and value.",
+      "high_risk": true,
+      "risk_tags": [
+        "rpc-receipt",
+        "scheduled-transactions",
+        "public-api",
+        "partial"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc-eth-types/src/receipt.rs",
+          "symbols": [
+            "build_receipt"
+          ],
+          "evidence": "Destination `build_receipt` now downcasts concrete `TransactionSigned` scheduled variants and fills `origin_tx`, `call_id`, `index`, `initial_block`, `frequency`, `max_block`, `ttl`, caller, gas, fee caps, and value."
+        }
+      ],
+      "equivalence_argument": "Exact: destination preserves generic origin hash plumbing and now fills the detailed scheduled receipt fields from the concrete scheduled transaction variant.",
+      "test_strategy": "RPC receipt test for scheduled transaction fields",
+      "negative_test_candidate": "A scheduled transaction receipt should include non-null `call_id` and `ttl` when the transaction carries those fields.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": "review-file-0389-atom-0001"
+      },
+      "review_required": false,
+      "notes": "Resolved by filling scheduled transaction receipt detail fields."
+    },
+    {
+      "record_id": "file-0389-atom-0002",
+      "file_index": 389,
+      "atom_index": 2,
+      "atoms_total": 3,
+      "source_path": "crates/rpc/rpc-eth-types/src/receipt.rs",
+      "source_hunk_hint": "@@ -76,6 +76,104 @@; async commitment/settlement receipt fields",
+      "source_kind": "rpc_receipt_async_fields",
+      "source_snippet": "let async_commitment_data = transaction.as_async_commitment();\n...\nlet async_settlement_data = transaction.as_async_settlement();\n...\noriginal_tx, precompile_address, precompile_input, executor_address, user_address, total_amount, executor_fee, commitment_validator, commitment_fee, inclusion_validator, inclusion_fee, settlement_block",
+      "semantic_claim": "The old divergence enriches RPC receipts for async commitment and settlement transactions with original tx hash, precompile address/input, executor, user address, total amount, executor/validator fees, validators, and settlement block.",
+      "high_risk": true,
+      "risk_tags": [
+        "rpc-receipt",
+        "async-commitment",
+        "async-settlement",
+        "public-api",
+        "partial"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc-eth-types/src/receipt.rs",
+          "symbols": [
+            "build_receipt"
+          ],
+          "evidence": "Destination populates generic `spc_calls`, `delivery_spc_calls`, `settlement_tx`, and `commitment_tx`, and now fills async commitment/settlement detail fields from concrete `TransactionSigned` variants."
+        }
+      ],
+      "equivalence_argument": "Exact: destination keeps the shared transaction-extension fields and now restores detailed async commitment/settlement receipt data from the typed variants.",
+      "test_strategy": "RPC receipt test for async commitment and settlement txs",
+      "negative_test_candidate": "An async settlement receipt should include executor fee and settlement block when those fields exist in the transaction.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": "review-file-0389-atom-0002"
+      },
+      "review_required": false,
+      "notes": "Resolved by filling async commitment and settlement receipt detail fields."
+    },
+    {
+      "record_id": "file-0389-atom-0003",
+      "file_index": 389,
+      "atom_index": 3,
+      "atoms_total": 3,
+      "source_path": "crates/rpc/rpc-eth-types/src/receipt.rs",
+      "source_hunk_hint": "@@ -124,6 +254,10 @@; receipt envelope variants",
+      "source_kind": "rpc_receipt_envelope_variants",
+      "source_snippet": "TxType::Scheduled => ReceiptEnvelope::Scheduled(receipt_with_bloom),\nTxType::AsyncCommitment => ReceiptEnvelope::AsyncCommitment(receipt_with_bloom),\nTxType::AsyncSettlement => ReceiptEnvelope::AsyncSettlement(receipt_with_bloom),\nTxType::Passkey => ReceiptEnvelope::Passkey(receipt_with_bloom),",
+      "semantic_claim": "The old divergence maps custom Ritual transaction types to matching receipt envelope variants for scheduled, async commitment, async settlement, and passkey transactions.",
+      "high_risk": true,
+      "risk_tags": [
+        "rpc-receipt",
+        "receipt-envelope",
+        "custom-tx-types",
+        "missing"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc-eth-types/src/receipt.rs",
+          "symbols": [
+            "EthReceiptConverter"
+          ],
+          "evidence": "Destination receipt converter still uses the generic `ReceiptConverter` builder; the underlying Alloy receipt conversion already maps `TxType::Scheduled`, `AsyncCommitment`, `AsyncSettlement`, and `Passkey` to matching `ReceiptEnvelope` variants, so no duplicate explicit logic was added."
+        }
+      ],
+      "equivalence_argument": "Structural equivalent: the destination relies on the shared Alloy `Receipt<TxType>::into()` / `ReceiptEnvelope` conversion path that already constructs custom Ritual receipt envelope variants.",
+      "test_strategy": "receipt envelope conversion tests for each custom Ritual tx type",
+      "negative_test_candidate": "A passkey transaction receipt should use the passkey receipt envelope variant, not fall through to a legacy/EIP envelope.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": "review-file-0389-atom-0003"
+      },
+      "review_required": false,
+      "notes": "Resolved structurally through existing generic receipt envelope conversion; duplicate explicit mapping was intentionally not added."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The destination now preserves Ritual receipt extension fields; detailed scheduled/async fields are exact, and custom receipt envelope mapping is covered by the existing generic Alloy conversion.",
+  "review_required": false,
+  "status": "resolved",
+  "notes": [
+    "Queue entry verified as file-0389: M\tcrates/rpc/rpc-eth-types/src/receipt.rs.",
+    "Source semantic hunks span diff lines 77877-78028.",
+    "Resolved in this pass by filling concrete scheduled/async receipt fields in `build_receipt`.",
+    "Custom envelope variants are structurally covered by existing generic Alloy receipt conversion rather than duplicate local logic.",
+    "Verified by `cargo check -p reth-rpc-eth-types` as part of the targeted package check."
+  ]
+}

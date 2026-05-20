@@ -1,0 +1,177 @@
+{
+  "record_type": "file",
+  "file_index": 334,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-scheduled-verification/src/slots.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "scheduled-verification",
+    "storage-slots"
+  ],
+  "atoms_total": 3,
+  "atoms": [
+    {
+      "record_id": "file-0334-atom-0001",
+      "file_index": 334,
+      "atom_index": 1,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-scheduled-verification/src/slots.rs",
+      "source_hunk_hint": "@@ -0,0 +1,91 @@; Scheduler and RitualWallet storage slot constants/layout",
+      "source_kind": "scheduler_wallet_storage_layout_constants",
+      "source_snippet": "pub const SCHEDULER_ID_SLOT: U256 = U256::from_limbs([0, 0, 0, 0]);\npub const SCHEDULER_SLOTS_SLOT: U256 = U256::from_limbs([1, 0, 0, 0]);\npub const SCHEDULER_CALL_TO_SLOT_SLOT: U256 = U256::from_limbs([2, 0, 0, 0]);\npub const SCHEDULER_EXECUTED_BITMAP_SLOT: U256 = U256::from_limbs([3, 0, 0, 0]);\npub const SCHEDULER_EXECUTED_OVERFLOW_SLOT: U256 = U256::from_limbs([4, 0, 0, 0]);\npub const SCHEDULER_CALL_PREDICATES_SLOT: U256 = U256::from_limbs([5, 0, 0, 0]);\npub const SCHEDULER_ORIGIN_HASH_SLOT: U256 = U256::from_limbs([6, 0, 0, 0]);\npub const WALLET_BALANCES_SLOT: U256 = U256::from_limbs([0, 0, 0, 0]);\npub const CALL_STRUCT_SIZE: u64 = 8;",
+      "semantic_claim": "The old divergence adds verified Scheduler and RitualWallet storage layout constants, including scheduler ids/arrays/mappings, executed bitmap/overflow, call predicates, origin hashes, wallet balances, and packed `Call` struct offsets.",
+      "high_risk": false,
+      "risk_tags": [
+        "storage-layout",
+        "scheduler",
+        "wallet",
+        "packed-fields"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/slots.rs",
+          "symbols": [
+            "SCHEDULER_ID_SLOT",
+            "SCHEDULER_SLOTS_SLOT",
+            "SCHEDULER_EXECUTED_BITMAP_SLOT",
+            "SCHEDULER_EXECUTED_OVERFLOW_SLOT",
+            "SCHEDULER_CALL_PREDICATES_SLOT",
+            "SCHEDULER_ORIGIN_HASH_SLOT",
+            "WALLET_BALANCES_SLOT",
+            "CALL_STRUCT_SIZE"
+          ],
+          "evidence": "Destination lines 1-91 exactly match source-added diff lines 66370-66460."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the consensus-critical raw storage layout constants aligned with the Scheduler and RitualWallet contracts.",
+      "test_strategy": "scheduler_storage_layout_constant_tests",
+      "negative_test_candidate": "Changing `CALL_STRUCT_SIZE` should shift computed array element slots and fail slot tests.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0334-atom-0002",
+      "file_index": 334,
+      "atom_index": 2,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-scheduled-verification/src/slots.rs",
+      "source_hunk_hint": "@@ -0,0 +93,171 @@; Scheduler/Wallet storage slot calculators",
+      "source_kind": "scheduler_wallet_slot_calculators",
+      "source_snippet": "pub fn call_to_slot_mapping(call_id: u64) -> U256 { ... }\npub fn origin_hash_slot(call_id: u64) -> U256 { ... }\npub fn executed_bitmap_slot(call_id: u64) -> U256 { ... }\npub fn executed_bitmap_overflow_slot(call_id: u64, bucket: u64) -> U256 { ... }\npub fn slots_array_element(index: u64) -> U256 { ... }\npub fn wallet_balance_slot(address: &[u8; 20]) -> U256 { ... }\npub fn call_predicate_slot(call_id: u64) -> U256 { ... }",
+      "semantic_claim": "The old divergence adds deterministic keccak-based slot calculators for Scheduler call mapping, origin hashes, primary and overflow execution bitmaps, dynamic slots array elements, RitualWallet balances, and call predicate mapping entries.",
+      "high_risk": false,
+      "risk_tags": [
+        "storage-slots",
+        "keccak",
+        "executed-bitmap",
+        "origin-hash",
+        "wallet-balance"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/slots.rs",
+          "symbols": [
+            "call_to_slot_mapping",
+            "origin_hash_slot",
+            "executed_bitmap_slot",
+            "executed_bitmap_overflow_slot",
+            "slots_array_element",
+            "wallet_balance_slot",
+            "call_predicate_slot"
+          ],
+          "evidence": "Destination lines 93-171 exactly match source-added diff lines 66462-66540."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "origin_hash_slot"
+          ],
+          "evidence": "Block verifier imports `slots::origin_hash_slot` for scheduled transaction origin checks."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the raw storage addressing formulas needed by scheduled verification and block verification.",
+      "test_strategy": "scheduler_slot_calculator_tests",
+      "negative_test_candidate": "The overflow bitmap slot must use Solidity `uint256,uint256` packed preimage, not the historical 16-byte key layout.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0334-atom-0003",
+      "file_index": 334,
+      "atom_index": 3,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-scheduled-verification/src/slots.rs",
+      "source_hunk_hint": "@@ -0,0 +173,275 @@; storage slot tests",
+      "source_kind": "scheduler_slot_tests",
+      "source_snippet": "#[cfg(test)]\nmod tests {\n    #[test] fn test_call_to_slot_mapping_deterministic() { ... }\n    #[test] fn test_overflow_slot_uses_solidity_uint256_packing() { ... }\n    #[test] fn test_overflow_slot_differs_from_legacy_16_byte_key() { ... }\n    #[test] fn test_slots_array_element_sequential() { ... }\n    #[test] fn test_call_predicate_slot_different_from_call_to_slot() { ... }\n}",
+      "semantic_claim": "The old divergence adds slot-calculation tests for deterministic and distinct mapping slots, overflow bitmap bucket separation, Solidity-compatible overflow key packing, dynamic array stride, and call predicate slot separation.",
+      "high_risk": false,
+      "risk_tags": [
+        "tests",
+        "storage-slots",
+        "overflow-bitmap",
+        "solidity-packing"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/slots.rs",
+          "symbols": [
+            "test_call_to_slot_mapping_deterministic",
+            "test_overflow_slot_uses_solidity_uint256_packing",
+            "test_overflow_slot_differs_from_legacy_16_byte_key",
+            "test_slots_array_element_sequential",
+            "test_call_predicate_slot_different_from_call_to_slot"
+          ],
+          "evidence": "Destination lines 173-275 exactly match source-added diff lines 66542-66644."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps regression tests for the storage slot formulas and the corrected overflow bitmap preimage.",
+      "test_strategy": "cargo test -p ritual-scheduled-verification slots",
+      "negative_test_candidate": "Reintroducing the legacy 16-byte overflow key should fail the `test_overflow_slot_differs_from_legacy_16_byte_key` guard.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Test atom only."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The scheduled-verification storage slot module is exact-port preserved, including Scheduler/RitualWallet layout constants, keccak slot calculators, origin/predicate/bitmap helpers, and slot regression tests.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 334: A\tcrates/ritual-scheduled-verification/src/slots.rs.",
+    "Source-added hunk spans diff lines 66370-66644 with header `@@ -0,0 +1,275 @@`; the next diff starts at line 66645.",
+    "Destination `crates/ritual-scheduled-verification/src/slots.rs` has 275 lines and matches the source-added file exactly.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "record_type": "file",
+  "file_index": 464,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/storage/codecs/src/alloy/transaction/legacy.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "high-risk",
+    "legacy",
+    "encoding"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0464-atom-0001",
+      "file_index": 464,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/storage/codecs/src/alloy/transaction/legacy.rs",
+      "source_hunk_hint": "@@ -32,14 +32,20 @@ pub(crate) struct TxLegacy",
+      "source_kind": "encoding_rule",
+      "source_snippet": "spc_calls: Vec<SpcCall>, commitment_tx: Option<B256>, settlement_tx: Option<B256>",
+      "semantic_claim": "Legacy compact storage preserves Ritual runtime metadata fields for SPC calls plus commitment and settlement transaction hashes.",
+      "high_risk": true,
+      "risk_tags": [
+        "encoding",
+        "async-fsm",
+        "storage"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/src/alloy/transaction/legacy.rs",
+          "symbols": [
+            "TxLegacy"
+          ],
+          "evidence": "Destination compact mirror includes `spc_calls`, `commitment_tx`, and `settlement_tx`."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Round-trip legacy tx with nonempty SPC calls and both async tx hashes.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": ""
+    },
+    {
+      "record_id": "file-0464-atom-0002",
+      "file_index": 464,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/storage/codecs/src/alloy/transaction/legacy.rs",
+      "source_hunk_hint": "@@ -60,6 +66,14 @@ impl Compact for AlloyTxLegacy",
+      "source_kind": "encoding_rule",
+      "source_snippet": "spc_calls unwrap_or_default on encode; empty vec decodes to None; remaining slice returned",
+      "semantic_claim": "Legacy compact conversion stores optional SPC calls as vectors, restores empty vectors to None, preserves async hashes, and returns the inner remaining slice.",
+      "high_risk": true,
+      "risk_tags": [
+        "encoding",
+        "async-fsm",
+        "rlp-identity"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/src/alloy/transaction/legacy.rs",
+          "symbols": [
+            "impl Compact for AlloyTxLegacy"
+          ],
+          "evidence": "Destination `to_compact` and `from_compact` preserve the metadata and return `remaining`."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Decode compact legacy bytes with empty stored SPC vector and trailing bytes; assert `spc_calls` is `None` and trailing bytes remain.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": ""
+    }
+  ],
+  "high_risk_atoms_total": 2,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The legacy transaction compact metadata additions are present in the destination.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0464: M\tcrates/storage/codecs/src/alloy/transaction/legacy.rs.",
+    "Diff lines 86606-86671 add metadata fields and conversion behavior."
+  ]
+}

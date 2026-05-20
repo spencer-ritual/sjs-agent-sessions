@@ -1,0 +1,9 @@
+{
+  "record_type": "adversarial_review",
+  "record_id": "review-file-0101-atom-0003",
+  "atom_record_id": "file-0101-atom-0003",
+  "review_result": "pass",
+  "falsification_attempt": "Default feature graph now includes async-context.",
+  "missed_risks": [],
+  "notes": "The downstream default async-context contract is restored for reth-evm."
+}

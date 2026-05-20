@@ -1,0 +1,104 @@
+{
+  "cluster_key": "scheduler:payload-building:part-01",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Payload derives scheduled obligations from parent Scheduler state, filters predicates, and synthesizes scheduled txs even when no pool tx exists.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "compute_obligations(&mut scheduled_db, current_block, base_fee, None) ... filter_obligations_by_predicates(...) ... create_scheduled_execution_transaction_from_state(...)",
+      "symbols": [
+        "compute_obligations",
+        "filter_obligations_by_predicates",
+        "create_scheduled_execution_transaction_from_state"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "compute_obligations applies bounded due-window/state/fee/executed constraints and caps obligations.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let max_obligations = env::var(\"RETH_MAX_OBLIGATIONS_PER_BLOCK\").ok().and_then(|s| s.parse().ok()).unwrap_or(64); ... due_index_bounds(...)",
+      "symbols": [
+        "compute_obligations",
+        "RETH_MAX_OBLIGATIONS_PER_BLOCK",
+        "due_index_bounds"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Pool-sourced scheduled transactions are fully verified before inclusion.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if let Err(err) = verify_scheduled_transactions_full_with_predicate_evaluator(..., &[info], ...) { continue; }",
+      "symbols": [
+        "verify_scheduled_transactions_full_with_predicate_evaluator",
+        "scheduled_tx_info"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port.",
+  "evidence_files": [
+    "crates/ritual-scheduled-block-building/src/lib.rs",
+    "crates/ritual-scheduled-verification/src/lib.rs",
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/consensus/common/src/validation.rs"
+  ],
+  "invariant_id": "cur-d05677d5e0-scheduled-inclusion-filtered-shared-contract-state-constraints",
+  "invariant_index": 91,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs"
+    ],
+    "checked_queries": [
+      "compute_obligations|filter_obligations_by_predicates|verify_scheduled_transactions_full_with_predicate_evaluator"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "compute_obligations",
+      "filter_obligations_by_predicates",
+      "verify_scheduled_transactions_full_with_predicate_evaluator"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in port.",
+  "rationale": "The packet shows the transition to explicit full C1-C10 filtering and shared contract-state obligation generation.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "d554bed9259aba640ee69cf259422b97e1b4055c",
+    "6f30cb4cd9119e4db222e6488b1ef9cb8c5daa25",
+    "602c454cd4105b145f887f8c9f9c69a0483cf583",
+    "8305f0018e43de61905ee2bcafe70f43cea51c30"
+  ],
+  "statement": "Before scheduled transactions reach the payload scheduled execution loop, block building must evaluate them against Scheduler and RitualWallet parent-state constraints equivalent to C1-C10, admit only Valid results, and in current bounded context derive obligations from contract or synced scheduler state so due scheduled work can be included even when the pool lacks a transaction.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Due Scheduler obligation absent from pool should still be synthesized.",
+    "C1-C10 failures should be filtered before execution."
+  ],
+  "summary": "Scheduled inclusion is filtered through shared parent-state constraints in the port.",
+  "test_or_falsification_candidate": "Due Scheduler obligation absent from pool should still be synthesized; C1-C10 failures should not reach execution.",
+  "title": "Scheduled inclusion is filtered by shared contract-state constraints",
+  "total_invariants": 1954
+}

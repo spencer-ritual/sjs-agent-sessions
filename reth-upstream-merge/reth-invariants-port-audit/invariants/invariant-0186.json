@@ -1,0 +1,103 @@
+{
+  "cluster_key": "executor delivery:building-verification-consume-d806b874",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The payload builder hydrates the fulfilled original execution context from the transaction's attached SPC calls before replaying the original transaction.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let mut async_context = AsyncContextFactory::building_context(tx_hash);\nif let Some(spc_calls) = prepared.original_tx.spc_calls() {\n    async_context.pending_spc_calls = spc_calls.to_vec();\n}\nasync_context.set_async_metadata(AsyncCallMetadata::new(...));",
+      "symbols": [
+        "PayloadCandidate::FulfilledAsync",
+        "AsyncContextFactory::building_context"
+      ]
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "f4f4f2c7cbf201bd9f3fb6fe7b9cdd18c6aecdec",
+      "evidence": "The verification executor installs a verification async context from the same transaction-attached SPC calls before EVM execution.",
+      "path": "crates/evm/src/eth/block.rs",
+      "repo": "/home/ritual/repos/ritual-alloy-evm-internal",
+      "snippet": "let spc_calls = tx.tx().spc_calls();\nif let Some(spc_calls) = spc_calls.filter(|calls| !calls.is_empty()) {\n    *async_context = AsyncContextFactory::verification_context(tx_hash, spc_calls);\n}",
+      "symbols": [
+        "execute_transaction_without_commit",
+        "AsyncContextFactory::verification_context"
+      ]
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "c7845a2265d1245116728116e7418f636ef3b8af",
+      "evidence": "Supported SPC-aware precompiles read the preloaded SPC call by index and return the simulated input and executor output pair rather than requiring current inclusion input equality.",
+      "path": "crates/precompile/src/http_call.rs",
+      "repo": "/home/ritual/repos/ritual-revm-internal",
+      "snippet": "// CRITICAL: DO NOT validate that spc_call.input == current input\n// input@simulation != input@inclusion is EXPECTED ...\nlet spc_input = spc_call.input.clone();\nlet spc_output = spc_call.output.clone();\nlet combined_output = abi_encode_bytes_pair(&spc_input, &spc_output);",
+      "symbols": [
+        "http_call_run_async_aware_with_context"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port builder and dependency verifier both seed pending_spc_calls from the included transaction before execution, and the shared revm precompile handlers consume that ordered queue to return the recorded simulation input/output. This preserves proposer/validator replay parity for the enabled v2 async families; unsupported two-phase families are rejected before this delivery path rather than taking a divergent execution branch.",
+  "evidence_files": [
+    "docs/async-transaction-fsm.md"
+  ],
+  "invariant_id": "cur-0cd027dd18-building-verification-consume-identical-calls",
+  "invariant_index": 186,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+    "/home/ritual/repos/ritual-alloy-evm-internal",
+    "/home/ritual/repos/ritual-revm-internal"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/evm/src/eth/block.rs",
+      "crates/context/src/async_context.rs",
+      "crates/precompile/src/http_call.rs",
+      "crates/precompile/src/llm_call.rs",
+      "crates/precompile/src/dkms_key.rs",
+      "crates/precompile/src/long_running_http_call.rs",
+      "crates/precompile/src/sovereign_agent.rs",
+      "crates/precompile/src/persistent_agent.rs"
+    ],
+    "checked_queries": [
+      "verification_context\\(|ExecutionMode::Verification|pending_spc_calls = spc_calls",
+      "input@simulation|pending_spc_calls|spc_call.input",
+      "Input mismatch: current input differs from simulated input"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal"
+    ],
+    "checked_symbols": [
+      "AsyncContextFactory::building_context",
+      "AsyncContextFactory::verification_context",
+      "pending_spc_calls",
+      "http_call_run_async_aware_with_context",
+      "llm_call_run_async_aware_with_context",
+      "dkms_key_run_async_aware_with_context"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The document explicitly calls out the shared code path and names proposer/validator identical execution as a key invariant needed for deterministic consensus. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "19610d09c74769d871ca8cddf7276fac4fc5711f"
+  ],
+  "statement": "For fulfilled async transactions, block building and block verification must hydrate pending_spc_calls from the transaction's attached SpcCall data and execute the same precompile logic, returning (input@simulation, output) without requiring spc_call.input to equal the current input@inclusion.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create a fulfilled async transaction whose contract input changes between simulation and inclusion, attach an SpcCall containing input@simulation and executor output, then execute both block-building and block-verification paths and assert both return the same tuple and state result without failing on input mismatch."
+  ],
+  "summary": "Fulfilled async builder and verifier execution consume the same transaction-attached SPC calls through shared async context plumbing.",
+  "test_or_falsification_candidate": "Attach an SPC call whose input differs from the current inclusion input to a fulfilled HTTP/LLM/DKMS-style transaction and execute both builder and verifier paths; both should return the ABI pair containing input@simulation and output.",
+  "title": "Building and verification consume identical SPC calls",
+  "total_invariants": 1954
+}

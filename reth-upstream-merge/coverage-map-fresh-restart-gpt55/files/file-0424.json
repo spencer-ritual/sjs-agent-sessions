@@ -1,0 +1,85 @@
+{
+  "record_type": "file",
+  "file_index": 424,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/stages/api/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "missing",
+  "tags": [
+    "missing",
+    "high-risk",
+    "non-exact",
+    "needs-review",
+    "stages-api",
+    "async-context",
+    "pipeline",
+    "onnx-verification"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0424-atom-0001",
+      "file_index": 424,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/stages/api/Cargo.toml",
+      "source_hunk_hint": "@@ -48,6 +48,7 @@ [features]",
+      "source_kind": "feature_flag",
+      "source_snippet": "async-context = [\"reth-errors/async-context\"]",
+      "semantic_claim": "The downstream fork exposes an `async-context` feature on `reth-stages-api` and forwards it to `reth-errors/async-context`, allowing stages pipeline code to compile async-context-specific error handling.",
+      "high_risk": true,
+      "risk_tags": [
+        "pipeline",
+        "async-context",
+        "onnx-verification",
+        "compile-surface"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/stages/api/Cargo.toml",
+          "symbols": [
+            "[features]",
+            "reth-errors"
+          ],
+          "evidence": "Destination `crates/stages/api/Cargo.toml` keeps `reth-errors.workspace = true` and `test-utils`, but has no `async-context` feature forwarding to `reth-errors/async-context`; other crates define async-context features independently."
+        }
+      ],
+      "equivalence_argument": "Not equivalent: the destination cannot enable stages-api async-context handling through this crate feature, and the paired pipeline ONNX retry atom in file-0427 is also absent.",
+      "required_change": "Add `async-context = [\"reth-errors/async-context\"]` to `crates/stages/api/Cargo.toml` if the pipeline ONNX retry path is intended to remain live in the v2.2 port, or record an explicit scope decision that stages pipeline async-context handling is intentionally omitted.",
+      "test_strategy": "cargo feature check plus pipeline retry regression",
+      "negative_test_candidate": "Run a cargo check/test configuration that enables `reth-stages-api/async-context` and exercises the ONNX-unavailable pipeline retry tests; it should fail while the feature is missing.",
+      "adversarial_review": {
+        "required": true,
+        "status": "queued",
+        "review_record_id": "review-file-0424-atom-0001"
+      },
+      "review_required": true,
+      "notes": "Fresh audit confirmed the destination lacks the feature forwarding; this is not just rustfmt noise because it gates the semantic pipeline retry code added in file-0427."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [
+    {
+      "review_record_id": "review-file-0424-atom-0001",
+      "atom_id": "file-0424-atom-0001",
+      "status": "queued",
+      "reason": "Missing stages-api async-context feature forwarding required by the downstream ONNX pipeline retry path."
+    }
+  ],
+  "summary": "The downstream `async-context` feature for `reth-stages-api` is missing from the destination.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": [
+    "Queue entry verified as file-0424: M\tcrates/stages/api/Cargo.toml.",
+    "Source semantic hunk is diff lines 84316-84321.",
+    "Destination inspection found async-context features in errors/evm/node crates, but not in `reth-stages-api`."
+  ]
+}

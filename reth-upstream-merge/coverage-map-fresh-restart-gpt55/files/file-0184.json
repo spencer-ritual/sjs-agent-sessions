@@ -1,0 +1,32 @@
+{
+  "record_type": "file",
+  "file_index": 184,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/net/peers/src/node_record.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "peers",
+    "node-record"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The node record divergence is semicolon-only rustfmt noise in IPv4-mapped address conversion and ENR parse error returns; no node record behavior changed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 184: M\tcrates/net/peers/src/node_record.rs.",
+    "The isolated patch only adds semicolons to IPv4-mapped conversion and missing IP/UDP/TCP port error returns.",
+    "No address normalization, ENR IP/UDP/TCP extraction, node ID derivation, or parse error content changed."
+  ]
+}

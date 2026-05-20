@@ -1,0 +1,70 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: the audited v2 port has LLM error-fee handling, but the DA delivery hasError constant-fee path and DA compile-time bound are absent.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/constants.rs",
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-cfe4309d44-error-deliveries-settle-constant",
+  "invariant_index": 530,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/constants.rs",
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "DA_ERROR_PHASE2_FEE_WEI calculate_da_error_fees_phase2 delivery_has_error",
+      "hasError Image Audio Video FHE Phase 2 constant fee",
+      "DA error settlement fees bounded compile time"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "DA_ERROR_PHASE2_FEE_WEI",
+      "calculate_da_error_fees_phase2",
+      "delivery_has_error",
+      "calculate_audio_fees_phase2_from_delivery",
+      "calculate_video_fees_phase2_from_delivery",
+      "calculate_async_fees_phase2"
+    ],
+    "missing_behavior": "Image, Audio, Video, and FHE Phase 2 delivery result handling has no hasError=true short-circuit that bypasses normal output extraction and applies a DA_ERROR_PHASE2_FEE_WEI executor fee.",
+    "related_but_insufficient_code": [
+      "crates/ritual-async-fees/src/constants.rs defines LLM_ERROR_EXECUTOR_FEE_WEI and one compile-time assertion, but no DA_ERROR_PHASE2_FEE_WEI or multimodal/FHE bound assertion.",
+      "crates/ritual-async-fees/src/lib.rs calculates normal ZK, persistent-agent, audio, video, and agent Phase 2 fees, but has no delivery_has_error or calculate_da_error_fees_phase2 symbol.",
+      "crates/ethereum/payload/src/ritual_async.rs and crates/ritual-block-verification/src/lib.rs route audio/video deliveries through normal extraction and fee calculation without a hasError short-circuit.",
+      "The old /home/ritual/repos/ritual-reth-internal checkout contains delivery_has_error/calculate_da_error_fees_phase2, but it is not one of the audited local repos for this port batch."
+    ]
+  },
+  "notes": "Searches across all audited repos found only the LLM has_error path; DA hasError handling appears only in the non-audited older checkout.",
+  "rationale": "The commit message labels this consensus-critical, and the diff adds the shared hasError helper and DA error fee function, then wires the same short-circuit into builder and verifier branches for Image, Audio, Video, and FHE. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "ab24cbc680264974bb0e1219da3a8f2c96d842b8"
+  ],
+  "statement": "For Image, Audio, Video, and FHE Phase 2 delivery results, if delivery_has_error sees hasError=true in slot 0, both payload builder and block verifier must bypass normal dimension/duration/output-size extraction and use calculate_da_error_fees_phase2(), which charges only DA_ERROR_PHASE2_FEE_WEI as executor_fee with zero commitment and inclusion fees.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Encode Phase 2 delivery results for Image, Audio, Video, and FHE with hasError=true and missing or invalid normal output fields; assert builder creates settlement fees equal to DA_ERROR_PHASE2_FEE_WEI/0/0 and verifier accepts those fees. Repeat with hasError=false and malformed normal fields, asserting verifier rejects rather than using the DA error fee."
+  ],
+  "summary": "DA hasError delivery constant-fee settlement is absent.",
+  "test_or_falsification_candidate": "Encode Image/Audio/Video/FHE Phase 2 delivery results with hasError=true and malformed normal output fields; builder/verifier should settle with DA_ERROR_PHASE2_FEE_WEI, but the local port has no such branch.",
+  "title": "DA error deliveries settle with constant fee",
+  "total_invariants": 1954
+}

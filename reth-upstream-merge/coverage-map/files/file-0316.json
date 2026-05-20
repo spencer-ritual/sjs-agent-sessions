@@ -1,0 +1,1219 @@
+{
+  "record_type": "file",
+  "file_index": 316,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-precompile-addresses/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "exact",
+    "high-risk",
+    "intentionally_absent",
+    "needs-review",
+    "non-exact",
+    "structural_equivalent"
+  ],
+  "atoms_total": 20,
+  "atoms": [
+    {
+      "record_id": "file-0316-atom-0001",
+      "file_index": 316,
+      "atom_index": 1,
+      "atoms_total": 20,
+      "source_path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,115 @@",
+      "source_kind": "other",
+      "source_snippet": "//! Canonical addresses for Ritual async / SPC precompiles.\n//!\n//! Single source of truth for chain-fixed `0x08xx` precompile contracts. Downstream crates\n//! (`ritual-async-fees`, `ritual-spc-signature`, block verification) re-export these so\n//! address literals are not duplicated.\n",
+      "semantic_claim": "The downstream diff for crates/ritual-precompile-addresses/src/lib.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": true,
+      "risk_tags": [
+        "precompile"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-addresses/src/lib.rs",
+          "symbols": [
+            "is_two_phase_precompile"
+          ],
+          "snippet": "pub fn is_two_phase_precompile(addr: Address) -> bool {\n    metadata_by_address(addr)\n        .is_some_and(|metadata| metadata.settlement == AsyncPrecompileSettlement::TwoPhase)\n}\n",
+          "evidence": "The destination keeps the module at the same relative path with overlapping symbols ['is_two_phase_precompile']."
+        }
+      ],
+      "equivalence_argument": "The downstream behavior still resides in the same integration surface in the destination workspace, but the implementation was refactored or reshaped; review is required to confirm full semantic parity.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Run the destination behavior owned by crates/ritual-precompile-addresses/src/lib.rs and verify the downstream-observed behavior still holds after the port refactor.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "The destination keeps the module at the same relative path with overlapping symbols ['is_two_phase_precompile'].",
+      "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor."
+    },
+    {
+      "record_id": "file-0316-atom-0002",
+      "file_index": 316,
+      "atom_index": 2,
+      "atoms_total": 20,
+      "source_path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,115 @@",
+      "source_kind": "state_transition",
+      "source_snippet": "    use super::*;\n    use alloy_primitives::Address;\n\n    #[test]\n    fn precompile_addresses_are_nonzero_and_pairwise_distinct() {\n        let addrs = ALL_SPC_BLOCK_VERIFIED_PRECOMPILE_ADDRESSES;\n        for a in &addrs {\n            assert_ne!(*a, Address::ZERO, \"precompile address must not be zero: {a}\");\n        }\n        for i in 0..addrs.len() {\n            for j in (i + 1)..addrs.len() {\n                assert_ne!(\n                    addrs[i], addrs[j],\n                    \"duplicate precompile address at indices {i} and {j}\"\n                );\n            }\n        }\n    }\n\n    #[test]\n    fn two_phase_precompiles_are_subset_of_spc_verified_allowlist() {\n        for addr in ALL_TWO_\n---\n        }\n    }\n\n    #[test]\n    fn two_phase_precompiles_are_subset_of_spc_verified_allowlist() {\n        for addr in ALL_TWO_PHASE_PRECOMPILE_ADDRESSES {\n            assert!(\n                ALL_SPC_BLOCK_VERIFIED_PRECOMPILE_ADDRESSES.contains(&addr),\n                \"two-phase precompile must be SPC-verified: {addr}\"\n            );\n        }\n    }\n}",
+      "semantic_claim": "precompile address preserves the production behavior asserted by downstream tests: precompile_addresses_are_nonzero_and_pairwise_distinct, two_phase_precompiles_are_subset_of_spc_verified_allowlist.",
+      "high_risk": true,
+      "risk_tags": [
+        "consensus-constant",
+        "negative-path",
+        "async-fsm"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-addresses/src/lib.rs",
+          "symbols": [
+            "precompile_addresses_are_nonzero_and_pairwise_distinct",
+            "two_phase_precompiles_are_subset_of_spc_verified_allowlist"
+          ],
+          "snippet": "fn precompile_addresses_are_nonzero_and_pairwise_distinct(...) / matching test or fixture name",
+          "evidence": "Exact destination evidence exists at the same relative source path for at least one grouped downstream test."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "same_test_both_repos",
+      "negative_test_candidate": "Run or port the grouped downstream tests: precompile_addresses_are_nonzero_and_pairwise_distinct, two_phase_precompiles_are_subset_of_spc_verified_allowlist.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Curated from supplemental test-atom audit by grouping sibling tests and dropping helper/no-assert/default-only noise.",
+      "test_derived": true,
+      "source_test_names": [
+        "precompile_addresses_are_nonzero_and_pairwise_distinct",
+        "two_phase_precompiles_are_subset_of_spc_verified_allowlist"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0316-atom-0001",
+        "test-file-0316-atom-0002"
+      ],
+      "required_change": "Split this broad derived claim into indivisible branch, guard, transition, side-effect, or error-path atoms before using it as actionable coverage."
+    },
+    {
+      "record_id": "file-0316-atom-0003",
+      "file_index": 316,
+      "atom_index": 3,
+      "atoms_total": 20,
+      "source_path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 10: Fees, Registries, And Product Economics",
+      "source_kind": "error_path",
+      "source_snippet": "Feature-preservation claims: Preserve: Do not reintroduce deprecated `AGENT_CALL_PRECOMPILE` in fee or registry paths (`#319`)",
+      "semantic_claim": "Preserve: Do not reintroduce deprecated `AGENT_CALL_PRECOMPILE` in fee or registry paths (`#319`).",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "precompile",
+        "fees",
+        "negative-path"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [],
+      "equivalence_argument": null,
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Preserve: Do not reintroduce deprecated `AGENT_CALL_PRECOMPILE` in fee or registry paths (`#319`).",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Deprecated precompile/address surfaces and target_block/commit_block compatibility are intentionally not restored; active runtime uses the canonical current address catalog and parent-state context.",
+      "feature_derived": true,
+      "feature_sections": [
+        10
+      ],
+      "source_feature_ids": [
+        "feature-raw-0121"
+      ],
+      "source_feature_claims": [
+        "Preserve: Do not reintroduce deprecated `AGENT_CALL_PRECOMPILE` in fee or registry paths (`#319`)"
+      ],
+      "human_question": "Verify whether this absence/negative-preservation invariant is upheld in the v2.2 port and record evidence.",
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope.",
+      "intentional_absence_basis": "obsolete/deprecated behavior with evidence",
+      "intentional_absence_rationale": "Old deprecated AGENT_CALL_PRECOMPILE / target_block surfaces are not present in the canonical address metadata or active async commitment path; current addresses are the 0x08xx catalog."
+    },
+    {
+      "record_id": "file-0316-atom-0004",
+      "file_index": 316,
+      "atom_index": 4,
+      "atoms_total": 20,
+      "source_path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 10: Fees, Registries, And Product Economics",
+      "source_kind": "other",
+      "source_snippet": "Feature-preservation claims: TEE registry capability matching for each precompile.",
+      "semantic_claim": "TEE registry capability matching for each precompile.",
+      "high_risk": true,
+      "risk_tags": [
+        "precompile",
+        "fees",
+        "executor-selection"
+      ],
+      "mapping_status": "needs_atomization",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-addresses/src/lib.rs",
+          "symbols": [
+            "canonical precompile constants",
+            "metadata helpers"
+          ],
+          "snippet": "canonical HTTP, LLM, long-running, ZK, FHE, media, DKMS, sovereign, and persistent precompile address metadata",
+          "evidence": "The current crate is the dependency-light source of truth for registered precompile addresses and metadata."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: TEE registry capability matching for each precompile.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Broad feature claim intentionally split into per-precompile contract atoms 0011-0020 plus runtime delivery/fee atoms. This broad atom must not be treated as green coverage.",
+      "feature_derived": true,
+      "feature_sections": [
+        10
+      ],
+      "source_feature_ids": [
+        "feature-raw-0113"
+      ],
+      "source_feature_claims": [
+        "TEE registry capability matching for each precompile."
+      ],
+      "needs_atomization": true,
+      "required_change": "Use the per-precompile cross-repo atoms and runtime delivery/fee atoms; do not satisfy this broad claim directly.",
+      "human_question": "Non-exact high-risk async atom retained in review queue after first-principles audit; see notes for narrowed scope."
+    },
+    {
+      "record_id": "file-0316-atom-0005",
+      "file_index": 316,
+      "atom_index": 5,
+      "atoms_total": 20,
+      "source_path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 3: EVM Context, Precompiles, And SPC",
+      "source_kind": "other",
+      "source_snippet": "Feature-preservation claims: Async precompile calls are captured with enough data to build commitments and verify SPC results.",
+      "semantic_claim": "Async precompile calls are captured with enough data to build commitments and verify SPC results.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "verifier",
+        "precompile"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-addresses/src/lib.rs",
+          "symbols": [
+            "canonical precompile constants",
+            "metadata helpers"
+          ],
+          "snippet": "canonical HTTP, LLM, long-running, ZK, FHE, media, DKMS, sovereign, and persistent precompile address metadata",
+          "evidence": "The current crate is the dependency-light source of truth for registered precompile addresses and metadata."
+        }
+      ],
+      "equivalence_argument": "Canonical precompile address metadata is preserved in ritual-precompile-addresses.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Async precompile calls are captured with enough data to build commitments and verify SPC results.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to canonical address crate.",
+      "feature_derived": true,
+      "feature_sections": [
+        3
+      ],
+      "source_feature_ids": [
+        "feature-raw-0025"
+      ],
+      "source_feature_claims": [
+        "Async precompile calls are captured with enough data to build commitments and verify SPC results."
+      ],
+      "needs_atomization": true
+    },
+    {
+      "record_id": "file-0316-atom-0006",
+      "file_index": 316,
+      "atom_index": 6,
+      "atoms_total": 20,
+      "source_path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 3: EVM Context, Precompiles, And SPC",
+      "source_kind": "error_path",
+      "source_snippet": "Feature-preservation claims: Preserve: Do not reintroduce deprecated `AGENT_CALL_PRECOMPILE`",
+      "semantic_claim": "Preserve: Do not reintroduce deprecated `AGENT_CALL_PRECOMPILE`.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "precompile",
+        "negative-path"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [],
+      "equivalence_argument": null,
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Preserve: Do not reintroduce deprecated `AGENT_CALL_PRECOMPILE`.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Deprecated precompile/address surfaces and target_block/commit_block compatibility are intentionally not restored; active runtime uses the canonical current address catalog and parent-state context.",
+      "feature_derived": true,
+      "feature_sections": [
+        3
+      ],
+      "source_feature_ids": [
+        "feature-raw-0035"
+      ],
+      "source_feature_claims": [
+        "Preserve: Do not reintroduce deprecated `AGENT_CALL_PRECOMPILE`"
+      ],
+      "human_question": "Verify whether this absence/negative-preservation invariant is upheld in the v2.2 port and record evidence.",
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope.",
+      "intentional_absence_basis": "obsolete/deprecated behavior with evidence",
+      "intentional_absence_rationale": "Old deprecated AGENT_CALL_PRECOMPILE / target_block surfaces are not present in the canonical address metadata or active async commitment path; current addresses are the 0x08xx catalog."
+    },
+    {
+      "record_id": "file-0316-atom-0007",
+      "file_index": 316,
+      "atom_index": 7,
+      "atoms_total": 20,
+      "source_path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 3: EVM Context, Precompiles, And SPC",
+      "source_kind": "other",
+      "source_snippet": "Feature-preservation claims: Preserve precompile/address surface: DKMS `0x081B` (`#258`), FHE `0x0807` (`#264`), canonical `0x08xx` address crate and shared SPC allowlist (`#317`), split image/audio/video capabilities (`#246`), persistent-agent runtime enum `zeroclaw/openclaw/hermes` with 26-field layout (`#321`)",
+      "semantic_claim": "Preserve precompile/address surface: DKMS `0x081B` (`#258`), FHE `0x0807` (`#264`), canonical `0x08xx` address crate and shared SPC allowlist (`#317`), split image/audio/video capabilities (`#246`), persistent-agent runtime enum `zeroclaw/openclaw/hermes` with 26-field layout (`#321`).",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "precompile",
+        "consensus-constant"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-addresses/src/lib.rs",
+          "symbols": [
+            "canonical precompile constants",
+            "metadata helpers"
+          ],
+          "snippet": "canonical HTTP, LLM, long-running, ZK, FHE, media, DKMS, sovereign, and persistent precompile address metadata",
+          "evidence": "The current crate is the dependency-light source of truth for registered precompile addresses and metadata."
+        }
+      ],
+      "equivalence_argument": "Canonical precompile address metadata is preserved in ritual-precompile-addresses.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Preserve precompile/address surface: DKMS `0x081B` (`#258`), FHE `0x0807` (`#264`), canonical `0x08xx` address crate and shared SPC allowlist (`#317`), split image/audio/video capabilities (`#246`), persistent-agent runtime enum `zeroclaw/openclaw/hermes` with 26-field layout (`#321`).",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to canonical address crate.",
+      "feature_derived": true,
+      "feature_sections": [
+        3
+      ],
+      "source_feature_ids": [
+        "feature-raw-0034"
+      ],
+      "source_feature_claims": [
+        "Preserve precompile/address surface: DKMS `0x081B` (`#258`), FHE `0x0807` (`#264`), canonical `0x08xx` address crate and shared SPC allowlist (`#317`), split image/audio/video capabilities (`#246`), persistent-agent runtime enum `zeroclaw/openclaw/hermes` with 26-field layout (`#321`)"
+      ],
+      "needs_atomization": true
+    },
+    {
+      "record_id": "file-0316-atom-0008",
+      "file_index": 316,
+      "atom_index": 8,
+      "atoms_total": 20,
+      "source_path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 3: EVM Context, Precompiles, And SPC",
+      "source_kind": "encoding_rule",
+      "source_snippet": "Feature-preservation claims: SPC proof/signature paths preserve original transaction context, precompile input/output, executor, and previous-block context.",
+      "semantic_claim": "SPC proof/signature paths preserve original transaction context, precompile input/output, executor, and previous-block context.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "precompile",
+        "encoding",
+        "executor-selection"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-addresses/src/lib.rs",
+          "symbols": [
+            "canonical precompile constants",
+            "metadata helpers"
+          ],
+          "snippet": "canonical HTTP, LLM, long-running, ZK, FHE, media, DKMS, sovereign, and persistent precompile address metadata",
+          "evidence": "The current crate is the dependency-light source of truth for registered precompile addresses and metadata."
+        }
+      ],
+      "equivalence_argument": "Canonical precompile address metadata is preserved in ritual-precompile-addresses.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: SPC proof/signature paths preserve original transaction context, precompile input/output, executor, and previous-block context.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to canonical address crate.",
+      "feature_derived": true,
+      "feature_sections": [
+        3
+      ],
+      "source_feature_ids": [
+        "feature-raw-0026"
+      ],
+      "source_feature_claims": [
+        "SPC proof/signature paths preserve original transaction context, precompile input/output, executor, and previous-block context."
+      ],
+      "needs_atomization": true
+    },
+    {
+      "record_id": "file-0316-atom-0009",
+      "file_index": 316,
+      "atom_index": 9,
+      "atoms_total": 20,
+      "source_path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 7: Block Verification And Consensus Gates",
+      "source_kind": "error_path",
+      "source_snippet": "Feature-preservation claims: Preserve: Do not reintroduce `target_block`/`commit_block` (`#261`) or deprecated `AGENT_CALL_PRECOMPILE` (`#319`)",
+      "semantic_claim": "Preserve: Do not reintroduce `target_block`/`commit_block` (`#261`) or deprecated `AGENT_CALL_PRECOMPILE` (`#319`).",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "verifier",
+        "precompile",
+        "negative-path"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [],
+      "equivalence_argument": null,
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Preserve: Do not reintroduce `target_block`/`commit_block` (`#261`) or deprecated `AGENT_CALL_PRECOMPILE` (`#319`).",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Deprecated precompile/address surfaces and target_block/commit_block compatibility are intentionally not restored; active runtime uses the canonical current address catalog and parent-state context.",
+      "feature_derived": true,
+      "feature_sections": [
+        7
+      ],
+      "source_feature_ids": [
+        "feature-raw-0090"
+      ],
+      "source_feature_claims": [
+        "Preserve: Do not reintroduce `target_block`/`commit_block` (`#261`) or deprecated `AGENT_CALL_PRECOMPILE` (`#319`)"
+      ],
+      "human_question": "Verify whether this absence/negative-preservation invariant is upheld in the v2.2 port and record evidence.",
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope.",
+      "intentional_absence_basis": "obsolete/deprecated behavior with evidence",
+      "intentional_absence_rationale": "Old deprecated AGENT_CALL_PRECOMPILE / target_block surfaces are not present in the canonical address metadata or active async commitment path; current addresses are the 0x08xx catalog."
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 316,
+      "source_path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "source_hunk_hint": "crates/ritual-precompile-addresses/src/lib.rs:48-69",
+      "source_kind": "consensus_constant",
+      "source_snippet": "/// Every precompile address that must pass SPC block verification (`ritual_spc_signature::is_spc_block_verified_precompile`).\n///\n/// Keep this list in sync with that predicate \u2014 it is the canonical set used for exhaustive tests.\npub const ALL_SPC_BLOCK_VERIFIED_PRECOMPILE_ADDRESSES: [Address; 11] = [\n    HTTP_CALL_PRECOMPILE,\n    LLM_CALL_PRECOMPILE,\n    LONG_RUNNING_HTTP_PRECOMPILE,\n    ZK_TWO_PHASE_PRECOMPILE,\n    FHE_PRECOMPILE,\n    SOVEREIGN_AGENT_PRECOMPILE,\n    IMAGE_CALL_PRECOMPILE,\n    AUDIO_CALL_PRECOMPILE,\n    VIDEO_CALL_PRECOMPILE,\n    DKMS_KEY_PRECOMPILE,\n    PERSISTENT_AGENT_PRECOMPILE,\n];\n\n/// Canonical list of precompiles that execute in two phases (commitment + delivery).\n///\n/// Keep this list as the single source of truth for two-phase classification logic.\npub const ALL_TWO_PHASE_PRECOMPILE_ADDRESSES: [Address; 8] = [\n    LONG_RUNNING_HTTP_PRECOMPILE,",
+      "semantic_claim": "The canonical precompile-address catalog keeps all dApp-facing SPC-verified and two-phase addresses in one source of truth, covering HTTP, LLM, long HTTP, ZK, FHE, multimodal, DKMS, sovereign-agent, and persistent-agent flows.",
+      "high_risk": true,
+      "risk_tags": [
+        "precompile",
+        "consensus-constant",
+        "async-fsm",
+        "verifier"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-addresses/src/lib.rs",
+          "symbols": [
+            "canonical precompile constants",
+            "metadata helpers"
+          ],
+          "snippet": "canonical HTTP, LLM, long-running, ZK, FHE, media, DKMS, sovereign, and persistent precompile address metadata",
+          "evidence": "The current crate is the dependency-light source of truth for registered precompile addresses and metadata."
+        }
+      ],
+      "equivalence_argument": "Canonical precompile address metadata is preserved in ritual-precompile-addresses.",
+      "test_strategy": "flow_equivalence_regression",
+      "negative_test_candidate": "Replay the smallest Source Inventory, Short-Running Async SPC Trace, Long-Running Two-Phase Trace scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "Source Inventory",
+        "Short-Running Async SPC Trace",
+        "Long-Running Two-Phase Trace"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0001"
+      ],
+      "notes": "Mapped to canonical address crate.",
+      "atom_index": 10,
+      "record_id": "file-0316-atom-0010",
+      "atoms_total": 20
+    },
+    {
+      "record_id": "file-0316-atom-0011",
+      "file_index": 316,
+      "atom_index": 11,
+      "atoms_total": 20,
+      "source_path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "source_hunk_hint": "cross-repo-contract: sovereign/persistent precompile executor capability",
+      "source_kind": "consensus_constant",
+      "source_snippet": "FSM parity chain: precompile address (0x080C / 0x0820) -> expected registry Capability for payload builder + verifier executor check -> traffic-gen ExecutorSelector capability -> ritual-node docker.py CAPABILITIES= on localnet HTTP sidecars.",
+      "semantic_claim": "Sovereign Agent `0x080C` and Persistent Agent `0x0820` must map to `AsyncPrecompileCapabilityTag::HttpCall` (registry u8 0), matching traffic-gen `Capability.HTTP_CALL` executor selection and localnet HTTP executor provisioning \u2014 not `AutonomousAgent` / 11.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "precompile",
+        "executor-selection",
+        "cross-repo"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-addresses/src/lib.rs",
+          "symbols": [
+            "sovereign_and_persistent_precompiles_expected_capability_is_http_call_for_downstream_parity",
+            "ALL_ASYNC_PRECOMPILE_METADATA"
+          ],
+          "snippet": "SOVEREIGN_AGENT_PRECOMPILE / PERSISTENT_AGENT_PRECOMPILE entries use HttpCall; regression test locks HTTP vs AutonomousAgent mismatch",
+          "evidence": "Unit test `sovereign_and_persistent_precompiles_expected_capability_is_http_call_for_downstream_parity` fails if metadata maps agent precompiles to AutonomousAgent."
+        },
+        {
+          "repo": "/home/ritual/repos/traffic-gen-internal",
+          "path": "src/action/launch_sovereign_agent.py",
+          "symbols": [
+            "ExecutorSelector",
+            "Capability.HTTP_CALL"
+          ],
+          "snippet": "selector picks capability=Capability.HTTP_CALL for sovereign launch",
+          "evidence": "launch_sovereign_agent uses ExecutorSelector with HTTP_CALL (lines ~460-470)."
+        },
+        {
+          "repo": "/home/ritual/repos/traffic-gen-internal",
+          "path": "src/action/launch_persistent_agent.py",
+          "symbols": [
+            "ExecutorSelector",
+            "Capability.HTTP_CALL"
+          ],
+          "snippet": "capability=Capability.HTTP_CALL",
+          "evidence": "launch_persistent_agent pins HTTP_CALL executors (~508-518)."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-node-internal",
+          "path": "configgen/docker.py",
+          "symbols": [
+            "Capability.HTTP_CALL",
+            "_generate_executor_service"
+          ],
+          "snippet": "localnet HTTP sidecars use CAPABILITIES=HTTP_CALL",
+          "evidence": "executor-go-http services pass capability=Capability.HTTP_CALL."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "same_test_both_repos",
+      "negative_test_candidate": "Run `cargo test -p ritual-precompile-addresses sovereign_and_persistent_precompiles_expected_capability_is_http_call_for_downstream_parity --locked`; on mismatch, `make launch-sovereign-agent` fails with HttpCall vs AutonomousAgent executor error.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Seeded by incident: Reth accepted 0x080C as two-phase but expected AutonomousAgent while TEE registry executors are HTTP_CALL. Green Reth-only atoms are insufficient."
+    },
+    {
+      "record_id": "file-0316-atom-0012",
+      "file_index": 316,
+      "atom_index": 12,
+      "atoms_total": 20,
+      "source_path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "source_hunk_hint": "cross-repo-contract static: 0x0801 (short HTTP)",
+      "source_kind": "consensus_constant",
+      "source_snippet": "0x0801 async precompile: Reth metadata tag, payload executor check, traffic Capability.HTTP_CALL, docker CAPABILITIES \u2014 verified by coverage-map/verify_async_precompile_cross_repo.py",
+      "semantic_claim": "Cross-repo executor contract for 0x0801 (HTTP_CALL_PRECOMPILE): `AsyncPrecompileCapabilityTag::HttpCall` must match traffic-gen `Capability.HTTP_CALL` selection and ritual-node docker executor `Capability.HTTP_CALL` provisioning; payload/verifier compares via `registry_capability_for_precompile`.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "precompile",
+        "executor-selection",
+        "cross-repo"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-addresses/src/lib.rs",
+          "symbols": [
+            "HTTP_CALL_PRECOMPILE",
+            "ALL_ASYNC_PRECOMPILE_METADATA"
+          ],
+          "snippet": "HTTP_CALL_PRECOMPILE -> AsyncPrecompileCapabilityTag::HttpCall",
+          "evidence": "Metadata entry binds 0x0801 to registry tag HttpCall (u8 0)."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "registry_capability_for_precompile",
+            "expected_capability"
+          ],
+          "snippet": "executor.capability vs registry_capability_for_precompile(precompile_address)",
+          "evidence": "Payload/async settlement enforces TEE registry capability equals metadata-derived expectation."
+        },
+        {
+          "repo": "/home/ritual/repos/traffic-gen-internal",
+          "path": "traffic-gen-internal/src/action/x402_http_call.py",
+          "symbols": [
+            "ExecutorSelector",
+            "Capability.HTTP_CALL"
+          ],
+          "snippet": "Capability.HTTP_CALL",
+          "evidence": "Traffic-gen selects `Capability.HTTP_CALL` for short HTTP workloads referencing 0x0801."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-node-internal",
+          "path": "configgen/docker.py",
+          "symbols": [
+            "_generate_executor_service",
+            "Capability.HTTP_CALL"
+          ],
+          "snippet": "Capability.HTTP_CALL",
+          "evidence": "Localnet executor services set CAPABILITIES consistent with `Capability` enum."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "python3 coverage-map/verify_async_precompile_cross_repo.py (must exit 0).",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Old-FSM parity uses downstream-selected executor capability, not name-plausible registry variants."
+    },
+    {
+      "record_id": "file-0316-atom-0013",
+      "file_index": 316,
+      "atom_index": 13,
+      "atoms_total": 20,
+      "source_path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "source_hunk_hint": "cross-repo-contract static: 0x0802 (LLM)",
+      "source_kind": "consensus_constant",
+      "source_snippet": "0x0802 async precompile: Reth metadata tag, payload executor check, traffic Capability.LLM, docker CAPABILITIES \u2014 verified by coverage-map/verify_async_precompile_cross_repo.py",
+      "semantic_claim": "Cross-repo executor contract for 0x0802 (LLM_CALL_PRECOMPILE): `AsyncPrecompileCapabilityTag::Llm` must match traffic-gen `Capability.LLM` selection and ritual-node docker executor `Capability.LLM` provisioning; payload/verifier compares via `registry_capability_for_precompile`.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "precompile",
+        "executor-selection",
+        "cross-repo"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-addresses/src/lib.rs",
+          "symbols": [
+            "LLM_CALL_PRECOMPILE",
+            "ALL_ASYNC_PRECOMPILE_METADATA"
+          ],
+          "snippet": "LLM_CALL_PRECOMPILE -> AsyncPrecompileCapabilityTag::Llm",
+          "evidence": "Metadata entry binds 0x0802 to registry tag Llm (u8 1)."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "registry_capability_for_precompile",
+            "expected_capability"
+          ],
+          "snippet": "executor.capability vs registry_capability_for_precompile(precompile_address)",
+          "evidence": "Payload/async settlement enforces TEE registry capability equals metadata-derived expectation."
+        },
+        {
+          "repo": "/home/ritual/repos/traffic-gen-internal",
+          "path": "traffic-gen-internal/src/action/llm_call.py",
+          "symbols": [
+            "ExecutorSelector",
+            "Capability.LLM"
+          ],
+          "snippet": "Capability.LLM",
+          "evidence": "Traffic-gen selects `Capability.LLM` for LLM workloads referencing 0x0802."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-node-internal",
+          "path": "configgen/docker.py",
+          "symbols": [
+            "_generate_executor_service",
+            "Capability.LLM"
+          ],
+          "snippet": "Capability.LLM",
+          "evidence": "Localnet executor services set CAPABILITIES consistent with `Capability` enum."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "python3 coverage-map/verify_async_precompile_cross_repo.py (must exit 0).",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Old-FSM parity uses downstream-selected executor capability, not name-plausible registry variants."
+    },
+    {
+      "record_id": "file-0316-atom-0014",
+      "file_index": 316,
+      "atom_index": 14,
+      "atoms_total": 20,
+      "source_path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "source_hunk_hint": "cross-repo-contract static: 0x0805 (long HTTP two-phase)",
+      "source_kind": "consensus_constant",
+      "source_snippet": "0x0805 async precompile: Reth metadata tag, payload executor check, traffic Capability.HTTP_CALL, docker CAPABILITIES \u2014 verified by coverage-map/verify_async_precompile_cross_repo.py",
+      "semantic_claim": "Cross-repo executor contract for 0x0805 (LONG_RUNNING_HTTP_PRECOMPILE): `AsyncPrecompileCapabilityTag::HttpCall` must match traffic-gen `Capability.HTTP_CALL` selection and ritual-node docker executor `Capability.HTTP_CALL` provisioning; payload/verifier compares via `registry_capability_for_precompile`.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "precompile",
+        "executor-selection",
+        "cross-repo"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-addresses/src/lib.rs",
+          "symbols": [
+            "LONG_RUNNING_HTTP_PRECOMPILE",
+            "ALL_ASYNC_PRECOMPILE_METADATA"
+          ],
+          "snippet": "LONG_RUNNING_HTTP_PRECOMPILE -> AsyncPrecompileCapabilityTag::HttpCall",
+          "evidence": "Metadata entry binds 0x0805 to registry tag HttpCall (u8 0)."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "registry_capability_for_precompile",
+            "expected_capability"
+          ],
+          "snippet": "executor.capability vs registry_capability_for_precompile(precompile_address)",
+          "evidence": "Payload/async settlement enforces TEE registry capability equals metadata-derived expectation."
+        },
+        {
+          "repo": "/home/ritual/repos/traffic-gen-internal",
+          "path": "traffic-gen-internal/src/action/long_running_echo.py",
+          "symbols": [
+            "ExecutorSelector",
+            "Capability.HTTP_CALL"
+          ],
+          "snippet": "Capability.HTTP_CALL",
+          "evidence": "Traffic-gen selects `Capability.HTTP_CALL` for long HTTP two-phase workloads referencing 0x0805."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-node-internal",
+          "path": "configgen/docker.py",
+          "symbols": [
+            "_generate_executor_service",
+            "Capability.HTTP_CALL"
+          ],
+          "snippet": "Capability.HTTP_CALL",
+          "evidence": "Localnet executor services set CAPABILITIES consistent with `Capability` enum."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "python3 coverage-map/verify_async_precompile_cross_repo.py (must exit 0).",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Old-FSM parity uses downstream-selected executor capability, not name-plausible registry variants."
+    },
+    {
+      "record_id": "file-0316-atom-0015",
+      "file_index": 316,
+      "atom_index": 15,
+      "atoms_total": 20,
+      "source_path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "source_hunk_hint": "cross-repo-contract static: 0x0806 (ZK)",
+      "source_kind": "consensus_constant",
+      "source_snippet": "0x0806 async precompile: Reth metadata tag, payload executor check, traffic Capability.ZK_CALL, docker CAPABILITIES \u2014 verified by coverage-map/verify_async_precompile_cross_repo.py",
+      "semantic_claim": "Cross-repo executor contract for 0x0806 (ZK_TWO_PHASE_PRECOMPILE): `AsyncPrecompileCapabilityTag::ZkCall` must match traffic-gen `Capability.ZK_CALL` selection and ritual-node docker executor `Capability.ZK_CALL` provisioning; payload/verifier compares via `registry_capability_for_precompile`.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "precompile",
+        "executor-selection",
+        "cross-repo"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-addresses/src/lib.rs",
+          "symbols": [
+            "ZK_TWO_PHASE_PRECOMPILE",
+            "ALL_ASYNC_PRECOMPILE_METADATA"
+          ],
+          "snippet": "ZK_TWO_PHASE_PRECOMPILE -> AsyncPrecompileCapabilityTag::ZkCall",
+          "evidence": "Metadata entry binds 0x0806 to registry tag ZkCall (u8 5)."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "registry_capability_for_precompile",
+            "expected_capability"
+          ],
+          "snippet": "executor.capability vs registry_capability_for_precompile(precompile_address)",
+          "evidence": "Payload/async settlement enforces TEE registry capability equals metadata-derived expectation."
+        },
+        {
+          "repo": "/home/ritual/repos/traffic-gen-internal",
+          "path": "traffic-gen-internal/src/action/zk_two_phase.py",
+          "symbols": [
+            "ExecutorSelector",
+            "Capability.ZK_CALL"
+          ],
+          "snippet": "Capability.ZK_CALL",
+          "evidence": "Traffic-gen selects `Capability.ZK_CALL` for ZK workloads referencing 0x0806."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-node-internal",
+          "path": "configgen/docker.py",
+          "symbols": [
+            "_generate_executor_service",
+            "Capability.ZK_CALL"
+          ],
+          "snippet": "Capability.ZK_CALL",
+          "evidence": "Localnet executor services set CAPABILITIES consistent with `Capability` enum."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "python3 coverage-map/verify_async_precompile_cross_repo.py (must exit 0).",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Old-FSM parity uses downstream-selected executor capability, not name-plausible registry variants."
+    },
+    {
+      "record_id": "file-0316-atom-0016",
+      "file_index": 316,
+      "atom_index": 16,
+      "atoms_total": 20,
+      "source_path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "source_hunk_hint": "cross-repo-contract static: 0x0807 (FHE)",
+      "source_kind": "consensus_constant",
+      "source_snippet": "0x0807 async precompile: Reth metadata tag, payload executor check, traffic Capability.FHE, docker CAPABILITIES \u2014 verified by coverage-map/verify_async_precompile_cross_repo.py",
+      "semantic_claim": "Cross-repo executor contract for 0x0807 (FHE_PRECOMPILE): `AsyncPrecompileCapabilityTag::Fhe` must match traffic-gen `Capability.FHE` selection and ritual-node docker executor `Capability.FHE` provisioning; payload/verifier compares via `registry_capability_for_precompile`. This atom proves the static cross-repo capability contract only; it does not prove active v2.2 Phase 2 delivery/pricing parity for this family.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "precompile",
+        "executor-selection",
+        "cross-repo"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-addresses/src/lib.rs",
+          "symbols": [
+            "FHE_PRECOMPILE",
+            "ALL_ASYNC_PRECOMPILE_METADATA"
+          ],
+          "snippet": "FHE_PRECOMPILE -> AsyncPrecompileCapabilityTag::Fhe",
+          "evidence": "Metadata entry binds 0x0807 to registry tag Fhe (u8 10)."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "registry_capability_for_precompile",
+            "expected_capability"
+          ],
+          "snippet": "executor.capability vs registry_capability_for_precompile(precompile_address)",
+          "evidence": "Payload/async settlement enforces TEE registry capability equals metadata-derived expectation."
+        },
+        {
+          "repo": "/home/ritual/repos/traffic-gen-internal",
+          "path": "traffic-gen-internal/src/action/fhe_inference.py",
+          "symbols": [
+            "ExecutorSelector",
+            "Capability.FHE"
+          ],
+          "snippet": "Capability.FHE",
+          "evidence": "Traffic-gen selects `Capability.FHE` for FHE workloads referencing 0x0807."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-node-internal",
+          "path": "configgen/docker.py",
+          "symbols": [
+            "_generate_executor_service",
+            "Capability.FHE"
+          ],
+          "snippet": "Capability.FHE",
+          "evidence": "Localnet executor services set CAPABILITIES consistent with `Capability` enum."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "python3 coverage-map/verify_async_precompile_cross_repo.py (capability contract only); separate runtime delivery parity tests required before enabling this family.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "First-principles audit: static address -> capability -> traffic-gen -> node provisioning contract is verified, but active delivery/pricing parity for this family is not green. Do not let this atom satisfy runtime delivery, wallet/model registry, or Phase 2 fee atoms."
+    },
+    {
+      "record_id": "file-0316-atom-0017",
+      "file_index": 316,
+      "atom_index": 17,
+      "atoms_total": 20,
+      "source_path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "source_hunk_hint": "cross-repo-contract static: 0x0818 (image)",
+      "source_kind": "consensus_constant",
+      "source_snippet": "0x0818 async precompile: Reth metadata tag, payload executor check, traffic Capability.IMAGE_CALL, docker CAPABILITIES \u2014 verified by coverage-map/verify_async_precompile_cross_repo.py",
+      "semantic_claim": "Cross-repo executor contract for 0x0818 (IMAGE_CALL_PRECOMPILE): `AsyncPrecompileCapabilityTag::ImageCall` must match traffic-gen `Capability.IMAGE_CALL` selection and ritual-node docker executor `Capability.IMAGE_CALL` provisioning; payload/verifier compares via `registry_capability_for_precompile`. This atom proves the static cross-repo capability contract only; it does not prove active v2.2 Phase 2 delivery/pricing parity for this family.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "precompile",
+        "executor-selection",
+        "cross-repo"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-addresses/src/lib.rs",
+          "symbols": [
+            "IMAGE_CALL_PRECOMPILE",
+            "ALL_ASYNC_PRECOMPILE_METADATA"
+          ],
+          "snippet": "IMAGE_CALL_PRECOMPILE -> AsyncPrecompileCapabilityTag::ImageCall",
+          "evidence": "Metadata entry binds 0x0818 to registry tag ImageCall (u8 7)."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "registry_capability_for_precompile",
+            "expected_capability"
+          ],
+          "snippet": "executor.capability vs registry_capability_for_precompile(precompile_address)",
+          "evidence": "Payload/async settlement enforces TEE registry capability equals metadata-derived expectation."
+        },
+        {
+          "repo": "/home/ritual/repos/traffic-gen-internal",
+          "path": "traffic-gen-internal/src/action/image_call.py",
+          "symbols": [
+            "ExecutorSelector",
+            "Capability.IMAGE_CALL"
+          ],
+          "snippet": "Capability.IMAGE_CALL",
+          "evidence": "Traffic-gen selects `Capability.IMAGE_CALL` for image workloads referencing 0x0818."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-node-internal",
+          "path": "configgen/docker.py",
+          "symbols": [
+            "_generate_executor_service",
+            "Capability.IMAGE_CALL"
+          ],
+          "snippet": "Capability.IMAGE_CALL",
+          "evidence": "Localnet executor services set CAPABILITIES consistent with `Capability` enum."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "python3 coverage-map/verify_async_precompile_cross_repo.py (capability contract only); separate runtime delivery parity tests required before enabling this family.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "First-principles audit: static address -> capability -> traffic-gen -> node provisioning contract is verified, but active delivery/pricing parity for this family is not green. Do not let this atom satisfy runtime delivery, wallet/model registry, or Phase 2 fee atoms."
+    },
+    {
+      "record_id": "file-0316-atom-0018",
+      "file_index": 316,
+      "atom_index": 18,
+      "atoms_total": 20,
+      "source_path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "source_hunk_hint": "cross-repo-contract static: 0x0819 (audio)",
+      "source_kind": "consensus_constant",
+      "source_snippet": "0x0819 async precompile: Reth metadata tag, payload executor check, traffic Capability.AUDIO_CALL, docker CAPABILITIES \u2014 verified by coverage-map/verify_async_precompile_cross_repo.py",
+      "semantic_claim": "Cross-repo executor contract for 0x0819 (AUDIO_CALL_PRECOMPILE): `AsyncPrecompileCapabilityTag::AudioCall` must match traffic-gen `Capability.AUDIO_CALL` selection and ritual-node docker executor `Capability.AUDIO_CALL` provisioning; payload/verifier compares via `registry_capability_for_precompile`. This atom proves the static cross-repo capability contract only; it does not prove active v2.2 Phase 2 delivery/pricing parity for this family.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "precompile",
+        "executor-selection",
+        "cross-repo"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-addresses/src/lib.rs",
+          "symbols": [
+            "AUDIO_CALL_PRECOMPILE",
+            "ALL_ASYNC_PRECOMPILE_METADATA"
+          ],
+          "snippet": "AUDIO_CALL_PRECOMPILE -> AsyncPrecompileCapabilityTag::AudioCall",
+          "evidence": "Metadata entry binds 0x0819 to registry tag AudioCall (u8 8)."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "registry_capability_for_precompile",
+            "expected_capability"
+          ],
+          "snippet": "executor.capability vs registry_capability_for_precompile(precompile_address)",
+          "evidence": "Payload/async settlement enforces TEE registry capability equals metadata-derived expectation."
+        },
+        {
+          "repo": "/home/ritual/repos/traffic-gen-internal",
+          "path": "traffic-gen-internal/src/action/audio_call.py",
+          "symbols": [
+            "ExecutorSelector",
+            "Capability.AUDIO_CALL"
+          ],
+          "snippet": "Capability.AUDIO_CALL",
+          "evidence": "Traffic-gen selects `Capability.AUDIO_CALL` for audio workloads referencing 0x0819."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-node-internal",
+          "path": "configgen/docker.py",
+          "symbols": [
+            "_generate_executor_service",
+            "Capability.AUDIO_CALL"
+          ],
+          "snippet": "Capability.AUDIO_CALL",
+          "evidence": "Localnet executor services set CAPABILITIES consistent with `Capability` enum."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "python3 coverage-map/verify_async_precompile_cross_repo.py (capability contract only); separate runtime delivery parity tests required before enabling this family.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "First-principles audit: static address -> capability -> traffic-gen -> node provisioning contract is verified, but active delivery/pricing parity for this family is not green. Do not let this atom satisfy runtime delivery, wallet/model registry, or Phase 2 fee atoms."
+    },
+    {
+      "record_id": "file-0316-atom-0019",
+      "file_index": 316,
+      "atom_index": 19,
+      "atoms_total": 20,
+      "source_path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "source_hunk_hint": "cross-repo-contract static: 0x081a (video)",
+      "source_kind": "consensus_constant",
+      "source_snippet": "0x081a async precompile: Reth metadata tag, payload executor check, traffic Capability.VIDEO_CALL, docker CAPABILITIES \u2014 verified by coverage-map/verify_async_precompile_cross_repo.py",
+      "semantic_claim": "Cross-repo executor contract for 0x081a (VIDEO_CALL_PRECOMPILE): `AsyncPrecompileCapabilityTag::VideoCall` must match traffic-gen `Capability.VIDEO_CALL` selection and ritual-node docker executor `Capability.VIDEO_CALL` provisioning; payload/verifier compares via `registry_capability_for_precompile`. This atom proves the static cross-repo capability contract only; it does not prove active v2.2 Phase 2 delivery/pricing parity for this family.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "precompile",
+        "executor-selection",
+        "cross-repo"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-addresses/src/lib.rs",
+          "symbols": [
+            "VIDEO_CALL_PRECOMPILE",
+            "ALL_ASYNC_PRECOMPILE_METADATA"
+          ],
+          "snippet": "VIDEO_CALL_PRECOMPILE -> AsyncPrecompileCapabilityTag::VideoCall",
+          "evidence": "Metadata entry binds 0x081a to registry tag VideoCall (u8 9)."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "registry_capability_for_precompile",
+            "expected_capability"
+          ],
+          "snippet": "executor.capability vs registry_capability_for_precompile(precompile_address)",
+          "evidence": "Payload/async settlement enforces TEE registry capability equals metadata-derived expectation."
+        },
+        {
+          "repo": "/home/ritual/repos/traffic-gen-internal",
+          "path": "traffic-gen-internal/src/action/video_call.py",
+          "symbols": [
+            "ExecutorSelector",
+            "Capability.VIDEO_CALL"
+          ],
+          "snippet": "Capability.VIDEO_CALL",
+          "evidence": "Traffic-gen selects `Capability.VIDEO_CALL` for video workloads referencing 0x081a."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-node-internal",
+          "path": "configgen/docker.py",
+          "symbols": [
+            "_generate_executor_service",
+            "Capability.VIDEO_CALL"
+          ],
+          "snippet": "Capability.VIDEO_CALL",
+          "evidence": "Localnet executor services set CAPABILITIES consistent with `Capability` enum."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "python3 coverage-map/verify_async_precompile_cross_repo.py (capability contract only); separate runtime delivery parity tests required before enabling this family.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "First-principles audit: static address -> capability -> traffic-gen -> node provisioning contract is verified, but active delivery/pricing parity for this family is not green. Do not let this atom satisfy runtime delivery, wallet/model registry, or Phase 2 fee atoms."
+    },
+    {
+      "record_id": "file-0316-atom-0020",
+      "file_index": 316,
+      "atom_index": 20,
+      "atoms_total": 20,
+      "source_path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "source_hunk_hint": "cross-repo-contract static: 0x081b (DKMS key)",
+      "source_kind": "consensus_constant",
+      "source_snippet": "0x081b async precompile: Reth metadata tag, payload executor check, traffic Capability.HTTP_CALL, docker CAPABILITIES \u2014 verified by coverage-map/verify_async_precompile_cross_repo.py",
+      "semantic_claim": "Cross-repo executor contract for 0x081b (DKMS_KEY_PRECOMPILE): `AsyncPrecompileCapabilityTag::HttpCall` must match traffic-gen `Capability.HTTP_CALL` selection and ritual-node docker executor `Capability.HTTP_CALL` provisioning; payload/verifier compares via `registry_capability_for_precompile`.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "precompile",
+        "executor-selection",
+        "cross-repo"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-addresses/src/lib.rs",
+          "symbols": [
+            "DKMS_KEY_PRECOMPILE",
+            "ALL_ASYNC_PRECOMPILE_METADATA"
+          ],
+          "snippet": "DKMS_KEY_PRECOMPILE -> AsyncPrecompileCapabilityTag::HttpCall",
+          "evidence": "Metadata entry binds 0x081b to registry tag HttpCall (u8 0)."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "registry_capability_for_precompile",
+            "expected_capability"
+          ],
+          "snippet": "executor.capability vs registry_capability_for_precompile(precompile_address)",
+          "evidence": "Payload/async settlement enforces TEE registry capability equals metadata-derived expectation."
+        },
+        {
+          "repo": "/home/ritual/repos/traffic-gen-internal",
+          "path": "traffic-gen-internal/src/action/x402_dkms_http_call.py",
+          "symbols": [
+            "ExecutorSelector",
+            "Capability.HTTP_CALL"
+          ],
+          "snippet": "Capability.HTTP_CALL",
+          "evidence": "Traffic-gen selects `Capability.HTTP_CALL` for DKMS key workloads referencing 0x081b."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-node-internal",
+          "path": "configgen/docker.py",
+          "symbols": [
+            "_generate_executor_service",
+            "Capability.HTTP_CALL"
+          ],
+          "snippet": "Capability.HTTP_CALL",
+          "evidence": "Localnet executor services set CAPABILITIES consistent with `Capability` enum."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "python3 coverage-map/verify_async_precompile_cross_repo.py (must exit 0).",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Old-FSM parity uses downstream-selected executor capability, not name-plausible registry variants."
+    }
+  ],
+  "high_risk_atoms_total": 20,
+  "non_exact_atoms_total": 9,
+  "adversarial_reviews": [],
+  "summary": "Per-precompile cross-repo contract atoms are present; broad capability coverage is not accepted as proof of runtime parity.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "First-principles async audit: 0x080C/0x0820 map to HttpCall for old-FSM parity; media/FHE static capability atoms are capability-only and do not green-light runtime delivery/pricing."
+}

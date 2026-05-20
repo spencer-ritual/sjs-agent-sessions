@@ -1,0 +1,74 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/service.rs",
+    "crates/ritual-spc-verification/src/types.rs"
+  ],
+  "invariant_id": "cur-02fe890f0a-registration-events-store-executorregistry-fields",
+  "invariant_index": 317,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-spc-verification/src/service.rs (absent locally)",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-spc-verification/src/types.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-spc-verification/src/verifier.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-tee-registry-reader/src/constants.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-tee-registry-reader/src/reader.rs",
+      "ritual-reth-nodebuilder-internal/crates/node/src/executor.rs",
+      "all audited dependency repos searched for the listed symbols"
+    ],
+    "checked_queries": [
+      "ExecutorRegistered",
+      "ExecutorUpdated",
+      "InvalidEventData",
+      "publicKey offset",
+      "capability 2",
+      "paymentAddress teeAddress workloadId"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "ExecutorRegistered",
+      "ExecutorUpdated",
+      "paymentAddress",
+      "teeAddress",
+      "workloadId",
+      "InvalidEventData",
+      "capability"
+    ],
+    "missing_behavior": "No local audited repo decodes ExecutorRegistered or ExecutorUpdated logs into paymentAddress/teeAddress indexed fields plus teeType, workloadId, capability, and publicKey, nor rejects capability values outside 0..=1 in that event path.",
+    "related_but_insufficient_code": [
+      "ritual-spc-verification/src/types.rs still defines ExecutorRegistry and deactivate_executor, but it is only an in-memory map and has no log-watching service.",
+      "ritual-tee-registry-reader reads TEEServiceRegistry storage via TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS; it does not decode ExecutorRegistry event logs.",
+      "ritual-reth-nodebuilder-internal/crates/node/src/executor.rs syncs registry state from storage before execution but uses TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS and read_all_executors, not ExecutorRegistry event receipts."
+    ]
+  },
+  "notes": "Confirmed by exact symbol searches across all audited local repos and by reading the current SPC/TEE registry code paths.",
+  "rationale": "The diff replaces TeeDA event ABIs, manual offset parsing, IP address, capabilities array, and attestation fields with the new registry tuple, single capability, tee address, and workload ID stored in ExecutorInfo. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "f1d8539121f5e9ac2de951630ad7adb0f518ddab"
+  ],
+  "statement": "ExecutorRegistered and ExecutorUpdated logs must be decoded as ExecutorRegistry events with indexed paymentAddress and teeAddress plus non-indexed (teeType, workloadId, capability, publicKey), and must register/update ExecutorInfo keyed by paymentAddress while rejecting capabilities outside HTTP_CALL=0 and LLM=1.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Emit ExecutorRegistered and ExecutorUpdated logs with paymentAddress in topic[1], teeAddress in topic[2], and ABI data containing teeType, workloadId, capability=1, and publicKey; assert the registry entry under paymentAddress stores those values exactly. Repeat with capability=2 and assert InvalidEventData and no registry mutation."
+  ],
+  "summary": "ExecutorRegistry registration/update event decoding is absent from the audited local repos.",
+  "test_or_falsification_candidate": "Feed a valid new ExecutorRegistered log to the local port; no log handler exists to populate ExecutorInfo from it.",
+  "title": "Registration events store ExecutorRegistry fields",
+  "total_invariants": 1954
+}

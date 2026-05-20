@@ -1,0 +1,75 @@
+{
+  "cluster_key": "executor delivery:censorship-fulfillment-scan-1a3e8dcc",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The censorship scan records fulfillment for direct scheduled transactions and async commitments whose original decodes to scheduled, while excluding heartbeat-address scheduled transactions in both cases.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if let Some(scheduled) = eth_tx.as_scheduled() {\n    let scheduled = scheduled.tx();\n    if !is_heartbeat_tx(scheduled.to) {\n        fulfilled.insert((scheduled.call_id, scheduled.index));\n    }\n}\nif let Some(commitment) = eth_tx.as_async_commitment() {\n    if let Ok(OriginalTransaction::Scheduled(signed)) = commitment.tx().decode_original_transaction() {\n        let scheduled = signed.tx();\n        if !is_heartbeat_tx(scheduled.to) {\n            fulfilled.insert((scheduled.call_id, scheduled.index));\n        }\n    }\n}",
+      "symbols": [
+        "verify_scheduled_censorship"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The fulfilled set is then used to suppress censorship errors only for obligations actually satisfied by the recognized direct or wrapped scheduled transaction.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "for obligation in &obligations {\n    if fulfilled.contains(&(obligation.call_id, obligation.index)) { continue; }\n    if obligation_has_active_async_job(...) { continue; }\n    if gas_remaining >= required_gas {\n        return Err(BlockVerificationError::ScheduledTransactionCensored { ... });\n    }\n}",
+      "symbols": [
+        "verify_scheduled_censorship",
+        "ScheduledTransactionCensored"
+      ]
+    }
+  ],
+  "equivalence_argument": "The verifier normalizes both direct scheduled transactions and async commitments wrapping scheduled originals to the same (call_id,index) fulfilled key, with the heartbeat exclusion applied before insertion, so the censorship decision sees equivalent fulfillment semantics for both shapes.",
+  "evidence_files": [
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-80ebf043da-censorship-fulfillment-scan-counts-scheduled-wrapped-scheduled",
+  "invariant_index": 188,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "fulfillment|fulfilled|heartbeat|Scheduled|call_id|execution_index|obligation"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "verify_scheduled_censorship",
+      "is_heartbeat_tx",
+      "decode_original_transaction",
+      "OriginalTransaction::Scheduled"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The main code path already recognized direct scheduled transactions and scheduled-origin async commitments, but this commit adds diagnostics around both paths while preserving the heartbeat exclusion. This is part of the same obligation/fulfillment mismatch debugging surface. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "2bcac89973b00ba448f00b60086ec2cf2f19c8c1"
+  ],
+  "statement": "The censorship verifier's fulfillment scan must recognize both direct scheduled transactions and async commitments whose original transaction decodes to a scheduled transaction as fulfilling the corresponding (callId,index), while excluding heartbeat-address scheduled transactions from direct scheduled fulfillment.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Construct a block with an obligation for (callId,index), then test direct scheduled transaction, scheduled transaction to heartbeat address, and async commitment wrapping that scheduled transaction. The first and third should count as fulfilled; the heartbeat direct scheduled transaction should not."
+  ],
+  "summary": "The port verifier counts both direct and wrapped scheduled fulfillments while excluding heartbeat scheduled transactions.",
+  "test_or_falsification_candidate": "Build three blocks for the same obligation: direct scheduled, direct heartbeat scheduled, and async commitment wrapping scheduled; assert only the direct scheduled and wrapped scheduled forms suppress ScheduledTransactionCensored.",
+  "title": "Censorship fulfillment scan counts scheduled and wrapped scheduled transactions",
+  "total_invariants": 1954
+}

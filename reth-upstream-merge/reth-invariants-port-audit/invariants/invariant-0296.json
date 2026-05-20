@@ -1,0 +1,53 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "The shared SPC signature crate uses BTreeMap/compact JSON for sorted keys, hex encodes hashes and addresses without 0x prefixes, and strips a leading uncompressed 0x04 byte before comparing recovered and expected public keys.",
+      "path": "crates/ritual-spc-signature/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let mut ordered_map = BTreeMap::new();\nordered_map.insert(\"block_number\", ...);\nordered_map.insert(\"error\", serde_json::Value::String(error.to_string()));\nordered_map.insert(\"input\", serde_json::Value::String(hex::encode(precompile_input)));\nordered_map.insert(\"output\", serde_json::Value::String(hex::encode(output)));\nordered_map.insert(\"precompile_address\", serde_json::Value::String(format!(\"{precompile_address:x}\")));\nordered_map.insert(\"tx_hash\", serde_json::Value::String(format!(\"{tx_hash:x}\")));\nlet message_json = serde_json::to_string(&ordered_map)?;\nlet expected_pubkey_raw = if public_key.len() == 65 && public_key[0] == 0x04 { &public_key[1..] } else { public_key };",
+      "symbols": [
+        "verify_signature_core",
+        "construct_signature_payload"
+      ]
+    }
+  ],
+  "equivalence_argument": "Verifier and block-verifier call the shared ritual-spc-signature function, so RPC and consensus paths use the same compact sorted prefixless payload format and public-key normalization.",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-b7e6c2b052-verifier-matches-executor-signature-payload-format",
+  "invariant_index": 296,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in the shared SPC signature crate used by the port.",
+  "rationale": "The verifier diff changes the reconstructed payload to match Python executor formatting with sorted keys and prefixless hex strings, stops fetching replacement previous-block data, and normalizes expected public keys before comparison. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "ed503ac7d3761f20ca4ef30a97cfba8201a80c6f"
+  ],
+  "statement": "SPC direct signature verification must reconstruct the executor-signed JSON payload with alphabetical keys, compact serialization, no `0x` prefixes on hash/address hex fields, and compare the recovered key against the registered public key after stripping a leading uncompressed-key `0x04` prefix when present.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Generate an executor signature over the compact sorted JSON payload with prefixless hex fields and a registered uncompressed public key, then assert verifier acceptance; repeat with `0x`-prefixed fields or without stripping the public-key prefix and assert verification fails."
+  ],
+  "summary": "SPC direct verification reconstructs the executor-signed JSON payload in the expected compact prefixless format.",
+  "test_or_falsification_candidate": "Sign a compact sorted prefixless SPC payload with a 65-byte uncompressed registered public key and assert verification accepts it; repeat with 0x-prefixed fields or unstripped key bytes and assert rejection.",
+  "title": "SPC verifier matches executor signature payload format",
+  "total_invariants": 1954
+}

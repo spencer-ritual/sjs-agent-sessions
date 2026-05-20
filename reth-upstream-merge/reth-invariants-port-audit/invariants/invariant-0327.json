@@ -1,0 +1,76 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The storage-reader limits match the invariant bounds, with services as the TEEServiceRegistry equivalent of executors.",
+      "path": "crates/ritual-tee-registry-reader/src/constants.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const MAX_SERVICES: usize = 10_000;\npub const MAX_PUBLIC_KEY_LEN: usize = 128;",
+      "symbols": [
+        "MAX_SERVICES",
+        "MAX_PUBLIC_KEY_LEN"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Registry storage reads fail before allocating or iterating when the service count exceeds the bound.",
+      "path": "crates/ritual-tee-registry-reader/src/reader.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if count > MAX_SERVICES {\n    return Err(RegistryReadError::ExecutorCountExceeded { count, max: MAX_SERVICES });\n}",
+      "symbols": [
+        "read_all_executors"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Separate-storage public keys longer than 128 bytes are rejected before data allocation/copying.",
+      "path": "crates/ritual-tee-registry-reader/src/reader.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if len > MAX_PUBLIC_KEY_LEN {\n    return Err(RegistryReadError::PublicKeyLengthExceeded { length: len, max: MAX_PUBLIC_KEY_LEN, executor: tee_address });\n}",
+      "symbols": [
+        "read_public_key_from_slot"
+      ]
+    }
+  ],
+  "equivalence_argument": "The local port reads TEEServiceRegistry rather than the older ExecutorRegistry structure, but the memory-safety invariant is preserved with a 10,000-entry count bound and a 128-byte public-key bound in the shared storage reader used by execution, builder, RPC, and verification paths.",
+  "evidence_files": [
+    "crates/evm/src/registry_db.rs",
+    "crates/ritual-spc-verification/src/types.rs"
+  ],
+  "invariant_id": "cur-1052502ca3-registry-reads-bounded",
+  "invariant_index": 327,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to ritual-tee-registry-reader, the current storage-reader owner.",
+  "rationale": "The commit introduces shared MAX_EXECUTORS and MAX_PUBLIC_KEY_LEN constants, documents them as system-wide invariants, checks executor count before allocating the registry vector, and validates both separate and inline public-key lengths before copying bytes. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "a866782eb5685c0eced3bdfbb5403f11976d51b3"
+  ],
+  "statement": "Executor registry storage reads must reject or abort on registry states that exceed MAX_EXECUTORS=10000 or executor public keys longer than MAX_PUBLIC_KEY_LEN=128 bytes, preventing unbounded memory allocation from corrupted or malicious contract state.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Use a mock Database where slot 6 reports 10001 executors and assert read_executors_from_db aborts with the fatal max-executor path; separately encode inline and separate-storage public keys with length 129 and assert read_executors_from_db returns a BlockExecutionError instead of allocating or returning the key."
+  ],
+  "summary": "TEE registry storage reads are bounded by 10,000 services and 128-byte public keys.",
+  "test_or_falsification_candidate": "Use a mock database where the registry service count is 10001 and where a dynamic public key has length 129; assert read_all_executors/read_executor return bounded-read errors.",
+  "title": "Registry reads are bounded",
+  "total_invariants": 1954
+}

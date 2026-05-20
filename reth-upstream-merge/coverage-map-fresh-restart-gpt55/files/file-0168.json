@@ -1,0 +1,32 @@
+{
+  "record_type": "file",
+  "file_index": 168,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/net/network/src/session/mod.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "network",
+    "session"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The session manager divergence is rustfmt-only noise in graceful-disconnect, pending session, and authentication returns; no session lifecycle behavior changed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 168: M\tcrates/net/network/src/session/mod.rs.",
+    "The isolated patch adds semicolons to early returns and one queued-action push expression.",
+    "No graceful disconnection capacity handling, connection event emission, pending outbound session failure handling, authentication failure handling, or session channel setup changed."
+  ]
+}

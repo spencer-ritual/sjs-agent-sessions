@@ -1,0 +1,71 @@
+{
+  "cluster_key": "scheduler:calls-inject-into-f2c0ffc9",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/evm/src/execute.rs"
+  ],
+  "invariant_id": "cur-ec3ea858ad-scheduled-preserve-injected-calls",
+  "invariant_index": 1,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/evm/src/execute.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ethereum/payload/src/lib.rs",
+      "ritual-alloy-internal/crates/consensus/src/transaction/scheduled.rs",
+      "ritual-revm-internal/crates/context/src/async_context.rs",
+      "ritual-alloy-evm-internal/crates/evm/src/eth/block.rs",
+      "ritual-reth-nodebuilder-internal/crates/node/src/executor.rs"
+    ],
+    "checked_queries": [
+      "spc_calls",
+      "inject_spc_calls_into_transaction|inject_spc_calls_into_scheduled|take_pending_spc_calls",
+      "spc_calls.extend|spc_calls.get_or_insert|append.*spc",
+      "pending_spc_calls|add_spc_call"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "inject_spc_calls_into_transaction",
+      "inject_spc_calls_into_scheduled",
+      "take_pending_spc_calls",
+      "pending_spc_calls",
+      "add_spc_call",
+      "TxScheduled::spc_calls",
+      "annotate_fulfilled_original_transaction",
+      "prepare_fulfilled_async_settlement"
+    ],
+    "missing_behavior": "Missing execution-time append-or-initialize semantics for injected async-context SPC calls on TransactionSigned::Scheduled; current live annotation overwrites scheduled spc_calls with a singleton instead of preserving existing calls.",
+    "related_but_insufficient_code": [
+      "The port preserves TxScheduled.spc_calls storage/serialization and verifier hydration, and revm async context can accumulate pending SPC calls, but no audited caller appends drained pending calls into an existing Scheduled spc_calls Vec. The live fulfilled-original annotation path assigns tx.spc_calls = Some(vec![spc_call]) for Scheduled, replacing any existing list."
+    ]
+  },
+  "notes": "Confirmed from subagent evidence: storage/verification support exists, but append semantics are absent.",
+  "rationale": "The sole cluster candidate directly states an execution helper change that appends async-context SPC calls to Scheduled transactions or initializes their list when absent. Neighbor candidates support the existence and execution of scheduled transactions but do not supersede or alter this specific invariant.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "7ce306fe1d391baa1e90d7efc85a16d64916f361"
+  ],
+  "statement": "When async-context SPC calls are injected into a Scheduled transaction at execution time, the transaction's spc_calls list is initialized if absent and otherwise extended without dropping existing scheduled SPC calls.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Create an execution-level async-context test with a Scheduled transaction whose spc_calls is None, inject one or more SPC calls, and assert the resulting Scheduled transaction has exactly those calls.",
+    "Create an execution-level async-context test with a Scheduled transaction that already contains spc_calls, inject additional SPC calls, and assert the existing calls remain in order with the new calls appended."
+  ],
+  "summary": "Scheduled injected SPC calls are not preserved when a Scheduled transaction already has spc_calls.",
+  "test_or_falsification_candidate": "Create a fulfilled scheduled async replay whose original TxScheduled has Some(vec![existing]) and fulfillment injects a new SpcCall; expected [existing, injected], current path likely returns only [injected].",
+  "title": "Scheduled transactions preserve injected SPC calls",
+  "total_invariants": 1954
+}

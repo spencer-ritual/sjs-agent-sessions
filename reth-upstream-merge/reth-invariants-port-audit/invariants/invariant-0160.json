@@ -1,0 +1,86 @@
+{
+  "cluster_key": "executor delivery:audio-duration-priced-c4a6e335",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "evidence": "The port now defines AUDIO_RESPONSE_DURATION_OFFSET as AudioResponse slot 6 and decodes the u32 outputDurationMs field into pricing seconds, returning 0 for 0 ms and rounding any nonzero partial second up.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn extract_audio_duration_from_delivery(delivery_result: Option<&Bytes>) -> Option<u64> { ... Some(if duration_ms == 0 { 0 } else { (u64::from(duration_ms) + 999) / 1000 }) }",
+      "symbols": [
+        "extract_audio_duration_from_delivery",
+        "AUDIO_RESPONSE_DURATION_OFFSET"
+      ]
+    },
+    {
+      "evidence": "Focused unit tests cover 0 ms, sub-second, exact-second, over-second, and missing/too-short delivery results.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "audio_duration_extractor_rounds_milliseconds_up_to_seconds",
+      "symbols": [
+        "audio_duration_extractor_rounds_milliseconds_up_to_seconds",
+        "audio_duration_extractor_rejects_missing_or_short_delivery_result"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port for the narrow duration-extraction invariant: audio delivery results now expose a shared extractor that reads slot 6 as milliseconds and returns rounded-up seconds for pricing. The broader audio Phase 2 builder/verifier fee-path work remains tracked by later audio invariants.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/lib.rs"
+  ],
+  "invariant_id": "cur-c767aa2f9b-audio-duration-priced-rounded-seconds",
+  "invariant_index": 160,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-async-fees/src/wallet.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs"
+    ],
+    "checked_queries": [
+      "calculate_audio_fees_phase2|extract_audio_duration_from_delivery|audio_escrow_lockup|AUDIO_TIER3_FEE_WEI|outputDurationMs",
+      "AUDIO_CALL_PRECOMPILE|calculate_async_fees_phase2|delivery_result|extract_delivery_result_from_calldata",
+      "supports_wallet_check|verify_wallet_for_commitment|audio"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "calculate_async_fees_phase2",
+      "AUDIO_CALL_PRECOMPILE",
+      "extract_delivery_result_from_calldata"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "AUDIO_CALL_PRECOMPILE is registered and delivery config decoding treats audio like other two-phase precompiles, but calculate_async_fees_phase2 still does not route audio through a dedicated duration-priced fee calculator.",
+      "The broader payload-builder and block-verifier audio Phase 2 fee paths remain tracked by subsequent audio invariants."
+    ]
+  },
+  "notes": "Mapped after local parity fix for the shared extractor. The port still lacks the larger audio escrow and Phase 2 builder/verifier pricing paths, which remain represented by subsequent audio invariants.",
+  "rationale": "The duration extractor changed from returning the raw u32 value to treating it as milliseconds and converting to rounded-up seconds. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: The response field layout is codec-specific, but duration units directly affect executor fees.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "715ad960c3d6e51cbd738e220260f00c66595251"
+  ],
+  "statement": "Audio Phase 2 pricing must interpret delivery duration as milliseconds from the response and round nonzero duration up to whole seconds for fee calculation.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Decode audio delivery results with durations 0 ms, 1 ms, 1000 ms, and 1001 ms and assert extracted pricing durations are 0, 1, 1, and 2 seconds respectively."
+  ],
+  "summary": "Audio duration extraction for rounded-second pricing is mapped in the port.",
+  "test_or_falsification_candidate": "Local ritual-async-fees unit tests encode slot-6 outputDurationMs values 0, 1, 999, 1000, 1001, and 61000 and assert the extractor returns 0, 1, 1, 1, 2, and 61 seconds; missing and too-short delivery results return None.",
+  "title": "Audio duration priced in rounded seconds",
+  "total_invariants": 1954
+}

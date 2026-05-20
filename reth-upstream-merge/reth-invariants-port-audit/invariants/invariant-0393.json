@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Before commitment re-simulation, block verification wraps parent_state in a database and rejects commitments whose wallet verification fails.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let mut db = StateProviderDatabase::new(parent_state);\n...\nverify_wallet_for_commitment(&mut db, original_payer, commitment.precompile_address, &commitment.precompile_input, commitment.ttl, current_block)\n    .map_err(|err| BlockVerificationError::InvalidAsyncCommitment(format!(\"wallet balance/lock check failed for {}: {err}\", commitment.origin_tx)))?;",
+      "symbols": [
+        "verify_commitments",
+        "verify_wallet_for_commitment"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Wallet validation reads RitualWallet balance/lock slots and enforces fee coverage plus lockUntil >= commit_block + ttl.",
+      "path": "crates/ritual-async-fees/src/wallet.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let balance = read_wallet_mapping(db, wallet_address, user_address, BALANCE_MAPPING_SLOT)?;\nlet lock_until = read_wallet_mapping(db, wallet_address, user_address, LOCK_MAPPING_SLOT)?;\n...\nlet total_required_fees = executor_fee + commitment_fee + inclusion_fee + callback_fee;\nlet required_lock_until = commit_block.saturating_add(ttl);\nif balance < total_required_fees { return Err(...); }\nif lock_until < U256::from(required_lock_until) { return Err(...); }",
+      "symbols": [
+        "verify_wallet_for_commitment"
+      ]
+    }
+  ],
+  "equivalence_argument": "Block verification supplies parent-state storage to the shared wallet verifier before re-simulating commitments, covering balance and lock failure paths.",
+  "evidence_files": [
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/ritual-async-fees/src/wallet.rs",
+    "crates/ritual-async-fees/src/lib.rs"
+  ],
+  "invariant_id": "cur-60178f827a-verifier-checks-wallet-balance-lock-parent-state",
+  "invariant_index": 393,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in the port block verifier and wallet fee helper.",
+  "rationale": "The commit adds `verify_wallet_for_commitment`, reads wallet storage slots for balance and lock, computes required fees by precompile type plus commitment/inclusion fees, requires lock through `commit_block + ttl`, and calls it from block verification using parent-block state. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "abefe41dd075e1f81c0abf1953db7586023c84c0"
+  ],
+  "statement": "Before re-simulating an async commitment, block verification must read the signer RitualWallet balance and lock duration from parent-block state and reject the commitment unless balance covers the pessimistic executor, commitment, and inclusion fees and `lockUntil >= commit_block + ttl`.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "For each supported async precompile type, create parent-state wallet storage with insufficient balance, insufficient lock, and sufficient balance plus `lockUntil == commit_block + ttl`; assert block verification rejects the first two and proceeds for the sufficient case."
+  ],
+  "summary": "Block verification checks wallet balance and lock at parent state.",
+  "test_or_falsification_candidate": "For each async precompile, verify commitments with insufficient balance, insufficient lock, and exact lockUntil == commit_block + ttl at parent state.",
+  "title": "Verifier checks wallet balance and lock at parent state",
+  "total_invariants": 1954
+}

@@ -1,0 +1,71 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-async-inspector/src/inspector.rs",
+    "crates/ritual-async-commitment-validator/src/lib.rs",
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/ritual-spc-verification/src/verifier.rs",
+    "crates/rpc/rpc/src/async_tx_validator.rs",
+    "crates/transaction-pool/src/pool/async_pool.rs"
+  ],
+  "invariant_id": "cur-3c48364012-multimodal-precompiles-participate-async-lifecycle",
+  "invariant_index": 459,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-inspector/src/lib.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs",
+      "crates/ritual-spc-signature/src/lib.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/rpc/rpc/src/async_tx_validator.rs"
+    ],
+    "checked_queries": [
+      "multimodal precompiles async lifecycle",
+      "IMAGE_CALL_PRECOMPILE AUDIO_CALL_PRECOMPILE VIDEO_CALL_PRECOMPILE block verification",
+      "is_supported_two_phase_precompile image video audio"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "is_known_async_precompile",
+      "ALL_SPC_BLOCK_VERIFIED_PRECOMPILE_ADDRESSES",
+      "phase2_deadline_offset",
+      "is_supported_two_phase_precompile",
+      "validate_executor"
+    ],
+    "missing_behavior": "Image and video do not participate through the full async lifecycle because block-verification commitment/delivery support rejects unsupported two-phase precompiles; audio is only partially supported.",
+    "related_but_insufficient_code": [
+      "The inspector, canonical metadata, SPC signature allowlist, txpool phase2_deadline_offset, and RPC executor validation all recognize image/audio/video.",
+      "crates/ritual-block-verification/src/lib.rs supports AUDIO_CALL_PRECOMPILE but rejects image/video as unsupported two-phase precompiles."
+    ]
+  },
+  "notes": "Several boundaries are wired, but the invariant requires every listed lifecycle boundary for all three media precompiles.",
+  "rationale": "The merge threads the three multimodal precompile addresses through each async-system boundary that previously knew about HTTP, ZK, and agent calls. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "01029ba6547d29e7d7eef98937299103a959c9f5"
+  ],
+  "statement": "Image, audio, and video precompiles at 0x0818, 0x0819, and 0x081A must be recognized as async two-phase precompiles by detection, commitment validation, transaction-pool long-running handling, block verification settlement handling, SPC verification, and RPC executor registration checks.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Submit image, audio, and video async calls and assert the inspector detects them, RPC registration validation maps them to the expected capability, commitment validation accepts their precompile addresses, the pool treats them as long-running, and the verifier accepts their Phase 2 settlement path when other data is valid."
+  ],
+  "summary": "The media async lifecycle is not complete for image and video.",
+  "test_or_falsification_candidate": "Submit image, audio, and video async calls and assert the inspector detects them, RPC registration validation maps them to the expected capability, commitment validation accepts their precompile addresses, the pool treats them as long-running, and the verifier accepts their Phase 2 settlement path when other data is valid.",
+  "title": "Multimodal precompiles participate in async lifecycle",
+  "total_invariants": 1954
+}

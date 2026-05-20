@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "Capability byte 6 is parsed as DKMS, but DKMS is deliberately omitted from the executor-capability predicate.",
+      "path": "crates/ritual-tee-registry-reader/src/types.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub enum Capability {\n    HttpCall = 0,\n    Llm = 1,\n    WormholeQuery = 2,\n    Streaming = 3,\n    VllmProxy = 4,\n    ZkCall = 5,\n    Dkms = 6,\n    ImageCall = 7,\n    AudioCall = 8,\n    VideoCall = 9,\n    Fhe = 10,\n    AutonomousAgent = 11,\n    Telemetry = 12,\n}\n...\n6 => Ok(Capability::Dkms),\n...\npub fn is_executor_capability(&self) -> bool {\n    matches!(self, Capability::HttpCall | Capability::Llm | Capability::WormholeQuery | Capability::ZkCall | Capability::ImageCall | Capability::AudioCall | Capability::VideoCall | Capability::Fhe)\n}",
+      "symbols": [
+        "Capability",
+        "Capability::try_from",
+        "Capability::is_executor_capability"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "Registry enumeration only returns services whose parsed capability is an executor capability, so DKMS services are excluded from executor candidate sets.",
+      "path": "crates/ritual-tee-registry-reader/src/reader.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if info.capability.is_executor_capability() {\n    tracing::debug!(\n        target: \"ritual::registry\",\n        payment_address = ?info.payment_address,\n        tee_address = ?info.tee_address,\n        tee_type = info.tee_type,\n        capability = ?info.capability,\n        \"Found executor in TEE registry\"\n    );\n    executors.push(info);\n}",
+      "symbols": [
+        "read_all_executors"
+      ]
+    }
+  ],
+  "equivalence_argument": "Capability::try_from maps byte 6 to Dkms, while Capability::is_executor_capability includes HTTP, LLM, WormholeQuery, ZkCall, ImageCall, AudioCall, VideoCall, and FHE but excludes Streaming, VllmProxy, Dkms, AutonomousAgent, and Telemetry. Registry executor enumeration uses that predicate.",
+  "evidence_files": [
+    "crates/ritual-tee-registry-reader/src/types.rs",
+    "crates/ritual-tee-registry-reader/src/reader.rs"
+  ],
+  "invariant_id": "cur-e22e53a0db-dkms-executor-capability",
+  "invariant_index": 425,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This duplicates invariant 422 with the broader true/false capability set from the later record.",
+  "rationale": "The tests explicitly assert DKMS is not an executor capability, preserving the existing executor-capability set despite adding the enum variant. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "9e4517585d3e38046e6031b199f1b1bb954a4548"
+  ],
+  "statement": "Capability::Dkms must not be treated as an executor capability by Capability::is_executor_capability, while HTTP, LLM, WormholeQuery, and ZkCall remain executor capabilities.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Assert is_executor_capability is true for HttpCall, Llm, WormholeQuery, and ZkCall, and false for Streaming, VllmProxy, and Dkms."
+  ],
+  "summary": "DKMS remains outside the executor capability set.",
+  "test_or_falsification_candidate": "Assert is_executor_capability is true for HttpCall, Llm, WormholeQuery, and ZkCall, and false for Streaming, VllmProxy, and Dkms.",
+  "title": "DKMS is not an executor capability",
+  "total_invariants": 1954
+}

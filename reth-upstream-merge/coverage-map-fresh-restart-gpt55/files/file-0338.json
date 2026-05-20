@@ -1,0 +1,72 @@
+{
+  "record_type": "file",
+  "file_index": 338,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-sequencing-rights/src/error.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "sequencing-rights",
+    "errors"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0338-atom-0001",
+      "file_index": 338,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-sequencing-rights/src/error.rs",
+      "source_hunk_hint": "@@ -0,0 +1,39 @@; sequencing rights error enum",
+      "source_kind": "sequencing_rights_error_surface",
+      "source_snippet": "pub enum SequencingRightsError { StateProviderError(String), ContractReadError { contract: Address, reason: String }, DecodeError { contract: Address, reason: String }, OrderingViolation { contract: Address, tx_index: usize, expected_priority: u32, actual_priority: u32 }, EvmError(String), ClassificationError(String) }",
+      "semantic_claim": "The old divergence adds the sequencing-rights error surface for state provider failures, contract read/decode failures, ordering violations, EVM errors, and classification errors.",
+      "high_risk": false,
+      "risk_tags": [
+        "errors",
+        "sequencing-rights",
+        "ordering-violation"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-sequencing-rights/src/error.rs",
+          "symbols": [
+            "SequencingRightsError"
+          ],
+          "evidence": "Destination lines 1-39 exactly match source-added diff lines 68071-68109."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the crate's user/log-facing failure taxonomy unchanged.",
+      "test_strategy": "sequencing_rights_error_variant_tests",
+      "negative_test_candidate": "A priority decrease inside a bucket should report `OrderingViolation` with expected and actual priority values.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The sequencing-rights error surface is exact-port preserved.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 338: A\tcrates/ritual-sequencing-rights/src/error.rs.",
+    "Source-added hunk spans diff lines 68071-68109 with header `@@ -0,0 +1,39 @@`.",
+    "Destination `crates/ritual-sequencing-rights/src/error.rs` has 39 lines and matches the source-added file exactly.",
+    "No review queue entry required because the atom is exact."
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "The reader deduplicates requested TEE addresses, indexes serviceRecords by the TEE/primary address, and loads executor-capable services from serviceAddresses.",
+      "path": "crates/ritual-tee-registry-reader/src/reader.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let unique_addresses: Vec<Address> = tee_addresses.iter().copied().collect::<HashSet<_>>().into_iter().collect();\nlet record_base = service_record_slot(tee_addr);\n...\nmatch read_executor(db, contract, primary_address)? { Some(info) => { if info.capability.is_executor_capability() { executors.push(info); } } }",
+      "symbols": [
+        "read_executor_public_keys",
+        "read_executor",
+        "read_all_executors"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "The capability filter excludes non-executor service roles such as Streaming, VllmProxy, Dkms, AutonomousAgent, and Telemetry while including the current executor-capable set.",
+      "path": "crates/ritual-tee-registry-reader/src/types.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "matches!(self, Capability::HttpCall | Capability::Llm | Capability::WormholeQuery | Capability::ZkCall | Capability::ImageCall | Capability::AudioCall | Capability::VideoCall | Capability::Fhe)",
+      "symbols": [
+        "Capability::is_executor_capability"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port preserves the key behavior by using TEE/primary addresses for serviceRecords and public-key reads; the capability allowlist has been generalized to the current executor-capable set while still excluding non-executor services.",
+  "evidence_files": [
+    "crates/ritual-tee-registry-reader/src/reader.rs",
+    "crates/ritual-tee-registry-reader/src/types.rs",
+    "Cargo.toml",
+    "Cargo.lock"
+  ],
+  "invariant_id": "cur-a2f8b79ec8-registry-reader-keys-executors-address",
+  "invariant_index": 379,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in the port registry-reader crate; capability filtering is a current-set generalization of the older listed executor services.",
+  "rationale": "The commit deletes the legacy executor registry reader, adds ritual-tee-registry-reader, and states that executors are registered under TEE address because payment address is not unique across services. The reader's code uses service_record_slot(tee_addr), filters executor capabilities, and fails if service count exceeds MAX_SERVICES. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "c007d9554f63732c9063618990d9d81ac9c65211"
+  ],
+  "statement": "The TEEServiceRegistry reader must use TEE/primary addresses, not payment addresses, as service record keys; it must read public keys from serviceRecords[tee].publicKey, deduplicate requested TEE addresses, cap service enumeration at MAX_SERVICES, and include only HttpCall, Llm, and WormholeQuery services when loading executor-capable services.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create mock TEEServiceRegistry storage with two services sharing payment address P but different TEE addresses and public keys; assert read_executor_public_keys returns both keyed by their TEE addresses. Add Streaming and VllmProxy services and assert read_all_executors excludes them while including HttpCall, Llm, and WormholeQuery. Set serviceAddresses length to MAX_SERVICES+1 and assert an ExecutorCountExceeded error."
+  ],
+  "summary": "The TEE registry reader keys executor records and public keys by TEE address.",
+  "test_or_falsification_candidate": "Mock two TEE addresses with the same payment address and assert both public keys are returned by TEE address; set serviceAddresses length above MAX_SERVICES and assert ExecutorCountExceeded.",
+  "title": "Registry reader keys executors by TEE address",
+  "total_invariants": 1954
+}

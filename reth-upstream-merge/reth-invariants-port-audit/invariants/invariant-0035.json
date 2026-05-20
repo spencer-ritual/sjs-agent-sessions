@@ -1,0 +1,129 @@
+{
+  "cluster_key": "scheduler:locks-observability",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Core state, timing, and replay constraints are enforced against Scheduler parent state.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "Verifier rejects duplicate in block, missing/non-SCHEDULED call, index >= num_calls, too early/late/expired, and already executed via bitmap.",
+      "symbols": [
+        "verify_scheduled_transactions_full_with_predicate_evaluator",
+        "verify_scheduled_transactions",
+        "read_scheduled_call",
+        "is_executed",
+        "ScheduledConstraintViolation"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Replay state is pinned to Scheduler storage bitmaps.",
+      "path": "crates/ritual-scheduled-verification/src/slots.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "executedBitmap slot 3 and executedBitmapOverflow slot 4 helpers.",
+      "symbols": [
+        "executed_bitmap_slot",
+        "executed_bitmap_overflow_slot"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Verifier consumes the scheduled constraints for included transactions and due obligations.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "Block verification calls full scheduled verifier and scheduled censorship check against parent state.",
+      "symbols": [
+        "verify_scheduled_transactions",
+        "verify_scheduled_censorship"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Builder path applies matching constraints before execution.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "Payload builder verifies pooled scheduled transactions and deduplicates (call_id,index).",
+      "symbols": [
+        "included_scheduled_indices",
+        "verify_scheduled_transactions_full_with_predicate_evaluator"
+      ]
+    }
+  ],
+  "equivalence_argument": "Exact/structural mapping: scheduled call existence/state, timing, index bounds, duplicate/replay, and parent-state backing are implemented in ritual-scheduled-verification and consumed by builder/verifier paths.",
+  "evidence_files": [
+    "crates/ritual-scheduled-verification/src/lib.rs",
+    "crates/ritual-scheduled-verification/src/error.rs",
+    "crates/ritual-scheduled-verification/src/slots.rs"
+  ],
+  "invariant_id": "cur-f87024af19-scheduled-calls-obey-state-timing-replay-constraints",
+  "invariant_index": 35,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-verification/src/error.rs",
+      "crates/ritual-scheduled-verification/src/slots.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ethereum/payload/src/lib.rs"
+    ],
+    "checked_queries": [
+      "executedBitmap|execution_index|numCalls|startBlock|included_scheduled_indices",
+      "verify_scheduled_transactions_full|ScheduledTxInfo|DuplicateInBlock"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "verify_scheduled_transactions_full_with_predicate_evaluator",
+      "filter_scheduled_for_block_building_full",
+      "read_scheduled_call",
+      "is_executed",
+      "included_scheduled_indices",
+      "TxScheduled"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "Dependency repos contain supporting TxScheduled/EVM primitives, but Scheduler state validation is owned by the port."
+    ]
+  },
+  "notes": "Mapped in scheduled verification and active builder/verifier consumers.",
+  "rationale": "The C1-C6/C10 candidates, test-only commits, and slot correction collapse into the current semantic validator: scheduled calls must exist, be in the right state and time window, and not replay in-block or against executed bitmap state.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "3e10b0feef95e81691ce01e6e969d4072bc88175",
+    "8b1ea4877f933f74ad8ade7da8cd57bbccebb3aa",
+    "10aafb95a014de8b8000ab15b70976a9649fd45b",
+    "d7aa79a83f30767031491aef2c7310b71ed24872",
+    "258ce97efb57d5803eacd8ccb6cca387524e4aa4",
+    "dd5202f34a1727c880f9737396f57771d4097321",
+    "6f30cb4cd9119e4db222e6488b1ef9cb8c5daa25",
+    "279351a03f86d09434dd6640517194b5923b11c3"
+  ],
+  "statement": "A scheduled transaction is valid only if its call exists in Scheduler state, is SCHEDULED, has execution_index < numCalls, is included no earlier than startBlock + frequency * execution_index and no later than that execution's TTL deadline or the overall call expiry, and the same (call_id, execution_index) has not appeared earlier in the block and is not marked executed in Scheduler.executedBitmap slot 3 or executedBitmapOverflow slot 4.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Build fixtures for missing call, non-SCHEDULED state, out-of-bounds index, too-early execution, per-execution TTL expiry, overall expiry, duplicate pair in one block, executedBitmap bit set under slot 3, and overflow bit set under slot 4; assert each returns the matching scheduled constraint violation.",
+    "Assert a scheduled call at expected_block and within expected_block + ttl passes when neither duplicate nor bitmap replay state is present."
+  ],
+  "summary": "Scheduled calls obey state, timing, and replay constraints in the port.",
+  "test_or_falsification_candidate": "Run verifier matrix for missing call, invalid state, out-of-bounds, too early/late/expired, duplicate, primary/overflow executed bitmaps, and valid in-window case.",
+  "title": "Scheduled calls obey state, timing, and replay constraints",
+  "total_invariants": 1954
+}

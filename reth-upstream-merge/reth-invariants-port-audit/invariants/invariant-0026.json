@@ -1,0 +1,72 @@
+{
+  "cluster_key": "scheduler:locks-observability",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/scheduling/src/canonical.rs"
+  ],
+  "invariant_id": "cur-98669920ac-scheduler-adapter-honors-requested-state-height",
+  "invariant_index": 26,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/scheduling/src/canonical.rs",
+      "**/canonical.rs",
+      "**/scheduling/**",
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/storage/storage-api/src/state.rs",
+      "crates/storage/provider/src/providers/blockchain_provider.rs",
+      "ritual-alloy-internal/crates/provider/src/provider/trait.rs",
+      "ritual-revm-internal/crates/database/src/alloydb.rs"
+    ],
+    "checked_queries": [
+      "ClientAdapter|history_by_block_number|get_storage_at",
+      "Scheduler contract storage|missing storage|32-byte values|empty bytes",
+      "history_by_block_number|latest|StateProviderDatabase"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "ClientAdapter",
+      "SchedulingStateProvider",
+      "get_storage_at(address, slot, block_number)",
+      "history_by_block_number",
+      "latest",
+      "StateProviderDatabase",
+      "compute_obligations",
+      "read_scheduled_call"
+    ],
+    "missing_behavior": "No audited repo implements canonical scheduling ClientAdapter get_storage_at(address, slot, Option<BlockNumber>) selecting historical vs latest state and converting storage to 32-byte Bytes or empty Bytes for missing storage.",
+    "related_but_insufficient_code": [
+      "Generic state provider APIs and parent-state scheduler readers exist, but they are not the old optional block-number ClientAdapter contract and do not return Bytes/empty bytes through that adapter."
+    ]
+  },
+  "notes": "Confirmed gap for old canonical scheduling ClientAdapter invariant.",
+  "rationale": "The adapter candidate is a standalone current state-access invariant used by scheduler processing to choose historical versus latest storage.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "9dc2b288d16f5256138aeaca414456b5aa14372f"
+  ],
+  "statement": "The canonical scheduling ClientAdapter must read Scheduler contract storage from history_by_block_number when a block number is supplied and from latest state when no block number is supplied, returning 32-byte values or empty bytes for missing storage.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Use a fake client with distinct historical, latest, and missing storage values; assert get_storage_at(Some(block)), get_storage_at(None), and a missing slot return the historical bytes, latest bytes, and empty bytes respectively."
+  ],
+  "summary": "Scheduler adapter requested-height storage behavior is absent.",
+  "test_or_falsification_candidate": "Fake provider test for Some(block) vs None latest and missing storage returning empty Bytes cannot be instantiated because the adapter surface is absent.",
+  "title": "Scheduler adapter honors requested state height",
+  "total_invariants": 1954
+}

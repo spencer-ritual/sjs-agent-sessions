@@ -1,0 +1,107 @@
+{
+  "cluster_key": "executor delivery:delivery-results-carry-a3b97147",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The RPC request accepts an optional zkProof field alongside delivery result and SPC proof.",
+      "path": "crates/rpc/rpc-api/src/ritual.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub proof: Bytes,\n#[serde(rename = \"zkProof\", default, skip_serializing_if = \"Option::is_none\")]\npub zk_proof: Option<Bytes>,",
+      "symbols": [
+        "SubmitDeliveryResultRequest::zk_proof",
+        "RitualApi::ritual_submit_delivery_result"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The Ethereum node RPC adapter forwards zkProof unchanged into the async delivery submission.",
+      "path": "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let submission = AsyncDeliverySubmission {\n    original_tx_hash: tx_hash,\n    delivery_result: request.result,\n    delivery_proof: request.proof,\n    zk_proof: request.zk_proof,\n};",
+      "symbols": [
+        "submit_delivery_result"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The async pool stores the optional ZK proof when accepting a two-phase delivery and moves the entry to DeliveryReady.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub zk_proof: Option<Bytes>,\n...\nmetadata.delivery_result = Some(submission.delivery_result);\nmetadata.delivery_proof = Some(submission.delivery_proof);\nmetadata.zk_proof = submission.zk_proof;\nmetadata.state = AsyncState::DeliveryReady;",
+      "symbols": [
+        "AsyncDeliverySubmission",
+        "AsyncTxMetadata::zk_proof",
+        "submit_delivery_result_with_context"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The Phase 2 builder uses the stored optional ZK proof for ZK two-phase callback delivery while preserving long-running HTTP behavior without a ZK proof.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let callback_delivery_result = if contract_job.precompile_address == ZK_TWO_PHASE_PRECOMPILE {\n    let zk_proof = metadata.zk_proof.clone().unwrap_or_else(|| Bytes::from(vec![0u8; 32]));\n    Bytes::from((raw_delivery_result.clone(), zk_proof).abi_encode())\n} else {\n    raw_delivery_result.clone()\n};",
+      "symbols": [
+        "prepare_delivery_settlement_transaction",
+        "ZK_TWO_PHASE_PRECOMPILE"
+      ]
+    }
+  ],
+  "equivalence_argument": "The RPC type, node RPC adapter, async pool metadata, and Phase 2 builder all carry the optional zkProof through the same DeliveryReady lifecycle as long-running delivery results.",
+  "evidence_files": [
+    "crates/rpc/rpc-api/src/ritual.rs",
+    "crates/rpc/rpc/src/ritual.rs",
+    "crates/transaction-pool/src/lib.rs",
+    "crates/transaction-pool/src/pool/async_pool.rs",
+    "crates/transaction-pool/src/traits.rs"
+  ],
+  "invariant_id": "cur-72aee8d484-delivery-results-carry-optional-proof-through-pool",
+  "invariant_index": 197,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/rpc/rpc-api/src/ritual.rs",
+      "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/ethereum/payload/src/ritual_async.rs"
+    ],
+    "checked_queries": [
+      "zkProof|zk_proof|AsyncDeliverySubmission|DeliveryReady|ZK_TWO_PHASE_PRECOMPILE"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "SubmitDeliveryResultRequest::zk_proof",
+      "AsyncDeliverySubmission::zk_proof",
+      "AsyncTxMetadata::zk_proof",
+      "ZK_TWO_PHASE_PRECOMPILE"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The RPC request gains zkProof, the RPC forwards it to submit_delivery_result, pool metadata stores zk_proof, and lifecycle checks use requires_phase2_delivery() so both long-running HTTP and ZK transactions are handled by the delivery path. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "7a74a52e0113a13b5e18cf32c640c504f7f26c34"
+  ],
+  "statement": "ritual_submitDeliveryResult must accept an optional zkProof field and pass it to the async pool, where ZK two-phase transactions follow the same Phase 2 lifecycle as long-running transactions: awaiting delivery, accepting result plus TEE proof plus optional ZK proof, becoming delivery-ready, and using delivery TTL checks.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Submit a delivery result RPC for a 0x0806 async transaction with result, TEE proof, and zkProof; assert the pool stores both proofs, transitions the entry to DeliveryReady, and exposes it through the delivery-ready path. Repeat for a 0x0805 transaction without zkProof and assert backward compatibility."
+  ],
+  "summary": "Optional ZK proof is carried through RPC, pool metadata, and Phase 2 settlement construction.",
+  "test_or_falsification_candidate": "Submit a 0x0806 delivery result with result, SPC proof, and zkProof; assert pool metadata stores zk_proof and the Phase 2 builder ABI-encodes result plus proof.",
+  "title": "ZK delivery results carry optional proof through RPC and pool",
+  "total_invariants": 1954
+}

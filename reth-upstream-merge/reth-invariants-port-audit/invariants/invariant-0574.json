@@ -1,0 +1,67 @@
+{
+  "cluster_key": "executor delivery:agent-uses-agent-c4a2358a",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: sovereign-agent Phase 2 work pricing exists, but the audited code has no CLI_AGENT_PRECOMPILE/AGENT_CALL_PRECOMPILE branch that applies the same work-based pricing to both addresses.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-246-01-cli-agent-uses-agent-phase-2-pricing",
+  "invariant_index": 574,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "CLI_AGENT_PRECOMPILE AGENT_CALL_PRECOMPILE calculate_agent_fees_phase2_work",
+      "Agent CLI Phase 2 pricing",
+      "sovereign agent work metrics delivery result",
+      "calculate_async_fees_phase2 agent precompile"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "CLI_AGENT_PRECOMPILE",
+      "AGENT_CALL_PRECOMPILE",
+      "SOVEREIGN_AGENT_PRECOMPILE",
+      "calculate_agent_fees_phase2_work",
+      "extract_agent_metrics_from_delivery",
+      "calculate_async_fees_phase2"
+    ],
+    "missing_behavior": "Both AGENT_CALL_PRECOMPILE and CLI_AGENT_PRECOMPILE are not routed to work-based agent Phase 2 pricing; the CLI-agent address/symbol is absent from the audited code.",
+    "related_but_insufficient_code": [
+      "crates/ethereum/payload/src/ritual_async.rs applies calculate_agent_fees_phase2_work only when contract_job.precompile_address == SOVEREIGN_AGENT_PRECOMPILE.",
+      "crates/ritual-block-verification/src/lib.rs mirrors the SOVEREIGN_AGENT_PRECOMPILE work-metrics branch.",
+      "crates/ritual-async-fees/src/lib.rs calculate_async_fees_phase2 handles long-running, ZK, and persistent-agent addresses, not CLI_AGENT_PRECOMPILE or AGENT_CALL_PRECOMPILE; those symbols were not found in audited repos."
+    ]
+  },
+  "notes": "Current sovereign-agent work pricing is related but insufficient for the invariant naming both agent and CLI agent precompiles.",
+  "rationale": "The claimed assignment contains a single source candidate for this behavior, so the refined invariant preserves its statement directly. Source rationale: The combined merge diff changes the Phase 2 fee branch from only AGENT_CALL_PRECOMPILE to AGENT_CALL_PRECOMPILE || CLI_AGENT_PRECOMPILE and updates logging to Agent/CLI Phase 2 pricing.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "b068a7439cf527ab2397f46075412d35508a4c18"
+  ],
+  "statement": "During Phase 2 settlement creation, both AGENT_CALL_PRECOMPILE and CLI_AGENT_PRECOMPILE must use work-based agent pricing from delivery result metrics instead of falling into non-agent delivery pricing.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create Phase 2 settlements for AGENT_CALL_PRECOMPILE and CLI_AGENT_PRECOMPILE with identical iterations/tool_calls and assert both use calculate_agent_fees_phase2_work and produce the same work-based executor fee."
+  ],
+  "summary": "CLI-agent Phase 2 work pricing is not implemented.",
+  "test_or_falsification_candidate": "Create Phase 2 settlements for the expected agent and CLI-agent precompile addresses and assert both use calculate_agent_fees_phase2_work; the CLI-agent branch is absent locally.",
+  "title": "CLI agent uses agent Phase 2 pricing",
+  "total_invariants": 1954
+}

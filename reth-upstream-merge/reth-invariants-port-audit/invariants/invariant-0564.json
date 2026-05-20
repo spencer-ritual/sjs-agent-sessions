@@ -1,0 +1,66 @@
+{
+  "cluster_key": "block building:canonical-heartbeat-revival-13df830f",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "Canonical payload building opens parent state by the block hash being built on and passes the resulting EVM DB into heartbeat revival synthesis.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let mut state_provider = client.state_by_block_hash(parent_header.hash())?;\n...\nlet heartbeat_revival_txs = synthesize_heartbeat_revival_transactions(\n    builder.evm_mut().db_mut(),\n    parent_header.hash(),\n    current_block,\n);",
+      "symbols": [
+        "default_ethereum_payload",
+        "state_by_block_hash",
+        "synthesize_heartbeat_revival_transactions"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "Heartbeat revival selection reads FAILED agents and per-agent revival data directly from the supplied parent-state DB, avoiding stale in-memory tracker state.",
+      "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let failed_agents = get_failed_agents(db, heartbeat_address)\n    .map_err(|err| format!(\"failed to read FAILED heartbeat agents: {err}\"))?;\n...\nfor agent_addr in failed_agents {\n    let revival_data = read_heartbeat_agent_revival_data(db, heartbeat_address, agent_addr)?;\n    ...\n}",
+      "symbols": [
+        "try_synthesize_heartbeat_revival_transactions",
+        "get_failed_agents"
+      ]
+    }
+  ],
+  "equivalence_argument": "The old hydration-before-tracker-use invariant is preserved by a stronger local design: canonical building does not use the heartbeat tracker for revival selection at all; it reads the parent block state by hash and selects failed agents from contract storage.",
+  "evidence_files": [
+    "crates/scheduling/src/canonical.rs"
+  ],
+  "invariant_id": "cur-94100b535d-canonical-heartbeat-revival-hydrates-before-using-tracker-state",
+  "invariant_index": 564,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This is a structural mapping rather than a same-symbol mapping; tracker hydration is unnecessary because tracker state is bypassed in the canonical builder path.",
+  "rationale": "The primary diff adds a tracker_needs_hydration check, obtains a state provider by block hash, calls sync_from_storage under a write lock if still unsynced, and only then reads failed agents from the tracker. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Block Building",
+  "source_commits": [
+    "a282e7db397a0b1b870949e88bb45e38b2a6b101"
+  ],
+  "statement": "Before canonical payload building uses the heartbeat tracker to select failed or expired agents, it must hydrate the tracker from contract storage when tracker.is_synced(block_number) is false, using state_by_block_hash for the block being processed.",
+  "status": "current",
+  "subsystem": "block building",
+  "suggested_falsification_tests": [
+    "Start with an unhydrated tracker and contract storage containing a failed agent, call canonical processing, and assert sync_from_storage is invoked before get_failed_agents and the failed agent is considered."
+  ],
+  "summary": "Canonical heartbeat revival uses block-hash parent state instead of stale tracker state.",
+  "test_or_falsification_candidate": "Populate parent-state heartbeat storage with a FAILED agent while the in-memory tracker is unsynced; canonical payload building should still synthesize the revival transaction from storage.",
+  "title": "Canonical heartbeat revival hydrates before using tracker state",
+  "total_invariants": 1954
+}

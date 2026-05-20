@@ -1,0 +1,77 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "The shared decoder special-cases HTTP_CALL_PRECOMPILE to decode the full HTTPCallRequest and falls back to the base ExecutorRequest decoder for other precompiles.",
+      "path": "crates/ritual-precompile-codecs/src/validation.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let (executor, ttl) = match metadata.address {\n    HTTP_CALL_PRECOMPILE => { let request = HTTPCallRequest::from_abi(input)?; (request.executor, request.ttl) }\n    _ => { let (executor, _, ttl, _, _) = ExecutorRequest::decode_base_fields(input)?; (executor, ttl) }\n};",
+      "symbols": [
+        "try_decode_precompile_data"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Async detection conversion consumes the decoded executor and ttl returned by the HTTP-specific or generic decoder.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let decoded = validate_async_commitment_call(&async_call)?;\n... create_short_async_commitment_tx(async_call.precompile_address, async_call.input, decoded.executor, decoded.ttl, ...)",
+      "symbols": [
+        "validate_async_commitment_call",
+        "build_short_async_commitment_transaction"
+      ]
+    }
+  ],
+  "equivalence_argument": "The precompile-address branch moved into ritual-precompile-codecs, but the behavior is equivalent: HTTP payloads use HTTPCallRequest::from_abi for executor/ttl, while non-HTTP payloads use the base executor decoder.",
+  "evidence_files": [
+    "crates/ritual-async/src/detector.rs",
+    "crates/ritual-precompile-codecs/src/http_call.rs"
+  ],
+  "invariant_id": "cur-0910b8cef5-http-async-requests-expose-executor-through-httpcallrequest-decoding",
+  "invariant_index": 272,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-precompile-codecs/src/validation.rs",
+      "crates/ethereum/payload/src/ritual_async.rs"
+    ],
+    "checked_queries": [
+      "HTTP async requests expose executor TTL",
+      "non HTTP base ExecutorRequest decoder"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "HTTPCallRequest::from_abi",
+      "ExecutorRequest::decode_base_fields",
+      "try_decode_precompile_data"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in port; the separate HTTP method-range issue is recorded in invariant 269.",
+  "rationale": "The primary diff passes the precompile address into extract_precompile_data, branches HTTP_CALL_PRECOMPILE to HTTPCallRequest::from_abi, and rewrites HTTPCallRequest decoding to extract executor, encrypted secrets, ttl, URL, method, headers, and body from ethabi tokens while preserving header length validation. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "71eddfc94b6fe6971e190265218482910a653303"
+  ],
+  "statement": "When async detection handles the HTTP call precompile address, it should decode the full HTTPCallRequest ABI payload and extract the executor address and ttl from that structure; non-HTTP precompile inputs should continue to use the base ExecutorRequest decoder.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Encode an HTTPCallRequest ABI payload with a known executor and ttl and pass it to async detection with the HTTP precompile address; assert the extracted AsyncTxMeta uses those values. Then pass a generic ExecutorRequest payload with a non-HTTP precompile address and assert the generic decoder path still extracts its executor and ttl."
+  ],
+  "summary": "HTTP async requests decode executor and TTL through HTTPCallRequest.",
+  "test_or_falsification_candidate": "Encode an HTTPCallRequest with executor E and ttl T and assert async commitment conversion uses E/T; repeat with a generic non-HTTP request and assert the base decoder path is used.",
+  "title": "HTTP async requests expose executor and TTL through HTTPCallRequest decoding",
+  "total_invariants": 1954
+}

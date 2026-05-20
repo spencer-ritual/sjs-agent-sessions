@@ -1,0 +1,77 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "SPC verification reads and caches only executor keys needed by settlement jobs and rejects empty keys before signature verification.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if !executor_public_keys.contains_key(&job.executor_address) {\n    let executor = read_expected_executor(&mut db, job.executor_address, metadata, \"SPC\")?;\n    if executor.public_key.is_empty() { return Err(BlockVerificationError::InvalidSpc(...)); }\n    executor_public_keys.insert(job.executor_address, executor.public_key);\n}",
+      "symbols": [
+        "verify_spc_calls",
+        "read_expected_executor"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "The registry reader used by block verification bounds dynamic public-key reads and returns an error for keys longer than MAX_PUBLIC_KEY_LEN.",
+      "path": "crates/ritual-tee-registry-reader/src/reader.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let public_key = read_public_key_from_slot(db, contract, pk_slot, tee_address)?;\n...\nif len > MAX_PUBLIC_KEY_LEN { return Err(RegistryReadError::PublicKeyLengthExceeded { length: len, max: MAX_PUBLIC_KEY_LEN, executor: tee_address }); }",
+      "symbols": [
+        "read_executor",
+        "read_public_key_from_slot"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "The port retains the bounded public-key length constant used during registry storage reads.",
+      "path": "crates/ritual-tee-registry-reader/src/constants.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const MAX_PUBLIC_KEY_LEN: usize = 128;",
+      "symbols": [
+        "MAX_PUBLIC_KEY_LEN"
+      ]
+    }
+  ],
+  "equivalence_argument": "Although the reader crate is named ritual-tee-registry-reader in the port, SPC verification obtains parent-state executor public keys through it, rejects empty keys locally, and inherits the MAX_PUBLIC_KEY_LEN rejection from read_public_key_from_slot.",
+  "evidence_files": [
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/ritual-block-verification/src/constants.rs"
+  ],
+  "invariant_id": "cur-f2b40328bb-executor-public-keys-bounded-registry-reads",
+  "invariant_index": 363,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to the renamed TEE registry reader and its block-verification call site.",
+  "rationale": "The merge replaces ritual_executor_registry_reader usage with verifier-local reads for deduplicated executor addresses, adds MAX_PUBLIC_KEY_LEN=128, and explicitly errors on empty or oversized public keys before verifying SPC signatures. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "500a6599ec15dbf0ee6f963e854cd1b161fa5e98"
+  ],
+  "statement": "SPC block verification reads only the needed executor public keys from ExecutorRegistry storage at the parent state, rejects empty keys, and rejects public keys longer than MAX_PUBLIC_KEY_LEN bytes.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create parent-state registry storage for two SPC executor addresses and assert only those keys are read and used; then set one key empty or length 129 and assert block verification returns SpcExecutorRegistryReadFailed."
+  ],
+  "summary": "SPC verification reads needed parent-state executor keys and rejects empty or oversized registry public keys.",
+  "test_or_falsification_candidate": "Create two SPC jobs sharing one executor and one with a second executor; assert only those keys are read/cached, then set one key empty and another length 129 and assert verification rejects.",
+  "title": "Executor public keys are bounded registry reads",
+  "total_invariants": 1954
+}

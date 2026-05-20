@@ -1,0 +1,74 @@
+{
+  "record_type": "file",
+  "file_index": 364,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/rpc/rpc-api/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "rpc-api",
+    "ritual-rpc"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0364-atom-0001",
+      "file_index": 364,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/rpc/rpc-api/src/lib.rs",
+      "source_hunk_hint": "@@ -25,6 +25,7 @@; @@ -45,6 +46,7 @@; @@ -76,6 +78,7 @@",
+      "source_kind": "rpc_api_module_export",
+      "source_snippet": "pub mod ritual;\n...\nritual::RitualApiServer,\n...\nritual::RitualApiClient,",
+      "semantic_claim": "The old divergence wires the Ritual RPC API module into `reth-rpc-api`, exposing `RitualApiServer` and `RitualApiClient` through the aggregate server/client re-export modules.",
+      "high_risk": true,
+      "risk_tags": [
+        "public-api",
+        "rpc",
+        "ritual-api",
+        "missing"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc-api/src/lib.rs",
+          "symbols": [
+            "servers",
+            "clients"
+          ],
+          "evidence": "Destination `src/lib.rs` now declares `pub mod ritual;` and re-exports `RitualApiServer` and `RitualApiClient` through the aggregate server/client modules."
+        }
+      ],
+      "equivalence_argument": "Exact: the public Ritual RPC API trait is exported from the destination API crate through the same module and aggregate re-export surface.",
+      "test_strategy": "cargo check downstream RPC module wiring for `RitualApiServer` imports",
+      "negative_test_candidate": "A downstream `use reth_rpc_api::servers::RitualApiServer` should fail in the current destination.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": "review-file-0364-atom-0001"
+      },
+      "review_required": false,
+      "notes": "Resolved by restoring public Ritual RPC API module/re-export wiring."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The old Ritual RPC API module export wiring is restored in the destination `reth-rpc-api` crate root.",
+  "review_required": false,
+  "status": "resolved",
+  "notes": [
+    "Queue entry verified as line 364: M\tcrates/rpc/rpc-api/src/lib.rs.",
+    "Source hunks span diff lines 76100-76121.",
+    "Resolved in this pass by adding `pub mod ritual` plus server/client re-exports.",
+    "Verified by `cargo check -p reth-rpc-api` as part of the targeted package check."
+  ]
+}

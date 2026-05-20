@@ -1,0 +1,63 @@
+{
+  "cluster_key": "executor delivery:ethereum-launches-async-b0f89055",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping was found: Ethereum add-ons register Ritual RPC methods but do not construct or spawn an AsyncDetectionService background task.",
+  "evidence_files": [
+    "crates/ethereum/node/Cargo.toml",
+    "crates/ethereum/node/src/node.rs",
+    "Cargo.lock"
+  ],
+  "invariant_id": "cur-2899238095-ethereum-launches-async-detection",
+  "invariant_index": 209,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/node/src/node.rs",
+      "crates/ethereum/node/Cargo.toml",
+      "Cargo.lock"
+    ],
+    "checked_queries": [
+      "AsyncDetectionService|async_detection_service|async detection|launch_add_ons|task_executor"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "AsyncDetectionService",
+      "async_detection_service.start",
+      "launch_add_ons",
+      "task_executor"
+    ],
+    "missing_behavior": "Missing construction of AsyncDetectionService from node provider and pool and missing task_executor spawn of async_detection_service.start().",
+    "related_but_insufficient_code": [
+      "crates/ethereum/node/src/node.rs launch_add_ons clones provider/pool to build ritual_async_rpc::module and merges RPC modules.",
+      "The same launch_add_ons code uses ctx.node.task_executor() for ValidationApi but does not spawn an async detection service.",
+      "Async detection exists inline in payload/RPC validation paths, but not as the background service required by this invariant."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The primary diff adds ritual-async as an Ethereum node dependency, imports AsyncDetectionService, builds it from ctx.node.provider() and ctx.node.pool(), and spawns async_detection_service.start() on the node task executor with startup/error logging. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "fe7b5dff513fd7cf65225f0e1c3245ae3e061ea6"
+  ],
+  "statement": "When the Ethereum node add-ons are launched, the node must construct and spawn an AsyncDetectionService with the node provider and transaction pool so async transaction detection runs in the background during node operation.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Run the Ethereum node launch path with a test provider/pool and task executor that records spawned futures, then assert exactly one AsyncDetectionService start task is spawned during add-on launch and receives the node provider and pool; the test should fail if node startup no longer starts detection."
+  ],
+  "summary": "Ethereum node add-ons do not launch the requested async detection service.",
+  "test_or_falsification_candidate": "Instrument EthereumAddOns::launch_add_ons with a recording task executor; current local code should spawn no AsyncDetectionService task.",
+  "title": "Ethereum node launches async detection",
+  "total_invariants": 1954
+}

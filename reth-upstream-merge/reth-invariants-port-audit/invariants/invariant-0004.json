@@ -1,0 +1,116 @@
+{
+  "cluster_key": "scheduler:asyncexec-converts-async-beca9535",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "169074f08721705fbb99cc9531ea798b61e9f3cc",
+      "evidence": "Alloy converts signed async commitment/settlement envelopes into pooled envelopes without changing the variant.",
+      "path": "crates/consensus/src/transaction/envelope.rs",
+      "repo": "/home/ritual/repos/ritual-alloy-internal",
+      "snippet": "Self::AsyncCommitment(tx) => Ok(tx.into()),\nSelf::AsyncSettlement(tx) => Ok(tx.into()),",
+      "symbols": [
+        "EthereumTxEnvelope::try_into_pooled",
+        "From<Signed<T>> for EthereumTxEnvelope"
+      ]
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "169074f08721705fbb99cc9531ea798b61e9f3cc",
+      "evidence": "The pooled conversion used by the port delegates to the same same-variant async conversion.",
+      "path": "crates/consensus/src/transaction/pooled.rs",
+      "repo": "/home/ritual/repos/ritual-alloy-internal",
+      "snippet": "fn try_from(value: EthereumTxEnvelope<TxEip4844>) -> Result<Self, Self::Error> { value.try_into_pooled() }",
+      "symbols": [
+        "TryFrom<EthereumTxEnvelope<TxEip4844>> for EthereumTxEnvelope<TxEip4844WithSidecar<T>>"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "The port aliases signed and pooled transaction primitives to the Alloy envelope types.",
+      "path": "crates/ethereum/primitives/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub type TransactionSigned = alloy_consensus::EthereumTxEnvelope<TxEip4844>;\npub type PooledTransactionVariant = alloy_consensus::EthereumTxEnvelope<TxEip4844WithSidecar<BlobTransactionSidecarVariant>>;",
+      "symbols": [
+        "TransactionSigned",
+        "PooledTransactionVariant"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "The pool conversion path invokes Alloy TryFrom and preserves the recovered signer.",
+      "path": "crates/transaction-pool/src/traits.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "Ok(Self::from_pooled(Recovered::new_unchecked(tx.try_into()?, signer)))",
+      "symbols": [
+        "PoolTransaction::try_from_consensus",
+        "EthPooledTransaction"
+      ]
+    }
+  ],
+  "equivalence_argument": "AsyncExec is renamed/currently represented by Alloy AsyncCommitment/AsyncSettlement. The dependency-owned conversion maps async variants to same-kind pooled variants, and the port consumes that through TransactionSigned/PooledTransactionVariant aliases.",
+  "evidence_files": [
+    "crates/ethereum/primitives/src/transaction.rs"
+  ],
+  "invariant_id": "cur-843719994d-asyncexec-signed-convert-pooled-asyncexec",
+  "invariant_index": 4,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-alloy-internal",
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/primitives/src/transaction.rs",
+      "crates/ethereum/primitives/src/lib.rs",
+      "crates/transaction-pool/src/traits.rs",
+      "crates/consensus/src/transaction/envelope.rs",
+      "crates/consensus/src/transaction/pooled.rs"
+    ],
+    "checked_queries": [
+      "AsyncExec",
+      "try_into_pooled(",
+      "AsyncCommitment|AsyncSettlement|TxAsyncCommitment"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "AsyncExec",
+      "TxAsyncCommitment",
+      "TxAsyncSettlement",
+      "EthereumTxEnvelope::try_into_pooled",
+      "PooledTransactionVariant"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "Exact old AsyncExec symbols are absent; current async-exec equivalents are dependency-owned Alloy AsyncCommitment/AsyncSettlement types."
+    ]
+  },
+  "notes": "Mapped in dependency with port integration evidence.",
+  "rationale": "The candidate directly identifies a current tip-state conversion invariant: AsyncExec transactions must remain AsyncExec when entering the pool. The bounded neighbors show related scheduled transaction conversion and pool behavior, but none supersede or broaden this AsyncExec-specific requirement.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "9ae5d86a2a61d97c8d6764dbbbe7b1249ddd359b"
+  ],
+  "statement": "TryFrom<TransactionSigned> for PooledTransaction must map Transaction::AsyncExec to PooledTransaction::AsyncExec, preserving the AsyncExec transaction kind during pool conversion rather than converting it to Scheduled or any other pooled variant.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Construct a TransactionSigned containing Transaction::AsyncExec, convert it with PooledTransaction::try_from, and assert the result matches PooledTransaction::AsyncExec with the original async-exec transaction, signature, and hash.",
+    "Add a regression case that would fail if the AsyncExec match arm returned PooledTransaction::Scheduled or UnsupportedForP2P."
+  ],
+  "summary": "AsyncExec conversion is preserved by the renamed Alloy async envelope conversion consumed by the port.",
+  "test_or_falsification_candidate": "Construct a signed TxAsyncCommitment, convert through PooledTransactionVariant::try_from or EthPooledTransaction::try_from_consensus, and assert the result remains AsyncCommitment.",
+  "title": "AsyncExec signed transactions convert to pooled AsyncExec",
+  "total_invariants": 1954
+}

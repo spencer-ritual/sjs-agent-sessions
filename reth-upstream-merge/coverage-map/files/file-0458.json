@@ -1,0 +1,63 @@
+{
+  "record_type": "file",
+  "file_index": 458,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/storage/codecs/src/alloy/mod.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "exact",
+  "tags": [
+    "exact"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0458-atom-0001",
+      "file_index": 458,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/storage/codecs/src/alloy/mod.rs",
+      "source_hunk_hint": "@@ -20,2 +20,3 @@ cond_mod!(",
+      "source_kind": "other",
+      "source_snippet": "passkey_signature,",
+      "semantic_claim": "The alloy codec module exports the `passkey_signature` compact codec module alongside the existing alloy codec submodules.",
+      "high_risk": false,
+      "risk_tags": [
+        "encoding"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/src/alloy/mod.rs",
+          "symbols": [
+            "cond_mod"
+          ],
+          "snippet": "cond_mod!(\n    access_list,\n    authorization_list,\n    genesis_account,\n    header,\n    log,\n    passkey_signature,",
+          "evidence": "The destination alloy codec module includes the same `passkey_signature` module export in the `cond_mod!` list."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Build code that imports `crate::alloy::passkey_signature` through the codec module and assert the module resolves in the destination port.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "The downstream export is present verbatim in the destination module list."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Only the added `passkey_signature` export atom from the downstream diff was mapped here."
+}

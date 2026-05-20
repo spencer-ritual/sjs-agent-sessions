@@ -1,0 +1,75 @@
+{
+  "cluster_key": "executor delivery:async-pool-refreshes-38930926",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Duplicate canonical processing is idempotent only for identical context; changed commitment context replaces the stored metadata entry.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "fn has_same_canonical_context(&self, other: &Self) -> bool {\n    self.original_tx_hash() == other.original_tx_hash() &&\n    self.original_sender == other.original_sender &&\n    self.commitment_tx_hash() == other.commitment_tx_hash() &&\n    self.precompile_address == other.precompile_address &&\n    self.precompile_input == other.precompile_input &&\n    self.commit_block == other.commit_block &&\n    self.max_poll_block == other.max_poll_block\n}\n...\nif previous.has_same_canonical_context(&metadata) { return Ok(()); }\n...\ninner.transactions.insert(tx_hash, metadata)",
+      "symbols": [
+        "AsyncTxMetadata::has_same_canonical_context",
+        "AsyncPool::add_metadata"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The replacement metadata is freshly initialized, clearing stale execution and delivery result/proof fields; tests cover changed-context reset behavior.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "state: AsyncState::AwaitingExecution,\nexecution_result: None,\nexecution_proof: None,\ndelivery_result: None,\ndelivery_proof: None,\nzk_proof: None\n...\nassert_eq!(metadata.state, AsyncState::AwaitingExecution);\nassert_eq!(metadata.execution_result, None);\nassert_eq!(metadata.execution_proof, None);",
+      "symbols": [
+        "AsyncTxMetadata::awaiting_execution",
+        "tests::duplicate_changed_context_resets_to_awaiting_execution"
+      ]
+    }
+  ],
+  "equivalence_argument": "When an original hash reappears with changed canonical commitment context, add_metadata inserts freshly constructed awaiting-execution metadata. That replacement carries the new original/commitment/precompile/input/block/deadline/expiry values and clears old execution, delivery, zk, and timestamp data because those fields are initialized to None on the new metadata.",
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/async_pool.rs"
+  ],
+  "invariant_id": "cur-ca16500339-async-pool-refreshes-stale-commitment-context",
+  "invariant_index": 153,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/async_pool.rs"
+    ],
+    "checked_queries": [
+      "has_same_canonical_context|duplicate_changed_context_resets_to_awaiting_execution|delivery_result|zk_proof"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "AsyncTxMetadata::has_same_canonical_context",
+      "AsyncPool::add_metadata",
+      "AsyncTxMetadata::awaiting_execution"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The primary diff computes canonical context before duplicate handling and, on context changes, overwrites metadata and clears execution_result, execution_proof, delivery_result, delivery_proof, zk_proof, and delivery_ready_timestamp. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: The specific metadata fields are internal pool representation; the invariant is that stale in-memory context cannot survive canonical updates or reorgs.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "074503b1e7362e3764c92701d1532805b72f760a"
+  ],
+  "statement": "When add_transaction sees an existing async pool entry for the same original transaction hash but the canonical commitment context has changed, it should replace the stored original transaction, commitment transaction, precompile address, input, commit block, Phase 2 deadline, and expiry block, and clear any previously submitted execution or delivery results/proofs tied to the old context.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Insert an async pool entry, then call add_transaction again for the same origin hash with a different commit block, precompile address, or precompile input. Assert metadata is refreshed, state returns to AwaitingExecution, old proofs/results are cleared, and unchanged-context duplicates only update missing commitment or expiry data."
+  ],
+  "summary": "Changed canonical commitment context replaces async metadata and clears stale results.",
+  "test_or_falsification_candidate": "Insert an async pool entry, then call add_transaction again for the same origin hash with a different commit block, precompile address, or precompile input. Assert metadata is refreshed, state returns to AwaitingExecution, old proofs/results are cleared, and unchanged-context duplicates only update missing commitment or expiry data.",
+  "title": "Async pool refreshes stale commitment context",
+  "total_invariants": 1954
+}

@@ -1,0 +1,61 @@
+{
+  "cluster_key": "scheduler:generation-service",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/scheduling/src/service.rs"
+  ],
+  "invariant_id": "cur-4a8b295707-scheduler-channel-size-configurable",
+  "invariant_index": 18,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/scheduling/src/service.rs",
+      "crates/transaction-pool/src/pool/mod.rs",
+      "crates/transaction-pool/src/pool/listener.rs",
+      "ritual-reth-nodebuilder-internal/docs/scheduled_txs.md"
+    ],
+    "checked_queries": [
+      "RITUAL_SCHEDULER_CHANNEL_SIZE|ScheduledTxService|scheduler.*channel|channel_size|mpsc::channel|mpsc::buffer",
+      "RITUAL_SCHEDULER_CHANNEL_SIZE|ScheduledTxService"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "ScheduledTxService",
+      "RITUAL_SCHEDULER_CHANNEL_SIZE",
+      "mpsc::channel"
+    ],
+    "missing_behavior": "No audited repo implements ScheduledTxService event-processing channels whose capacity is parsed from RITUAL_SCHEDULER_CHANNEL_SIZE with a fallback of 1000 when absent or invalid.",
+    "related_but_insufficient_code": [
+      "The v2 port has unrelated transaction-pool/network/RPC mpsc channels, but no scheduler event-processing service or RITUAL_SCHEDULER_CHANNEL_SIZE parser. Nodebuilder docs mention the deprecated old ScheduledTxService location but do not implement it."
+    ]
+  },
+  "notes": "Confirmed gap: the old scheduling service surface is absent, and no replacement env-var-controlled scheduler event channel was found.",
+  "rationale": "This candidate is a standalone operational invariant for scheduler event-processing capacity and is not superseded by later bounded candidates.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "da94a963a2929a51e6162ae129f27c09c1de7cfb"
+  ],
+  "statement": "ScheduledTxService event-processing channels must use capacity parsed from RITUAL_SCHEDULER_CHANNEL_SIZE, falling back to 1000 when the variable is absent or invalid.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Instantiate ScheduledTxService with RITUAL_SCHEDULER_CHANNEL_SIZE unset, invalid, and set to a valid small value, and assert the constructed mpsc channels use 1000, 1000, and the configured value respectively.",
+    "Restart event processing after changing the variable and assert recreated channels use the helper's parsed capacity."
+  ],
+  "summary": "Scheduler event-processing channel capacity via RITUAL_SCHEDULER_CHANNEL_SIZE is absent from the audited v2 port and dependency repos.",
+  "test_or_falsification_candidate": "Set RITUAL_SCHEDULER_CHANNEL_SIZE to unset, invalid, and a small valid value, then instantiate the current scheduled event-processing service; no such service/channel construction exists in the audited repo set, so the test cannot be written without restoring that surface.",
+  "title": "Scheduler channel size is configurable",
+  "total_invariants": 1954
+}

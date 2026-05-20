@@ -1,0 +1,198 @@
+{
+  "record_type": "file",
+  "file_index": 341,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-sequencing-rights/src/reader.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "sequencing-rights",
+    "contract-reader"
+  ],
+  "atoms_total": 4,
+  "atoms": [
+    {
+      "record_id": "file-0341-atom-0001",
+      "file_index": 341,
+      "atom_index": 1,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-sequencing-rights/src/reader.rs",
+      "source_hunk_hint": "@@ -0,0 +1,111 @@; reader type and raw storage helpers",
+      "source_kind": "sequencing_reader_raw_storage_helpers",
+      "source_snippet": "pub struct SequencingRightsReader<'a, S> { state: &'a S }\nimpl<'a, S: StateProvider> SequencingRightsReader<'a, S> { pub fn get_code_hash(&self, address: Address) -> Result<B256, SequencingRightsError> { ... } pub fn get_storage(&self, address: Address, key: B256) -> Result<U256, SequencingRightsError> { ... } }",
+      "semantic_claim": "The old divergence adds the state-provider backed sequencing rights reader and raw account/storage access helpers used by contract-state based sequencing logic.",
+      "high_risk": false,
+      "risk_tags": [
+        "state-provider",
+        "storage",
+        "contract-reader"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-sequencing-rights/src/reader.rs",
+          "symbols": [
+            "SequencingRightsReader",
+            "SequencingRightsReader::get_code_hash",
+            "SequencingRightsReader::get_storage"
+          ],
+          "evidence": "Destination lines 1-111 exactly match source-added diff lines 68786-68896."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps raw state access behavior and error mapping unchanged.",
+      "test_strategy": "sequencing_reader_storage_tests",
+      "negative_test_candidate": "Missing account/storage reads should return a contract read error instead of defaulting silently when state provider errors.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0341-atom-0002",
+      "file_index": 341,
+      "atom_index": 2,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-sequencing-rights/src/reader.rs",
+      "source_hunk_hint": "@@ -0,0 +113,220 @@; sequencing rights ABI reader",
+      "source_kind": "sequencing_rights_contract_abi_reader",
+      "source_snippet": "pub fn has_sequencing_rights(&self, contract: Address) -> Result<bool, SequencingRightsError> { ... }\npub fn read_sequencing_ordering(&self, contract: Address) -> Result<SequencingOrdering, SequencingRightsError> { ... }\npub fn read_sequencing_keys(&self, contract: Address) -> Result<SelectorSet, SequencingRightsError> { ... }",
+      "semantic_claim": "The old divergence adds contract-level reader methods for detecting sequencing rights support, reading ordering mode, and reading sequencing key selector sets.",
+      "high_risk": false,
+      "risk_tags": [
+        "abi-reader",
+        "sequencing-rights",
+        "selector-set",
+        "ordering"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-sequencing-rights/src/reader.rs",
+          "symbols": [
+            "SequencingRightsReader::has_sequencing_rights",
+            "SequencingRightsReader::read_sequencing_ordering",
+            "SequencingRightsReader::read_sequencing_keys"
+          ],
+          "evidence": "Destination lines 113-220 exactly match source-added diff lines 68898-69005."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the ABI-facing reader behavior used by classification and priority computation.",
+      "test_strategy": "sequencing_rights_reader_abi_tests",
+      "negative_test_candidate": "Invalid ordering values should decode to `Invalid` rather than a valid ordering.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0341-atom-0003",
+      "file_index": 341,
+      "atom_index": 3,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-sequencing-rights/src/reader.rs",
+      "source_hunk_hint": "@@ -0,0 +222,374 @@; reader tests and mocks",
+      "source_kind": "sequencing_reader_unit_tests",
+      "source_snippet": "#[cfg(test)]\nmod tests { struct MockStateProvider { ... } #[test] fn test_reader_creation() { ... } #[test] fn test_has_sequencing_rights() { ... } #[test] fn test_read_ordering() { ... } #[test] fn test_selector_set() { ... } }",
+      "semantic_claim": "The old divergence adds mock-backed unit tests for reader construction, sequencing rights detection, ordering reads, selector-set handling, and storage access behavior.",
+      "high_risk": false,
+      "risk_tags": [
+        "tests",
+        "reader",
+        "mock-state-provider"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-sequencing-rights/src/reader.rs",
+          "symbols": [
+            "MockStateProvider",
+            "test_reader_creation",
+            "test_has_sequencing_rights",
+            "test_read_ordering",
+            "test_selector_set"
+          ],
+          "evidence": "Destination lines 222-374 exactly match source-added diff lines 69007-69159."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps unit coverage for the reader's contract-state access points.",
+      "test_strategy": "cargo test -p ritual-sequencing-rights reader",
+      "negative_test_candidate": "A selector set with duplicate selectors should be de-duplicated consistently.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Test atom only."
+    },
+    {
+      "record_id": "file-0341-atom-0004",
+      "file_index": 341,
+      "atom_index": 4,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-sequencing-rights/src/reader.rs",
+      "source_hunk_hint": "@@ -0,0 +376,540 @@; reader property tests",
+      "source_kind": "sequencing_reader_property_tests",
+      "source_snippet": "proptest! { #[test] fn prop_ordering_from_u8_deterministic(...) { ... } #[test] fn prop_selector_set_operations(...) { ... } #[test] fn prop_storage_key_deterministic(...) { ... } }",
+      "semantic_claim": "The old divergence adds property tests for deterministic ordering conversion, selector-set operations, storage-key behavior, and reader invariants.",
+      "high_risk": false,
+      "risk_tags": [
+        "property-tests",
+        "reader",
+        "selector-set",
+        "determinism"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-sequencing-rights/src/reader.rs",
+          "symbols": [
+            "prop_ordering_from_u8_deterministic",
+            "prop_selector_set_operations",
+            "prop_storage_key_deterministic"
+          ],
+          "evidence": "Destination lines 376-540 exactly match source-added diff lines 69161-69325."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves randomized determinism guards for the reader-facing types.",
+      "test_strategy": "cargo test -p ritual-sequencing-rights reader::tests::prop_",
+      "negative_test_candidate": "Converting the same raw ordering byte twice should always produce the same ordering enum.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Property test atom only."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The sequencing-rights contract reader is exact-port preserved, including state access helpers, sequencing rights ABI reads, and tests.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 341: A\tcrates/ritual-sequencing-rights/src/reader.rs.",
+    "Source-added hunk spans diff lines 68786-69325 with header `@@ -0,0 +1,540 @@`.",
+    "Destination `crates/ritual-sequencing-rights/src/reader.rs` has 540 lines and matches the source-added file exactly.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

@@ -1,0 +1,168 @@
+# Coverage Map Progress
+
+## Trial Scope
+
+- Requested scope: first five queue entries, `file_index` 1 through 5.
+- Total queue size: 579 files.
+- Artifacts written: `coverage-map/files/file-0001.json` through `coverage-map/files/file-0005.json`.
+- Review files written: none.
+- Human review queue entries: none.
+
+## Trial Results
+
+- `file-0001.json`: `.cursorrules` classified as `noise`; editor/agent guidance only.
+- `file-0002.json`: `.github/workflows/claude-pr-review.yml` classified as `mapped`; five automation atoms mapped to `ritual-node-internal`.
+- `file-0003.json`: `.gitignore` classified as `noise`; local scratch ignore only.
+- `file-0004.json`: `.ritual-pr/config.yml` classified as `mapped`; three bot config atoms mapped to `ritual-node-internal`.
+- `file-0005.json`: `.ritual-pr/prompts/shared/consensus-code-audit.md` classified as `mapped`; six review-guidance atoms mapped to `ritual-reth-nodebuilder-internal`.
+
+## Validation Notes
+
+- Non-noise files have nonzero `atoms_total`.
+- Embedded atom counts match `atoms_total`.
+- All mapped atoms include destination code or artifact evidence.
+- All `moved_to_dependency` atoms include an `equivalence_argument`.
+- No high-risk runtime atoms were found, so no adversarial review files were required.
+- The first five files exposed a schema ambiguity: review tooling and prompt files are not runtime Reth behavior, but some are still meaningful workflow behavior and have exact evidence in orchestration repositories.
+
+## Additional Session Batch
+
+- Processed `file_index` 11 through 15 after adding the Markdown skip rule.
+- `file-0011.json`: `PR183_REIMPLEMENTATION.md` classified as `noise`; Markdown skipped.
+- `file-0012.json`: `README.md` classified as `noise`; Markdown skipped.
+- `file-0013.json`: `awaiting_execution_pool_plan.md` classified as `noise`; Markdown skipped.
+- `file-0014.json`: `b` classified as `noise`; scratch patch file, not compiled source.
+- `file-0015.json`: `bin/reth-bench/src/valid_payload.rs` classified as `noise`; benchmark helper formatting-only semicolon changes.
+
+## Additional Session Batch 2
+
+- Processed `file_index` 16 through 25.
+- `file-0016.json`: `bin/reth/src/commands/debug_cmd/build_block.rs` classified as `noise`; old debug command tooling not present in the v2.2 target.
+- `file-0017.json`: `bin/reth/src/commands/debug_cmd/execution.rs` classified as `noise`; formatting-only debug CLI changes.
+- `file-0018.json`: `bin/reth/src/commands/debug_cmd/in_memory_merkle.rs` classified as `noise`; formatting-only debug CLI changes.
+- `file-0019.json`: `bin/reth/src/commands/debug_cmd/merkle.rs` classified as `noise`; formatting-only debug CLI changes.
+- `file-0020.json`: `crates/chain-state/Cargo.toml` classified as `missing`; old `ritual-blocking-pubsub` dependency absent.
+- `file-0021.json`: `crates/chain-state/src/chain_info.rs` classified as `noise`; formatting-only semicolon changes.
+- `file-0022.json`: `crates/chain-state/src/in_memory.rs` classified as `missing`; blocking canonical-state notifier storage/API/call-ordering absent.
+- `file-0023.json`: `crates/chain-state/src/noop.rs` classified as `missing`; noop adapter for missing blocking subscription trait absent.
+- `file-0024.json`: `crates/chain-state/src/notifications.rs` classified as `missing`; blocking subscription trait surface absent.
+- `file-0025.json`: `crates/chain-state/src/test_utils.rs` classified as `missing`; test fixture adapter for missing blocking subscription trait absent.
+
+## Completed Crate Batch
+
+- Completed full crate coverage for `crates/chain-state` (`file_index` 20 through 25).
+- Completed full crate coverage for `crates/chainspec` (`file_index` 26 through 28).
+- `file-0026.json`: `crates/chainspec/src/api.rs` classified as `missing`; per-chain `max_extra_data_bytes` API absent.
+- `file-0027.json`: `crates/chainspec/src/constants.rs` classified as `missing`; Summit deposit event topic constant absent.
+- `file-0028.json`: `crates/chainspec/src/spec.rs` classified as `missing`; extra_data policy, Summit deposit topic selection, and custom block reward plumbing absent.
+
+## Crates-Only Noise Completion Batch
+
+- Corrected existing non-`crates/`/Markdown artifacts to final production-pass noise classification: file-0002.json, file-0004.json, file-0005.json.
+- Added deterministic noise artifacts for missing non-`crates/` or Markdown entries: file-0006.json, file-0007.json, file-0008.json, file-0009.json, file-0010.json, file-0347.json, file-0515.json, file-0563.json, file-0564.json, file-0565.json, file-0566.json, file-0567.json, file-0568.json, file-0569.json, file-0570.json, file-0571.json, file-0572.json, file-0573.json, file-0574.json, file-0575.json, file-0576.json, file-0577.json, file-0578.json, file-0579.json.
+- No implementation code was modified; these entries require no atom decomposition under the current scope rules.
+
+## Formatting-Only Semicolon Noise Batch
+
+- Added 201 crate artifacts whose patches only add/remove semicolons on existing Rust control-flow statements.
+- Classification: `noise`, `atoms_total: 0`; no destination search required because no behavior atom was introduced.
+- Batch 1: file-0030.json, file-0031.json, file-0032.json, file-0033.json, file-0034.json, file-0036.json, file-0038.json, file-0039.json, file-0040.json, file-0041.json, file-0043.json, file-0044.json, file-0045.json, file-0046.json, file-0049.json, file-0051.json, file-0052.json, file-0053.json, file-0055.json, file-0057.json, file-0058.json, file-0060.json, file-0061.json, file-0063.json, file-0065.json, file-0066.json, file-0068.json, file-0069.json, file-0070.json, file-0075.json
+- Batch 2: file-0095.json, file-0100.json, file-0104.json, file-0105.json, file-0112.json, file-0113.json, file-0114.json, file-0116.json, file-0117.json, file-0118.json, file-0120.json, file-0121.json, file-0123.json, file-0124.json, file-0125.json, file-0126.json, file-0127.json, file-0128.json, file-0129.json, file-0130.json, file-0132.json, file-0133.json, file-0134.json, file-0135.json, file-0137.json, file-0138.json, file-0139.json, file-0140.json, file-0141.json, file-0142.json
+- Batch 3: file-0143.json, file-0145.json, file-0146.json, file-0149.json, file-0151.json, file-0152.json, file-0153.json, file-0154.json, file-0155.json, file-0156.json, file-0158.json, file-0160.json, file-0162.json, file-0167.json, file-0168.json, file-0170.json, file-0171.json, file-0176.json, file-0181.json, file-0182.json, file-0183.json, file-0184.json, file-0195.json, file-0198.json, file-0202.json, file-0203.json, file-0205.json, file-0208.json, file-0209.json, file-0210.json
+- Batch 4: file-0213.json, file-0214.json, file-0215.json, file-0216.json, file-0219.json, file-0220.json, file-0224.json, file-0225.json, file-0227.json, file-0228.json, file-0229.json, file-0230.json, file-0234.json, file-0235.json, file-0237.json, file-0238.json, file-0239.json, file-0240.json, file-0241.json, file-0244.json, file-0246.json, file-0247.json, file-0252.json, file-0254.json, file-0256.json, file-0260.json, file-0266.json, file-0267.json, file-0269.json, file-0270.json
+- Batch 5: file-0360.json, file-0361.json, file-0362.json, file-0367.json, file-0368.json, file-0369.json, file-0374.json, file-0379.json, file-0380.json, file-0381.json, file-0382.json, file-0383.json, file-0386.json, file-0387.json, file-0394.json, file-0397.json, file-0400.json, file-0404.json, file-0405.json, file-0409.json, file-0411.json, file-0426.json, file-0428.json, file-0429.json, file-0430.json, file-0432.json, file-0433.json, file-0434.json, file-0435.json, file-0436.json
+- Batch 6: file-0437.json, file-0439.json, file-0440.json, file-0441.json, file-0442.json, file-0443.json, file-0445.json, file-0451.json, file-0453.json, file-0454.json, file-0456.json, file-0457.json, file-0472.json, file-0473.json, file-0474.json, file-0477.json, file-0479.json, file-0480.json, file-0481.json, file-0484.json, file-0485.json, file-0487.json, file-0488.json, file-0489.json, file-0491.json, file-0492.json, file-0493.json, file-0497.json, file-0500.json, file-0501.json
+- Batch 7: file-0505.json, file-0506.json, file-0507.json, file-0508.json, file-0509.json, file-0510.json, file-0516.json, file-0517.json, file-0519.json, file-0520.json, file-0533.json, file-0544.json, file-0547.json, file-0548.json, file-0549.json, file-0553.json, file-0554.json, file-0556.json, file-0558.json, file-0560.json, file-0562.json
+- Added `file-0029.json` as the remaining semicolon-before-comment formatting-only crate artifact.
+
+## Exact Added File Mapping Batch
+
+- Added exact-code mappings for byte-for-byte destination files: file-0291.json, file-0331.json, file-0354.json, file-0356.json, file-0460.json, file-0461.json, file-0467.json.
+- These records use atom-level entries for error variants, constants, public API, and compact encoding behavior; no review-queue entries required because mappings are exact.
+- Added exact mappings for TEE registry error/layout/type files: file-0355.json, file-0358.json, file-0359.json.
+
+## Full Coverage Completion Pass
+
+- Filled every remaining file artifact through `file-0579.json`, leaving the `coverage-map/files/` directory complete at 579 / 579 records.
+- Corrected queue parsing for copy/rename-style status codes such as `C068` so validator queue metadata now matches the authoritative `name-status` file.
+- Regenerated `index.jsonl`, `review-queue.md`, and `validation-summary.json` from the completed artifact set.
+- Final validation state: `validation_errors: []`.
+- Final file classification counts: `noise=276`, `mapped=217`, `missing=81`, `blocked=5`.
+- Final atom mapping counts: `exact=35`, `moved_to_dependency=29`, `structural_equivalent=175`, `covered_by_upstream=3`, `intentionally_absent=3`, `missing=103`, `blocked=5`, `noise=4`.
+- Human review queue now contains 313 keyed entries covering every `missing`, `blocked`, `intentionally_absent`, or review-required non-exact atom.
+
+## Tx Identity/Codec First-Pass Fixup
+
+- Revisited the `Transaction identity, wire encoding, and storage codecs` feature group after the higher-level feature map was created.
+- Reclassified three high-risk missing atoms with destination evidence and adversarial review records:
+  - `file-0107-atom-0001`: explicit-gas system transaction execution is structurally preserved by `ritual-reth-internal-v2.2.0-port/crates/evm/evm/src/execute.rs` plus `ritual-alloy-evm-internal/crates/evm/src/eth/block.rs`.
+  - `file-0390-atom-0001`: RPC zero-fee call validation moved to `ritual-alloy-evm-internal/crates/evm/src/rpc/fees.rs` and is consumed by Reth through `crates/rpc/rpc-convert`.
+  - `file-0455-atom-0001`: `maybe_zero` compact derive handling is covered by the upstream `reth-codecs-derive 0.3.1` dependency and local storage codec bitflag compatibility tests.
+- Reclassified two OP-specific receipt atoms as intentionally absent for the current Summit/Ethereum v2.2 port scope:
+  - `file-0212-atom-0001`: old OP Regolith/Canyon receipt-root behavior.
+  - `file-0221-atom-0001`: old OP `OpReceipt` EIP-7702 handling.
+- Regenerated `index.jsonl`, `review-queue.md`, `validation-summary.json`, and updated `feature-map.json` / `feature-map.md`.
+- Artifact-only validation passed with `validation_errors: []`. The original name-status queue sidecar is absent from this session directory, so validation did not re-check queue metadata against that sidecar.
+- Updated aggregate atom mapping counts: `missing=98`, `structural_equivalent=176`, `intentionally_absent=5`, `exact=35`, `moved_to_dependency=30`, `noise=4`, `covered_by_upstream=4`, `blocked=5`.
+- Human review queue entries are now `310`.
+- Local-network verification:
+  - Restarted from `ritual-node-internal` with `make restart-network vllm_mode=local_mock`.
+  - `make show-network` reported four Reth nodes producing blocks with 3 peers each and 10 registered TEE services.
+  - Replayed all 21 commands from `gold1p-batch-results.json` from `traffic-gen-internal`; all 21 passed.
+  - Fresh result artifact: `sjs-agent-sessions/reth-upstream-merge/gold1p-batch-results-tx-codecs-rerun.json`.
+
+### 2026-05-08 - Precompile dispatch/SPC/executor registry first pass
+- Restored v2.2 payload and pending-block handling for async precompile validation errors: transient ONNX/JQ errors skip the candidate, permanent ONNX malformed requests mark the pool transaction invalid through the existing hard-invalid consensus error.
+- Reclassified `file-0249-atom-0001`, `file-0300-atom-0001`, `file-0301-atom-0001`, and `file-0302-atom-0001` from missing/blocked to structural equivalents with destination evidence.
+- Added adversarial review records for the high-risk block-verification constants/error/lib atoms and rebuilt derived review/index/validation artifacts.
+
+### 2026-05-08 - Cross-repo async precompile contracts + feature gate
+
+- **Hard gate (documented)** in `coverage-orchestrator-prompt.md`: a feature is incomplete if any atom in its footprint is `blocked`, `needs_atomization`, or `review_required` without proof, or broad without a machine-checkable check.
+- **Static proof**: `coverage-map/verify_async_precompile_cross_repo.py` compares Reth `ritual-precompile-addresses` metadata, traffic-gen `Capability.*` usage, and `ritual-node-internal/configgen/docker.py` executor wiring for all 11 async/SPC precompiles (must exit 0).
+- **Atoms**: `file-0316-atom-0012`–`file-0316-atom-0020` are per-precompile `exact` contract atoms; `file-0316-atom-0011` remains sovereign/persistent HTTP parity.
+- **Split** former broad `file-0092-atom-0008` into concrete `file-0092-atom-0008` (TEE registry vs metadata + verifier), `file-0092-atom-0049` (model registry/cache), `file-0092-atom-0050` (`verify_wallet_for_commitment`); added adversarial review JSON for all three; `file-0092.json` `atoms_total` is 50.
+- Updated `feature-map.md` trace IDs; `python3 coverage-map/coverage_tools.py validate` => `validation_errors: []`.
+
+### 2026-05-08 - Transaction pool/admission first pass
+- Added a focused `reth-transaction-pool` regression proving canonical `TxAsyncCommitment` processing prunes the original transaction, creates async metadata, records commit/expiry blocks, and locks the original sender.
+- Reclassified `file-0521-atom-0001`, `file-0524-atom-0001`, `file-0536-atom-0001`, and `file-0545-atom-0001` as structural equivalents with adversarial review records.
+- Reclassified semicolon/rustfmt-only records `file-0119`, `file-0161`, `file-0166`, `file-0490`, `file-0522`, `file-0530`, `file-0531`, and `file-0534` as noise.
+## Curated Test-Atom Insertion - 2026-05-08
+
+Inserted curated grouped test-derived atoms into canonical per-file artifacts. Raw supplemental atoms were pruned by demoting helpers, no-assert tests, and default-only noise; sibling tests were grouped by production behavior family.
+## Curated Feature-Preservation Insertion - 2026-05-08
+
+Inserted curated grouped feature-derived atoms from `feature-preservation-map.md` into canonical per-file artifacts. Validation-gate-only lines, broad port-inventory bullets, and claims already covered by existing atoms were demoted into audit decisions.
+
+## Curated Functionality-Flow Insertion - 2026-05-08
+
+Inserted curated grouped functionality-flow-derived atoms from `functionality-flow-traces.md` into canonical per-file artifacts. Validation-only lines, broad flow inventory, deployment-only claims, and claims already covered by existing atoms were demoted into audit decisions.
+
+### 2026-05-08 - Core async first pass WIP
+- Restored blocking canonical-state subscription wiring across `reth-chain-state` and `reth-provider`, including a regression that proves blocking handlers run before async canonical-state broadcast.
+- Restored public `async-context` feature propagation through `reth-errors`, `reth-execution-errors`, `reth-evm`, `reth-evm-ethereum`, and `reth-ethereum`.
+- Fixed async-context feature-path compilation issues in `revm-precompile` and `alloy-evm`; left old `reth_evm::spc` / `SpcVerifierImpl` compatibility atoms unresolved pending active-consumer proof.
+
+### 2026-05-08 - Atom guideline remediation pass
+- Applied the read-only atom-guideline audit findings to canonical coverage artifacts.
+- Reclassified unsupported filename/path-only `moved_to_dependency` mappings to `blocked`, except `file-0081-atom-0006`, which is now `missing` because the public `reth-node-ethereum/async-context` feature is absent.
+- Accepted five `intentionally_absent` atoms with explicit rationale fields instead of surfacing them as manual-review blockers: downstream-only diagnostics/metrics dependencies without destination call sites, and OP-only behavior explicitly out of v2.2/Summit scope.
+- Reclassified generic same-path structural mappings in `file-0090-atom-0001` and `file-0385-atom-0001`, marked `file-0249-atom-0001` high-risk, and marked broad derived atoms with `needs_atomization`.
+- Regenerated `index.jsonl`, `review-queue.md`, `validation-summary.json`, and wrote `atom-guideline-remediation-report.md`; artifact validation errors are empty.
+
+### 2026-05-08 - User scope decisions for API-only atoms
+- Recorded that public Rust/Cargo API compatibility is not a goal by itself when chain runtime behavior is preserved.
+- Reclassified API-only atoms `file-0081-atom-0006`, `file-0082-atom-0001`, `file-0082-atom-0002`, and `file-0087-atom-0011` as `intentionally_absent` with `user_approved_api_surface_non_goal` rationale.
+- Kept behavior-carrying Summit compatibility, sequencing-rights, scheduled/payload execution, and SPC runtime-verification atoms actionable until code evidence proves equivalent behavior.
+
+### 2026-05-08 - User scope decisions for payload-local behavior
+- Recorded that all four payload-local behavior families should be preserved or proven equivalent: Ritual payload metrics, Rayon-backed preparation/performance work, heartbeat hydration/tracking, and sequencing-rights ordering.
+- Marked `file-0087-atom-0005` as user-required low priority metrics work rather than an acceptable intentional drop.
+- Marked `file-0087-atom-0006` sequencing rights and `file-0087-atom-0007` heartbeat hydration/tracking as high-priority runtime behavior requirements.
+- Marked `file-0087-atom-0010` Rayon-backed preparation as medium-priority performance behavior to preserve or prove equivalent.
+
+### 2026-05-08 - Long-running async delivery atom pass
+- Expanded the Long-running async delivery FSM feature from the stale 4-atom summary to include newly inserted Phase 2 delivery atoms across payload, validation, txpool, codecs, storage, and verifier records.
+- Mapped active HTTP/ZK Phase 2 delivery behavior to current v2.2 code: delivery-ready payload collection, contract-state checks, delivery config decoding, ZK result/proof packing, delivery SPC calls, and async settlement storage codecs.
+- Kept broad verifier/payload atoms blocked for atomization and classified dormant FHE output-size delivery decoding as intentionally absent because broader two-phase precompile delivery remains fail-closed outside HTTP/ZK in this slice.

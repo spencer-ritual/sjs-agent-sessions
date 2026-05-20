@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/rpc/rpc/src/async_tx_validator.rs"
+  ],
+  "invariant_id": "cur-54e67c64a3-agent-accepts-http-executors",
+  "invariant_index": 467,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-precompile-addresses/src/lib.rs",
+      "crates/rpc/rpc/src/async_tx_validator.rs",
+      "crates/ritual-precompile-codecs/src/sovereign_agent.rs",
+      "ritual-revm-internal/crates/precompile/src/sovereign_agent.rs"
+    ],
+    "checked_queries": [
+      "CLI_AGENT_PRECOMPILE CLIAgentRequest cli_agent 0x080C",
+      "allowed capabilities HttpCall Llm CLI Agent",
+      "SOVEREIGN_AGENT_PRECOMPILE Capability::HttpCall Capability::Llm validate_executor"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "CLI_AGENT_PRECOMPILE",
+      "CLIAgentRequest",
+      "SOVEREIGN_AGENT_PRECOMPILE",
+      "AsyncPrecompileCapabilityTag::HttpCall",
+      "Capability::Llm",
+      "validate_executor"
+    ],
+    "missing_behavior": "The 0x080C agent precompile accepts only the HttpCall capability in current metadata/RPC validation; there is no allowed-capabilities list that also accepts Llm for CLI_AGENT_PRECOMPILE.",
+    "related_but_insufficient_code": [
+      "crates/ritual-precompile-addresses/src/lib.rs maps SOVEREIGN_AGENT_PRECOMPILE at 0x080C to HttpCall only.",
+      "crates/rpc/rpc/src/async_tx_validator.rs compares executor.capability to exactly one expected capability.",
+      "ritual-revm-internal has a Sovereign Agent 0x080C precompile, but not an RPC admission rule accepting both HttpCall and Llm."
+    ]
+  },
+  "notes": "The address is recognized, but the capability acceptance rule is narrower than the invariant requires.",
+  "rationale": "The subject states CLI Agent should accept both HTTP and LLM capabilities, and the diff changes validation from a single required capability to an allowed-capabilities list with a special CLI Agent case containing HttpCall and Llm. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "46420a5077e337215b9c15148cfe2aaa993185b2"
+  ],
+  "statement": "During async payload executor registration validation, CLI_AGENT_PRECOMPILE (0x080C) must accept executors whose registered capability is either HttpCall or Llm; all other recognized precompiles continue to require their specific capability.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create executor registry entries for CLI Agent jobs with HttpCall, Llm, and ImageCall capabilities; validate_executor_registration should accept the first two and reject the third, while HTTP, LLM, image, audio, video, and ZK precompiles should still require their single mapped capability."
+  ],
+  "summary": "CLI Agent dual HttpCall/Llm executor acceptance is absent.",
+  "test_or_falsification_candidate": "Create executor registry entries for CLI Agent jobs with HttpCall, Llm, and ImageCall capabilities; validate_executor_registration should accept the first two and reject the third, while HTTP, LLM, image, audio, video, and ZK precompiles should still require their single mapped capability.",
+  "title": "CLI Agent accepts HTTP or LLM executors",
+  "total_invariants": 1954
+}

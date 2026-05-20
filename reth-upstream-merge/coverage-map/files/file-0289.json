@@ -1,0 +1,66 @@
+{
+  "record_type": "file",
+  "file_index": 289,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-async-inspector/src/utils.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "structural_equivalent",
+  "tags": [
+    "high-risk",
+    "non-exact",
+    "structural_equivalent"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0289-atom-0001",
+      "file_index": 289,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-async-inspector/src/utils.rs",
+      "source_hunk_hint": "@@ -0,0 +1,4 @@",
+      "source_kind": "other",
+      "source_snippet": "//! Utility functions for async transaction processing\n//!\n//! This module previously contained target block extraction functions which have been removed\n//! as target_block is no longer user-specified. Simulation is now always done at the parent block.",
+      "semantic_claim": "The downstream diff for crates/ritual-async-inspector/src/utils.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-inspector/src/lib.rs",
+          "symbols": [
+            "AsyncPrecompileInspector",
+            "SharedAsyncPrecompileInspector"
+          ],
+          "snippet": "inspector records registered async precompile calls during EVM execution",
+          "evidence": "The standalone detector crate was replaced by the v2.2 inspector plus payload ritual_async builder helpers."
+        }
+      ],
+      "equivalence_argument": "Async precompile detection moved to ritual-async-inspector and is consumed by payload simulation.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Exercise the crates/ritual-async-inspector/src/utils.rs behavior boundary in the port and verify the downstream path-specific behavior still exists; absence or changed rejection/ordering would falsify the mapping.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to live inspector crate."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "No same-path or uniquely named destination evidence was found in the configured search scope."
+}

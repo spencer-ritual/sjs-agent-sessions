@@ -1,0 +1,80 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The node add-ons create a concrete shared SpcVerifier and pass it to the Ritual async RPC module.",
+      "path": "crates/ethereum/node/src/node.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let spc_registry = Arc::new(RwLock::new(ritual_spc_verification::ExecutorRegistry::new(100)));\nlet spc_verifier = Arc::new(ritual_spc_verification::SpcVerifier::new_from_env_simple(spc_registry, provider.clone())?);\nlet ritual_async_rpc = ritual_async_rpc::module(pool, provider, spc_verifier)?;",
+      "symbols": [
+        "EthereumAddOns::launch_add_ons"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The RPC context owns the shared verifier, syncs its registry from state, and requires verify_single success before accepting an async result submission.",
+      "path": "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "spc_verifier: Arc<SpcVerifier<Provider>>\n...\nif let Err(err) = sync_spc_registry_from_state(&context.provider, &context.spc_verifier, job.commit_block) { ... }\nmatch context.spc_verifier.verify_single(&spc_request).await { ... }",
+      "symbols": [
+        "RitualAsyncRpcContext",
+        "submit_async_result"
+      ]
+    }
+  ],
+  "equivalence_argument": "RPC async result submission is backed by the same concrete SpcVerifier type created during add-on launch; verification failure returns a failed response before pool submission.",
+  "evidence_files": [
+    "crates/rpc/rpc/src/ritual.rs",
+    "crates/ritual-spc-verification/src/verifier.rs",
+    "crates/ritual-spc-verification/src/types.rs",
+    "crates/ethereum/node/src/node.rs"
+  ],
+  "invariant_id": "cur-59107c4021-async-verification-uses-spcverifier",
+  "invariant_index": 243,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/node/src/node.rs",
+      "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "crates/ritual-spc-verification/src/verifier.rs"
+    ],
+    "checked_queries": [
+      "new_from_env_simple|ritual_async_rpc::module|verify_single|sync_spc_registry_from_state"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "SpcVerifier::new_from_env_simple",
+      "RitualAsyncRpcContext::new",
+      "submit_async_result",
+      "SpcVerifier::verify_single"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The subject says the RPC endpoint now uses the ritual-spc-verifier crate, and the diff removes reqwest URL construction while adding SpcVerifier::new_from_env, spc_verifier storage, and verify_single calls. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "36e03434ae47b0c32a8266ba4d1b2dc7a04c739b"
+  ],
+  "statement": "RitualApi constructs a SpcVerifier from environment-derived configuration and an ExecutorRegistry, and verify_result validates async submissions by building a SpcVerificationRequest and calling SpcVerifier::verify_single rather than POSTing directly to a verification URL.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Instantiate RitualApi with a mocked SpcVerifier path, submit an async result, and assert a SpcVerificationRequest with previous block hash/timestamp is passed to verify_single; assert no direct HTTP POST to RITUAL_SIDECAR_BASE_URL is performed by the RPC layer."
+  ],
+  "summary": "RPC async result submission uses a shared SpcVerifier before accepting results.",
+  "test_or_falsification_candidate": "Instantiate RitualApi with a mocked SpcVerifier path, submit an async result, and assert a SpcVerificationRequest with previous block hash/timestamp is passed to verify_single; assert no direct HTTP POST to RITUAL_SIDECAR_BASE_URL is performed by the RPC layer.",
+  "title": "RPC async verification uses SpcVerifier",
+  "total_invariants": 1954
+}

@@ -1,0 +1,117 @@
+{
+  "record_type": "file",
+  "file_index": 452,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/storage/codecs/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "partial",
+  "tags": [
+    "mapped",
+    "missing",
+    "needs-review",
+    "storage-codecs",
+    "observability"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0452-atom-0001",
+      "file_index": 452,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/storage/codecs/Cargo.toml",
+      "source_hunk_hint": "@@ -30,12 +30,13 @@ bytes.workspace = true",
+      "source_kind": "dependency_wiring",
+      "source_snippet": "tracing.workspace = true",
+      "semantic_claim": "The old storage-codecs crate added a direct `tracing` dependency so compact codec instrumentation in the transaction codec files could compile.",
+      "high_risk": false,
+      "risk_tags": [
+        "observability",
+        "dependency"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/Cargo.toml",
+          "symbols": [
+            "dependencies"
+          ],
+          "evidence": "Destination normalized `reth-codecs` manifest has no `tracing` dependency, and the current destination transaction codec files do not contain the old `tracing::debug!` instrumentation."
+        }
+      ],
+      "equivalence_argument": "Not equivalent as an observability/build surface: the destination removed the old codec debug logging and therefore does not require or provide this dependency.",
+      "test_strategy": "cargo check reth-codecs with old tracing call restored",
+      "negative_test_candidate": "Adding back the old codec `tracing::debug!` calls should fail without a `tracing` dependency.",
+      "adversarial_review": {
+        "required": true,
+        "status": "queued",
+        "review_record_id": "review-file-0452-atom-0001"
+      },
+      "review_required": true,
+      "notes": "Low runtime risk, but source dependency wiring is not preserved."
+    },
+    {
+      "record_id": "file-0452-atom-0002",
+      "file_index": 452,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/storage/codecs/Cargo.toml",
+      "source_hunk_hint": "@@ -30,12 +30,13 @@ [dev-dependencies]",
+      "source_kind": "dev_dependency_feature",
+      "source_snippet": "alloy-consensus = { workspace = true, features = [\"arbitrary\", \"serde\"] }",
+      "semantic_claim": "The old storage-codecs dev-dependency enabled `serde` for `alloy-consensus` so codec test-utils derives involving consensus transaction types could serialize/deserialize.",
+      "high_risk": false,
+      "risk_tags": [
+        "test-utils",
+        "serde",
+        "dependency"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/Cargo.toml.orig",
+          "symbols": [
+            "features.serde",
+            "dev-dependencies.alloy-consensus"
+          ],
+          "evidence": "The direct dev-dependency still enables only `arbitrary`, but the crate-level `serde` feature forwards `alloy-consensus?/serde`, so serde-backed codec builds can enable consensus serde through the crate feature."
+        }
+      ],
+      "equivalence_argument": "Structural equivalent for the intended serde test/build surface: the old direct dev-dependency feature is not exact-preserved, but the destination crate exposes `serde = [\"alloy-consensus?/serde\", ...]`, which covers serde-backed codec configurations when the crate feature is enabled.",
+      "test_strategy": "cargo test -p reth-codecs --features test-utils,serde",
+      "negative_test_candidate": "A serde-backed codec fixture over alloy consensus transaction types should expose whether the missing dev feature matters.",
+      "adversarial_review": {
+        "required": false,
+        "status": "closed_stale",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Downgraded after current-port recheck: this was over-broad as a review item because crate-level `serde` forwards to `alloy-consensus?/serde`. The direct dev-dependency shape remains non-exact but is support-only."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 2,
+  "adversarial_reviews": [
+    {
+      "review_record_id": "review-file-0452-atom-0001",
+      "atom_id": "file-0452-atom-0001",
+      "status": "queued",
+      "reason": "The old storage-codecs crate added a direct `tracing` dependency so compact codec instrumentation in the transaction codec files could compile."
+    }
+  ],
+  "summary": "The destination still omits the old storage-codecs tracing dependency/debug instrumentation. The alloy-consensus serde dev-feature concern is downgraded because crate-level serde forwarding covers the intended serde build surface.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": [
+    "Destination `Cargo.toml.orig` has no direct `tracing` dependency and current transaction codec files do not contain the old `tracing::debug!` instrumentation.",
+    "Destination `Cargo.toml.orig` has `serde = [\"alloy-consensus?/serde\", ...]`, so the alloy-consensus serde concern is stale as a review-required item.",
+    "Standalone `cargo check --manifest-path crates/storage/codecs/Cargo.toml --features serde,test-utils` is not a reliable workspace check here because it resolves registry Alloy without Ritual custom transaction types."
+  ]
+}

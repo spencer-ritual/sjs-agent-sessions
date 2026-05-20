@@ -1,0 +1,68 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "970542d1b36413978b3179faeb582ddec3dfc136",
+      "evidence": "Capability value 6 decodes as Dkms and Dkms is excluded from executor-capability matching.",
+      "path": "crates/ritual-tee-registry-reader/src/types.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub enum Capability {\n    HttpCall = 0,\n    Llm = 1,\n    WormholeQuery = 2,\n    Streaming = 3,\n    VllmProxy = 4,\n    ZkCall = 5,\n    Dkms = 6,\n    ImageCall = 7,\n    AudioCall = 8,\n    VideoCall = 9,\n    Fhe = 10,\n}\n...\n6 => Ok(Capability::Dkms),\n7 => Ok(Capability::ImageCall),\n...\nCapability::Dkms is not included in is_executor_capability().",
+      "symbols": [
+        "Capability",
+        "TryFrom<u8>",
+        "is_executor_capability"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "970542d1b36413978b3179faeb582ddec3dfc136",
+      "evidence": "TEE registry executor discovery only includes capabilities whose enum value satisfies is_executor_capability, and tests assert Dkms is excluded.",
+      "path": "crates/ritual-tee-registry-reader/src/reader.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if info.capability.is_executor_capability() {\n    tracing::debug!(target: \"ritual::registry\", payment_address = ?info.payment_address, tee_address = ?info.tee_address, capability = ?info.capability, \"Found executor in TEE registry\");\n    executors.push(info);\n}\n...\nassert!(!Capability::Dkms.is_executor_capability());\nassert_eq!(Capability::try_from(6), Ok(Capability::Dkms));\nassert_eq!(Capability::try_from(7), Ok(Capability::ImageCall));",
+      "symbols": [
+        "read_executors_by_capability",
+        "test_capability_is_executor",
+        "test_capability_try_from"
+      ]
+    }
+  ],
+  "equivalence_argument": "Capability byte 6 maps to Dkms, but Dkms is excluded from is_executor_capability and thus from executor discovery. That preserves the invariant statement that DKMS is recognized but non-executor.",
+  "evidence_files": [
+    "crates/ritual-tee-registry-reader/src/types.rs",
+    "crates/ritual-tee-registry-reader/src/reader.rs"
+  ],
+  "invariant_id": "cur-d91b0a62d8-dkms-capability-executor",
+  "invariant_index": 446,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Current code also assigns later capability values to multimodal/FHE services; this record only maps the statement for value 6 and non-executor classification.",
+  "rationale": "The primary diff adds `Dkms = 6`, maps byte value 6 to that enum variant, updates tests to expect value 7 as invalid, and asserts DKMS is not an executor capability. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "d6f3e34145e563cfdf68638f639fa567b1c72ef4"
+  ],
+  "statement": "TEE registry capability value `6` must decode as `Capability::Dkms`, and DKMS must not be classified as an executor capability by `is_executor_capability()`.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Decode capability bytes 0 through 7 and assert 6 maps to `Capability::Dkms` while 7 errors. Assert `Capability::Dkms.is_executor_capability()` is false and that executor discovery filters do not include DKMS-only services."
+  ],
+  "summary": "DKMS capability decodes as non-executor.",
+  "test_or_falsification_candidate": "Decode capability bytes 0 through 7 and assert 6 maps to `Capability::Dkms` while 7 errors. Assert `Capability::Dkms.is_executor_capability()` is false and that executor discovery filters do not include DKMS-only services.",
+  "title": "DKMS capability is non-executor",
+  "total_invariants": 1954
+}

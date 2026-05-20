@@ -1,0 +1,11 @@
+{
+  "record_type": "adversarial_review",
+  "record_id": "review-file-0302-atom-0001",
+  "atom_record_id": "file-0302-atom-0001",
+  "review_result": "pass",
+  "falsification_attempt": "Checked whether the missing BlockVerifier trait-object API meant verifier behavior was unported. The v2.2 crate instead exposes verify_short_async_block_with_simulators and related helpers, and nodebuilder supplies the EVM replay/predicate hooks through its post-execution validator.",
+  "missed_risks": [
+    "Consumers that still require the old BlockVerifierTrait API would need migration; current v2.2 nodebuilder uses the function API."
+  ],
+  "notes": "This resolves the atom as an intentional API-shape refactor, not a missing verifier implementation."
+}

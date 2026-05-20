@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: the block gas half is present, but the fee-accounting half remains tied to actual EVM gas.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-2b65ea452d-delivery-settlement-origins-calldata-accounting",
+  "invariant_index": 497,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/evm/evm/src/execute.rs",
+      "ritual-alloy-evm-internal/crates/evm/src/block/mod.rs",
+      "ritual-alloy-evm-internal/crates/evm/src/eth/block.rs"
+    ],
+    "checked_queries": [
+      "calculate_calldata_gas AsyncSettlement total_fees",
+      "execute_system_transaction_with_gas evm_gas_used block_gas_contribution",
+      "settlement fee accounting calldata gas"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "execute_async_settlement",
+      "calculate_calldata_gas",
+      "execute_system_transaction_with_gas",
+      "evm_gas_used",
+      "block_gas_contribution"
+    ],
+    "missing_behavior": "AsyncSettlement block gas counters use calldata gas, but fee accounting still multiplies settlement gas price by actual EVM gas used rather than calldata gas.",
+    "related_but_insufficient_code": [
+      "crates/ethereum/payload/src/ritual_async.rs calculates calldata_gas and uses it for cumulative/block regular gas limits.",
+      "crates/ethereum/payload/src/ritual_async.rs then applies total_fees += settlement_gas_price * evm_gas_used.",
+      "ritual-alloy-evm-internal/crates/evm/src/block/mod.rs documents evm_gas_used as actual EVM gas and block_gas_contribution as the override used for receipt/block accounting."
+    ]
+  },
+  "notes": "This is a partial implementation and therefore terminally classified as a gap for the full invariant.",
+  "rationale": "The primary diff special-cases tx_for_execution.as_async_settlement() and charges calculate_calldata_gas(tx_for_execution.input()) instead of gas_used, matching the existing settlement system transaction pattern. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "0a0777c12ee5b9b3a73e01444a6a7a62d08f409b"
+  ],
+  "statement": "When an AsyncSettlement transaction is executed as the original transaction for fulfilled nested async work, block gas and fee accounting must use calldata gas for that settlement input rather than actual EVM execution gas.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Execute a fulfilled nested async bundle whose origin is an AsyncSettlement and assert cumulative_gas_used and total_fees are based on calculate_calldata_gas(input), while a non-settlement origin uses actual gas_used."
+  ],
+  "summary": "AsyncSettlement fee accounting does not use calldata gas.",
+  "test_or_falsification_candidate": "Execute an AsyncSettlement where actual EVM gas differs from calldata gas and assert total_fees is based on calldata gas; current code would charge actual EVM gas.",
+  "title": "Delivery settlement origins use calldata gas accounting",
+  "total_invariants": 1954
+}

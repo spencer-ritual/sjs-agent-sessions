@@ -1,0 +1,33 @@
+{
+  "record_type": "file",
+  "file_index": 210,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/optimism/cli/src/receipt_file_codec.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "semicolon",
+    "optimism",
+    "receipt-codec"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The Optimism receipt file codec divergence is a semicolon-only rustfmt change in the empty-buffer decode return; no codec behavior changed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 210: M\tcrates/optimism/cli/src/receipt_file_codec.rs.",
+    "The isolated patch only changes `return Ok(None)` to `return Ok(None);` when the decode source buffer is empty.",
+    "No receipt decoding, buffering, or error handling behavior changed."
+  ]
+}

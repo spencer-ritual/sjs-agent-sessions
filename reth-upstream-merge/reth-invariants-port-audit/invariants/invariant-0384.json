@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Payload building skips fulfilled and delivery settlement candidates when preparation reports missing or inconsistent consensus data.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let prepared = match prepared { Ok(prepared) => prepared, Err(reason) => { debug!(target: \"ritual::async_settlement::payload_builder\", ?tx_hash, reason, \"skipping fulfilled async settlement entry\"); continue; } };\n...\nErr(reason) => { debug!(target: \"ritual::async_delivery::payload_builder\", ?tx_hash, reason, \"skipping delivery-ready async entry\"); continue; }",
+      "symbols": [
+        "build_payload",
+        "prepare_fulfilled_async_settlement",
+        "prepare_delivery_settlement_transaction"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Short async commitment construction skips when parent context or parent-state validation is unavailable instead of synthesizing placeholder context.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "warn!(target: \"ritual::async::payload_builder\", ?tx_hash, reason, \"skipping short async transaction with unavailable parent context\"); continue;\n...\nif let Err(reason) = validate_short_commitment_parent_state(...) { warn!(..., \"skipping short async transaction that failed parent-state validation\"); continue; }",
+      "symbols": [
+        "build_short_async_commitment_transaction",
+        "validate_short_commitment_parent_state"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port uses Result-returning preparation/validation and `continue` skip paths for missing commitment, registry, parent-context, or fee context rather than defaulting to zero/fallback values.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-a2026f214f-settlement-builders-skip-instead-using-fallback-consensus-data",
+  "invariant_index": 384,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in the port payload builder.",
+  "rationale": "The primary diff turns update_commitment_tx_with_simulation_context into a Result and skips on lookup failures, checks fulfilled async metadata has commitment_tx and execution_result, changes fallback address/base_fee paths into ok_or_else errors, and uses expect only after prior invariant checks. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "4a0af4dba1235af6894d289514d1e45521cf8fa8"
+  ],
+  "statement": "Payload building should skip async settlement or delivery settlement transactions when required consensus data is missing, including commitment_tx-derived executor/TEE data, previous block hash/header data for commitment context, or base_fee; it should not synthesize Address::ZERO, zero block placeholders, or a default 20 gwei base fee.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Exercise payload building with missing commitment_tx, missing base_fee, and a client that cannot fetch the previous block hash/header. Assert the affected async transaction is skipped and no settlement/commitment transaction with Address::ZERO, zero previous block placeholders, or 20 gwei fallback gas price is included."
+  ],
+  "summary": "Payload builders skip candidates with missing consensus data.",
+  "test_or_falsification_candidate": "Remove commitment_tx or force unavailable parent context during payload building and assert no settlement or commitment transaction is synthesized.",
+  "title": "Settlement builders skip instead of using fallback consensus data",
+  "total_invariants": 1954
+}

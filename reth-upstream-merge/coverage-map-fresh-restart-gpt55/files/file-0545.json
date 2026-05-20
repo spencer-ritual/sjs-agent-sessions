@@ -1,0 +1,71 @@
+{
+  "record_type": "file",
+  "file_index": 545,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/transaction-pool/tests/it/async_exec.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "structural_equivalent",
+  "tags": [
+    "structural_equivalent",
+    "txpool",
+    "tests"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0545-atom-0001",
+      "file_index": 545,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/transaction-pool/tests/it/async_exec.rs",
+      "source_hunk_hint": "@@ -0,0 +1,57 @@",
+      "source_kind": "test_coverage",
+      "source_snippet": "mod main;\nuse main::runner::{TestRunner, TxPoolSetup};\nuse reth_e2e_test_utils::setup_node;\nuse reth_primitives::{\n    sign::secret_key_to_address,\n    Address, Bytes, Transaction, TransactionSigned, TxAsync, U256,\n};\nuse reth_transaction_pool::{TransactionPool, TransactionOrigin, ValidatedTransaction};\nuse secp256k1::SecretKey;\n#[tokio::test]",
+      "semantic_claim": "The old integration test checks async commitment transaction inclusion in a built payload.",
+      "high_risk": false,
+      "risk_tags": [
+        "txpool",
+        "tests",
+        "async"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/async_pool.rs",
+          "symbols": [
+            "fulfilled_original_transactions_convert_and_filter_expired_entries",
+            "delivery_submission_transitions_awaiting_delivery_to_delivery_ready"
+          ],
+          "evidence": "Destination has focused async pool tests; payload integration is covered by current async result/payload paths rather than the old `tests/it/async_exec.rs` file."
+        }
+      ],
+      "equivalence_argument": "Test intent is represented by refactored unit/E2E surfaces, not by exact file preservation.",
+      "test_strategy": "run async pool tests plus payload async E2E where available",
+      "negative_test_candidate": "Async commitments should not be included unless canonical metadata/result state allows replay.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": ""
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Old async-exec integration test file is absent; behavior is covered by refactored async pool and payload paths.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0545: A\tcrates/transaction-pool/tests/it/async_exec.rs.",
+    "Source diff lines 97085-97147; first hunk `@@ -0,0 +1,57 @@`.",
+    "Fresh destination evidence was checked against /home/ritual/repos/ritual-reth-internal-v2.2.0-port."
+  ]
+}

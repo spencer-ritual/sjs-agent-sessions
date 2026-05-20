@@ -1,0 +1,53 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The nodebuilder creates the configured block verifier with the node provider and EVM config and passes None for executor_registry_contract, leaving the verifier to resolve its default registry source.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "let block_verifier = Arc::new(BlockVerifier::new_with_evm_classification(pool.clone(), ctx.provider().clone(), evm_config.clone(), None));\n...\nlet ritual_executor = RitualBlockExecutorProvider::new(evm_config.clone(), spc_verifier, Some(block_verifier));",
+      "symbols": [
+        "RitualExecutorBuilder::build_evm_with_pool",
+        "BlockVerifier::new_with_evm_classification"
+      ]
+    }
+  ],
+  "equivalence_argument": "In the split v2.2 architecture, nodebuilder owns Ritual node executor assembly; its pool-aware builder wires the verifier and intentionally provides no registry override.",
+  "evidence_files": [
+    "crates/node/src/executor.rs"
+  ],
+  "invariant_id": "cur-76c2200ecd-block-verifier-uses-default-executor-registry",
+  "invariant_index": 339,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in the nodebuilder dependency because the port workspace delegates node construction there.",
+  "rationale": "The primary commit updates new_with_async_validation to include the executor_registry_contract argument and deliberately passes None with a comment that the default should come from env/genesis, which the commit message says is required for contract-based SPC verification. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "0717bcf0d9d8a43889c9dc211e814e004bbb80e8"
+  ],
+  "statement": "When the Ritual node builder creates a BlockVerifier with async commitment validation, it must pass no executor_registry_contract override so the verifier resolves the executor registry contract from its default environment or genesis source.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Instantiate the node executor builder with async validation enabled and a BlockVerifier test double or observable configuration; assert the executor_registry_contract argument is None and that the verifier subsequently resolves the configured default registry address."
+  ],
+  "summary": "Nodebuilder constructs the block verifier without an executor-registry override.",
+  "test_or_falsification_candidate": "Instantiate build_evm_with_pool and assert the created BlockVerifier receives None for executor_registry_contract and is installed in RitualBlockExecutorProvider.",
+  "title": "Block verifier uses default executor registry",
+  "total_invariants": 1954
+}

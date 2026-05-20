@@ -1,0 +1,67 @@
+{
+  "cluster_key": "scheduler:receipt-rpc",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "5e27abc6d82a56c538ef1c9bd91409e629f15f1f",
+      "evidence": "Alloy EVM copies spc_calls only from Legacy and EIP-1559 into TxEnv; Scheduled destructures spc_calls as ignored and leaves defaults, while EIP-2930/4844/7702 constructors do not set spc_calls.",
+      "path": "crates/evm/src/tx.rs",
+      "repo": "/home/ritual/repos/ritual-alloy-evm-internal",
+      "snippet": "TxLegacy { ..., spc_calls, ... } => TxEnv { ..., spc_calls: spc_calls.clone(), ..Default::default() }\nTxEip1559 { ..., spc_calls } => TxEnv { ..., spc_calls: spc_calls.clone(), ..Default::default() }\nTxScheduled { ..., spc_calls: _, } => TxEnv { ..., ..Default::default() }",
+      "symbols": [
+        "FromRecoveredTx<TxLegacy> for TxEnv",
+        "FromRecoveredTx<TxEip1559> for TxEnv",
+        "FromRecoveredTx<TxScheduled> for TxEnv"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in alloy-evm dependency: TxEnv conversion carries SPC calls only for the supported consensus transaction types and defaults the rest.",
+  "evidence_files": [
+    "ritual-reth-internal/crates/ethereum/primitives/src/transaction.rs",
+    "ritual-reth-internal/crates/rpc/rpc/src/eth/helpers/call.rs"
+  ],
+  "invariant_id": "cur-8ae710e2cc-execution-txenv-receives-calls-only-supported-types",
+  "invariant_index": 114,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-alloy-evm-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/evm/src/tx.rs",
+      "crates/rpc/rpc/src/eth/helpers/call.rs"
+    ],
+    "checked_queries": [
+      "spc_calls|FromRecoveredTx|TxEnv|TxLegacy|TxEip1559|TxScheduled"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "FromRecoveredTx<TxLegacy>",
+      "FromRecoveredTx<TxEip1559>",
+      "FromRecoveredTx<TxScheduled>"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in dependency.",
+  "rationale": "The candidate is orthogonal to receipts but present in this packet; the current invariant is preserved as stated by the source candidate.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "a89c359d3ed0d9cec0e0d4549d42dcd5ecabc610"
+  ],
+  "statement": "Recovered Legacy and EIP-1559 transactions must transfer their spc_calls into TxEnv, while EIP-2930, EIP-4844, EIP-7702, Scheduled, and RPC-generated call environments default spc_calls to empty.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Convert recovered Legacy, EIP-1559, Scheduled, EIP-2930, EIP-4844, and EIP-7702 transactions to TxEnv and assert spc_calls are copied only for Legacy/EIP-1559."
+  ],
+  "summary": "TxEnv receives SPC calls only from supported transaction types.",
+  "test_or_falsification_candidate": "Focused TxEnv conversion unit test in alloy-evm.",
+  "title": "Execution TxEnv receives SPC calls only from supported transaction types",
+  "total_invariants": 1954
+}

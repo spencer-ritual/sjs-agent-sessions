@@ -1,0 +1,64 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: shared SPC verification is present, but the explicit more-than-one delivery SPC rejection is missing.",
+  "evidence_files": [
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/ethereum/primitives/src/transaction.rs",
+    "crates/primitives-traits/src/transaction/signed.rs"
+  ],
+  "invariant_id": "cur-d47655a1ad-block-verifier-validates-delivery-calls",
+  "invariant_index": 500,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ethereum/primitives/src/transaction.rs",
+      "crates/primitives-traits/src/transaction/signed.rs"
+    ],
+    "checked_queries": [
+      "delivery_spc_calls len reject more than one",
+      "more than one delivery SPC call",
+      "delivery SPC origin_tx_hash verification"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "delivery_spc_calls",
+      "origin_tx_hash",
+      "verify_signature_core",
+      "tx_async_settlement"
+    ],
+    "missing_behavior": "Block verification verifies a matching delivery SPC call but does not reject settlements containing more than one delivery_spc_call.",
+    "related_but_insufficient_code": [
+      "crates/ritual-block-verification/src/lib.rs searches delivery_spc_calls for any matching call and verifies that one.",
+      "The same verifier rejects short proofs and missing matching calls, but no checked code enforces delivery_spc_calls.len() <= 1."
+    ]
+  },
+  "notes": "The current verifier accepts the first matching delivery SPC call even if extra delivery proofs are present.",
+  "rationale": "The verifier changes from documenting delivery proofs as not verified by the SPC pipeline to explicitly collecting them, validating their shape and executor, and pushing them into SPC verification keyed by the original Phase 1 transaction hash. Transaction traits now expose `origin_tx_hash()` so this key is available generically. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "70225f8992ed10af8559fc7a276eade5614bb7ff"
+  ],
+  "statement": "Block verification must process `delivery_spc_calls` through the same SPC signature verification pipeline as Phase 1 SPC calls, using `origin_tx_hash` as the async job key and rejecting missing origin hashes, more than one delivery SPC call, too-short proofs, and missing or zero executor addresses.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Build a block with a delivery settlement containing `delivery_spc_calls` but no origin hash, two delivery calls, a short proof, or a proof signed by the wrong executor, and assert block verification rejects each case."
+  ],
+  "summary": "Block verification does not reject multiple delivery SPC calls.",
+  "test_or_falsification_candidate": "Build a delivery settlement with two delivery_spc_calls where one matches and assert block verification rejects the block; current verifier has no such cardinality guard.",
+  "title": "Block verifier validates delivery SPC calls",
+  "total_invariants": 1954
+}

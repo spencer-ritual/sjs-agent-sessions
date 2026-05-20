@@ -1,0 +1,64 @@
+{
+  "cluster_key": "scheduler:pool-accounting:part-02",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/txpool.rs"
+  ],
+  "invariant_id": "cur-8504c8d14d-scheduled-removals-decrement-calldata-counters",
+  "invariant_index": 51,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/txpool.rs",
+      "crates/transaction-pool/src/pool/mod.rs",
+      "crates/transaction-pool/src/pool/scheduled.rs"
+    ],
+    "checked_queries": [
+      "total_calldata|sender_calldata|add_to_scheduled_pool|scheduled_pool",
+      "SCHEDULED_TX_TYPE_ID|is_scheduled|remove.*scheduled"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "add_to_scheduled_pool",
+      "scheduled_pool",
+      "total_calldata_bytes",
+      "sender_calldata",
+      "SCHEDULED_TX_TYPE_ID",
+      "remove_scheduled",
+      "prune_scheduled"
+    ],
+    "missing_behavior": "Missing scheduled subpool insertion/removal accounting rule: no scheduled pool path exists that avoids incrementing calldata counters on insertion and therefore avoids decrementing them on removal/prune.",
+    "related_but_insufficient_code": [
+      "The port has no crates/transaction-pool/src/pool/scheduled.rs and no add_to_scheduled_pool path.",
+      "Pool mod only detects SCHEDULED_TX_TYPE_ID to avoid async sender-lock rejection; it then inserts into the regular TxPool path."
+    ]
+  },
+  "notes": "Confirmed gap under the strict audit rule; absence of scheduled pool accounting is not treated as not-applicable.",
+  "rationale": "Scheduled transactions enter through add_to_scheduled_pool and never increment normal calldata counters, so scheduled removal paths must not decrement those counters.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "8642f15109f936bc4c1a9bb315137e92a9e29e37"
+  ],
+  "statement": "At current tip, removing or pruning a scheduled transaction from the scheduled pool must not decrement total_calldata_bytes or per-sender calldata counters, because scheduled transactions did not increment those counters on insertion.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Add normal transactions to consume calldata counters, add a scheduled transaction through add_to_scheduled_pool, remove or prune the scheduled transaction by hash, and assert total_calldata_bytes and sender_calldata are unchanged by the scheduled removal."
+  ],
+  "summary": "Scheduled removal calldata-counter behavior is absent with the old scheduled subpool.",
+  "test_or_falsification_candidate": "Add normal calldata-counted transactions plus a scheduled transaction through a scheduled subpool and remove the scheduled hash; current port has no scheduled subpool/counter path to satisfy the assertion.",
+  "title": "Scheduled removals do not decrement calldata counters",
+  "total_invariants": 1954
+}

@@ -1,0 +1,110 @@
+{
+  "record_type": "file",
+  "file_index": 356,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-tee-registry-reader/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "exact",
+    "high-risk",
+    "renamed_exact"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0356-atom-0001",
+      "file_index": 356,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/ritual-tee-registry-reader/src/lib.rs",
+      "source_hunk_hint": "new file: module declarations and re-exports",
+      "source_kind": "other",
+      "source_snippet": "pub mod constants; pub mod error; pub mod reader; pub mod storage_layout; pub mod types; pub use ...",
+      "semantic_claim": "The TEE registry reader crate exposes constants, errors, reader/storage layout modules, and ExecutorInfo/Capability/TeeType types as its public API.",
+      "high_risk": false,
+      "risk_tags": [
+        "executor-selection"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-tee-registry-reader/src/lib.rs",
+          "symbols": [
+            "constants",
+            "RegistryReadError",
+            "ExecutorInfo",
+            "Capability",
+            "TeeType"
+          ],
+          "snippet": "pub mod constants;\npub mod error;\npub mod reader;\npub mod storage_layout;\npub mod types;\n\npub use constants::*;\npub use error::RegistryReadError;\npub use reader::*;\npub use types::{Capability, ExecutorInfo, TeeType};",
+          "evidence": "The same module declarations and public re-exports are present in the v2.2 port."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Compile a downstream crate importing RegistryReadError, ExecutorInfo, Capability, TeeType, and reader helpers from ritual_tee_registry_reader.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact code exists in the v2.2 port at the same path."
+    },
+    {
+      "record_id": "file-0356-atom-0002",
+      "file_index": 356,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/ritual-tee-registry-reader/src/lib.rs",
+      "source_hunk_hint": "invariant-catalog crosswalk: ritual-executor-registry-reader site hints vs this crate path",
+      "source_kind": "other",
+      "source_snippet": "Kartik invariant catalog \"Present-day site hints\" still name crates/ritual-executor-registry-reader/**; the downstream divergence queue adds crates/ritual-tee-registry-reader/**.",
+      "semantic_claim": "Traceability: inventory-catalog paths that say ritual-executor-registry-reader should be reconciled to the registry-reader crate actually added in this merge diff\u2014ritual-tee-registry-reader (see coverage files file-0353 through file-0359)\u2014for triage and port accounting, without implying a second missing crate in the 579-file queue.",
+      "high_risk": true,
+      "risk_tags": [
+        "executor-selection"
+      ],
+      "mapping_status": "renamed_exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-tee-registry-reader/src/lib.rs",
+          "symbols": [
+            "constants",
+            "error",
+            "reader",
+            "storage_layout",
+            "types"
+          ],
+          "snippet": "pub mod constants;\npub mod error;\npub mod reader;\npub mod storage_layout;\npub mod types;",
+          "evidence": "Same module surface as catalog hints for executor-registry-reader; package/crate directory name in the diff is ritual-tee-registry-reader."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "A consumer still linking ritual_executor_registry_reader that cannot switch to ritual_tee_registry_reader would break; confirm no duplicate executor-only crate is required for consensus.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Meta traceability atom for catalog vs diff naming; does not assert an additional patch hunk beyond file-0353..0359."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "The added file is byte-for-byte present at the same path in the v2.2 port."
+}

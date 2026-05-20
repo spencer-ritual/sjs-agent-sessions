@@ -1,0 +1,62 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping was found: the port async pool starts committed entries directly in AwaitingExecution and has no PreCommit state or pre-canonical lifecycle transition.",
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/async_exec.rs"
+  ],
+  "invariant_id": "cur-be463ed668-async-lifecycle-states-explicit",
+  "invariant_index": 215,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/transaction-pool/src/pool/mod.rs",
+      "crates/transaction-pool/src/traits.rs"
+    ],
+    "checked_queries": [
+      "PreCommit|pre[-_ ]?commit|AwaitingExecution|AsyncState",
+      "AsyncTxMetadata::awaiting_execution|add_committed_async_tx"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "AsyncState",
+      "AsyncTxMetadata::awaiting_execution",
+      "AsyncPool::add_metadata",
+      "PreCommit"
+    ],
+    "missing_behavior": "Missing explicit PreCommit async lifecycle state and transition from PreCommit to AwaitingExecution after the generated system transaction becomes canonical.",
+    "related_but_insufficient_code": [
+      "ritual-reth-internal-v2.2.0-port/crates/transaction-pool/src/pool/async_pool.rs defines AsyncState with AwaitingExecution, Fulfilled, AwaitingDelivery, and DeliveryReady only.",
+      "AsyncTxMetadata::awaiting_execution initializes state directly to AsyncState::AwaitingExecution.",
+      "AsyncPool::add_metadata rejects metadata without a commitment transaction, so it cannot represent a pre-canonical PreCommit entry."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The new enum variants and comments define the intended lifecycle distinction that was not represented when the pool only held transactions. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "1d438fd8d4fee4703dd845a3047eb581576e6ecf"
+  ],
+  "statement": "Async transactions in the pool can be represented as `PreCommit` before the generated system transaction is canonical, and `AwaitingExecution` after the system transaction is canonical while waiting for executor output.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Exercise the async pool lifecycle around system transaction inclusion and assert entries transition from `PreCommit` to `AwaitingExecution` before executor output is accepted."
+  ],
+  "summary": "The explicit PreCommit lifecycle state is absent from the audited repo set.",
+  "test_or_falsification_candidate": "Exercise pool admission before a commitment transaction is canonical; current code has no PreCommit state to assert and add_metadata requires commitment_tx.",
+  "title": "Async lifecycle states are explicit",
+  "total_invariants": 1954
+}

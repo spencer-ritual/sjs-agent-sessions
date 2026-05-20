@@ -1,0 +1,453 @@
+{
+  "record_type": "file",
+  "file_index": 297,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-async/src/validation.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "ritual-async",
+    "validation",
+    "async-payload",
+    "ttl-validation",
+    "phase2-deadline",
+    "rpc-validation"
+  ],
+  "atoms_total": 9,
+  "atoms": [
+    {
+      "record_id": "file-0297-atom-0001",
+      "file_index": 297,
+      "atom_index": 1,
+      "atoms_total": 9,
+      "source_path": "crates/ritual-async/src/validation.rs",
+      "source_hunk_hint": "@@ -0,0 +1,203 @@; module setup, constants, shared field validators, error types",
+      "source_kind": "async_validation_shared_bounds_and_errors",
+      "source_snippet": "pub const MAX_ASYNC_INPUT_SIZE: usize = 1_048_576;\n\nfn validate_executor_and_ttl_bounds(executor: Address, ttl: u64) -> Result<(), AsyncPayloadError> { ... }\nfn validate_base_fields(...) -> Result<(), AsyncPayloadError> { ... }\nfn validate_ecies_blob(blob: &[u8]) -> Result<(), AsyncPayloadError> { ... }\nfn validate_user_public_key(key: &[u8]) -> Result<(), AsyncPayloadError> { ... }\n\npub enum PrecompileDataError { ... }\npub enum TwoPhaseDeadlineError { ... }\npub enum AsyncPayloadError { ... }",
+      "semantic_claim": "The old divergence defines the shared async validation module, imports async precompile constants/codecs, re-exports canonical TTL bounds, caps async input size at 1 MiB, validates executor/TTL, ECIES ciphertext shape, user public key format, and enumerates extraction, payload, and deadline validation errors.",
+      "high_risk": true,
+      "risk_tags": [
+        "input-size",
+        "ttl-validation",
+        "ecies-validation",
+        "public-key-validation",
+        "error-surface"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async/src/validation.rs",
+          "symbols": [
+            "MAX_ASYNC_INPUT_SIZE",
+            "max_ttl_blocks",
+            "MAX_TTL_BLOCKS",
+            "validate_executor_and_ttl_bounds",
+            "validate_base_fields",
+            "validate_ecies_blob",
+            "validate_ecies_blob_array",
+            "validate_user_public_key",
+            "PrecompileDataError",
+            "TwoPhaseDeadlineError",
+            "AsyncPayloadError"
+          ],
+          "evidence": "Read-only audit confirmed destination lines 1-203 exactly match the source-added hunk."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async/src/lib.rs",
+          "symbols": [
+            "MAX_ASYNC_INPUT_SIZE",
+            "AsyncPayloadError",
+            "PrecompileDataError",
+            "TwoPhaseDeadlineError"
+          ],
+          "evidence": "Destination crate root re-exports the validation constants and error types."
+        }
+      ],
+      "equivalence_argument": "All constants, imports, helper predicates, and error variants/messages are byte-for-byte preserved, so downstream validation semantics and diagnostics are unchanged from the source hunk.",
+      "test_strategy": "shared_validation_boundary_tests",
+      "negative_test_candidate": "Construct payloads with zero executor, ttl 0, ttl above `max_ttl_blocks()`, short or non-0x04 ECIES blobs, and compressed or wrong-length user public keys; expect the corresponding error variants.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping; high-risk due to RPC/builder validation impact only."
+    },
+    {
+      "record_id": "file-0297-atom-0002",
+      "file_index": 297,
+      "atom_index": 2,
+      "atoms_total": 9,
+      "source_path": "crates/ritual-async/src/validation.rs",
+      "source_hunk_hint": "@@ -0,0 +205,308 @@; precompile data extraction",
+      "source_kind": "async_precompile_data_extraction",
+      "source_snippet": "pub fn try_decode_precompile_data(precompile_address: Address, input: &[u8]) -> Result<(Address, u64), PrecompileDataError> { ... }\npub fn extract_precompile_data(precompile_address: Address, input: &[u8]) -> Result<(Address, u64), PrecompileDataError> { ... }\nfn validate_executor_and_ttl(executor: Address, ttl: u64) -> Result<(), PrecompileDataError> { ... }",
+      "semantic_claim": "`try_decode_precompile_data` decodes executor and TTL without validation using precompile-specific codecs for HTTP, LLM, Sovereign Agent, Persistent Agent, DKMS, and base executor requests; `extract_precompile_data` then applies executor/TTL validation and debug tracing.",
+      "high_risk": true,
+      "risk_tags": [
+        "abi-decoding",
+        "executor",
+        "ttl-validation",
+        "rpc-validation"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async/src/validation.rs",
+          "symbols": [
+            "try_decode_precompile_data",
+            "extract_precompile_data",
+            "validate_executor_and_ttl"
+          ],
+          "evidence": "Destination lines 205-308 preserve decode dispatch order, codec choices, validation call, and error wrapping strings exactly."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc/src/async_tx_validator.rs",
+          "symbols": [
+            "validation::extract_precompile_data"
+          ],
+          "evidence": "Destination RPC async validator delegates executor/TTL extraction to the preserved validation function."
+        }
+      ],
+      "equivalence_argument": "The destination preserves decode-only and validated extraction behavior exactly for all supported async precompile families.",
+      "test_strategy": "precompile_data_extraction_tests",
+      "negative_test_candidate": "Submit DKMS, sovereign, persistent, HTTP, LLM, and base executor ABI payloads with malformed input or invalid TTL/executor and assert decode-only versus validated extraction behavior.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0297-atom-0003",
+      "file_index": 297,
+      "atom_index": 3,
+      "atoms_total": 9,
+      "source_path": "crates/ritual-async/src/validation.rs",
+      "source_hunk_hint": "@@ -0,0 +310,426 @@; two-phase deadline extraction and offset validation",
+      "source_kind": "two_phase_deadline_extraction_and_validation",
+      "source_snippet": "pub fn extract_two_phase_deadline(precompile_address: Address, input: &[u8]) -> Option<u64> { ... }\npub fn validate_two_phase_deadline(ttl: u64, phase2_offset: u64) -> Result<(), TwoPhaseDeadlineError> { ... }",
+      "semantic_claim": "The old divergence extracts deadline offsets from Sovereign Agent field 4, Persistent Agent field 5, and long-running/ZK/FHE field 6, returning `None` for unsupported or too-short inputs, and validates Phase 2 offset is strictly greater than TTL.",
+      "high_risk": true,
+      "risk_tags": [
+        "phase2-deadline",
+        "two-phase-precompile",
+        "abi-offset",
+        "ttl-ordering"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async/src/validation.rs",
+          "symbols": [
+            "extract_two_phase_deadline",
+            "validate_two_phase_deadline"
+          ],
+          "evidence": "Destination lines 310-426 preserve all precompile address branches, byte offsets, minimum lengths, U256-to-u64 conversion behavior, and strict `offset <= ttl` rejection."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc/src/async_tx_validator.rs",
+          "symbols": [
+            "extract_two_phase_deadline",
+            "validate_two_phase_deadline"
+          ],
+          "evidence": "Destination RPC deadline validation delegates to both preserved functions."
+        }
+      ],
+      "equivalence_argument": "The destination preserves source deadline extraction layouts and Phase 2 ordering checks exactly.",
+      "test_strategy": "two_phase_deadline_boundary_tests",
+      "negative_test_candidate": "Use short inputs, unsupported precompile addresses, field-offset boundary payloads, offset equal to TTL, offset less than TTL, and offset greater than TTL cases.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0297-atom-0004",
+      "file_index": 297,
+      "atom_index": 4,
+      "atoms_total": 9,
+      "source_path": "crates/ritual-async/src/validation.rs",
+      "source_hunk_hint": "@@ -0,0 +428,555 @@; top-level async payload router and HTTP/LLM/base validators",
+      "source_kind": "async_payload_router_http_llm_base_validators",
+      "source_snippet": "pub fn validate_async_payload(precompile_address: Address, input: &[u8]) -> Result<(), AsyncPayloadError> { ... }\npub fn validate_http_call_payload(input: &[u8]) -> Result<(), AsyncPayloadError> { ... }\npub fn validate_llm_call_payload(input: &[u8]) -> Result<(), AsyncPayloadError> { ... }\nfn validate_executor_request_payload(input: &[u8]) -> Result<(), AsyncPayloadError> { ... }",
+      "semantic_claim": "`validate_async_payload` enforces max input size, dispatches by precompile address, validates HTTP URL presence/scheme, LLM model/messages, and base executor request fields for ZK and other executor-request precompiles.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload-validation",
+        "input-size",
+        "http-validation",
+        "llm-validation",
+        "base-executor-request"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async/src/validation.rs",
+          "symbols": [
+            "validate_async_payload",
+            "validate_http_call_payload",
+            "validate_llm_call_payload",
+            "validate_executor_request_payload"
+          ],
+          "evidence": "Destination lines 428-555 preserve routing order, precompile constants, size check, decoder calls, URL/model/message validation, and base field validation."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc/src/eth/helpers/transaction.rs",
+          "symbols": [
+            "validate_async_payload"
+          ],
+          "evidence": "Destination send-raw-transaction validation path calls the preserved top-level payload validator after async simulation."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the source top-level payload validation router and common HTTP/LLM/base validation semantics.",
+      "test_strategy": "async_payload_router_tests",
+      "negative_test_candidate": "Use oversized input, malformed ABI, HTTP empty or ftp URL, LLM empty model, LLM empty messages, and valid base executor request payloads.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0297-atom-0005",
+      "file_index": 297,
+      "atom_index": 5,
+      "atoms_total": 9,
+      "source_path": "crates/ritual-async/src/validation.rs",
+      "source_hunk_hint": "@@ -0,0 +557,606 @@; long-running HTTP payload validator",
+      "source_kind": "long_running_http_payload_validator",
+      "source_snippet": "pub fn validate_long_running_http_payload(input: &[u8]) -> Result<(), AsyncPayloadError> { ... }",
+      "semantic_claim": "The old divergence validates long-running HTTP ABI, shared base fields, required initial URL, required poll URL, and optional result URL scheme when present.",
+      "high_risk": true,
+      "risk_tags": [
+        "long-running-http",
+        "two-phase-precompile",
+        "url-validation"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async/src/validation.rs",
+          "symbols": [
+            "validate_long_running_http_payload"
+          ],
+          "evidence": "Destination lines 557-606 preserve all three URL checks and their field-specific error variants exactly."
+        }
+      ],
+      "equivalence_argument": "The destination keeps the source long-running HTTP validator's decode and URL validation behavior unchanged.",
+      "test_strategy": "long_running_http_payload_tests",
+      "negative_test_candidate": "Payloads with empty initial URL, invalid initial URL, empty poll URL, invalid poll URL, empty result URL, invalid non-empty result URL, and all-valid URLs.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0297-atom-0006",
+      "file_index": 297,
+      "atom_index": 6,
+      "atoms_total": 9,
+      "source_path": "crates/ritual-async/src/validation.rs",
+      "source_hunk_hint": "@@ -0,0 +608,676 @@; sovereign and persistent agent validators",
+      "source_kind": "sovereign_and_persistent_agent_validators",
+      "source_snippet": "pub fn validate_sovereign_agent_payload(input: &[u8]) -> Result<(), AsyncPayloadError> { ... }\npub fn validate_persistent_agent_payload(input: &[u8]) -> Result<(), AsyncPayloadError> { ... }",
+      "semantic_claim": "Sovereign Agent validation decodes the full ABI, validates executor/TTL, a single ECIES blob, user public key, non-empty trimmed prompt/model, supported CLI types 0/4/5/6, and Phase 2 offset bounds; Persistent Agent validation decodes the full ABI, validates base fields, and requires a non-empty trimmed model.",
+      "high_risk": true,
+      "risk_tags": [
+        "sovereign-agent",
+        "persistent-agent",
+        "agent-type",
+        "phase2-deadline",
+        "ecies-validation"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async/src/validation.rs",
+          "symbols": [
+            "validate_sovereign_agent_payload",
+            "validate_persistent_agent_payload"
+          ],
+          "evidence": "Destination lines 608-676 preserve agent-specific decode paths, supported type whitelist, trimmed string checks, ECIES/key checks, and Phase 2 bound comparisons."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves source agent payload validation and fail-closed constraints.",
+      "test_strategy": "agent_payload_validation_tests",
+      "negative_test_candidate": "Sovereign payloads with whitespace prompt/model, unsupported agent type 1/2, out-of-range type, invalid ECIES/key, max_poll_block less than or equal to TTL, max_poll_block greater than `MAX_PHASE2_DEADLINE_OFFSET`; Persistent payloads with empty model or invalid base fields.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0297-atom-0007",
+      "file_index": 297,
+      "atom_index": 7,
+      "atoms_total": 9,
+      "source_path": "crates/ritual-async/src/validation.rs",
+      "source_hunk_hint": "@@ -0,0 +678,724 @@; media, FHE, and DKMS validators",
+      "source_kind": "media_fhe_dkms_validators",
+      "source_snippet": "pub fn validate_image_call_payload(input: &[u8]) -> Result<(), AsyncPayloadError> { ... }\npub fn validate_audio_call_payload(input: &[u8]) -> Result<(), AsyncPayloadError> { ... }\npub fn validate_video_call_payload(input: &[u8]) -> Result<(), AsyncPayloadError> { ... }\npub fn validate_fhe_call_payload(input: &[u8]) -> Result<(), AsyncPayloadError> { ... }\npub fn validate_dkms_key_payload(input: &[u8]) -> Result<(), AsyncPayloadError> { ... }",
+      "semantic_claim": "Image, audio, and video validators use base executor request validation; FHE validates base request and best-effort logs FHE StorageRef structure validation failures without rejecting; DKMS decodes its dedicated request, validates base fields, and rejects zero owner.",
+      "high_risk": true,
+      "risk_tags": [
+        "media-precompiles",
+        "fhe",
+        "dkms",
+        "base-fields",
+        "owner-validation"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async/src/validation.rs",
+          "symbols": [
+            "validate_image_call_payload",
+            "validate_audio_call_payload",
+            "validate_video_call_payload",
+            "validate_fhe_call_payload",
+            "validate_dkms_key_payload"
+          ],
+          "evidence": "Destination lines 678-724 preserve base-validator delegation, FHE non-fatal structure check, DKMS codec/error wrapping, and owner-zero rejection exactly."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves source validation behavior for media, FHE, and DKMS async precompile payloads.",
+      "test_strategy": "media_fhe_dkms_payload_tests",
+      "negative_test_candidate": "Media base request with bad TTL/key; FHE payload with valid base fields but unexpected StorageRef tuple shape; DKMS payload with zero owner and nonzero owner.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0297-atom-0008",
+      "file_index": 297,
+      "atom_index": 8,
+      "atoms_total": 9,
+      "source_path": "crates/ritual-async/src/validation.rs",
+      "source_hunk_hint": "@@ -0,0 +726,1451 @@; unit tests",
+      "source_kind": "async_validation_unit_tests",
+      "source_snippet": "#[cfg(test)]\nmod tests {\n    fn create_http_request_payload(...) -> Vec<u8> { ... }\n    fn create_llm_request_payload(...) -> Vec<u8> { ... }\n    fn create_persistent_agent_payload(...) -> Vec<u8> { ... }\n    fn create_sovereign_agent_payload_custom(...) -> Vec<u8> { ... }\n    #[test] fn ...\n}",
+      "semantic_claim": "The old divergence adds unit coverage for HTTP, LLM including `convo_history`, Persistent Agent decoding/validation/deadline extraction, Sovereign Agent decoding/validation, ECIES/user-key validation, unsupported agent types, Phase 2 bounds, and valid ECIES/pubkey combinations.",
+      "high_risk": false,
+      "risk_tags": [
+        "tests",
+        "unit-tests",
+        "payload-validation",
+        "deadline-boundaries"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async/src/validation.rs",
+          "symbols": [
+            "create_http_request_payload",
+            "create_llm_request_payload",
+            "create_persistent_agent_payload",
+            "create_sovereign_agent_payload",
+            "create_sovereign_agent_payload_custom"
+          ],
+          "evidence": "Destination lines 726-1451 preserve test builders, ABI token layouts, assertions, expected variants, and boundary values exactly."
+        }
+      ],
+      "equivalence_argument": "The destination unit test module preserves the source coverage intent exactly.",
+      "test_strategy": "cargo test -p ritual-async validation",
+      "negative_test_candidate": "Run the module tests and add mutation checks that flip each expected error condition to verify tests fail.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Test atom only."
+    },
+    {
+      "record_id": "file-0297-atom-0009",
+      "file_index": 297,
+      "atom_index": 9,
+      "atoms_total": 9,
+      "source_path": "crates/ritual-async/src/validation.rs",
+      "source_hunk_hint": "@@ -0,0 +1453,1496 @@; property tests",
+      "source_kind": "async_validation_property_tests",
+      "source_snippet": "proptest! {\n    #[test]\n    fn fuzz_validate_two_phase_deadline_property(ttl in 1u64..1000, offset in 0u64..2000) { ... }\n\n    #[test]\n    fn fuzz_ttl_bounds(ttl in 0u64..1000) { ... }\n}",
+      "semantic_claim": "The old divergence adds property tests for the two-phase deadline invariant `valid iff offset > ttl` and TTL bound assumptions against `MAX_TTL_BLOCKS`.",
+      "high_risk": false,
+      "risk_tags": [
+        "property-tests",
+        "deadline-invariant",
+        "ttl-bounds"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async/src/validation.rs",
+          "symbols": [
+            "fuzz_validate_two_phase_deadline_property",
+            "fuzz_ttl_bounds"
+          ],
+          "evidence": "Destination lines 1453-1496 preserve the proptest ranges, expected-valid predicates, assertions, and comments exactly."
+        }
+      ],
+      "equivalence_argument": "The destination property tests preserve source invariants and fuzz ranges exactly.",
+      "test_strategy": "cargo test -p ritual-async fuzz_validate_two_phase_deadline_property fuzz_ttl_bounds",
+      "negative_test_candidate": "Mutate `validate_two_phase_deadline` from `<=` to `<` or change the TTL bound predicate and confirm property tests catch the divergence.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Test atom only."
+    }
+  ],
+  "high_risk_atoms_total": 7,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The shared async validation implementation is exact-port preserved across common bounds/errors, precompile data extraction, two-phase deadline extraction/validation, top-level payload routing, HTTP/LLM/base validators, long-running HTTP, Sovereign/Persistent Agent, media/FHE/DKMS validators, and validation tests.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 297: A\tcrates/ritual-async/src/validation.rs.",
+    "Read-only audit confirmed the source added-file hunk is `+1,496` at diff lines 46671-48172 and destination `crates/ritual-async/src/validation.rs` lines 1-1496 match exactly.",
+    "Bounded destination usage evidence found validation APIs re-exported from `crates/ritual-async/src/lib.rs` and consumed by RPC async validation and Eth transaction helper paths.",
+    "No review queue entry was required because all atoms are exact mappings; high-risk tags reflect validation/security sensitivity only."
+  ]
+}

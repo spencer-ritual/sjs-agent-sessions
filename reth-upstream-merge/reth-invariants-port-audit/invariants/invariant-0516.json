@@ -1,0 +1,64 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "85b41ec83e0009175c328eb0b9a07c92c3008129",
+      "evidence": "The shared decoder routes 0x080C through the full sovereign-agent codec and returns the decoded executor and TTL.",
+      "path": "crates/ritual-precompile-codecs/src/validation.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "SOVEREIGN_AGENT_PRECOMPILE => {\n    let request = SovereignAgentRequest::from_abi(input)?;\n    (request.executor, request.ttl)\n}",
+      "symbols": [
+        "try_decode_precompile_data",
+        "SovereignAgentRequest::from_abi"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "85b41ec83e0009175c328eb0b9a07c92c3008129",
+      "evidence": "The codec extracts executor from token 0 and TTL from token 1 after decoding the full 23-field ABI.",
+      "path": "crates/ritual-precompile-codecs/src/sovereign_agent.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "executor: address_token(&tokens[0], \"executor\")?,\nttl: u64_token(&tokens[1], \"ttl\")?,",
+      "symbols": [
+        "SovereignAgentRequest::from_abi"
+      ]
+    }
+  ],
+  "equivalence_argument": "Sovereign-agent executor/TTL extraction remains a full ABI decode followed by direct field projection, so malformed or truncated payloads fail through the codec before values are returned.",
+  "evidence_files": [
+    "crates/ritual-async/src/validation.rs"
+  ],
+  "invariant_id": "cur-39a1166e8f-sovereign-agent-decode-returns-executor",
+  "invariant_index": 516,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "No dependency mapping is needed because the codec lives in the port workspace.",
+  "rationale": "The test encodes executor `0xCD..` and TTL `55`, then asserts `try_decode_precompile_data` returns those exact values. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "adeb1e4bb6882c87e5f4202a7fe7bed9f0a830d2"
+  ],
+  "statement": "For sovereign-agent (`0x080C`) payloads, `try_decode_precompile_data` uses the full codec and returns the executor address and TTL from the encoded payload.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Encode a sovereign-agent payload with randomized executor and TTL and assert decoder output equals the encoded values."
+  ],
+  "summary": "Sovereign-agent decoding returns the encoded executor and TTL.",
+  "test_or_falsification_candidate": "Encode a sovereign-agent payload with randomized executor and TTL and assert try_decode_precompile_data returns those exact values.",
+  "title": "Sovereign-agent decode returns executor and TTL",
+  "total_invariants": 1954
+}

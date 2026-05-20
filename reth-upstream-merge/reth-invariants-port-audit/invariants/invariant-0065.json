@@ -1,0 +1,75 @@
+{
+  "cluster_key": "scheduler:pool-accounting:part-01",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/scheduled.rs",
+    "crates/transaction-pool/src/pool/txpool.rs",
+    "crates/transaction-pool/src/pool/mod.rs",
+    "crates/transaction-pool/src/pool/state.rs",
+    "crates/transaction-pool/src/traits.rs"
+  ],
+  "invariant_id": "cur-62de2eed59-scheduled-dedicated-managed-subpool",
+  "invariant_index": 65,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/scheduled.rs",
+      "crates/transaction-pool/src/pool/txpool.rs",
+      "crates/transaction-pool/src/pool/mod.rs",
+      "crates/transaction-pool/src/pool/state.rs",
+      "crates/transaction-pool/src/traits.rs"
+    ],
+    "checked_queries": [
+      "scheduled_pool|add_to_scheduled_pool|get_scheduled_transactions|remove_scheduled",
+      "SCHEDULED_TRANSACTION|ScheduledPoolTransactionError"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "Scheduled subpool",
+      "get_scheduled_transactions",
+      "add_to_scheduled_pool",
+      "remove_scheduled",
+      "SCHEDULED_TRANSACTION",
+      "ScheduledPoolTransactionError"
+    ],
+    "missing_behavior": "Missing dedicated node-managed Scheduled subpool with retrieval and hash pruning that avoids ordinary sender accounting.",
+    "related_but_insufficient_code": [
+      "The port has no pool/scheduled.rs file. Pool insertion only detects SCHEDULED_TX_TYPE_ID to avoid async sender lock, then uses normal TxPool insertion."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The pool-accounting lineage moved from keyed maps, scheduled TxState bits, and dedicated scheduled error variants to a dedicated node-managed Scheduled subpool. Later candidates consistently preserve direct scheduled-subpool insertion/retrieval and hash removal while removing normal insert_tx scheduled classification.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "fc79889b63ef0771db9358daa244cc4555b39a16",
+    "a4ef6c1670c642ed70b957fc82a0f8ee7adc8950",
+    "dd6401f544320e22fb0ce4fdf9e5e43c9a38b2ca",
+    "b38d84f416d7d820c88956dbe4bc43e0d7eecae4",
+    "a5f9d249d5b79d23cdc7e088edc8bd30f7906e3b",
+    "32a543107a4182fa552d18c6e4f7e563b5957857"
+  ],
+  "statement": "Node-generated scheduled transactions are stored and retrieved through the dedicated Scheduled subpool; normal transaction insertion no longer classifies transactions with scheduled TxState bits or scheduled-specific invalid-pool errors, and hash-based pruning must check and remove scheduled-subpool transactions without polluting ordinary sender accounting.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Insert a node-generated scheduled transaction through the scheduled insertion path, assert get_scheduled_transactions returns it from the Scheduled subpool, remove it by hash, and assert it is absent from the Scheduled subpool afterward.",
+    "Insert otherwise similar scheduled and non-scheduled transactions through normal insert_tx and assert no SCHEDULED_TRANSACTION TxState bit or ScheduledPoolTransactionError path is required or exposed.",
+    "Populate ordinary transaction accounting with SYSTEM_SENDER and a normal sender, then assert unique_senders excludes SYSTEM_SENDER."
+  ],
+  "summary": "Dedicated scheduled subpool is absent.",
+  "test_or_falsification_candidate": "Insert node-generated scheduled tx through scheduled insertion path and retrieve/remove it from Scheduled subpool; current port lacks this path.",
+  "title": "Scheduled transactions use a dedicated node-managed subpool",
+  "total_invariants": 1954
+}

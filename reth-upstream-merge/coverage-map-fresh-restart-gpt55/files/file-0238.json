@@ -1,0 +1,33 @@
+{
+  "record_type": "file",
+  "file_index": 238,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/payload/util/src/traits.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "semicolon",
+    "payload-util",
+    "transaction-iteration"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The payload util divergence is semicolon-only rustfmt noise in best-transaction iteration loop control; no iterator behavior changed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 238: M\tcrates/payload/util/src/traits.rs.",
+    "The isolated patch only adds semicolons to an invalid-sender `continue` and the returned cloned transaction.",
+    "No invalid sender filtering, best transaction iteration, or returned transaction behavior changed."
+  ]
+}

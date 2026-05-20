@@ -1,0 +1,111 @@
+{
+  "record_type": "file",
+  "file_index": 523,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/transaction-pool/src/error.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "structural_equivalent",
+    "reviewed",
+    "txpool",
+    "errors"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0523-atom-0001",
+      "file_index": 523,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/transaction-pool/src/error.rs",
+      "source_hunk_hint": "@@ -66,6 +66,10 @@ pub enum PoolErrorKind {",
+      "source_kind": "error_path",
+      "source_snippet": "    #[error(\"sender locked due to existing async transaction in pool\")]\n    SenderLocked,\n            PoolErrorKind::SenderLocked => {\n                false\n            }\n                    InvalidTransactionError::InsufficientFunds { .. }\n                    | InvalidTransactionError::NonceNotConsistent { .. } => {\n                    InvalidTransactionError::GasTooLow\n                    | InvalidTransactionError::GasTooHigh\n                    | InvalidTransactionError::TipAboveFeeCap => {",
+      "semantic_claim": "The txpool has a temporary `SenderLocked` pool error for senders with canonical async locks.",
+      "high_risk": true,
+      "risk_tags": [
+        "txpool",
+        "async",
+        "sender-lock"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/error.rs",
+          "symbols": [
+            "PoolErrorKind::SenderLocked"
+          ],
+          "evidence": "Destination defines `PoolErrorKind::SenderLocked` and classifies it as not a bad transaction."
+        }
+      ],
+      "equivalence_argument": "Exact error surface is present for async sender locks.",
+      "test_strategy": "submit normal tx from sender locked by async metadata",
+      "negative_test_candidate": "A second non-scheduled tx from a locked sender should return SenderLocked.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": ""
+    },
+    {
+      "record_id": "file-0523-atom-0002",
+      "file_index": 523,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/transaction-pool/src/error.rs",
+      "source_hunk_hint": "@@ -66,6 +66,10 @@ pub enum PoolErrorKind {",
+      "source_kind": "error_path",
+      "source_snippet": "    #[error(\"sender locked due to existing async transaction in pool\")]\n    SenderLocked,\n            PoolErrorKind::SenderLocked => {\n                false\n            }\n                    InvalidTransactionError::InsufficientFunds { .. }\n                    | InvalidTransactionError::NonceNotConsistent { .. } => {\n                    InvalidTransactionError::GasTooLow\n                    | InvalidTransactionError::GasTooHigh\n                    | InvalidTransactionError::TipAboveFeeCap => {",
+      "semantic_claim": "The old divergence classifies `InvalidTransactionError::PrecompileRequestPermanentlyInvalid` as a bad transaction.",
+      "high_risk": true,
+      "risk_tags": [
+        "txpool",
+        "precompile-validation",
+        "missing"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/error.rs",
+          "symbols": [
+            "PrecompileRequestPermanentlyInvalid"
+          ],
+          "evidence": "Destination searches find no `PrecompileRequestPermanentlyInvalid` variant in txpool. Permanent precompile invalidity is now represented as `InvalidTransactionError::TxTypeNotSupported` in payload/pending-block validation paths, while RPC async admission preflight rejects invalid detected async precompile calls before pool insertion."
+        }
+      ],
+      "equivalence_argument": "Reviewed structural equivalent for active behavior: the old txpool-specific `PrecompileRequestPermanentlyInvalid` bad-transaction variant is absent, but invalid async precompile requests are rejected before pool insertion by RPC admission preflight or fail closed as `TxTypeNotSupported` in payload/pending validation. The old exact error variant is not required for the active v2 rejection path.",
+      "test_strategy": "invalid precompile request validation test",
+      "negative_test_candidate": "A permanently invalid precompile request should be classified as bad rather than transient.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed: exact old txpool variant is intentionally absent; active permanent invalidity is handled by RPC preflight and generic invalid transaction rejection."
+    }
+  ],
+  "high_risk_atoms_total": 2,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Reviewed: txpool `SenderLocked` is preserved exactly. The old permanent-precompile-invalid txpool variant is replaced by RPC admission preflight plus generic invalid transaction rejection, so no txpool error-surface review gap remains.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0523: M\tcrates/transaction-pool/src/error.rs.",
+    "Source diff lines 90404-90490; first hunk `@@ -66,6 +66,10 @@ pub enum PoolErrorKind {`.",
+    "Fresh destination evidence was checked against /home/ritual/repos/ritual-reth-internal-v2.2.0-port.",
+    "Review conclusion: exact `PrecompileRequestPermanentlyInvalid` is absent by design; active invalid async precompile requests are rejected before or during payload validation without depending on that txpool error variant."
+  ]
+}

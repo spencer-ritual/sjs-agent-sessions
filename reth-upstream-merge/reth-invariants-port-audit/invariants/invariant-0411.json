@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "The registry reader returns committed input_hash and previous-block/executor context without dynamic full input bytes.",
+      "path": "crates/ritual-async-registry/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub struct SpcVerificationJobData { ... pub input_hash: B256, ... }\n...\nlet input_hash_bytes = db.storage(contract, input_hashes_slot(*job_id))?;\nlet input_hash = B256::from(input_hash_bytes.to_be_bytes::<32>());",
+      "symbols": [
+        "SpcVerificationJobData",
+        "read_jobs_for_spc_verification"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "Builder settlement verification obtains full input from settlement/pool calldata and checks it against the committed hash before SPC signature verification.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let computed_hash = keccak256(spc_input);\nif computed_hash != job.input_hash { return Err(...); }\n...\nverify_signature_core(..., spc_input, spc_output, job.previous_block_hash, ...)",
+      "symbols": [
+        "verify_spc_with_preloaded_context"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port stores/reads only the committed input hash from AsyncJobTracker for SPC jobs; the full bytes come from settlement calldata or pool metadata and are hash-checked before verification.",
+  "evidence_files": [
+    "crates/ritual-async-registry/src/lib.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-38b532f76c-reads-committed-input-hash-only",
+  "invariant_index": 411,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in async registry reader and settlement verification.",
+  "rationale": "The primary diff replaces `SpcVerificationJobData.precompile_input` with `input_hash`, removes the old dynamic byte reader, and documents that the caller extracts full bytes from settlement calldata for verification. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "55ff427d28c70e9f0181d098a4494dcb2dae24f4"
+  ],
+  "statement": "SPC verification job reads must return the committed precompile input hash plus previous-block context and executor metadata, while the full input bytes are expected to come from settlement transaction calldata.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Populate mock storage for an SPC job with previous block fields and an input hash but without dynamic input bytes, call `read_jobs_for_spc_verification`, and assert the result contains `input_hash` and no full input bytes; verify missing executor storage still skips the job."
+  ],
+  "summary": "SPC job reads use committed input hashes only.",
+  "test_or_falsification_candidate": "Populate AsyncJobTracker storage with input_hash and previous-block fields but no dynamic input bytes, then assert read_jobs_for_spc_verification returns input_hash and verifier rejects mismatched calldata bytes.",
+  "title": "SPC reads committed input hash only",
+  "total_invariants": 1954
+}

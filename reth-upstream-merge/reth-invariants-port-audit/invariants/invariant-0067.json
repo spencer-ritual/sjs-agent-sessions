@@ -1,0 +1,80 @@
+{
+  "cluster_key": "scheduler:pool-accounting:part-01",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ethereum/node/src/node.rs",
+    "crates/transaction-pool/src/blocking_handlers.rs",
+    "crates/transaction-pool/src/maintain.rs",
+    "crates/scheduling/src/contract.rs",
+    "crates/scheduling/src/service.rs",
+    "crates/scheduling/src/types.rs"
+  ],
+  "invariant_id": "cur-1cff45af0b-canonical-scheduling-runs-blocking-pool-handler",
+  "invariant_index": 67,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/node/src/node.rs",
+      "crates/transaction-pool/src/blocking_handlers.rs",
+      "crates/transaction-pool/src/maintain.rs",
+      "crates/scheduling/src/contract.rs",
+      "crates/scheduling/src/service.rs",
+      "crates/scheduling/src/types.rs",
+      "crates/transaction-pool/src/pool/mod.rs"
+    ],
+    "checked_queries": [
+      "blocking_handlers.rs|canonical scheduling|scheduler events|ScheduledTxService",
+      "process_blocking_canonical_state_change|process_async_commitment_transactions"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "blocking_handlers.rs",
+      "process_blocking_canonical_state_change",
+      "scheduler events",
+      "ScheduledTxService",
+      "canonical scheduling",
+      "process_async_commitment_transactions"
+    ],
+    "missing_behavior": "Missing synchronous transaction-pool blocking canonical handler that replays Scheduler-origin events, updates scheduler state, removes mined async originals, and submits scheduled transactions before canonical update returns.",
+    "related_but_insufficient_code": [
+      "Pool canonical processing updates async commitments/settlements but no blocking handler replays Scheduler events or submits generated scheduled transactions."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The scheduling path evolved from an async service submitting to the pool into synchronous scheduler state replay and finally blocking canonical handling. The latest candidates in this packet say scheduling is handled synchronously in blocking_handlers.rs, while legacy service paths are deprecated or removed.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "5fcfd313147a47f554ca30b97011d9c0dcb2f7c2",
+    "59cc501a2735ec6287d073142b9344dd7338100f",
+    "e27693b16c75e2ece002b14146e0cc031eb7fe74",
+    "c12fdea5b668f8e5388aee29e414ceacf77b9de6",
+    "8f7946e40ef8dd274c863cae497d80222de2c855",
+    "a16a172b102fff82b5b53be0526c1899db1c2ca4",
+    "64773e5b4bab64e3d5342aa261922d03106c5cbb",
+    "2874dce8b93fbb4b3455ae6e9f6eae560ea438b0"
+  ],
+  "statement": "Canonical scheduler processing is performed synchronously in the transaction-pool blocking canonical handler: it replays newly appended scheduler-origin events, updates scheduler state, removes mined async originals, and submits generated scheduled transactions before the canonical update path returns; the old contract-monitoring service is not the active pool-insertion path.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Apply a canonical state update containing scheduler Create and Cancel events and assert the registered blocking handler advances scheduler state and submits due scheduled transactions before the canonical notification completes.",
+    "Disable or bypass the blocking handler and assert transaction-pool maintenance no longer performs the removed scheduling work.",
+    "Attempt to drive pool insertion through the legacy ScheduledTxService path and assert it is not an active nodebuilder scheduling path."
+  ],
+  "summary": "Canonical scheduling blocking handler is absent.",
+  "test_or_falsification_candidate": "Apply canonical update with Scheduler Create/Cancel events and assert blocking handler updates scheduler state and submits due scheduled txs; current port lacks handler.",
+  "title": "Canonical scheduling runs in the blocking pool handler",
+  "total_invariants": 1954
+}

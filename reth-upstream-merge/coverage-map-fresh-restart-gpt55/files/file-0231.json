@@ -1,0 +1,85 @@
+{
+  "record_type": "file",
+  "file_index": 231,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/payload/basic/src/better_payload_emitter.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "partial",
+  "tags": [
+    "non-exact",
+    "review-closed",
+    "payload-builder",
+    "empty-payload",
+    "build-arguments",
+    "better-payload-emitter",
+    "partial",
+    "non-active-api"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0231-atom-0001",
+      "file_index": 231,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/payload/basic/src/better_payload_emitter.rs",
+      "source_hunk_hint": "@@ -1,4 +1,4 @@ and @@ -48,8 +48,8 @@",
+      "source_kind": "payload_builder_api",
+      "source_snippet": "use crate::{BuildArguments, BuildOutcome, PayloadBuilder};\n\nfn build_empty_payload(\n    &self,\n    args: BuildArguments<Self::Attributes, Self::BuiltPayload>,\n) -> Result<Self::BuiltPayload, PayloadBuilderError> {\n    self.inner.build_empty_payload(args)\n}",
+      "semantic_claim": "The old better-payload emitter wrapper was updated with the richer empty-payload API, forwarding full BuildArguments rather than only PayloadConfig so metadata such as cancellation, cached state, and attempt identity can flow through wrapper layers.",
+      "high_risk": false,
+      "risk_tags": [
+        "payload-builder",
+        "empty-payload",
+        "wrapper-forwarding",
+        "api-compatibility",
+        "non-active-empty-payload-path"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/payload/basic/src/better_payload_emitter.rs",
+          "symbols": [
+            "BetterPayloadEmitter::build_empty_payload"
+          ],
+          "evidence": "Current wrapper still imports `HeaderForPayload` and `PayloadConfig`, and forwards only `config` to `self.inner.build_empty_payload(config)`."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/payload/basic/src/lib.rs",
+          "symbols": [
+            "PayloadBuilder::build_empty_payload"
+          ],
+          "evidence": "Current trait still defines config-only empty payload construction, so full BuildArguments cannot be forwarded through this wrapper."
+        }
+      ],
+      "equivalence_argument": "Downgraded after active-path review: the old full-BuildArguments empty-payload wrapper API is not exact-preserved, but active engine getPayload uses PayloadStore::resolve(), which now resolves with PayloadKind::WaitForPending. BasicPayloadJob filters out the empty-payload race for WaitForPending, so this wrapper empty-payload forwarding path is not part of the active payload FSM.",
+      "test_strategy": "api_regression",
+      "negative_test_candidate": "Add a wrapper-level regression where `BetterPayloadEmitter::build_empty_payload` receives non-default BuildArguments and assert the inner builder observes the same arguments rather than only a reconstructed config.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Non-exact API/support difference only. Production engine getPayload goes through WaitForPending; explicit Earliest usage found only in e2e-test-utils."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The BetterPayloadEmitter full-BuildArguments empty-payload API is not exact-preserved, but this is downgraded to a non-active API/support difference because active engine getPayload resolves with WaitForPending and does not race empty payloads.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Active path evidence: `PayloadStore::resolve()` calls `resolve_kind(id, PayloadKind::WaitForPending)`.",
+    "`BasicPayloadJob::resolve_kind` may construct an empty-payload receiver, but filters it out when kind is `WaitForPending`.",
+    "Explicit `PayloadKind::Earliest` usage found only in e2e-test-utils; no production engine caller found."
+  ]
+}

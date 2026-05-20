@@ -1,0 +1,160 @@
+{
+  "record_type": "file",
+  "file_index": 288,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-async-inspector/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "async-inspector",
+    "crate-root",
+    "public-api",
+    "ttl-validation"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0288-atom-0001",
+      "file_index": 288,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/ritual-async-inspector/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,18 @@; async inspector module declarations and re-exports",
+      "source_kind": "async_inspector_crate_root_exports",
+      "source_snippet": "pub mod inspector;\npub mod utils;\n\npub use inspector::{\n    AsyncPrecompileInspector, BasicAsyncCallResult, AUDIO_CALL_PRECOMPILE, DKMS_KEY_PRECOMPILE,\n    FHE_PRECOMPILE, HTTP_CALL_PRECOMPILE, IMAGE_CALL_PRECOMPILE, LLM_CALL_PRECOMPILE,\n    LONG_RUNNING_HTTP_PRECOMPILE, PERSISTENT_AGENT_PRECOMPILE, SOVEREIGN_AGENT_PRECOMPILE,\n    VIDEO_CALL_PRECOMPILE, ZK_TWO_PHASE_PRECOMPILE,\n};",
+      "semantic_claim": "The old divergence adds the async-inspector crate root that exposes the inspector module, utility module, `AsyncPrecompileInspector`, `BasicAsyncCallResult`, and all canonical async precompile address constants through a dependency-light shared API.",
+      "high_risk": false,
+      "risk_tags": [
+        "public-api",
+        "re-exports",
+        "dependency-boundary"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-inspector/src/lib.rs",
+          "symbols": [
+            "pub mod inspector",
+            "pub mod utils",
+            "pub use inspector"
+          ],
+          "evidence": "Destination crate root preserves the same module declarations and inspector/precompile constant re-export list as the source-added file."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async/src/lib.rs",
+          "symbols": [
+            "pub use ritual_async_inspector"
+          ],
+          "evidence": "Destination `ritual-async` consumes and re-exports the async-inspector public surface, confirming the shared boundary is active."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-commitment-validator/src/lib.rs",
+          "symbols": [
+            "use ritual_async_inspector"
+          ],
+          "evidence": "Destination commitment validator imports the inspector and constants from the shared crate root boundary."
+        }
+      ],
+      "equivalence_argument": "The destination keeps the same crate-root export surface and the observed consumers import through that surface, preserving the dependency-light API boundary exactly.",
+      "test_strategy": "workspace_compile_and_import_surface_check",
+      "negative_test_candidate": "Removing any precompile constant from the re-export list would break existing builder or verifier imports that depend on the shared async-inspector crate root.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers module declarations and public inspector/precompile re-exports."
+    },
+    {
+      "record_id": "file-0288-atom-0002",
+      "file_index": 288,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/ritual-async-inspector/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +20,59 @@; canonical async TTL and Phase 2 deadline constants",
+      "source_kind": "async_ttl_and_phase2_deadline_policy",
+      "source_snippet": "pub const DEFAULT_MAX_TTL_BLOCKS: u64 = 500;\n\npub fn max_ttl_blocks() -> u64 {\n    use std::sync::OnceLock;\n    static MAX_TTL: OnceLock<u64> = OnceLock::new();\n    *MAX_TTL.get_or_init(|| {\n        std::env::var(\"ASYNC_MAX_TTL_BLOCKS\")\n            .ok()\n            .and_then(|s| s.parse().ok())\n            .unwrap_or(DEFAULT_MAX_TTL_BLOCKS)\n    })\n}\n\npub const MAX_TTL_BLOCKS: u64 = DEFAULT_MAX_TTL_BLOCKS;\npub const MAX_PHASE2_DEADLINE_OFFSET: u64 = 70_000;",
+      "semantic_claim": "The old divergence centralizes consensus-critical async TTL policy in the inspector crate: default max TTL is 500 blocks, `max_ttl_blocks()` reads and caches the optional `ASYNC_MAX_TTL_BLOCKS` override, the deprecated `MAX_TTL_BLOCKS` constant remains at the default for compatibility, and Phase 2 deadline offset is capped at 70,000 blocks.",
+      "high_risk": false,
+      "risk_tags": [
+        "ttl-validation",
+        "consensus-critical",
+        "phase2-deadline"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-inspector/src/lib.rs",
+          "symbols": [
+            "DEFAULT_MAX_TTL_BLOCKS",
+            "max_ttl_blocks",
+            "MAX_TTL_BLOCKS",
+            "MAX_PHASE2_DEADLINE_OFFSET"
+          ],
+          "evidence": "Destination crate root preserves the exact default value, OnceLock-cached environment override, deprecated default constant, and 70,000 block Phase 2 deadline offset."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "max_ttl_blocks"
+          ],
+          "evidence": "Destination payload builder imports `max_ttl_blocks()` from `ritual_async_inspector` and uses it when validating async commitment TTL."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "MAX_PHASE2_DEADLINE_OFFSET",
+            "max_ttl_blocks"
+          ],
+          "evidence": "Destination block verifier uses the shared TTL function and Phase 2 deadline constant for rejection logic and tests."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async/src/validation.rs",
+          "symbols": [
+            "max_ttl_blocks",
+            "MAX_PHASE2_DEADLINE_OFFSET"
+          ],
+          "evidence": "Destination RPC/async validation imports the same canonical TTL and Phase 2 deadline values."
+        }
+      ],
+      "equivalence_argument": "The destination preserves the exact constants and cached environment override behavior, and builder, verifier, and RPC validation all point at this shared source, so the old cross-path TTL/deadline policy is exact-port preserved.",
+      "test_strategy": "ttl_boundary_tests_and_import_surface_check",
+      "negative_test_candidate": "Submit async commitments with TTL 0, TTL exactly `max_ttl_blocks()`, TTL one above the maximum, and Phase 2 offsets 70,000 and 70,001; builder, verifier, and RPC validation should agree on accept/reject boundaries.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers the shared TTL and Phase 2 deadline policy exported from the inspector crate root."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The async-inspector crate root is exact-port preserved: module declarations, inspector/precompile re-exports, canonical TTL configuration, compatibility TTL constant, and Phase 2 deadline cap all match the source divergence and are consumed by builder, verifier, RPC, and validator paths.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 288: A\tcrates/ritual-async-inspector/src/lib.rs.",
+    "Source diff for file-0288 starts at line 42490 with a 59-line new file and ends before the `crates/ritual-async-inspector/src/utils.rs` diff header at line 42555.",
+    "Destination `crates/ritual-async-inspector/src/lib.rs` preserves the same 59-line crate root body.",
+    "Bounded destination usage evidence confirms the shared inspector and TTL/deadline API are imported by async detection, commitment validation, payload builder, RPC validation, and block verification paths.",
+    "No review queue entry was required because the audited crate-root behavior is preserved exactly."
+  ]
+}

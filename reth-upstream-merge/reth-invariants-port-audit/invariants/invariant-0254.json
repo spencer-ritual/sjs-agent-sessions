@@ -1,0 +1,62 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "Because the registry service spawn is absent, there is no spawned-task error handling that logs failures while allowing BuilderContext construction.",
+  "evidence_files": [
+    "crates/node/builder/src/builder/mod.rs"
+  ],
+  "invariant_id": "cur-160ad82643-registry-service-failures-abort-builder-construction",
+  "invariant_index": 254,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/node/builder/src/builder/mod.rs",
+      "crates/ritual-spc-verification/src/service.rs"
+    ],
+    "checked_queries": [
+      "registry_service.start error",
+      "ExecutorRegistryService::start",
+      "spawn registry service tracing::error",
+      "BuilderContext::new"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "ExecutorRegistryService::start",
+      "registry_service.start",
+      "tracing::error",
+      "BuilderContext::new"
+    ],
+    "missing_behavior": "There is no registry service startup failure path that logs errors without aborting BuilderContext construction.",
+    "related_but_insufficient_code": [
+      "BuilderContext::new is a const constructor with no async service spawn.",
+      "No audited repo defines ExecutorRegistryService::start, so no runtime failure can be caught and logged by builder startup."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The service is started inside executor.spawn and the only visible error handling is a tracing::error! inside the async task, so startup of the builder context is decoupled from registry service runtime failure. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "f2effc0e9172fffba7e5463d240d9748aa67abed"
+  ],
+  "statement": "If the background ExecutorRegistryService::start call returns an error, BuilderContext::new logs the error from the spawned task rather than failing or preventing the BuilderContext from being constructed.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Force ExecutorRegistryService::start to return an error in a BuilderContext::new test and assert BuilderContext::new still returns while an error log is emitted from the spawned task."
+  ],
+  "summary": "Registry service failure handling is absent with the service itself.",
+  "test_or_falsification_candidate": "Force ExecutorRegistryService::start to return an error and assert BuilderContext::new still returns while logging; current code lacks the service and error-handling path.",
+  "title": "Registry service failures do not abort builder construction",
+  "total_invariants": 1954
+}

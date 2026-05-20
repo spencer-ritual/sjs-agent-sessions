@@ -1,0 +1,237 @@
+{
+  "record_type": "file",
+  "file_index": 344,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-spc-signature/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "structural-equivalent",
+    "spc-signature",
+    "crypto",
+    "tests"
+  ],
+  "atoms_total": 5,
+  "atoms": [
+    {
+      "record_id": "file-0344-atom-0001",
+      "file_index": 344,
+      "atom_index": 1,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-spc-signature/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,24 @@; crate docs, imports, precompile predicate",
+      "source_kind": "spc_signature_precompile_predicate",
+      "source_snippet": "use alloy_primitives::{keccak256, Address, Bytes, B256};\nuse ritual_precompile_addresses::ALL_SPC_BLOCK_VERIFIED_PRECOMPILE_ADDRESSES;\n...\npub fn is_spc_block_verified_precompile(addr: Address) -> bool { ALL_SPC_BLOCK_VERIFIED_PRECOMPILE_ADDRESSES.contains(&addr) }",
+      "semantic_claim": "The old divergence adds a dependency-light SPC signature crate root and an SPC block-verified precompile predicate backed by the canonical precompile-address allowlist.",
+      "high_risk": false,
+      "risk_tags": [
+        "precompile-allowlist",
+        "canonical-addresses",
+        "spc"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-signature/src/lib.rs",
+          "symbols": [
+            "is_spc_block_verified_precompile"
+          ],
+          "evidence": "Destination lines 1-24 preserve the predicate and canonical allowlist semantics, delegating to `ritual_precompile_addresses::is_spc_block_verified_precompile` and importing `ALL_SPC_BLOCK_VERIFIED_PRECOMPILE_ADDRESSES` for tests."
+        }
+      ],
+      "equivalence_argument": "Delegating to the canonical helper is equivalent to direct membership testing and further reduces allowlist drift risk.",
+      "test_strategy": "is_spc_block_verified_precompile_covers_all_canonical_addresses",
+      "negative_test_candidate": "Address zero must not be classified as SPC block-verified.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Non-exact due to destination using the canonical helper and `alloy_primitives::hex` import."
+    },
+    {
+      "record_id": "file-0344-atom-0002",
+      "file_index": 344,
+      "atom_index": 2,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-spc-signature/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +26,182 @@; verify_signature_core",
+      "source_kind": "spc_signature_core_verification",
+      "source_snippet": "pub fn verify_signature_core(public_key: &[u8], block_number: u64, tx_hash: B256, precompile_address: Address, precompile_input: &Bytes, output: &Bytes, previous_block_hash: B256, previous_block_number: u64, previous_block_timestamp: u64, error: &str, proof: &Bytes) -> Result<bool, String> { ... }",
+      "semantic_claim": "The old divergence adds pure SPC signature verification: reconstruct the executor-signed compact JSON payload, keccak hash it, extract the final 65-byte signature from proof bytes, strictly normalize the recovery id, recover the secp256k1 public key, and compare it with the expected executor key.",
+      "high_risk": false,
+      "risk_tags": [
+        "crypto",
+        "signature-recovery",
+        "json-canonicalization",
+        "spc"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-signature/src/lib.rs",
+          "symbols": [
+            "verify_signature_core"
+          ],
+          "evidence": "Destination lines 26-182 preserve the proof-length check, compact ordered JSON construction, keccak hashing, final-65-byte signature extraction, recovery id validation, recoverable signature parsing, public key recovery, uncompressed-key normalization, and equality check."
+        }
+      ],
+      "equivalence_argument": "The destination preserves the cryptographic algorithm and input/output contract; differences are limited to import/dependency normalization around hex encoding and canonical address helper usage outside the core verification logic.",
+      "test_strategy": "cargo test -p ritual-spc-signature verify_signature_core",
+      "negative_test_candidate": "A proof whose last byte is recovery id 30 must fail with an invalid recovery id error.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Semantics preserved in destination."
+    },
+    {
+      "record_id": "file-0344-atom-0003",
+      "file_index": 344,
+      "atom_index": 3,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-spc-signature/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +184,241 @@; helper functions",
+      "source_kind": "spc_signature_payload_helpers",
+      "source_snippet": "pub fn normalize_recovery_id(recovery_id_byte: u8) -> Result<u8, String> { ... }\npub fn construct_signature_payload(...) -> Result<String, String> { ... }",
+      "semantic_claim": "The old divergence exposes helper functions for strict recovery-id normalization and deterministic executor-compatible signature payload construction.",
+      "high_risk": false,
+      "risk_tags": [
+        "recovery-id",
+        "payload-canonicalization",
+        "testing-api"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-signature/src/lib.rs",
+          "symbols": [
+            "normalize_recovery_id",
+            "construct_signature_payload"
+          ],
+          "evidence": "Destination lines 184-241 match the source helper behavior, including accepted recovery id values and BTreeMap-backed compact JSON output."
+        }
+      ],
+      "equivalence_argument": "The helpers retain the same validation and payload canonicalization semantics.",
+      "test_strategy": "test_recovery_id_* and test_json_format_*",
+      "negative_test_candidate": "Recovery id 2 should be rejected rather than normalized.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Function behavior is preserved."
+    },
+    {
+      "record_id": "file-0344-atom-0004",
+      "file_index": 344,
+      "atom_index": 4,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-spc-signature/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +243,609 @@; recovery, JSON, proof, and public-key tests",
+      "source_kind": "spc_signature_unit_tests",
+      "source_snippet": "#[cfg(test)]\nmod tests { #[test] fn test_recovery_id_raw_zero() { ... } #[test] fn test_json_format_keys_sorted() { ... } #[test] fn test_proof_too_short_empty() { ... } #[test] fn test_public_key_64_bytes_accepted() { ... } }",
+      "semantic_claim": "The old divergence adds unit tests for recovery-id validation, canonical SPC precompile allowlist coverage, JSON payload format, proof length handling, and public-key format acceptance.",
+      "high_risk": false,
+      "risk_tags": [
+        "tests",
+        "recovery-id",
+        "json-format",
+        "proof-length",
+        "public-key-format"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-signature/src/lib.rs",
+          "symbols": [
+            "test_recovery_id_raw_zero",
+            "is_spc_block_verified_precompile_covers_all_canonical_addresses",
+            "test_json_format_keys_sorted",
+            "test_proof_too_short_empty",
+            "test_public_key_64_bytes_accepted"
+          ],
+          "evidence": "Destination lines 243-609 preserve this coverage and update the allowlist tests to use the canonical helper/constant together."
+        }
+      ],
+      "equivalence_argument": "The destination keeps the same regression coverage with small canonical-address helper normalization.",
+      "test_strategy": "cargo test -p ritual-spc-signature",
+      "negative_test_candidate": "A 64-byte proof must fail as too short.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Test coverage preserved."
+    },
+    {
+      "record_id": "file-0344-atom-0005",
+      "file_index": 344,
+      "atom_index": 5,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-spc-signature/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +611,724 @@; edge-case and determinism tests",
+      "source_kind": "spc_signature_edge_and_determinism_tests",
+      "source_snippet": "#[test] fn test_large_input_output() { ... }\n#[test] fn test_max_block_numbers() { ... }\n#[test] fn test_all_zeros() { ... }\n#[test] fn test_payload_deterministic() { ... }\n#[test] fn test_message_hash_deterministic() { ... }",
+      "semantic_claim": "The old divergence adds edge-case tests for large payloads, max block numbers, all-zero inputs, deterministic payload construction, and deterministic message hashes.",
+      "high_risk": false,
+      "risk_tags": [
+        "tests",
+        "edge-cases",
+        "determinism"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-signature/src/lib.rs",
+          "symbols": [
+            "test_large_input_output",
+            "test_max_block_numbers",
+            "test_all_zeros",
+            "test_payload_deterministic",
+            "test_message_hash_deterministic"
+          ],
+          "evidence": "Destination lines 611-729 preserve the source edge-case and determinism tests, shifted by earlier helper/import normalization."
+        }
+      ],
+      "equivalence_argument": "The destination retains the same deterministic payload/hash and edge-case checks.",
+      "test_strategy": "cargo test -p ritual-spc-signature test_payload_deterministic test_message_hash_deterministic",
+      "negative_test_candidate": "Calling payload construction twice with identical parameters should produce identical JSON.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Destination line count differs because earlier comments/imports were normalized."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 3,
+  "adversarial_reviews": [],
+  "summary": "The SPC signature library is structurally equivalent in the v2.2.0 port, preserving pure cryptographic signature verification, canonical payload construction, recovery-id validation, allowlist checks, and regression tests.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 344: A\tcrates/ritual-spc-signature/src/lib.rs.",
+    "Source-added hunk spans diff lines 69343-70067 with header `@@ -0,0 +1,724 @@`.",
+    "Destination `crates/ritual-spc-signature/src/lib.rs` has 729 lines and is semantically equivalent with canonical helper/import normalization.",
+    "No review queue entry required because the non-exact changes are low-risk normalizations that preserve the core verification algorithm."
+  ]
+}

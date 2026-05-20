@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-tee-registry-reader/src/types.rs",
+    "crates/ritual-tee-registry-reader/src/reader.rs"
+  ],
+  "invariant_id": "cur-6948899626-capability-value-recognized-executor-service",
+  "invariant_index": 399,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-tee-registry-reader/src/types.rs",
+      "crates/ritual-tee-registry-reader/src/reader.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs"
+    ],
+    "checked_queries": [
+      "Capability::try_from(6)",
+      "Capability::try_from(7)",
+      "Fhe = 6",
+      "Fhe = 10",
+      "is_executor_capability Fhe"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "Capability::Fhe",
+      "Capability::try_from",
+      "Capability::is_executor_capability"
+    ],
+    "missing_behavior": "Capability::try_from(6) does not return Capability::Fhe and Capability::try_from(7) is not invalid; the audited code maps Fhe to value 10.",
+    "related_but_insufficient_code": [
+      "crates/ritual-tee-registry-reader/src/types.rs defines Dkms = 6, ImageCall = 7, and Fhe = 10.",
+      "Capability::try_from maps 6 to Dkms, 7 to ImageCall, and 10 to Fhe; tests assert the same mapping.",
+      "Capability::Fhe is included in is_executor_capability, but not at the numeric value required by this invariant."
+    ]
+  },
+  "notes": "The executor-capability classification is present, but the required numeric ABI mapping is not.",
+  "rationale": "The primary diff adds Capability::Fhe = 6, maps byte value 6 to that variant, includes it in is_executor_capability, and updates tests so 6 succeeds and 7 is the first invalid value. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "c0c781360996fa39f5de1832126670645b3513fa"
+  ],
+  "statement": "Capability::try_from(6) must return Capability::Fhe, Capability::try_from(7) must remain invalid, and Capability::Fhe must be classified as an executor capability.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Parse registry entries containing capability bytes 5, 6, and 7; assert 5 maps to ZkCall, 6 maps to Fhe and is_executor_capability returns true, and 7 returns Err."
+  ],
+  "summary": "FHE capability numbering does not match the invariant.",
+  "test_or_falsification_candidate": "Assert Capability::try_from(6) == Capability::Fhe and Capability::try_from(7).is_err(); current code returns Dkms and ImageCall respectively.",
+  "title": "FHE capability value is recognized as executor service",
+  "total_invariants": 1954
+}

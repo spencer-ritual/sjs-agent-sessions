@@ -1,0 +1,64 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "No current audited code converts block transaction SPC calls into a single SpcVerificationRequest batch for SpcVerifier.",
+  "evidence_files": [
+    "crates/evm/src/execute.rs"
+  ],
+  "invariant_id": "cur-7da36707fa-calls-batched-block",
+  "invariant_index": 239,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/evm/evm/src/execute.rs",
+      "crates/evm/evm/src/spc.rs",
+      "crates/node/src/executor.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "extract_spc_verification_requests",
+      "SpcVerificationRequest { precompile_input",
+      "spc_calls() verify_batch",
+      "BatchVerificationRequest { requests"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "extract_spc_verification_requests",
+      "SpcVerificationRequest",
+      "spc_calls",
+      "verify_batch"
+    ],
+    "missing_behavior": "The block executor does not aggregate all transaction SPC calls into SpcVerificationRequest values or submit them to one verifier batch.",
+    "related_but_insufficient_code": [
+      "crates/evm/evm/src/spc.rs defines the trait request type but does not collect block transactions into requests.",
+      "crates/ritual-block-verification/src/lib.rs scans settlement-adjacent SPC calls and directly calls verify_signature_core, not SpcVerifier::verify_batch."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The new extraction helper iterates over recovered block transactions, pulls `txn.spc_calls()`, maps each `SpcCall` into `SpcVerificationRequest`, and `verify_spc_calls_batch` submits the collected vector to `verify_batch` before evaluating aggregate failures. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "5a0dfef28903491fbf13317a6ec1464d6da4a0f7"
+  ],
+  "statement": "For block transactions exposing SPC calls, the executor must convert each call into an `SpcVerificationRequest` carrying the call input, output, proof, precompile address, transaction hash, and block context, then submit all collected requests to the verifier in one batch.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Use a mock verifier that records requests, execute a block with two transactions containing distinct SPC calls, and assert that a single `verify_batch` invocation receives one request per call with matching input, output, proof, precompile address, transaction hash, and block number."
+  ],
+  "summary": "Block SPC calls are not batched into SpcVerifier requests.",
+  "test_or_falsification_candidate": "Instrument SpcVerifier::verify_batch and execute a block with two SPC-bearing transactions; assert one batch receives both requests. The current audited code has no such call site.",
+  "title": "SPC calls are batched from block transactions",
+  "total_invariants": 1954
+}

@@ -1,0 +1,60 @@
+{
+  "cluster_key": "scheduler:payload-building:part-02",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-52946ce7a0-zero-pool-scheduled-mode-ignores-pool-candidates-consistently",
+  "invariant_index": 80,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-metrics/src/scheduling.rs"
+    ],
+    "checked_queries": [
+      "RITUAL_ZERO_POOL_SCHEDULED|ZERO_POOL|is_zero_pool_scheduled_enabled|zero pool|pool candidates"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "RITUAL_ZERO_POOL_SCHEDULED",
+      "is_zero_pool_scheduled_enabled",
+      "included_scheduled_indices"
+    ],
+    "missing_behavior": "Missing RITUAL_ZERO_POOL_SCHEDULED payload-builder mode and transaction-hash de-duplication for merged scheduled candidates.",
+    "related_but_insufficient_code": [
+      "A metrics comment references the convention for is_zero_pool_scheduled_enabled, but no payload implementation or function definition was found locally.",
+      "The payload builder de-duplicates Scheduler call_id/index with included_scheduled_indices, not merged scheduled candidate transaction hash under a zero-pool mode."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The later candidate supersedes the initial kill switch by applying it consistently to coverage and async collection and adding hash de-duplication.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "9e0865644a53921162fc0f1848118bd59d75902c",
+    "c563c9a7f6944a4302b8c10d5c82438f81a74f80"
+  ],
+  "statement": "When RITUAL_ZERO_POOL_SCHEDULED=1, payload building must ignore pool-sourced scheduled transactions for contract-state coverage and async collection, rely on augmented scheduled candidates, and de-duplicate merged scheduled candidates by transaction hash before simulation.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Set RITUAL_ZERO_POOL_SCHEDULED=1 and provide a pool-sourced scheduled tx plus the same contract-state obligation; assert pool source is ignored and merged candidates are hash de-duplicated.",
+    "Search payload logs/candidates to confirm pool-sourced scheduled txs do not affect contract-state coverage or async collection under the env flag."
+  ],
+  "summary": "Zero-pool scheduled mode is absent from payload building.",
+  "test_or_falsification_candidate": "Current port has no RITUAL_ZERO_POOL_SCHEDULED payload code path to exercise.",
+  "title": "Zero-pool scheduled mode ignores pool candidates consistently",
+  "total_invariants": 1954
+}

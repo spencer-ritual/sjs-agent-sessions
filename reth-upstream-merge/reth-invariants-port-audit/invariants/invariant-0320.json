@@ -1,0 +1,69 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/service.rs"
+  ],
+  "invariant_id": "cur-f4c9303fca-executor-events-decode-data-bytes",
+  "invariant_index": 320,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-spc-verification/src/service.rs (absent locally)",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-spc-verification/src/types.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-spc-verification/src/verifier.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-tee-registry-reader/src/constants.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-tee-registry-reader/src/reader.rs",
+      "ritual-reth-nodebuilder-internal/crates/node/src/executor.rs",
+      "all audited dependency repos searched for the listed symbols"
+    ],
+    "checked_queries": [
+      "log.data.as_ref()",
+      "log.data.data",
+      "ExecutorRegistered",
+      "ExecutorUpdated",
+      "InvalidEventData"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "log.data.as_ref",
+      "ExecutorRegistered",
+      "ExecutorUpdated",
+      "InvalidEventData"
+    ],
+    "missing_behavior": "No local audited repo contains ExecutorRegistered or ExecutorUpdated log decoding from log.data.as_ref(), nor any payload-length reporting path for those event payload bytes.",
+    "related_but_insufficient_code": [
+      "ritual-spc-verification/src/types.rs still defines ExecutorRegistry and deactivate_executor, but it is only an in-memory map and has no log-watching service.",
+      "ritual-tee-registry-reader reads TEEServiceRegistry storage via TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS; it does not decode ExecutorRegistry event logs.",
+      "ritual-reth-nodebuilder-internal/crates/node/src/executor.rs syncs registry state from storage before execution but uses TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS and read_all_executors, not ExecutorRegistry event receipts."
+    ]
+  },
+  "notes": "Confirmed by exact event-symbol searches across all audited local repos; the current local architecture reads registry storage instead of consuming ExecutorRegistry event logs.",
+  "rationale": "The primary commit message says Alloy `Log` stores data directly as `Bytes`, and the diff changes both event decoders from `log.data.data` to `log.data.as_ref()`. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "241932160d6adea5f6cc784cddd9d1932c0c48c0"
+  ],
+  "statement": "SPC verification must decode `ExecutorRegistered` and `ExecutorUpdated` event payloads from `log.data.as_ref()` and use the same log data bytes when reporting payload length.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create Alloy logs for `ExecutorRegistered` and `ExecutorUpdated` with valid ABI-encoded data, pass them to the SPC service decoding helpers, and assert decoding succeeds and extracts the expected fields; mutate the log data bytes and assert the helper returns `InvalidEventData`."
+  ],
+  "summary": "Executor event payload decoding from log data bytes is absent.",
+  "test_or_falsification_candidate": "Create Alloy logs with ABI data for ExecutorRegistered/Updated; no local handler exists to decode log.data.as_ref() or report payload length.",
+  "title": "Executor events decode from log data bytes",
+  "total_invariants": 1954
+}

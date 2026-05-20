@@ -1,0 +1,90 @@
+{
+  "record_type": "file",
+  "file_index": 302,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-block-verification/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "block-verification",
+    "crate-root",
+    "public-api",
+    "nonce-lock"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0302-atom-0001",
+      "file_index": 302,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-block-verification/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,12 @@; block verification crate root exports and modules",
+      "source_kind": "block_verification_crate_root_exports",
+      "source_snippet": "pub use crate::{\n    error::BlockVerificationError,\n    verifier::{BlockVerifier, BlockVerifierTrait},\n};\n\npub mod constants;\npub mod error;\npub mod verifier;\n\nmod nonce_lock;\npub use nonce_lock::{verify_nonce_locks, verify_nonce_locks_with_senders};",
+      "semantic_claim": "The old divergence adds the block-verification crate root that publicly exposes `BlockVerificationError`, `BlockVerifier`, `BlockVerifierTrait`, constants/error/verifier modules, and nonce-lock verification helpers while keeping the nonce-lock module itself private.",
+      "high_risk": false,
+      "risk_tags": [
+        "crate-root",
+        "public-api",
+        "module-boundary",
+        "nonce-lock"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "BlockVerificationError",
+            "BlockVerifier",
+            "BlockVerifierTrait",
+            "constants",
+            "error",
+            "verifier",
+            "verify_nonce_locks",
+            "verify_nonce_locks_with_senders"
+          ],
+          "evidence": "Destination `lib.rs` preserves the same 12-line crate root body as the source-added file."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/node/builder/src/components/builder.rs",
+          "symbols": [
+            "ritual_block_verification"
+          ],
+          "evidence": "Destination node builder code imports the block verification crate surface."
+        }
+      ],
+      "equivalence_argument": "The destination keeps the same public API and private/public module boundary for block verification and nonce-lock helpers.",
+      "test_strategy": "workspace_compile_public_imports",
+      "negative_test_candidate": "Removing `BlockVerifierTrait` or nonce-lock helper re-exports should break downstream imports relying on `ritual_block_verification::*`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping; no review queue entry required."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The block-verification crate root is exact-port preserved: public verifier/error exports, constants/error/verifier modules, private nonce-lock module, and public nonce-lock helper re-exports all match the source divergence.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 302: A\tcrates/ritual-block-verification/src/lib.rs.",
+    "The source file diff starts at line 48574 with a 12-line new file and ends before the `crates/ritual-block-verification/src/nonce_lock.rs` diff header at line 48592.",
+    "Destination `crates/ritual-block-verification/src/lib.rs` preserves the same 12-line crate root body as the source-added file.",
+    "No review queue entry was required because the audited crate-root API is preserved exactly."
+  ]
+}

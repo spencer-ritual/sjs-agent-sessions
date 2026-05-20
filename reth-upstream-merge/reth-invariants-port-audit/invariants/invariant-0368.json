@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "The base decoder accepts exactly the five-field ABI shape with bytes[] encrypted secrets and bytes[] signatures, preserves arrays, and rejects TTL values outside u64.",
+      "path": "crates/ritual-precompile-codecs/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let param_types = vec![ParamType::Address, ParamType::Array(Box::new(ParamType::Bytes)), ParamType::Uint(256), ParamType::Array(Box::new(ParamType::Bytes)), ParamType::Bytes];\n...\nlet encrypted_secrets = decode_bytes_array(encrypted_secrets_token, \"encrypted_secrets\")?;\nlet ttl = u64::try_from(val).map_err(|_| CodecError::InvalidFieldValue { field: \"ttl\".to_string(), value: val.to_string() })?;\nlet secret_signature = decode_bytes_array(secret_signature_token, \"secret_signature\")?;",
+      "symbols": [
+        "ExecutorRequest::decode_base_fields"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Validation treats encrypted secrets as arrays, where empty arrays are valid no-secret inputs and each non-empty blob is validated independently.",
+      "path": "crates/ritual-precompile-codecs/src/validation.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "validate_executor_base_fields(executor, ttl, &request.encrypted_secrets, &request.user_public_key, max_ttl)?;\n...\nfn validate_ecies_blob_array(blobs: &[Bytes]) -> Result<(), PayloadValidationError> { for blob in blobs { validate_ecies_blob(blob)?; } Ok(()) }",
+      "symbols": [
+        "validate_executor_base_fields",
+        "validate_ecies_blob_array"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port codecs remove the old scalar secret shape from the shared base decoder: decoding requires the five-field ABI tuple, returns Vec<Bytes> for both secret arrays, and uses u64::try_from for fail-closed TTL conversion.",
+  "evidence_files": [
+    "crates/ritual-precompile-codecs/src/executor.rs",
+    "crates/ritual-async/src/detector.rs"
+  ],
+  "invariant_id": "cur-6900492e12-executor-requests-require-bytes-array-secrets",
+  "invariant_index": 368,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to the port precompile-codecs crate.",
+  "rationale": "The primary diff changes the shared base request from bytes fields to bytes[] arrays, adds user_public_key, removes fallback decoding, documents empty and multiple blob semantics, and updates detector tests to verify u256 TTL overflow failure. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "7f14acaf54fc712a1de6191a623f01c02f97e87e"
+  ],
+  "statement": "ExecutorRequest base calldata must decode as exactly five ABI fields `(address executor, bytes[] encrypted_secrets, uint256 ttl, bytes[] secret_signature, bytes user_public_key)`, where empty arrays are valid no-secret inputs, multiple blobs are preserved as arrays, and TTL values that do not fit in u64 are rejected instead of truncated.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "ABI-encode a base request with two encrypted secret blobs, matching signature blobs, and a non-empty user_public_key, then assert decode_base_fields returns both arrays in order and the public key. Repeat with the former 4-field `(address,bytes,uint256,bytes)` encoding and with TTL=U256::MAX and assert both fail."
+  ],
+  "summary": "Executor request base calldata requires bytes[] secrets/signatures and rejects overflowing TTLs.",
+  "test_or_falsification_candidate": "Decode two secret blobs plus matching signatures and assert order is preserved; assert the old four-field encoding and TTL=U256::MAX fail.",
+  "title": "Executor requests require bytes-array secrets",
+  "total_invariants": 1954
+}

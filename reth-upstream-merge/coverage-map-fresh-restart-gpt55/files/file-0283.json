@@ -1,0 +1,219 @@
+{
+  "record_type": "file",
+  "file_index": 283,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-async-fees/src/scheduled.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "async-fees",
+    "scheduled-transactions",
+    "callback-gas",
+    "scheduler-events",
+    "gas-bifurcation"
+  ],
+  "atoms_total": 4,
+  "atoms": [
+    {
+      "record_id": "file-0283-atom-0001",
+      "file_index": 283,
+      "atom_index": 1,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-async-fees/src/scheduled.rs",
+      "source_hunk_hint": "@@ -0,0 +1,373 @@; Scheduler event ABI declarations and gas result enums",
+      "source_kind": "scheduled_scheduler_event_surface",
+      "source_snippet": "sol! {\n    event CallExecuted(\n        uint256 indexed callId,\n        address indexed to,\n        address indexed caller,\n        uint32 startBlock,\n        uint32 numCalls,\n        uint32 frequency,\n        uint256 executionIndex,\n        uint256 gasUsed,\n        uint256 feesPaid\n    );\n\n    event CallExecutionFailed(\n        uint256 indexed callId,\n        address indexed to,\n        address indexed caller,\n        uint32 startBlock,\n        uint32 numCalls,\n        uint32 frequency,\n        uint256 executionIndex,\n        uint256 gasUsed,\n        string reason\n    );\n\n    event CallExpired(...);\n    event CallSkippedTTLExpired(...);\n    event CallSkippedInsufficientFunds(...);\n}\n\npub enum ScheduledTxGasResult {\n    Success { callback_gas: u64, call_id: U256 },\n    Failed { callback_gas: u64, call_id: U256 },\n    Skipped { call_id: U256, reason: SkipReason },\n    EventNotFound,\n}",
+      "semantic_claim": "The old divergence adds the canonical Scheduler event decoding surface and result model for scheduled transaction gas accounting. It recognizes successful callback execution, reverted callback execution with measured gas, three no-callback skip events, and a distinct EventNotFound state for unexpected logs.",
+      "high_risk": false,
+      "risk_tags": [
+        "scheduler-event-abi",
+        "callback-gas-result-model",
+        "consensus-gas-accounting"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/scheduled.rs",
+          "symbols": [
+            "CallExecuted",
+            "CallExecutionFailed",
+            "CallExpired",
+            "CallSkippedTTLExpired",
+            "CallSkippedInsufficientFunds",
+            "ScheduledTxGasResult",
+            "SkipReason"
+          ],
+          "evidence": "The destination `scheduled.rs` is byte-for-byte identical to the source-added file extracted from diff lines 41203-41581, ending before `validators.rs` at line 41582. Extracted source and destination each contain 373 lines with SHA-256 `9bfe4bfa885072ca2dc571ab6b84de7bd0a0225ed7855bf87c596a98b791b7a4`."
+        }
+      ],
+      "equivalence_argument": "Because the full file is an exact text match, the Scheduler event signatures, indexed fields, gasUsed field placement, result variants, skip reasons, and EventNotFound sentinel are preserved exactly.",
+      "test_strategy": "textual_exact_match_with_embedded_unit_tests_preserved",
+      "negative_test_candidate": "A `CallExecutionFailed` event must include and decode `gasUsed`; omitting that field would prevent deterministic gas bifurcation for reverted scheduled callbacks.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers only the event/result type surface in `scheduled.rs`."
+    },
+    {
+      "record_id": "file-0283-atom-0002",
+      "file_index": 283,
+      "atom_index": 2,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-async-fees/src/scheduled.rs",
+      "source_hunk_hint": "@@ -0,0 +1,373 @@; extract_scheduled_callback_gas execution-event path",
+      "source_kind": "scheduled_callback_gas_extraction_execution_events",
+      "source_snippet": "pub fn extract_scheduled_callback_gas(\n    logs: &[Log],\n    scheduler_address: Address,\n) -> ScheduledTxGasResult {\n    for log in logs {\n        if log.address != scheduler_address {\n            continue;\n        }\n\n        if log.topics().is_empty() {\n            continue;\n        }\n\n        if log.topics()[0] == CallExecuted::SIGNATURE_HASH {\n            if let Ok(event) = CallExecuted::decode_log(log) {\n                match event.gasUsed.try_into() {\n                    Ok(gas) => {\n                        return ScheduledTxGasResult::Success {\n                            callback_gas: gas,\n                            call_id: event.callId,\n                        }\n                    }\n                    Err(_) => {\n                        continue;\n                    }\n                }\n            }\n        }\n\n        if log.topics()[0] == CallExecutionFailed::SIGNATURE_HASH { ... }\n    }\n\n    ScheduledTxGasResult::EventNotFound\n}",
+      "semantic_claim": "The old divergence makes scheduled callback gas extraction deterministic for execution events: only logs from the configured Scheduler address are considered, empty-topic logs are ignored, success and failure are selected by topic0 signature, decoded event `gasUsed` is converted to u64, overflowed gas values are ignored, and the first valid Scheduler execution event returns its call id plus measured callback gas.",
+      "high_risk": false,
+      "risk_tags": [
+        "callback-gas-extraction",
+        "scheduler-address-filter",
+        "execution-failure-gas"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/scheduled.rs",
+          "symbols": [
+            "extract_scheduled_callback_gas",
+            "CallExecuted::decode_log",
+            "CallExecutionFailed::decode_log",
+            "tests::test_extract_callback_gas_success",
+            "tests::test_extract_callback_gas_wrong_address",
+            "tests::test_extract_callback_gas_empty_logs"
+          ],
+          "evidence": "The extraction function and execution-event unit tests are present in the exact-matched destination file with SHA-256 `9bfe4bfa885072ca2dc571ab6b84de7bd0a0225ed7855bf87c596a98b791b7a4`."
+        }
+      ],
+      "equivalence_argument": "The destination preserves the same loop ordering, Scheduler address gate, topic-empty guard, event signature checks, decode behavior, u64 conversion, overflow continuation, and Success/Failed return payloads because the file content is identical.",
+      "test_strategy": "textual_exact_match_with_embedded_unit_tests_preserved",
+      "negative_test_candidate": "A valid `CallExecuted` log emitted by a non-Scheduler address should return `EventNotFound`; accepting it would let unrelated contracts influence scheduled callback gas accounting.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers successful and reverted callback execution paths, including gas consumed up to revert."
+    },
+    {
+      "record_id": "file-0283-atom-0003",
+      "file_index": 283,
+      "atom_index": 3,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-async-fees/src/scheduled.rs",
+      "source_hunk_hint": "@@ -0,0 +1,373 @@; skip-event extraction and zero callback gas semantics",
+      "source_kind": "scheduled_skip_event_gas_semantics",
+      "source_snippet": "if log.topics()[0] == CallExpired::SIGNATURE_HASH {\n    if let Ok(event) = CallExpired::decode_log(log) {\n        return ScheduledTxGasResult::Skipped {\n            call_id: event.callId,\n            reason: SkipReason::Expired,\n        };\n    }\n}\n\nif log.topics()[0] == CallSkippedTTLExpired::SIGNATURE_HASH { ... SkipReason::TTLExpired ... }\n\nif log.topics()[0] == CallSkippedInsufficientFunds::SIGNATURE_HASH { ... SkipReason::InsufficientFunds ... }\n\npub fn get_callback_gas(result: &ScheduledTxGasResult) -> Option<u64> {\n    match result {\n        ScheduledTxGasResult::Success { callback_gas, .. } => Some(*callback_gas),\n        ScheduledTxGasResult::Failed { callback_gas, .. } => Some(*callback_gas),\n        ScheduledTxGasResult::Skipped { .. } => Some(0),\n        ScheduledTxGasResult::EventNotFound => None,\n    }\n}",
+      "semantic_claim": "The old divergence distinguishes skipped scheduled executions from missing events. Expired calls, TTL-expired executions, and insufficient-funds skips decode into `Skipped` with the call id and reason, and `get_callback_gas` maps all skip reasons to `Some(0)` while preserving `EventNotFound` as `None` for callers that need an explicit unexpected-state fallback decision.",
+      "high_risk": false,
+      "risk_tags": [
+        "skip-event-classification",
+        "zero-callback-gas",
+        "event-not-found"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/scheduled.rs",
+          "symbols": [
+            "extract_scheduled_callback_gas",
+            "get_callback_gas",
+            "SkipReason::Expired",
+            "SkipReason::TTLExpired",
+            "SkipReason::InsufficientFunds"
+          ],
+          "evidence": "The skip-event decode branches and `get_callback_gas` match are included in the exact destination file. Source extraction and destination comparison reported 373 lines each, exact_match=true, SHA-256 `9bfe4bfa885072ca2dc571ab6b84de7bd0a0225ed7855bf87c596a98b791b7a4`."
+        }
+      ],
+      "equivalence_argument": "The destination keeps the same skip reason mapping and zero-gas conversion, so no-callback Scheduler outcomes remain distinguishable from missing or malformed Scheduler logs.",
+      "test_strategy": "textual_exact_match_with_embedded_unit_tests_preserved",
+      "negative_test_candidate": "A `CallSkippedTTLExpired` Scheduler log should produce `Skipped { reason: TTLExpired }` and `get_callback_gas` should return `Some(0)`; returning `None` would force callers into unsafe fallback gas for a valid no-callback path.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers the no-callback scheduled paths and their gas contribution."
+    },
+    {
+      "record_id": "file-0283-atom-0004",
+      "file_index": 283,
+      "atom_index": 4,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-async-fees/src/scheduled.rs",
+      "source_hunk_hint": "@@ -0,0 +1,373 @@; fallback helper, embedded tests, and crate re-export surface",
+      "source_kind": "scheduled_callback_gas_fallback_and_tests",
+      "source_snippet": "pub fn get_callback_gas(result: &ScheduledTxGasResult) -> Option<u64> { ... }\n\n#[deprecated(note = \"Use get_callback_gas() instead - fallbacks are dangerous in consensus code\")]\npub fn get_callback_gas_or_fallback(result: &ScheduledTxGasResult, fallback: u64) -> u64 {\n    get_callback_gas(result).unwrap_or(fallback)\n}\n\n#[cfg(test)]\nmod tests {\n    fn test_get_callback_gas_or_fallback_success() { ... }\n    fn test_get_callback_gas_or_fallback_failed() { ... }\n    fn test_get_callback_gas_or_fallback_not_found() { ... }\n}",
+      "semantic_claim": "The old divergence preserves a deprecated compatibility fallback helper while documenting that explicit `get_callback_gas` handling is safer for consensus code. The helper returns measured success/failure gas or zero skip gas when available and uses the caller-provided fallback only for `EventNotFound`. The embedded tests cover success extraction, wrong-address and empty-log misses, fallback success, fallback failed-with-measured-gas, and fallback not-found behavior.",
+      "high_risk": false,
+      "risk_tags": [
+        "fallback-gas-helper",
+        "scheduled-unit-tests",
+        "crate-reexport"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/scheduled.rs",
+          "symbols": [
+            "get_callback_gas",
+            "get_callback_gas_or_fallback",
+            "tests::test_get_callback_gas_or_fallback_success",
+            "tests::test_get_callback_gas_or_fallback_failed",
+            "tests::test_get_callback_gas_or_fallback_not_found"
+          ],
+          "evidence": "The helper and tests are in the exact-matched destination file with SHA-256 `9bfe4bfa885072ca2dc571ab6b84de7bd0a0225ed7855bf87c596a98b791b7a4`."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "scheduled",
+            "extract_scheduled_callback_gas",
+            "get_callback_gas_or_fallback",
+            "ScheduledTxGasResult"
+          ],
+          "evidence": "Relevant usage-site check found the destination crate root declares `pub mod scheduled;` and re-exports `extract_scheduled_callback_gas`, `get_callback_gas_or_fallback`, and `ScheduledTxGasResult`; no other destination Rust references to these scheduled symbols were found by the bounded symbol search."
+        }
+      ],
+      "equivalence_argument": "The destination preserves fallback behavior, deprecation guidance, unit coverage, and the crate-root public surface. Since the scheduled file is byte-for-byte identical, the fallback helper cannot diverge from source semantics.",
+      "test_strategy": "textual_exact_match_with_embedded_unit_tests_preserved",
+      "negative_test_candidate": "For `ScheduledTxGasResult::Failed { callback_gas: 75000, .. }`, the fallback helper should return `75000` rather than the fallback value; using fallback for failed executions would overstate callback gas.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom includes the public re-export evidence but does not audit downstream validator helpers, which are the next queue entry."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The async scheduled transaction gas helper module is exact-port preserved across Scheduler event ABI/result definitions, execution-event callback gas extraction, skip-event zero gas semantics, fallback helper behavior, crate re-exports, and embedded unit coverage.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 283: A\tcrates/ritual-async-fees/src/scheduled.rs.",
+    "Source diff for file-0283 starts at line 41203 and ends before the `crates/ritual-async-fees/src/validators.rs` diff header at line 41582.",
+    "Automated comparison found 373 extracted source-added lines and 373 destination lines with exact match true and identical SHA-256 `9bfe4bfa885072ca2dc571ab6b84de7bd0a0225ed7855bf87c596a98b791b7a4`.",
+    "Destination usage evidence was limited to the crate-root `scheduled` module declaration and re-export of scheduled helpers; no review queue entry was required because every audited scheduled helper behavior in this file is byte-for-byte preserved."
+  ]
+}

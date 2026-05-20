@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The RPC handler submits to the pool only after verifier success and returns Fulfilled only when the pool update succeeds.",
+      "path": "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "match context.spc_verifier.verify_single(&spc_request).await {\n    Ok(result) if result.is_valid => {}\n    Ok(_) => return failed_async_response(...),\n    Err(err) => return failed_async_response(...),\n}\n...\nlet result = context.pool.submit_async_result(submission);\n...\nnew_state: AsyncState::Fulfilled.as_str().to_string(),",
+      "symbols": [
+        "submit_async_result",
+        "SpcVerifier::verify_single",
+        "TransactionPool::submit_async_result"
+      ]
+    }
+  ],
+  "equivalence_argument": "The current RPC handler constructs a verifier request, treats false/error verifier outcomes as failed responses, then calls pool.submit_async_result and reports Fulfilled only on Ok(()).",
+  "evidence_files": [
+    "crates/rpc/rpc/src/ritual.rs"
+  ],
+  "invariant_id": "cur-d7bb1ff359-verified-async-results-fulfill-txpool-state",
+  "invariant_index": 219,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs"
+    ],
+    "checked_queries": [
+      "verify_single|submit_async_result|AsyncState::Fulfilled|failed_async_response"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "submit_async_result",
+      "SpcVerifier::verify_single",
+      "AsyncResultSubmission",
+      "AsyncState::Fulfilled"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The handler's final step calls `pool.submit_async_result(request.tx_hash, request.output, Some(request.proof), request.executor)` and returns the fulfilled success response only on `Ok(())`; pool errors are converted into failed responses that keep the state as `AwaitingExecution`. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "a24b0ca99af6f8618ac989513ecd1e695243e17a"
+  ],
+  "statement": "After successful external verification, `ritual_submitAsyncResult` must call the transaction pool's `submit_async_result` with the transaction hash, output, proof, and executor from the request, and report `success: true` with `new_state` set to `Fulfilled` only if the pool update succeeds.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "With a mock pool and verifier returning true, assert the pool receives exactly the request hash, output, proof wrapped in `Some`, and executor; assert the response is `success: true`/`Fulfilled` when the pool returns `Ok(())`, and `success: false`/`AwaitingExecution` when the pool returns an error."
+  ],
+  "summary": "Verified async results are the only ones that can fulfill txpool state through the RPC path.",
+  "test_or_falsification_candidate": "Use a verifier stub that returns valid/invalid/error and a recording pool; assert only the valid case calls submit_async_result and reports Fulfilled.",
+  "title": "Verified async results fulfill txpool state",
+  "total_invariants": 1954
+}

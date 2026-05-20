@@ -1,0 +1,62 @@
+{
+  "record_type": "file",
+  "file_index": 71,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/era/src/era1_file.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "structural_equivalent",
+  "tags": [
+    "non-exact",
+    "structural_equivalent"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0071-atom-0001",
+      "file_index": 71,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/era/src/era1_file.rs",
+      "source_hunk_hint": "@@ -115 +115,3 @@ impl<R: Read + Seek> Era1Reader<R> {",
+      "source_kind": "other",
+      "source_snippet": "                        return Err(E2sError::Ssz(\n                            \"Multiple accumulator entries found\".to_string(),\n                        ));\n                        return Err(E2sError::Ssz(\n                            \"Multiple block index entries found\".to_string(),\n                        ));",
+      "semantic_claim": "The downstream diff for crates/era/src/era1_file.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/era/src/era1/file.rs",
+          "symbols": [
+            "Era1Reader"
+          ],
+          "snippet": "duplicate accumulator and block-index entries return E2sError::Ssz",
+          "evidence": "The old era1_file.rs behavior moved to era1/file.rs with the same duplicate-entry failure checks."
+        }
+      ],
+      "equivalence_argument": "ERA1 duplicate-entry validation is preserved after upstream file layout changes.",
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Mapped to upstream v2.2 era1/file.rs."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "No same-path or uniquely named destination evidence was found in the configured search scope."
+}

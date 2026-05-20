@@ -1,0 +1,88 @@
+{
+  "record_type": "file",
+  "file_index": 417,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/scheduling/src/events.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "high-risk",
+    "non-exact",
+    "needs-review",
+    "scheduled",
+    "event-boundary"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0417-atom-0001",
+      "file_index": 417,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/scheduling/src/events.rs",
+      "source_hunk_hint": "@@ -0,0 +1,24 @@",
+      "source_kind": "event_model",
+      "source_snippet": "pub enum BlockEvent { NewBlock(BlockInfo), CallScheduled(Call), CallExecuted(u64, TxHash), ... }",
+      "semantic_claim": "The old crate exposes a small internal event model for scheduling service block/call transitions.",
+      "high_risk": true,
+      "risk_tags": [
+        "scheduled",
+        "event-model",
+        "state-transition"
+      ],
+      "mapping_status": "partial",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/lib.rs",
+          "symbols": [
+            "ScheduledCall",
+            "ScheduledObligation",
+            "FilterResult"
+          ],
+          "evidence": "Destination models scheduled state as storage-derived calls, obligations, and filter results rather than service events."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "verify_scheduled_censorship"
+          ],
+          "evidence": "Destination detects missing scheduled transitions by recomputing obligations against block contents."
+        }
+      ],
+      "equivalence_argument": "The old service-event API is not preserved; its behavior-bearing purpose is partially replaced by storage-derived obligations and verifier checks.",
+      "test_strategy": "destination-only scheduled state transition regression",
+      "negative_test_candidate": "A due call omitted from a block with sufficient gas should be rejected even without any old `BlockEvent` replay.",
+      "adversarial_review": {
+        "required": true,
+        "status": "queued",
+        "review_record_id": "review-file-0417-atom-0001"
+      },
+      "review_required": true,
+      "notes": "No same-path destination or old `BlockEvent` equivalent was found in the v2.2 port."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [
+    {
+      "review_record_id": "review-file-0417-atom-0001",
+      "atom_id": "file-0417-atom-0001",
+      "status": "queued",
+      "reason": "Internal scheduling event model is replaced by storage-derived obligations."
+    }
+  ],
+  "summary": "The old scheduling service event model is not exact-preserved; destination behavior is expressed through scheduled calls, obligations, and verifier checks.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": [
+    "Queue entry verified as file 417: A\tcrates/scheduling/src/events.rs.",
+    "Source hunk begins at divergence diff line 82794."
+  ]
+}

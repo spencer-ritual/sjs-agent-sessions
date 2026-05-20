@@ -1,0 +1,69 @@
+{
+  "cluster_key": "scheduler:pool-accounting:part-02",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/transaction-pool/src/maintain.rs"
+  ],
+  "invariant_id": "cur-7835859c0a-chain-halt-threshold-precedes-lifetime",
+  "invariant_index": 41,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/maintain.rs",
+      "crates/transaction-pool/src/config.rs",
+      "crates/node/builder/src/components/pool.rs",
+      "crates/node/core/src/args/txpool.rs",
+      "crates/ethereum/node/tests/e2e/pool.rs"
+    ],
+    "checked_queries": [
+      "CHAIN_HALT_THRESHOLD_SECS|chain_halt|halt threshold",
+      "max_tx_lifetime|max_queued_lifetime|MaintainPoolConfig",
+      "assert.*max_tx_lifetime|CHAIN.*max_tx_lifetime"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "CHAIN_HALT_THRESHOLD_SECS",
+      "CHAIN_HALT",
+      "chain_halt",
+      "get_chain_halt_threshold",
+      "MaintainPoolConfig",
+      "max_tx_lifetime",
+      "max_queued_lifetime",
+      "remove_scheduled_expired_by_time"
+    ],
+    "missing_behavior": "Missing startup rejection/panic when CHAIN_HALT_THRESHOLD_SECS >= txpool.max_tx_lifetime; no chain-halt threshold input or validation path exists in txpool maintenance.",
+    "related_but_insufficient_code": [
+      "MaintainPoolConfig has max_tx_lifetime and async lifetime, but no chain-halt threshold setting or startup validation. Node builder/CLI wire general txpool lifetime without comparing against chain-halt threshold."
+    ]
+  },
+  "notes": "Confirmed gap; chain-halt scheduled machinery and guard are omitted.",
+  "rationale": "Both threshold candidates express the same current startup guard: poison detection must be configured to fire before ordinary pool lifetime expiry can mask it.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "561415fb149a5d219ca342eba2901f9efc1d7580",
+    "9025328b5218757656b0e228494523d6fa310114"
+  ],
+  "statement": "At current tip, transaction-pool maintenance must reject or panic on startup configuration where CHAIN_HALT_THRESHOLD_SECS is greater than or equal to txpool.max_tx_lifetime, because poison detection must precede lifetime expiry.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Configure CHAIN_HALT_THRESHOLD_SECS equal to or greater than txpool.max_tx_lifetime and assert maintain_transaction_pool fails before the maintenance loop starts.",
+    "Configure CHAIN_HALT_THRESHOLD_SECS below txpool.max_tx_lifetime and assert maintenance initializes."
+  ],
+  "summary": "Chain-halt threshold before transaction lifetime guard is absent.",
+  "test_or_falsification_candidate": "Configure threshold >= --txpool.lifetime and start txpool maintenance; current port has no such threshold/validation path.",
+  "title": "Chain-halt threshold precedes transaction lifetime",
+  "total_invariants": 1954
+}

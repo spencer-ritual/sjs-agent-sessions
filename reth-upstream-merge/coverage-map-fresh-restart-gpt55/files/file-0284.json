@@ -1,0 +1,184 @@
+{
+  "record_type": "file",
+  "file_index": 284,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-async-fees/src/validators.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "async-fees",
+    "validator-fees",
+    "commitment-fee",
+    "inclusion-fee"
+  ],
+  "atoms_total": 3,
+  "atoms": [
+    {
+      "record_id": "file-0284-atom-0001",
+      "file_index": 284,
+      "atom_index": 1,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-async-fees/src/validators.rs",
+      "source_hunk_hint": "@@ -0,0 +1,106 @@; async_commitment_fee operation-agnostic validator pricing",
+      "source_kind": "async_commitment_validator_fee",
+      "source_snippet": "pub fn async_commitment_fee(input_len: usize) -> U256 {\n    let gas_units = U256::from(ASYNC_COMMITMENT_GAS_PER_INPUT_BYTE) * U256::from(input_len as u64);\n    gas_units * U256::from(ASYNC_VALIDATION_GAS_PRICE_WEI)\n}",
+      "semantic_claim": "The old divergence adds operation-agnostic commitment validator pricing. The fee is linear in precompile input length, converts the input byte count into gas units using `ASYNC_COMMITMENT_GAS_PER_INPUT_BYTE`, then prices that gas at `ASYNC_VALIDATION_GAS_PRICE_WEI`; zero-length input therefore charges zero commitment fee.",
+      "high_risk": false,
+      "risk_tags": [
+        "commitment-validator-fee",
+        "input-size-pricing",
+        "consensus-fee-accounting"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/validators.rs",
+          "symbols": [
+            "async_commitment_fee",
+            "ASYNC_COMMITMENT_GAS_PER_INPUT_BYTE",
+            "ASYNC_VALIDATION_GAS_PRICE_WEI",
+            "tests::test_async_commitment_fee",
+            "tests::test_commitment_fee_scales_with_data_size",
+            "tests::test_zero_input_commitment_fee"
+          ],
+          "evidence": "The destination `validators.rs` is byte-for-byte identical to the source-added file extracted from diff lines 41582-41693, ending before `wallet.rs` at line 41694. Extracted source and destination each contain 106 lines with SHA-256 `6c82347fb3d52f69d4819e5fd81855ee1b5bb1319dc48d150137fc50a2a9665f`."
+        }
+      ],
+      "equivalence_argument": "Because the full file is an exact text match, the commitment validator fee formula, constant usage, zero-input behavior, and linear scaling tests are preserved exactly.",
+      "test_strategy": "textual_exact_match_with_embedded_unit_tests_preserved",
+      "negative_test_candidate": "A commitment input of 1000 bytes should cost exactly ten times a 100-byte commitment input; adding a fixed base charge or output-size dependency would break the operation-agnostic linear pricing invariant.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers only the commitment validator fee helper in `validators.rs`."
+    },
+    {
+      "record_id": "file-0284-atom-0002",
+      "file_index": 284,
+      "atom_index": 2,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-async-fees/src/validators.rs",
+      "source_hunk_hint": "@@ -0,0 +1,106 @@; async_inclusion_fee zero-fee ZK two-phase behavior",
+      "source_kind": "async_inclusion_validator_zero_fee",
+      "source_snippet": "pub fn async_inclusion_fee(_input_len: usize, _output_len: usize) -> U256 {\n    // Inclusion validator is paid via EIP-1559 fees on the original async transaction.\n    // The settlement transaction is atomically included with the original transaction,\n    // so no separate inclusion fee is needed.\n    U256::ZERO\n}",
+      "semantic_claim": "The old divergence makes inclusion validator fees explicitly zero under the ZK two-phase design. Both input length and executor output length are intentionally unused because the validator is already compensated by EIP-1559 fees on the original async transaction and the settlement is atomically included with it.",
+      "high_risk": false,
+      "risk_tags": [
+        "inclusion-validator-fee",
+        "zero-fee-semantics",
+        "zk-two-phase-fees"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/validators.rs",
+          "symbols": [
+            "async_inclusion_fee",
+            "tests::test_async_inclusion_fee_is_zero",
+            "tests::test_inclusion_fee_always_zero"
+          ],
+          "evidence": "The zero-fee inclusion helper and its tests are present in the exact-matched destination file with SHA-256 `6c82347fb3d52f69d4819e5fd81855ee1b5bb1319dc48d150137fc50a2a9665f`."
+        }
+      ],
+      "equivalence_argument": "The destination preserves the same unused argument names, comment rationale, and unconditional `U256::ZERO` return, so inclusion fee behavior remains independent of input and output sizes.",
+      "test_strategy": "textual_exact_match_with_embedded_unit_tests_preserved",
+      "negative_test_candidate": "Calling `async_inclusion_fee(1000, 1000)` should still return `U256::ZERO`; charging by output size would double-charge inclusion work already covered by original transaction fees.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers only the inclusion validator fee helper in `validators.rs`."
+    },
+    {
+      "record_id": "file-0284-atom-0003",
+      "file_index": 284,
+      "atom_index": 3,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-async-fees/src/validators.rs",
+      "source_hunk_hint": "@@ -0,0 +1,106 @@; validator helper tests and public crate surface",
+      "source_kind": "async_validator_fee_tests_and_exports",
+      "source_snippet": "#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn test_async_commitment_fee() { ... }\n\n    #[test]\n    fn test_async_inclusion_fee_is_zero() { ... }\n\n    #[test]\n    fn test_commitment_fee_scales_with_data_size() { ... }\n\n    #[test]\n    fn test_zero_input_commitment_fee() { ... }\n\n    #[test]\n    fn test_inclusion_fee_always_zero() { ... }\n}",
+      "semantic_claim": "The old divergence includes local unit coverage for both validator fee helpers and exposes them as shared async-fee primitives. The tests assert exact commitment fee arithmetic, linear input scaling, zero-input commitment fees, and inclusion fees remaining zero for multiple input/output size pairs.",
+      "high_risk": false,
+      "risk_tags": [
+        "validator-fee-unit-tests",
+        "crate-reexport",
+        "fee-call-sites"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/validators.rs",
+          "symbols": [
+            "tests::test_async_commitment_fee",
+            "tests::test_async_inclusion_fee_is_zero",
+            "tests::test_commitment_fee_scales_with_data_size",
+            "tests::test_zero_input_commitment_fee",
+            "tests::test_inclusion_fee_always_zero"
+          ],
+          "evidence": "All five tests are in the exact-matched destination file with SHA-256 `6c82347fb3d52f69d4819e5fd81855ee1b5bb1319dc48d150137fc50a2a9665f`."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "validators",
+            "async_commitment_fee",
+            "async_inclusion_fee",
+            "calculate_agent_fees_phase1",
+            "calculate_image_fees_phase1",
+            "calculate_fees"
+          ],
+          "evidence": "Relevant usage-site check found the destination crate root declares `pub mod validators;`, re-exports `async_commitment_fee` and `async_inclusion_fee`, and calls them from shared fee calculators including agent/image phase-one paths and generic async fee calculation."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/wallet.rs",
+          "symbols": [
+            "verify_wallet_for_commitment",
+            "async_commitment_fee",
+            "async_inclusion_fee"
+          ],
+          "evidence": "Bounded usage-site check found wallet verification imports both validator fee helpers and uses them when computing commitment and inclusion components for async wallet validation. This is usage evidence only; `wallet.rs` itself remains the next queued file and is not audited in this record."
+        }
+      ],
+      "equivalence_argument": "The exact file match preserves the embedded regression coverage, and the destination crate root exposes the same helper names used by destination fee and wallet validation call sites.",
+      "test_strategy": "textual_exact_match_with_embedded_unit_tests_preserved_plus_bounded_usage_search",
+      "negative_test_candidate": "Removing the `validators` re-export would leave downstream fee calculators unable to share the canonical commitment and inclusion fee helpers.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Usage evidence is limited to confirming helper reachability and call sites; this record deliberately does not audit the queued `wallet.rs` behavior."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The async validator fee helper module is exact-port preserved across operation-agnostic commitment fee calculation, zero inclusion fee semantics, embedded unit coverage, crate re-exports, and bounded usage evidence.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 284: A\tcrates/ritual-async-fees/src/validators.rs.",
+    "Source diff for file-0284 starts at line 41582 and ends before the `crates/ritual-async-fees/src/wallet.rs` diff header at line 41694.",
+    "Automated comparison found 106 extracted source-added lines and 106 destination lines with exact match true and identical SHA-256 `6c82347fb3d52f69d4819e5fd81855ee1b5bb1319dc48d150137fc50a2a9665f`.",
+    "Relevant destination usage evidence was limited to the crate-root `validators` module/re-export and current helper call sites; no review queue entry was required because every audited validator helper behavior in this file is byte-for-byte preserved."
+  ]
+}

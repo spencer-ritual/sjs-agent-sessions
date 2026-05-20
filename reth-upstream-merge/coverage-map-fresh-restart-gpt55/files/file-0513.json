@@ -1,0 +1,91 @@
+{
+  "record_type": "file",
+  "file_index": 513,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/tracing/src/ritual_router.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "missing",
+    "needs-review",
+    "tracing"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0513-atom-0001",
+      "file_index": 513,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/tracing/src/ritual_router.rs",
+      "source_hunk_hint": "@@ -0,0 +1,147 @@",
+      "source_kind": "tracing_router_module",
+      "source_snippet": "use serde_json::{Map, Value};\nuse std::{io, io::Write};\nuse tracing::{Event, Subscriber};\nuse tracing_appender::non_blocking::WorkerGuard;\nuse tracing_subscriber::{\n    fmt::MakeWriter, layer::SubscriberExt, registry::LookupSpan, util::SubscriberInitExt,\n    EnvFilter, Layer, Registry,\n};\n#[derive(Debug)]\npub struct RitualRouter {",
+      "semantic_claim": "The old divergence adds `crates/tracing/src/ritual_router.rs` with `RitualRouter` and `RitualJsonLayer` for target-specific JSON log output.",
+      "high_risk": false,
+      "risk_tags": [
+        "observability",
+        "tracing",
+        "missing"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/tracing/src/ritual_router.rs",
+          "symbols": [
+            "RitualRouter",
+            "RitualJsonLayer"
+          ],
+          "evidence": "Destination file is absent and searches under `crates/tracing` find no `RitualRouter` or `RitualJsonLayer`."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/tracing-otlp/src/lib.rs",
+          "symbols": [
+            "span_layer",
+            "log_layer",
+            "OtlpConfig",
+            "OtlpLogsConfig"
+          ],
+          "evidence": "The port has a `reth-tracing-otlp` crate for OpenTelemetry span/log export, but searches found no `RitualRouter`, `RitualJsonLayer`, `with_json_targets`, or target-specific Ritual JSON router API there."
+        }
+      ],
+      "equivalence_argument": "Not equivalent: the old custom JSON routing implementation is absent. Current `reth-tracing-otlp` is not a behavioral replacement for the old target-specific Ritual JSON router.",
+      "test_strategy": "target-specific tracing output smoke test",
+      "negative_test_candidate": "Configuring JSON routing for `tx::lifecycle` should be impossible through the destination tracing crate.",
+      "adversarial_review": {
+        "required": true,
+        "status": "queued",
+        "review_record_id": "review-file-0513-atom-0001"
+      },
+      "review_required": true,
+      "notes": "Rechecked with `crates/tracing-otlp`: OTLP export exists, but it does not restore the old Ritual JSON router API or target-specific JSON routing."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [
+    {
+      "review_record_id": "review-file-0513-atom-0001",
+      "atom_id": "file-0513-atom-0001",
+      "status": "queued",
+      "reason": "The old divergence adds `crates/tracing/src/ritual_router.rs` with `RitualRouter` and `RitualJsonLayer` for target-specific JSON log output."
+    }
+  ],
+  "summary": "Added Ritual tracing router module is absent from the destination.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": [
+    "Queue entry verified as file-0513: A\tcrates/tracing/src/ritual_router.rs.",
+    "Source diff lines 89339-89491; first hunk `@@ -0,0 +1,147 @@`.",
+    "Fresh destination evidence was checked against /home/ritual/repos/ritual-reth-internal-v2.2.0-port.",
+    "Current port includes `crates/tracing-otlp`, but it does not contain the old Ritual JSON router symbols."
+  ]
+}

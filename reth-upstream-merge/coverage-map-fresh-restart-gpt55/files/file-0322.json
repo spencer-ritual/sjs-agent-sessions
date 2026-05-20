@@ -1,0 +1,83 @@
+{
+  "record_type": "file",
+  "file_index": 322,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-precompile-codecs/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "precompile-codecs",
+    "crate-root",
+    "exports"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0322-atom-0001",
+      "file_index": 322,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-precompile-codecs/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,31 @@; codec modules and public re-exports",
+      "source_kind": "codec_crate_root_exports",
+      "source_snippet": "pub mod dkms_key;\npub mod error;\npub mod executor;\npub mod http_call;\npub mod llm_call;\npub mod long_running;\npub mod persistent_agent;\npub mod sovereign_agent;\npub mod storage_ref;\n\npub use dkms_key::DkmsKeyRequest;\npub use error::CodecError;\npub use executor::ExecutorRequest;\npub use http_call::HTTPCallRequest;\npub use llm_call::LLMCallRequest;\npub use long_running::{extract_fhe_output_size, DeliveryConfig, LongRunningHTTPCallRequest};\npub use persistent_agent::{DeliveryConfig as PersistentAgentDeliveryConfig, LLMProvider, PersistentAgentRequest, PersistentAgentResponse};\npub use sovereign_agent::{SovereignAgentRequest, SovereignAgentType};\npub use storage_ref::StorageRef;",
+      "semantic_claim": "The old divergence adds the precompile codecs crate root, documenting the type-safe Rust codec purpose and exposing modules/re-exports for DKMS, executor, HTTP, LLM, long-running, persistent agent, sovereign agent, storage refs, and shared errors.",
+      "high_risk": false,
+      "risk_tags": [
+        "crate-root",
+        "public-api",
+        "codec-exports",
+        "abi-decoding"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/lib.rs",
+          "symbols": [
+            "DkmsKeyRequest",
+            "CodecError",
+            "ExecutorRequest",
+            "HTTPCallRequest",
+            "LLMCallRequest",
+            "LongRunningHTTPCallRequest",
+            "PersistentAgentRequest",
+            "PersistentAgentResponse",
+            "SovereignAgentRequest",
+            "StorageRef"
+          ],
+          "evidence": "Destination lines 1-31 exactly match source-added diff lines 57944-57974."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the codec crate's public API and module organization unchanged.",
+      "test_strategy": "codec_crate_public_api_compile_tests",
+      "negative_test_candidate": "Removing a re-export should break downstream callers importing codec types from the crate root.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The precompile codecs crate root is exact-port preserved, including module declarations and public type/function re-exports.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 322: A\tcrates/ritual-precompile-codecs/src/lib.rs.",
+    "Source-added hunk spans diff lines 57944-57974 with header `@@ -0,0 +1,31 @@`.",
+    "Destination `crates/ritual-precompile-codecs/src/lib.rs` has 31 lines and matches the source-added file exactly.",
+    "No review queue entry required because the atom is exact."
+  ]
+}

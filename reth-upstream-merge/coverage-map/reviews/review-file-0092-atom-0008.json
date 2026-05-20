@@ -1,0 +1,9 @@
+{
+  "record_type": "adversarial_review",
+  "record_id": "review-file-0092-atom-0008",
+  "atom_record_id": "file-0092-atom-0008",
+  "review_result": "pass",
+  "falsification_attempt": "Searched for registry_capability_for_precompile / executor capability mismatch path; confirmed metadata-driven gate and static cross-repo verifier.",
+  "missed_risks": [],
+  "notes": "Atom split from broad feature claim; TEE registry leg mapped to ritual_async + precompile-addresses + verify_async_precompile_cross_repo.py."
+}

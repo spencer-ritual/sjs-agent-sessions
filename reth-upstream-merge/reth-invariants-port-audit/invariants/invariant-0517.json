@@ -1,0 +1,69 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: 0x0820 is routed through persistent-agent decoding, escrow, and Phase 2 fee helpers, but the validator permits an empty model when restore_from_cid is non-empty.",
+  "evidence_files": [
+    "crates/ritual-precompile-codecs/src/persistent_agent.rs",
+    "crates/ritual-async/src/validation.rs",
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ritual-async-fees/src/wallet.rs"
+  ],
+  "invariant_id": "cur-3aa9c37830-persistent-agent-0x0820-uses-persistent-agent-validation-fees",
+  "invariant_index": 517,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-precompile-codecs/src/validation.rs",
+      "crates/ritual-precompile-codecs/src/persistent_agent.rs",
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-async-fees/src/wallet.rs"
+    ],
+    "checked_queries": [
+      "persistent agent 0x0820 full PersistentAgentRequest non-empty model Phase 2 spawn fee",
+      "validate_persistent_agent_payload restore_from_cid empty model",
+      "PERSISTENT_AGENT_PRECOMPILE persistent_agent_escrow_lockup calculate_async_fees_phase2"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "validate_persistent_agent_payload",
+      "PersistentAgentRequest::from_abi",
+      "persistent_agent_escrow_lockup",
+      "calculate_async_fees_phase2",
+      "PERSISTENT_AGENT_PRECOMPILE",
+      "EmptyModel"
+    ],
+    "missing_behavior": "Persistent-agent validation does not require model to be non-empty when restore_from_cid is present, so the full invariant is not enforced.",
+    "related_but_insufficient_code": [
+      "crates/ritual-precompile-codecs/src/validation.rs routes PERSISTENT_AGENT_PRECOMPILE to validate_persistent_agent_payload and decodes PersistentAgentRequest, but returns EmptyModel only when both model and restore_from_cid are empty.",
+      "crates/ritual-async-fees/src/lib.rs computes persistent-agent Phase 1 fees, wallet escrow with PERSISTENT_AGENT_SPAWN_FEE_WEI, and Phase 2 spawn-plus-output fees.",
+      "crates/ritual-async-fees/src/wallet.rs selects persistent_agent_escrow_lockup for PERSISTENT_AGENT_PRECOMPILE."
+    ]
+  },
+  "notes": "Most persistent-agent routing and fee behavior is present, but the model-validation clause remains the terminal gap.",
+  "rationale": "The merge renames Autonomous Agent to Persistent Agent and routes 0x0820 validation, escrow, and Phase 2 pricing through persistent-agent-specific request and fee helpers. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "8e14bab2ea1c184f21306f3600ea6f11dcebc0c8"
+  ],
+  "statement": "The 0x0820 agent-spawning precompile should be treated as Persistent Agent, with full PersistentAgentRequest decoding, nonzero executor and bounded TTL validation, non-empty model validation, persistent-agent escrow lockup including Phase 2 spawn fee, and persistent-agent Phase 2 fee calculation based on delivery result length.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Encode a PersistentAgentRequest with nonzero executor, valid ttl, non-empty model, and delivery config. Assert validate_async_payload accepts it, zero executor/ttl zero/empty model are rejected, wallet escrow includes the persistent spawn fee, and Phase 2 settlement uses calculate_persistent_agent_fees_phase2 for delivery result length."
+  ],
+  "summary": "Persistent-agent 0x0820 does not enforce a non-empty model in restore mode.",
+  "test_or_falsification_candidate": "Submit a persistent-agent payload with valid executor/TTL, empty model, and non-empty restore_from_cid; the invariant expects rejection, while current validation accepts it.",
+  "title": "Persistent Agent 0x0820 uses persistent-agent validation and fees",
+  "total_invariants": 1954
+}

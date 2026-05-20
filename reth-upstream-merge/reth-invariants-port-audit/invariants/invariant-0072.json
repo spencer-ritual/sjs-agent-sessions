@@ -1,0 +1,85 @@
+{
+  "cluster_key": "scheduler:scheduled-target-scheduler-03a3a6c5",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Consensus validation requires non-heartbeat scheduled transactions to target the configured Scheduler and encode Scheduler.execute calldata.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let scheduler = get_scheduler_address();\n...\nif scheduled.to != Some(scheduler) { return Err(...); }\nif scheduled.input.len() != 68 || scheduled.input.as_ref()[..4] != SCHEDULER_EXECUTE_SELECTOR { return Err(...); }",
+      "symbols": [
+        "validate_scheduled_system_transactions",
+        "get_scheduler_address",
+        "SCHEDULER_EXECUTE_SELECTOR"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Scheduled verification\u2019s full path checks Scheduler targeting as part of C8.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "ScheduledTxInfo carries target, and full scheduled verification enforces C8 target semantics.",
+      "symbols": [
+        "verify_scheduled_transactions_full_with_predicate_evaluator",
+        "ScheduledTxInfo"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in port block verification and scheduled verification: non-heartbeat scheduled txs must target Scheduler and use execute calldata.",
+  "evidence_files": [
+    "crates/ritual-scheduled-verification/src/lib.rs"
+  ],
+  "invariant_id": "cur-b8d56a9c0c-scheduled-target-scheduler",
+  "invariant_index": 72,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "scheduled.to != Some\\(scheduler\\)|C8InvalidTarget|SCHEDULER_EXECUTE_SELECTOR"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "get_scheduler_address",
+      "SCHEDULER_EXECUTE_SELECTOR",
+      "C8InvalidTarget",
+      "validate_scheduled_system_transactions"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped exactly.",
+  "rationale": "The candidate documents the C8 target-address rule via unit coverage: otherwise valid scheduled transactions with non-Scheduler targets must be rejected, while Scheduler-targeted transactions proceed. Bounded neighbors support the need for a configured Scheduler address but do not supersede the rule.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "679be26082c3521781ac604635c6e1c4c869499c"
+  ],
+  "statement": "Full scheduled transaction verification must reject a scheduled transaction whose target address is not the configured Scheduler contract address, and must allow target-address validation to proceed when the target equals that Scheduler address.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Construct otherwise valid ScheduledTxInfo with target set to an arbitrary non-Scheduler address and assert verify_scheduled_transactions_full returns InvalidTarget.",
+    "Construct the same ScheduledTxInfo with target set to get_scheduler_address or the verifier's configured Scheduler address and assert verification proceeds past the target-address check."
+  ],
+  "summary": "Scheduled transactions must target Scheduler in the port.",
+  "test_or_falsification_candidate": "Submit a non-heartbeat scheduled transaction to a non-Scheduler target or malformed execute selector and assert verifier rejection.",
+  "title": "Scheduled transactions must target the Scheduler",
+  "total_invariants": 1954
+}

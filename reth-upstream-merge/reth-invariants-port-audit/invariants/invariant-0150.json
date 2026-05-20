@@ -1,0 +1,74 @@
+{
+  "cluster_key": "executor delivery:async-pool-entries-7b66294d",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "New async metadata is constructed in AwaitingExecution with no result or proof fields populated, and the enum has no PreCommit state.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub enum AsyncState { AwaitingExecution, Fulfilled, AwaitingDelivery, DeliveryReady }\n...\nstate: AsyncState::AwaitingExecution,\nexecution_result: None,\nexecution_proof: None,\ndelivery_result: None,\ndelivery_proof: None,\nzk_proof: None,",
+      "symbols": [
+        "AsyncState",
+        "AsyncTxMetadata::awaiting_execution"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Canonical async commitment ingestion always creates the entry through the awaiting_execution constructor.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "self.add_metadata(AsyncTxMetadata::awaiting_execution(original_tx, original_sender, Some(commitment_tx), precompile_address, precompile_input, commit_block, contract_expiry_block))",
+      "symbols": [
+        "AsyncPool::add_committed_async_tx"
+      ]
+    }
+  ],
+  "equivalence_argument": "The v2.2 port tracks newly committed async originals through AsyncTxMetadata::awaiting_execution. That constructor is the only add_committed_async_tx path and initializes the lifecycle to AwaitingExecution with all result/proof fields empty; PreCommit is absent from the current state enum.",
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/async_exec.rs"
+  ],
+  "invariant_id": "cur-b9bb2c9abf-async-pool-entries-await-fulfillment",
+  "invariant_index": 150,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/async_pool.rs"
+    ],
+    "checked_queries": [
+      "PreCommit|AwaitingExecution|execution_result: None|execution_proof: None"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "AsyncState",
+      "AsyncTxMetadata::awaiting_execution",
+      "AsyncPool::add_committed_async_tx"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The primary diff removes AsyncState::PreCommit, adds AsyncState::Fulfilled, documents AwaitingExecution as the state after canonical inclusion while waiting for executor output, and initializes new metadata to AwaitingExecution with execution_result and execution_proof set to None. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: The enum variants and initial state may be internal lifecycle bookkeeping, and the TODO comments indicate parts of metadata extraction were not yet fully implemented in this commit.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "80a149b16213ec613f91929f563eba9687889f02"
+  ],
+  "statement": "A newly added async-exec pool entry must begin in AwaitingExecution state with no execution_result and no execution_proof, and the pool lifecycle must represent completion with Fulfilled rather than a PreCommit state.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Add a system async-exec transaction to AsyncExecPool, inspect the stored AsyncTxMeta, and assert state is AwaitingExecution, execution_result is None, execution_proof is None, and no PreCommit state is reachable for newly added entries."
+  ],
+  "summary": "New async pool entries start AwaitingExecution with empty result/proof fields.",
+  "test_or_falsification_candidate": "Add a system async-exec transaction to AsyncExecPool, inspect the stored AsyncTxMeta, and assert state is AwaitingExecution, execution_result is None, execution_proof is None, and no PreCommit state is reachable for newly added entries.",
+  "title": "New async pool entries await fulfillment",
+  "total_invariants": 1954
+}

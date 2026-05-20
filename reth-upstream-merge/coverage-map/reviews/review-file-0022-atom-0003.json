@@ -1,0 +1,9 @@
+{
+  "record_type": "adversarial_review",
+  "record_id": "review-file-0022-atom-0003",
+  "atom_record_id": "file-0022-atom-0003",
+  "review_result": "pass",
+  "falsification_attempt": "Focused test: cargo test -p reth-chain-state notify_canon_state_runs_blocking_handlers_before_async_broadcast --lib.",
+  "missed_risks": [],
+  "notes": "The blocking-before-async canonical notification ordering is restored and tested."
+}

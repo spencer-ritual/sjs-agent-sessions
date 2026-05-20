@@ -1,0 +1,115 @@
+{
+  "record_type": "file",
+  "file_index": 187,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/node/builder/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "partial",
+  "tags": [
+    "partial",
+    "non-exact",
+    "cargo",
+    "node-builder",
+    "spc",
+    "block-verification",
+    "build-dependency"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0187-atom-0001",
+      "file_index": 187,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/node/builder/Cargo.toml",
+      "source_hunk_hint": "@@ -28,6 +28,7 @@; @@ -36,6 +37,7 @@",
+      "source_kind": "dependency",
+      "source_snippet": "reth-evm.workspace = true\nreth-execution-types.workspace = true\nreth-exex.workspace = true\n...\nreth-node-core.workspace = true\nreth-ethereum-primitives.workspace = true\nreth-node-events.workspace = true",
+      "semantic_claim": "The old node-builder crate adds direct execution-result and Ethereum primitive dependencies to support builder-side verification and primitive wiring.",
+      "high_risk": false,
+      "risk_tags": [
+        "build-dependency",
+        "node-builder",
+        "execution-types",
+        "ethereum-primitives"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/node/builder/Cargo.toml",
+          "evidence": "The destination node-builder manifest does not include `reth-execution-types` or `reth-ethereum-primitives` as direct dependencies, although `reth-execution-types` exists in the workspace and is used by several other crates."
+        }
+      ],
+      "equivalence_argument": "The destination may no longer need these direct node-builder dependencies because execution and primitive access is organized through other crates, but the old manifest-level dependency surface is not exact-preserved in node-builder.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "If the builder module needs direct execution-result or Ethereum primitive types for verifier wiring, add a compile regression around the builder context or ensure the new architecture imports those types through a replacement crate boundary.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Low risk at this manifest boundary; the behavior-bearing builder wiring is audited in the next source file."
+    },
+    {
+      "record_id": "file-0187-atom-0002",
+      "file_index": 187,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/node/builder/Cargo.toml",
+      "source_hunk_hint": "@@ -53,7 +55,9 @@",
+      "source_kind": "dependency",
+      "source_snippet": "reth-tracing.workspace = true\nreth-transaction-pool.workspace = true\nritual-block-verification.workspace = true\nreth-basic-payload-builder.workspace = true\nritual-spc-verification.workspace = true",
+      "semantic_claim": "The old node-builder crate adds direct Ritual block-verification and SPC-verification dependencies, enabling builder-context initialization and verifier plumbing to depend on those crates.",
+      "high_risk": false,
+      "risk_tags": [
+        "build-dependency",
+        "spc-verification",
+        "block-verification",
+        "node-builder"
+      ],
+      "mapping_status": "partial",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/node/builder/Cargo.toml",
+          "evidence": "The destination node-builder manifest has no direct `ritual-block-verification` or `ritual-spc-verification` dependency."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/consensus/Cargo.toml",
+          "evidence": "The destination workspace uses `ritual-block-verification` from the Ethereum consensus crate, indicating block verification behavior moved to a different crate boundary."
+        }
+      ],
+      "equivalence_argument": "The destination partially covers the old block-verification dependency through consensus-level verifier integration, but does not preserve node-builder's direct dependency on the old block/SPC verifier crates; `ritual-spc-verification` is not present as an exact dependency.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "If node-builder must own verifier construction, add a compile/integration regression that proves the builder can construct and pass the verifier through the expected context; otherwise document consensus-level verifier ownership as the replacement boundary.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Low risk at the manifest boundary because the actual verifier ownership and lifecycle semantics are audited in the adjacent builder source file."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 2,
+  "adversarial_reviews": [],
+  "summary": "The old node-builder manifest added execution/primitive dependencies plus direct Ritual block/SPC verifier dependencies. The v2.2.0 port does not preserve these as direct node-builder dependencies; block verification is integrated through other crate boundaries and `ritual-spc-verification` is absent, so the manifest coverage is partial/non-exact and low risk at this file boundary.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 187: M\tcrates/node/builder/Cargo.toml.",
+    "The isolated patch adds `reth-execution-types`, `reth-ethereum-primitives`, `ritual-block-verification`, and `ritual-spc-verification` as node-builder dependencies.",
+    "Destination node-builder Cargo.toml lacks all four direct dependencies.",
+    "Destination workspace still contains `reth-execution-types` and `ritual-block-verification`, but uses them through other crates such as consensus rather than directly from node-builder.",
+    "No review queue entry is added for this manifest-only support record; the adjacent builder source file carries the behavioral verifier lifecycle risk."
+  ]
+}

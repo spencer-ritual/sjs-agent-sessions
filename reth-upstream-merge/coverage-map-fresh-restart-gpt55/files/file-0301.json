@@ -1,0 +1,242 @@
+{
+  "record_type": "file",
+  "file_index": 301,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-block-verification/src/error.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "block-verification",
+    "error-type",
+    "error-classification",
+    "spc",
+    "scheduled"
+  ],
+  "atoms_total": 4,
+  "atoms": [
+    {
+      "record_id": "file-0301-atom-0001",
+      "file_index": 301,
+      "atom_index": 1,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-block-verification/src/error.rs",
+      "source_hunk_hint": "@@ -0,0 +1,19 @@ and +146,167 @@; ErrorClass and system/block-local classifier",
+      "source_kind": "block_verification_error_classification",
+      "source_snippet": "pub enum ErrorClass {\n    BlockLocal,\n    System,\n}\n\nimpl BlockVerificationError {\n    pub fn error_class(&self) -> ErrorClass { ... }\n    pub fn is_system_error(&self) -> bool { ... }\n}",
+      "semantic_claim": "The old divergence introduces block-verification error classification that distinguishes block-local invalidity from system-level infrastructure failures, marking only state provider, database read, and pool access failures as `System` while all other verifier errors are block-local.",
+      "high_risk": false,
+      "risk_tags": [
+        "error-classification",
+        "system-error",
+        "block-local"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/error.rs",
+          "symbols": [
+            "ErrorClass",
+            "BlockVerificationError::error_class",
+            "BlockVerificationError::is_system_error"
+          ],
+          "evidence": "Destination preserves the exact `ErrorClass` enum, classifier match arms, and `is_system_error` helper from the source-added file."
+        }
+      ],
+      "equivalence_argument": "The destination keeps the same infrastructure-vs-block-local boundary and default block-local fallback.",
+      "test_strategy": "error_classification_unit_tests",
+      "negative_test_candidate": "Assert `StateProviderUnavailable`, `DatabaseReadFailed`, and `PoolAccessError` classify as system errors while `VerificationFailed` and settlement/SPC failures classify as block-local.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping; no review queue entry required."
+    },
+    {
+      "record_id": "file-0301-atom-0002",
+      "file_index": 301,
+      "atom_index": 2,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-block-verification/src/error.rs",
+      "source_hunk_hint": "@@ -0,0 +18,84 @@; general, settlement, pool, fee, async commitment, nonce-lock errors",
+      "source_kind": "block_verification_settlement_and_async_errors",
+      "source_snippet": "pub enum BlockVerificationError {\n    VerificationFailed(String),\n    InvalidBlockType,\n    MissingSettlementTransaction { async_index: usize },\n    IncorrectSettlementType { settlement_index: usize, found_type: TxType },\n    IncorrectExecutorAddress { settlement_index: usize, expected: Address, found: Address },\n    IncorrectCommitmentVerifierAddress { ... },\n    IncorrectAsyncTxHash { ... },\n    InvalidSettlementTransaction { ... },\n    AsyncCommitmentNotFoundInPool { tx_hash: B256 },\n    PoolAccessError(String),\n    InvalidSettlementPayment { ... },\n    InvalidAsyncCommitment(String),\n    SenderLockedInAsyncPool { ... },\n    DuplicateCommitmentSender { ... },\n    FeeCalculationFailed { ... },\n    ...\n}",
+      "semantic_claim": "The old divergence defines verifier errors for general block verification, settlement structure and payment mismatches, async pool lookup/access failures, async commitment validation, sender locking, duplicate commitments, and fee calculation failures with typed payloads for indices, hashes, addresses, and expected/found fee values.",
+      "high_risk": false,
+      "risk_tags": [
+        "settlement",
+        "async-commitment",
+        "pool",
+        "fee-validation",
+        "nonce-lock"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/error.rs",
+          "symbols": [
+            "BlockVerificationError::MissingSettlementTransaction",
+            "BlockVerificationError::IncorrectSettlementType",
+            "BlockVerificationError::IncorrectExecutorAddress",
+            "BlockVerificationError::InvalidSettlementPayment",
+            "BlockVerificationError::InvalidAsyncCommitment",
+            "BlockVerificationError::SenderLockedInAsyncPool",
+            "BlockVerificationError::DuplicateCommitmentSender",
+            "BlockVerificationError::FeeCalculationFailed"
+          ],
+          "evidence": "Destination preserves the same variants, payload fields, and `thiserror` display strings for general, settlement, async, pool, and fee validation errors."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "BlockVerificationError"
+          ],
+          "evidence": "Destination verifier constructs these preserved errors across settlement, async commitment, nonce-lock, and fee-validation paths."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the verifier's typed error API and diagnostic strings for all settlement and async validation failures.",
+      "test_strategy": "verifier_error_variant_compile_and_display_tests",
+      "negative_test_candidate": "Format each settlement/async error variant and assert expected indices, hashes, expected/found addresses, and fee values appear in the display string.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0301-atom-0003",
+      "file_index": 301,
+      "atom_index": 3,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-block-verification/src/error.rs",
+      "source_hunk_hint": "@@ -0,0 +85,123 @@; SPC verification and system-level errors",
+      "source_kind": "block_verification_spc_and_system_errors",
+      "source_snippet": "SpcExecutorAddressExtractionFailed { tx_hash: B256 },\nSpcBlockNumberMismatch { tx_hash: B256, spc_block: u64, job_block: u64 },\nSpcJobNotFound { job_id: B256 },\nSpcExecutorNotFound { executor: Address },\nSpcSignatureVerificationFailed { tx_hash: B256, executor: Address, block_number: u64, reason: String },\nSpcProofTooShort { tx_hash: B256, proof_len: usize },\nSpcStateProviderNotConfigured,\nSpcJobReadFailed { reason: String },\nSpcExecutorRegistryReadFailed { reason: String },\nStateProviderUnavailable { reason: String },\nDatabaseReadFailed { reason: String },",
+      "semantic_claim": "The old divergence defines SPC-specific verifier errors for executor extraction, block-number mismatch, missing AsyncJobTracker jobs, missing executors, signature failure, short proofs, missing state provider, registry read failures, plus system-level state provider and database read failures.",
+      "high_risk": false,
+      "risk_tags": [
+        "spc-verification",
+        "state-provider",
+        "database-read",
+        "signature-verification"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/error.rs",
+          "symbols": [
+            "BlockVerificationError::SpcExecutorAddressExtractionFailed",
+            "BlockVerificationError::SpcBlockNumberMismatch",
+            "BlockVerificationError::SpcJobNotFound",
+            "BlockVerificationError::SpcExecutorNotFound",
+            "BlockVerificationError::SpcSignatureVerificationFailed",
+            "BlockVerificationError::SpcProofTooShort",
+            "BlockVerificationError::SpcStateProviderNotConfigured",
+            "BlockVerificationError::SpcJobReadFailed",
+            "BlockVerificationError::SpcExecutorRegistryReadFailed",
+            "BlockVerificationError::StateProviderUnavailable",
+            "BlockVerificationError::DatabaseReadFailed"
+          ],
+          "evidence": "Destination preserves the exact SPC and system-level error variants, payloads, and display strings."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "SpcProofTooShort",
+            "SpcSignatureVerificationFailed",
+            "StateProviderUnavailable"
+          ],
+          "evidence": "Destination verifier constructs these preserved SPC/system errors in SPC verification and state access paths."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the SPC verifier's typed diagnostic surface and the errors classified as system-level by the classifier.",
+      "test_strategy": "spc_error_display_and_classification_tests",
+      "negative_test_candidate": "SPC proof length below 65 should construct `SpcProofTooShort`; state provider failure should construct `StateProviderUnavailable` and classify as a system error.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0301-atom-0004",
+      "file_index": 301,
+      "atom_index": 4,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-block-verification/src/error.rs",
+      "source_hunk_hint": "@@ -0,0 +125,144 @@; sequencing rights and scheduled censorship errors",
+      "source_kind": "block_verification_sequencing_and_scheduled_errors",
+      "source_snippet": "SequencingRightsViolation { contract: Address, tx_index: usize, expected_priority: u32, actual_priority: u32 },\nSequencingRightsStateError { reason: String },\nScheduledTransactionCensored { call_id: u64, index: u64, gas_remaining: u64, obligation_gas: u64 },",
+      "semantic_claim": "The old divergence defines verifier errors for sequencing-rights priority violations, sequencing state-provider failures, and scheduled transaction censorship with gas availability versus obligation gas diagnostics.",
+      "high_risk": false,
+      "risk_tags": [
+        "sequencing-rights",
+        "scheduled-transactions",
+        "censorship",
+        "gas-obligation"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/error.rs",
+          "symbols": [
+            "BlockVerificationError::SequencingRightsViolation",
+            "BlockVerificationError::SequencingRightsStateError",
+            "BlockVerificationError::ScheduledTransactionCensored"
+          ],
+          "evidence": "Destination preserves the exact sequencing/scheduled error variants, payloads, and display strings."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "SequencingRightsViolation",
+            "ScheduledTransactionCensored"
+          ],
+          "evidence": "Destination verifier constructs these preserved variants in sequencing and scheduled verification paths."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the source diagnostics for sequencing and scheduled censorship failures.",
+      "test_strategy": "sequencing_and_scheduled_error_display_tests",
+      "negative_test_candidate": "Format sequencing and scheduled censorship errors and assert the contract/index/priority and gas fields appear in diagnostics.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The block verification error type is exact-port preserved: error classification, general/settlement/async errors, SPC and system errors, sequencing-rights errors, and scheduled-censorship errors all match the source divergence.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 301: A\tcrates/ritual-block-verification/src/error.rs.",
+    "The source file diff starts at line 48401 with a 167-line new file and ends before the `crates/ritual-block-verification/src/lib.rs` diff header at line 48574.",
+    "Destination `crates/ritual-block-verification/src/error.rs` preserves the same 167-line file body as the source-added file.",
+    "Bounded destination usage evidence confirms verifier code constructs the preserved error variants across settlement, async commitment, SPC, system, sequencing, and scheduled paths.",
+    "No review queue entry was required because the audited error type is preserved exactly."
+  ]
+}

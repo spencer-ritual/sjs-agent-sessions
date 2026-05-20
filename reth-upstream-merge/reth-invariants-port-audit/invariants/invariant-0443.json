@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-tee-registry-reader/src/types.rs",
+    "crates/ritual-tee-registry-reader/src/reader.rs"
+  ],
+  "invariant_id": "cur-e4bea590db-dkms-capability-decodes-executor",
+  "invariant_index": 443,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-tee-registry-reader/src/types.rs",
+      "crates/ritual-tee-registry-reader/src/reader.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs"
+    ],
+    "checked_queries": [
+      "Capability::try_from(7)",
+      "7 => Ok(Capability::ImageCall)",
+      "Dkms = 6",
+      "ImageCall = 7",
+      "is_executor_capability"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "Capability::try_from",
+      "Capability::Dkms",
+      "Capability::ImageCall",
+      "Capability::is_executor_capability"
+    ],
+    "missing_behavior": "Capability value 7 no longer remains unknown in the audited port; it decodes as ImageCall.",
+    "related_but_insufficient_code": [
+      "Capability::try_from(6) returns Dkms and Dkms is non-executor, but value 7 is assigned to ImageCall and is an executor capability.",
+      "Registry-reader tests assert Capability::try_from(7) == Ok(Capability::ImageCall), contradicting the invariant requirement that value 7 remain unknown."
+    ]
+  },
+  "notes": "The DKMS portion is present, but the invariant also requires 7 to reject and the current multimodal capability layout contradicts that.",
+  "rationale": "The primary diff adds Dkms = 6 to the Capability enum, maps byte value 6 to it in TryFrom<u8>, and updates tests to assert Dkms is not an executor capability while 7 is still rejected. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "0702af678072c39c5fa1c631736c9975645af9ec"
+  ],
+  "statement": "Capability::try_from(6) must return Capability::Dkms, Capability::try_from(7) must remain unknown, and Capability::Dkms must not be classified as an executor capability.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Unit-test the registry reader capability conversion and classification: bytes 0-6 map to known capabilities with 6 as Dkms, byte 7 errors, and is_executor_capability returns false for Dkms while remaining true for executor capabilities."
+  ],
+  "summary": "DKMS is non-executor, but value 7 is not unknown.",
+  "test_or_falsification_candidate": "Unit-test the registry reader capability conversion and classification: bytes 0-6 map to known capabilities with 6 as Dkms, byte 7 errors, and is_executor_capability returns false for Dkms while remaining true for executor capabilities.",
+  "title": "DKMS capability decodes as non-executor",
+  "total_invariants": 1954
+}

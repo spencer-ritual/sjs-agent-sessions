@@ -1,0 +1,81 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "The canonical precompile metadata registers address 0x0802 as an LLM async precompile with SPC block verification and short settlement enabled.",
+      "path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const LLM_CALL_PRECOMPILE: Address = address!(\"0x0000000000000000000000000000000000000802\");\nAsyncPrecompileMetadata {\n    address: LLM_CALL_PRECOMPILE,\n    capability_tag: AsyncPrecompileCapabilityTag::Llm,\n    settlement: AsyncPrecompileSettlement::ShortSettlement,\n    spc_block_verified: true,\n    short_settlement_enabled: true,\n}",
+      "symbols": [
+        "LLM_CALL_PRECOMPILE",
+        "ALL_ASYNC_PRECOMPILE_METADATA",
+        "is_known_async_precompile",
+        "is_spc_block_verified_precompile"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "The async inspector records any registered async precompile call, including LLM, and preserves target/input/caller metadata for commitment generation.",
+      "path": "crates/ritual-async-inspector/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn observe_call(&mut self, target: Address, caller: Address, input: Bytes) {\n    if !is_known_async_precompile(target) { return; }\n    self.has_async_call = true;\n    self.precompile_address = Some(target);\n    self.precompile_input = Some(input);\n    self.caller_address = Some(caller);\n}",
+      "symbols": [
+        "AsyncPrecompileInspector::observe_call",
+        "is_known_async_precompile"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "The verifier routes SPC-block-verified precompiles, including LLM by metadata, through registered-executor direct signature verification instead of the generic sidecar path.",
+      "path": "crates/ritual-spc-verification/src/verifier.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if is_spc_block_verified_precompile(request.precompile_address) {\n    let executor_public_key = registry.get_executor(&request.executor).filter(|info| info.is_active).map(|info| info.public_key.clone());\n    match executor_public_key {\n        Some(public_key) => self.verify_signature_direct(&public_key, request).await?,\n        None => return Err(VerificationError::InvalidRequest(...)),\n    }\n} else {\n    self.client.verify_single(request).await?\n}",
+      "symbols": [
+        "SpcVerifier::verify_single",
+        "is_spc_block_verified_precompile"
+      ]
+    }
+  ],
+  "equivalence_argument": "The current port centralizes async precompile membership in ritual-precompile-addresses; because LLM is registered as known async and SPC-block-verified, the inspector, detector, validator, and verifier consume the same capability metadata.",
+  "evidence_files": [
+    "crates/ritual-async/src/detector.rs",
+    "crates/ritual-async/src/inspector.rs",
+    "crates/ritual-spc-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-5630805a29-precompile-async-precompile",
+  "invariant_index": 300,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped through canonical precompile metadata, inspector capture, and verifier routing.",
+  "rationale": "The primary diff introduces `LLM_CALL_PRECOMPILE`, updates the async inspector to flag both HTTP and LLM targets, and routes both HTTP and LLM precompile verification through the registered-executor direct verification path rather than the generic sidecar path. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "0192e13de434f8b6a35ee509944ea31422ff3adb"
+  ],
+  "statement": "Calls to precompile address `0x0000000000000000000000000000000000000802` must be detected and handled as async LLM precompile calls, including async inspector detection and direct SPC signature verification for registered executors, parallel to HTTP precompile handling.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Execute or simulate a transaction that calls address `0x0802` with a valid executor request and assert that `AsyncPrecompileInspector` records an async call, `detect_async_transaction` returns an async commitment for the LLM precompile, and `SpcVerifier::verify_single` uses the registered executor direct verification branch for an LLM verification request."
+  ],
+  "summary": "LLM address 0x0802 is registered as an async/SPC precompile and uses direct SPC verification.",
+  "test_or_falsification_candidate": "Execute or simulate a call to 0x0802 and assert the inspector captures it, commitment detection treats it as async, and SPC verification routes through direct registered-executor verification.",
+  "title": "LLM precompile is an async precompile",
+  "total_invariants": 1954
+}

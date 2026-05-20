@@ -1,0 +1,297 @@
+{
+  "record_type": "file",
+  "file_index": 423,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/scheduling/src/types.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "high-risk",
+    "non-exact",
+    "needs-review",
+    "scheduled",
+    "types",
+    "state-machine"
+  ],
+  "atoms_total": 5,
+  "atoms": [
+    {
+      "record_id": "file-0423-atom-0001",
+      "file_index": 423,
+      "atom_index": 1,
+      "atoms_total": 5,
+      "source_path": "crates/scheduling/src/types.rs",
+      "source_hunk_hint": "@@ -0,0 +1,90 @@",
+      "source_kind": "event_and_error_types",
+      "source_snippet": "EventStatus::{Create, Cancel, Update, Execution, Complete, ExecutionFailed, SkippedInsufficientFunds, SkippedTTLExpired, Expired}; SchedulingError; BlockInfo",
+      "semantic_claim": "The old file defines Scheduler service event statuses, scheduling errors, and block info for the event-driven service.",
+      "high_risk": true,
+      "risk_tags": [
+        "scheduled",
+        "event-model",
+        "error-path"
+      ],
+      "mapping_status": "partial",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/lib.rs",
+          "symbols": [
+            "call_state",
+            "FilterResult",
+            "SchedulerError"
+          ],
+          "evidence": "Destination models Scheduler contract call state and verification outcomes, not the old service event status enum."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/error.rs",
+          "symbols": [
+            "BlockVerificationError"
+          ],
+          "evidence": "Destination exposes scheduled verification/censorship errors at block verification boundaries."
+        }
+      ],
+      "equivalence_argument": "The old service event/error taxonomy is not exact-preserved; destination errors and states are organized around storage verification and block validation.",
+      "test_strategy": "scheduled negative-path verifier regression",
+      "negative_test_candidate": "Trigger each destination scheduled rejection class and ensure errors are deterministic and fail closed without relying on old event statuses.",
+      "adversarial_review": {
+        "required": true,
+        "status": "queued",
+        "review_record_id": "review-file-0423-atom-0001"
+      },
+      "review_required": true,
+      "notes": "The old `Complete` event support is covered only indirectly through Scheduler state/overhead handling."
+    },
+    {
+      "record_id": "file-0423-atom-0002",
+      "file_index": 423,
+      "atom_index": 2,
+      "atoms_total": 5,
+      "source_path": "crates/scheduling/src/types.rs",
+      "source_hunk_hint": "@@ -0,0 +80,158 @@",
+      "source_kind": "data_model",
+      "source_snippet": "pub struct Call { to, caller, start_block, max_block_number, frequency, num_calls, gas, ttl, max_fee_per_gas, max_priority_fee_per_gas, value, data, origin_hash }",
+      "semantic_claim": "The old scheduled call model carries Scheduler call fields plus calldata and origin_hash for deterministic transaction creation.",
+      "high_risk": true,
+      "risk_tags": [
+        "scheduled",
+        "transaction-identity",
+        "encoding"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/lib.rs",
+          "symbols": [
+            "ScheduledCall",
+            "read_scheduled_call",
+            "origin_hash_slot"
+          ],
+          "evidence": "Destination `ScheduledCall` carries call_id, to, caller, start_block, num_calls, frequency, gas, ttl, state, fees, and value; origin hash is read separately from Scheduler storage when synthesizing or verifying tx identity."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+          "symbols": [
+            "read_origin_hash",
+            "create_scheduled_execution_transaction"
+          ],
+          "evidence": "Destination reads origin hash separately and uses it in scheduled transaction construction."
+        }
+      ],
+      "equivalence_argument": "The field model is structurally equivalent for consensus-critical scheduled execution, with origin_hash split out of the call struct and callback calldata represented by Scheduler.execute input construction.",
+      "test_strategy": "scheduled storage decode and transaction identity regression",
+      "negative_test_candidate": "Mutate any decoded Scheduler storage field or origin_hash and assert destination transaction synthesis/hash validation changes accordingly.",
+      "adversarial_review": {
+        "required": true,
+        "status": "queued",
+        "review_record_id": "review-file-0423-atom-0002"
+      },
+      "review_required": true,
+      "notes": "Queued because field-level equivalence is consensus-critical."
+    },
+    {
+      "record_id": "file-0423-atom-0003",
+      "file_index": 423,
+      "atom_index": 3,
+      "atoms_total": 5,
+      "source_path": "crates/scheduling/src/types.rs",
+      "source_hunk_hint": "Call::should_fire_at_block and related tests",
+      "source_kind": "state_transition",
+      "source_snippet": "should_fire_at_block(target_block): target must be at/after start_block, exactly aligned to frequency, and execution_index < num_calls.",
+      "semantic_claim": "The old type-level firing logic only fires on exact modulo-aligned target blocks.",
+      "high_risk": true,
+      "risk_tags": [
+        "scheduled",
+        "call-ordering",
+        "negative-path"
+      ],
+      "mapping_status": "partial",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/lib.rs",
+          "symbols": [
+            "due_index_bounds",
+            "compute_obligations"
+          ],
+          "evidence": "Destination computes due index windows where `start + i * frequency <= block_number <= start + i * frequency + ttl`, not only exact target blocks."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "verify_scheduled_censorship"
+          ],
+          "evidence": "Verifier uses due obligations and gas capacity to reject censorable omissions."
+        }
+      ],
+      "equivalence_argument": "Not exact by design: v2.2 uses TTL-window obligations instead of the old exact-block modulo helper. This likely aligns better with Scheduler semantics but does not preserve the old tests literally.",
+      "test_strategy": "exact-target plus TTL-window scheduled regression",
+      "negative_test_candidate": "For start=100, frequency=5, ttl=2, num_calls=3, verify v2.2 behavior for blocks 100, 101, 102, 103, 105, 106, and 108 matches the deployed Scheduler contract expectation rather than the old exact-only helper.",
+      "adversarial_review": {
+        "required": true,
+        "status": "queued",
+        "review_record_id": "review-file-0423-atom-0003"
+      },
+      "review_required": true,
+      "notes": "This absorbs the older should_fire_at_block test-derived atoms into one behavior claim."
+    },
+    {
+      "record_id": "file-0423-atom-0004",
+      "file_index": 423,
+      "atom_index": 4,
+      "atoms_total": 5,
+      "source_path": "crates/scheduling/src/types.rs",
+      "source_hunk_hint": "SchedulerServiceState, FrequencyIndex, replace_calls tests",
+      "source_kind": "state_container",
+      "source_snippet": "SchedulerServiceState { calls: DashMap<u64, Call>, events_len, frequency_index, last_synced_block }; add/remove/replace calls.",
+      "semantic_claim": "The old file maintains lock-free in-memory scheduler state with frequency indexing and replacement semantics.",
+      "high_risk": true,
+      "risk_tags": [
+        "scheduled",
+        "state-machine",
+        "restart"
+      ],
+      "mapping_status": "partial",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/lib.rs",
+          "symbols": [
+            "read_active_scheduled_calls",
+            "compute_obligations"
+          ],
+          "evidence": "Destination reads Scheduler storage directly and computes due obligations without an in-memory frequency index."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+          "symbols": [
+            "compute_obligations_from_calls"
+          ],
+          "evidence": "Destination provides a plain-iterator helper replacing old SchedulerServiceState-specific helper use."
+        }
+      ],
+      "equivalence_argument": "The old in-memory data structure is not exact-preserved. Its externally important result, a set of due non-executed obligations, is recomputed from parent state.",
+      "test_strategy": "replace/reorg/stale-cache scheduled regression",
+      "negative_test_candidate": "After a Scheduler call is cancelled or completed in parent state, verify v2.2 does not use stale cached state to synthesize it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "queued",
+        "review_record_id": "review-file-0423-atom-0004"
+      },
+      "review_required": true,
+      "notes": "Covers the older `replace_calls` and state replacement test-derived atoms."
+    },
+    {
+      "record_id": "file-0423-atom-0005",
+      "file_index": 423,
+      "atom_index": 5,
+      "atoms_total": 5,
+      "source_path": "crates/scheduling/src/types.rs",
+      "source_hunk_hint": "startup hydration gate methods and tests",
+      "source_kind": "negative_path",
+      "source_snippet": "try_begin_startup_hydration, startup_hydration_in_progress, abort_startup_hydration; tests ensure one claimant and reset on abort.",
+      "semantic_claim": "The old type-level startup hydration gate prevents concurrent or partially failed singleton hydration.",
+      "high_risk": true,
+      "risk_tags": [
+        "scheduled",
+        "startup",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "evidence": "Payload builder reads Scheduler parent state at construction time."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "evidence": "Verifier reads Scheduler parent state during block validation."
+        }
+      ],
+      "equivalence_argument": "The exact gate is absent because there is no singleton hydration. The safety property is structurally replaced by avoiding process-local hydrated state for consensus decisions.",
+      "test_strategy": "startup negative-path regression",
+      "negative_test_candidate": "Force a storage read failure during scheduled obligation computation and verify v2.2 fails closed or skips builder augmentation deterministically without leaving partially hydrated state.",
+      "adversarial_review": {
+        "required": true,
+        "status": "queued",
+        "review_record_id": "review-file-0423-atom-0005"
+      },
+      "review_required": true,
+      "notes": "Covers the older startup hydration gate test-derived atoms."
+    }
+  ],
+  "high_risk_atoms_total": 5,
+  "non_exact_atoms_total": 5,
+  "adversarial_reviews": [
+    {
+      "review_record_id": "review-file-0423-atom-0001",
+      "atom_id": "file-0423-atom-0001",
+      "status": "queued",
+      "reason": "Old event/error taxonomy is partially mapped to verification/block errors."
+    },
+    {
+      "review_record_id": "review-file-0423-atom-0002",
+      "atom_id": "file-0423-atom-0002",
+      "status": "queued",
+      "reason": "Scheduled call data model is structurally equivalent but split across call and origin-hash reads."
+    },
+    {
+      "review_record_id": "review-file-0423-atom-0003",
+      "atom_id": "file-0423-atom-0003",
+      "status": "queued",
+      "reason": "Exact-block firing tests are replaced by TTL-window obligation semantics."
+    },
+    {
+      "review_record_id": "review-file-0423-atom-0004",
+      "atom_id": "file-0423-atom-0004",
+      "status": "queued",
+      "reason": "In-memory SchedulerServiceState and frequency index are replaced by parent-state scans."
+    },
+    {
+      "review_record_id": "review-file-0423-atom-0005",
+      "atom_id": "file-0423-atom-0005",
+      "status": "queued",
+      "reason": "Startup hydration gate is structurally replaced rather than exact-preserved."
+    }
+  ],
+  "summary": "The scheduled type model is partly preserved through `ScheduledCall`, origin-hash reads, due-window obligation computation, and verifier errors. The old exact-block helper, event taxonomy, in-memory state container, and startup gate are non-exact replacements and need review.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": [
+    "Queue entry verified as file 423: A\tcrates/scheduling/src/types.rs.",
+    "Source hunk begins at divergence diff line 83682.",
+    "Older test-derived atoms were grouped by behavior because the current v2.2 design intentionally differs from exact-block singleton semantics."
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "Each transaction gets a new verification async context keyed by its hash before execution, with its own SPC calls or an empty vector.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "for tx in block.transactions_recovered() {\n    let txn = tx.into_inner();\n    if let Some(spc_calls) = txn.spc_calls() {\n        let async_context = AsyncContextFactory::verification_context(*txn.tx_hash(), spc_calls.clone());\n        *strategy.evm_mut().ctx_mut().async_context_mut() = async_context;\n    } else {\n        let async_context = AsyncContextFactory::verification_context(*txn.tx_hash(), vec![]);\n        *strategy.evm_mut().ctx_mut().async_context_mut() = async_context;\n    }\n    let gas_used = strategy.execute_transaction(tx)?;\n}",
+      "symbols": [
+        "RitualBlockExecutor::execute_one",
+        "AsyncContextFactory::verification_context"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The state-hook execution path performs the same per-transaction context replacement.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "if let Some(spc_calls) = txn.spc_calls() {\n    let async_context = AsyncContextFactory::verification_context(*txn.tx_hash(), spc_calls.clone());\n    *strategy.evm_mut().ctx_mut().async_context_mut() = async_context;\n} else {\n    let async_context = AsyncContextFactory::verification_context(*txn.tx_hash(), vec![]);\n    *strategy.evm_mut().ctx_mut().async_context_mut() = async_context;\n}",
+      "symbols": [
+        "RitualBlockExecutor::execute_one_with_state_hook"
+      ]
+    }
+  ],
+  "equivalence_argument": "Nodebuilder owns block execution in the v2.2 port, and both execution loops install a freshly constructed verification_context immediately before each transaction executes.",
+  "evidence_files": [
+    "crates/node/src/executor.rs",
+    "crates/node/src/async_evm.rs"
+  ],
+  "invariant_id": "cur-cb9866f2d9-every-executes-fresh-verification-mode-async-context",
+  "invariant_index": 366,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in dependency because the Ritual executor loop is in ritual-reth-nodebuilder-internal.",
+  "rationale": "The executor loop swaps `AsyncContextFactory::verification_context(tx_hash, spc_calls)` into the EVM context before each transaction, using an empty vector for transactions without SPC calls, and the async EVM context exposes mutable async context access for the swap. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "9b1fec346dd01830f08a1b6313a09fcf334bc923"
+  ],
+  "statement": "During block verification/execution, each transaction should receive a fresh async verification context keyed by its transaction hash and populated with that transaction's `spc_calls`; non-async transactions should receive an empty verification context before they are executed.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Execute a block with one transaction carrying SPC calls and one without using an instrumented EVM context; assert the first transaction sees a verification context containing only its SPC calls and hash, the second sees an empty verification context with its own hash, and context from the first transaction is not reused."
+  ],
+  "summary": "Nodebuilder installs a fresh verification async context for every transaction.",
+  "test_or_falsification_candidate": "Instrument the async context and execute one SPC transaction followed by one non-SPC transaction; assert distinct tx hashes, first-call SPC payloads, and empty second context.",
+  "title": "Every transaction executes with a fresh verification-mode async context",
+  "total_invariants": 1954
+}

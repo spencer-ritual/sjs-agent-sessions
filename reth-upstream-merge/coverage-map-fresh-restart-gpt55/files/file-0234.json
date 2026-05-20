@@ -1,0 +1,34 @@
+{
+  "record_type": "file",
+  "file_index": 234,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/payload/builder-primitives/src/events.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "semicolon",
+    "payload-builder",
+    "events",
+    "streams"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The payload builder event stream divergence is semicolon-only rustfmt noise in stream loop `continue` and match-expression statements; no event filtering behavior changed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 234: M\tcrates/payload/builder-primitives/src/events.rs.",
+    "The isolated patch only adds semicolons to `continue` statements and loop match expressions in BuiltPayloadStream and PayloadAttributeStream.",
+    "No built-payload event emission, attribute event emission, lag handling, or stream termination behavior changed."
+  ]
+}

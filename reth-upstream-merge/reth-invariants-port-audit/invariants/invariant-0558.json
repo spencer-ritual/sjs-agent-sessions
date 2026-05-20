@@ -1,0 +1,53 @@
+{
+  "cluster_key": "block building:build-deadline-short-2d30d2a1",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "After heartbeat revival transactions are synthesized, the builder checks the same global deadline before fulfilled-async collection, delivery collection, sequencing-rights reorder, and transaction execution, skipping or breaking when elapsed.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let global_deadline = build_start + builder_config.build_deadline;\n...\nlet fulfilled_async_entries = if build_deadline_elapsed(Instant::now(), global_deadline) { Vec::new() } else { ... };\nlet delivery_ready_async_entries = if build_deadline_elapsed(Instant::now(), global_deadline) { Vec::new() } else { ... };\nlet payload_candidates = if build_deadline_elapsed(Instant::now(), global_deadline) { payload_candidates } else { reorder_payload_candidates(...) };\n...\nif build_deadline_elapsed(Instant::now(), global_deadline) { break; }",
+      "symbols": [
+        "build_deadline_elapsed",
+        "default_ethereum_payload"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port enforces the global payload build deadline as a phase gate. If heartbeat revival consumes the budget, subsequent collection, sorting, and execution phases are skipped or short-circuited for that attempt.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-72fbd6716c-build-deadline-short-circuit-later-phases",
+  "invariant_index": 558,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The checks are distributed across phase boundaries rather than a single post-revival return.",
+  "rationale": "The diff introduces a global deadline and an immediate post-checkAndRevive guard that logs and skips downstream phases when the deadline has elapsed. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Block Building",
+  "source_commits": [
+    "9b3f4f035e6be70114419b4bddd686fd12f021fc"
+  ],
+  "statement": "If the global payload build deadline is already exceeded after heartbeat revival, the builder skips the remaining collection, sorting, and execution phases for that attempt.",
+  "status": "current",
+  "subsystem": "block building",
+  "suggested_falsification_tests": [
+    "Configure a very small build deadline and force heartbeat revival to consume it; assert later payload collection/sort/execution phases do not run in that attempt."
+  ],
+  "summary": "The payload build deadline gates later phases.",
+  "test_or_falsification_candidate": "Configure a tiny build_deadline, make heartbeat revival consume it, and assert fulfilled/delivery collection, sequencing-rights reorder, and candidate execution do not run after the deadline.",
+  "title": "Build deadline can short-circuit later phases",
+  "total_invariants": 1954
+}

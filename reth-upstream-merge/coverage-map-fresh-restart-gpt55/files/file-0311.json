@@ -1,0 +1,348 @@
+{
+  "record_type": "file",
+  "file_index": 311,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-metrics/src/block.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "ritual-metrics",
+    "block-lifecycle",
+    "payload-build",
+    "observability"
+  ],
+  "atoms_total": 6,
+  "atoms": [
+    {
+      "record_id": "file-0311-atom-0001",
+      "file_index": 311,
+      "atom_index": 1,
+      "atoms_total": 6,
+      "source_path": "crates/ritual-metrics/src/block.rs",
+      "source_hunk_hint": "@@ -0,0 +1,191 @@; block-build trace types, env config, and ring-buffer setup",
+      "source_kind": "block_build_trace_model_and_config",
+      "source_snippet": "pub const BLOCK_BUILD_TRACE_ENABLED_ENV: &str = \"RITUAL_BLOCK_BUILD_TRACE_ENABLED\";\npub const BLOCK_BUILD_TRACE_CAPACITY_ENV: &str = \"RITUAL_BLOCK_BUILD_TRACE_CAPACITY\";\npub const DEFAULT_BLOCK_BUILD_TRACE_CAPACITY: usize = 1024;\npub const MAX_BLOCK_BUILD_TRACE_CAPACITY: usize = 50_000;\n\npub struct BlockBuildPhaseTrace { ... }\npub struct BlockBuildDemotionTrace { ... }\npub struct BlockBuildCapObservationTrace { ... }\npub struct BlockBuildPrimaryCauseTrace { ... }\npub struct BlockBuildAttemptTrace { ... }\nfn build_trace_config() -> &'static BlockBuildTraceConfig { ... }\npub fn block_build_trace_enabled() -> bool { ... }\npub fn block_build_trace_capacity() -> usize { ... }\npub fn block_build_trace_count() -> usize { ... }",
+      "semantic_claim": "The old divergence adds the block-build attempt trace data model, environment-driven enable/capacity configuration, capped ring-buffer globals, timestamp helper, bool parser, and read helpers for trace enablement, capacity, and retained attempt count.",
+      "high_risk": false,
+      "risk_tags": [
+        "observability",
+        "block-build-trace",
+        "env-config",
+        "ring-buffer",
+        "payload-build"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-metrics/src/block.rs",
+          "symbols": [
+            "BLOCK_BUILD_TRACE_ENABLED_ENV",
+            "BLOCK_BUILD_TRACE_CAPACITY_ENV",
+            "DEFAULT_BLOCK_BUILD_TRACE_CAPACITY",
+            "MAX_BLOCK_BUILD_TRACE_CAPACITY",
+            "BlockBuildPhaseTrace",
+            "BlockBuildDemotionTrace",
+            "BlockBuildCapObservationTrace",
+            "BlockBuildPrimaryCauseTrace",
+            "BlockBuildAttemptTrace",
+            "build_trace_config",
+            "build_trace_buffer",
+            "block_build_trace_enabled",
+            "block_build_trace_capacity",
+            "block_build_trace_count"
+          ],
+          "evidence": "Destination lines 1-191 exactly match source-added diff lines 54960-55150."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc/src/ritual.rs",
+          "symbols": [
+            "recent_block_build_attempts"
+          ],
+          "evidence": "Ritual RPC reads recent block-build attempts for debug/inspection responses."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the trace schema, environment defaults, maximum capacity clamp, poison-lock recovery, and ring-buffer initialization semantics unchanged.",
+      "test_strategy": "block_build_trace_config_tests",
+      "negative_test_candidate": "An invalid or zero `RITUAL_BLOCK_BUILD_TRACE_CAPACITY` should fall back to the default, while an excessive value should clamp to `MAX_BLOCK_BUILD_TRACE_CAPACITY`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0311-atom-0002",
+      "file_index": 311,
+      "atom_index": 2,
+      "atoms_total": 6,
+      "source_path": "crates/ritual-metrics/src/block.rs",
+      "source_hunk_hint": "@@ -0,0 +193,245 @@; record and read recent block-build attempts",
+      "source_kind": "block_build_attempt_recording_and_snapshot",
+      "source_snippet": "pub fn record_block_build_attempt(...) {\n    if !block_build_trace_enabled() { return; }\n    let entry = BlockBuildAttemptTrace { sequence: BLOCK_BUILD_TRACE_SEQUENCE.fetch_add(1, Ordering::Relaxed), ... };\n    if guard.len() >= capacity { guard.pop_front(); }\n    guard.push_back(entry);\n}\n\npub fn recent_block_build_attempts(limit: usize) -> Vec<BlockBuildAttemptTrace> { ... }",
+      "semantic_claim": "The old divergence records each payload build attempt into the capped in-memory ring buffer when tracing is enabled, assigns monotonic local sequence numbers, evicts the oldest attempt at capacity, and exposes newest-first snapshots bounded by configured capacity.",
+      "high_risk": false,
+      "risk_tags": [
+        "observability",
+        "ring-buffer",
+        "payload-build",
+        "attempt-recorder"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-metrics/src/block.rs",
+          "symbols": [
+            "record_block_build_attempt",
+            "recent_block_build_attempts"
+          ],
+          "evidence": "Destination lines 193-245 exactly match source-added diff lines 55152-55204."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "BlockBuildAttemptRecorder::drop",
+            "record_block_build_attempt"
+          ],
+          "evidence": "Payload builder records attempt outcome, phase timings, demotions, cap observations, primary cause, and included transaction count when the recorder drops."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc/src/ritual.rs",
+          "symbols": [
+            "recent_block_build_attempts"
+          ],
+          "evidence": "Ritual RPC uses `recent_block_build_attempts(limit)` to expose the retained attempt trace."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves trace enablement gating, sequence assignment, FIFO eviction, newest-first snapshot order, and lock-poison recovery behavior.",
+      "test_strategy": "block_build_attempt_ring_buffer_tests",
+      "negative_test_candidate": "Recording more attempts than capacity should evict the oldest attempts and return newest-first results from `recent_block_build_attempts`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0311-atom-0003",
+      "file_index": 311,
+      "atom_index": 3,
+      "atoms_total": 6,
+      "source_path": "crates/ritual-metrics/src/block.rs",
+      "source_hunk_hint": "@@ -0,0 +247,321 @@; common timestamp/path helpers and generic phase logging",
+      "source_kind": "block_lifecycle_phase_logging_helpers",
+      "source_snippet": "fn current_timestamp_micros() -> u64 { ... }\nfn phase_duration_ms(ts_start: u64, ts_end: u64) -> f64 { ... }\nfn infer_phase_path(phase_label: &str) -> &'static str { ... }\npub fn log_block_phase_with_reason(...) { tracing::debug!(target: targets::BLOCK_LIFECYCLE, block_phase = true, ...); }\npub fn log_block_phase(...) { ... }",
+      "semantic_claim": "The old divergence adds common block lifecycle logging helpers: microsecond timestamps, saturating duration-to-ms conversion, phase label to path inference for payload/block-accept/canonical-revival/lifecycle categories, and generic structured debug logging with optional reason.",
+      "high_risk": false,
+      "risk_tags": [
+        "observability",
+        "block-lifecycle",
+        "structured-logging",
+        "phase-path"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-metrics/src/block.rs",
+          "symbols": [
+            "current_timestamp_micros",
+            "phase_duration_ms",
+            "infer_phase_path",
+            "log_block_phase_with_reason",
+            "log_block_phase"
+          ],
+          "evidence": "Destination lines 247-321 exactly match source-added diff lines 55206-55280."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps log labels, target, path inference, duration calculation, optional reason handling, and structured field names unchanged.",
+      "test_strategy": "block_phase_logging_field_tests",
+      "negative_test_candidate": "A `canonical_revival_*` phase should be logged with path `canonical_revival`, while unknown labels should fall back to `block_lifecycle`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0311-atom-0004",
+      "file_index": 311,
+      "atom_index": 4,
+      "atoms_total": 6,
+      "source_path": "crates/ritual-metrics/src/block.rs",
+      "source_hunk_hint": "@@ -0,0 +323,429 @@; block verification start/failure/success logging",
+      "source_kind": "block_verification_lifecycle_logging",
+      "source_snippet": "pub fn log_block_verify_start<H>(block_hash: &H, block_number: u64) { ... }\npub fn log_block_verify_failure<H, E>(block_hash: &H, block_number: u64, error: &E) { ... }\npub fn log_block_verify_end<B>(block: &RecoveredBlock<B>, gas_used: u64) { ... }",
+      "semantic_claim": "The old divergence adds structured block verification lifecycle logs for start, failure, and success, including block hash/number, verification timestamps, error variant extraction from `Debug`, full display reason, gas usage, gas limit, block size, base fee, and block timestamp.",
+      "high_risk": false,
+      "risk_tags": [
+        "observability",
+        "block-verification",
+        "error-logging",
+        "block-accept"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-metrics/src/block.rs",
+          "symbols": [
+            "log_block_verify_start",
+            "log_block_verify_failure",
+            "log_block_verify_end"
+          ],
+          "evidence": "Destination lines 323-429 exactly match source-added diff lines 55282-55388."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the block verification event labels, outcome fields, error classification method, and block metadata fields.",
+      "test_strategy": "block_verification_logging_tests",
+      "negative_test_candidate": "A verification error whose `Debug` string contains tuple fields should log only the variant name before `(` while preserving the full display string as `reason`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0311-atom-0005",
+      "file_index": 311,
+      "atom_index": 5,
+      "atoms_total": 6,
+      "source_path": "crates/ritual-metrics/src/block.rs",
+      "source_hunk_hint": "@@ -0,0 +431,562 @@; payload build start/end and per-phase attempt logging",
+      "source_kind": "payload_build_lifecycle_logging",
+      "source_snippet": "pub fn log_payload_building_start(payload_id: &str, block_time: u64, block_number: Option<u64>, attempt_id: u64, attempt_kind: &str) { ... }\npub fn log_payload_building_end(payload: &EthBuiltPayload, cumulative_gas_used: u64, attempt_id: u64, attempt_kind: &str) { ... }\npub fn log_payload_phase(...) { ... }\npub fn log_payload_phase_with_attempt(...) { ... }",
+      "semantic_claim": "The old divergence adds payload-building lifecycle logs for start/end and per-phase timings, tagging payload id, block time/number, attempt id/kind, stage, outcome, block hash, gas used, duration, and transaction count.",
+      "high_risk": false,
+      "risk_tags": [
+        "observability",
+        "payload-build",
+        "attempt-id",
+        "phase-timing",
+        "structured-logging"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-metrics/src/block.rs",
+          "symbols": [
+            "log_payload_building_start",
+            "log_payload_building_end",
+            "log_payload_phase",
+            "log_payload_phase_with_attempt"
+          ],
+          "evidence": "Destination lines 431-562 exactly match source-added diff lines 55390-55521."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "BlockBuildAttemptRecorder::log_payload_building_start",
+            "BlockBuildAttemptRecorder::log_payload_building_end",
+            "BlockBuildAttemptRecorder::record_phase",
+            "BlockBuildAttemptRecorder::record_phase_with_breakdown"
+          ],
+          "evidence": "The Ethereum payload builder calls these metrics helpers around payload build attempts and phases."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/unified_execution.rs",
+          "symbols": [
+            "log_payload_phase_with_attempt"
+          ],
+          "evidence": "Unified execution code also logs attempt-tagged payload phases through the preserved helper."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the payload-build observability contract, stage/outcome labels, attempt metadata, and per-phase duration/count fields unchanged.",
+      "test_strategy": "payload_build_logging_tests",
+      "negative_test_candidate": "A payload build start with `block_number: None` should omit the block number field while still logging payload id, block time, attempt id, and attempt kind.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0311-atom-0006",
+      "file_index": 311,
+      "atom_index": 6,
+      "atoms_total": 6,
+      "source_path": "crates/ritual-metrics/src/block.rs",
+      "source_hunk_hint": "@@ -0,0 +564,587 @@; execution-layer canonical head update logging",
+      "source_kind": "execution_layer_head_update_logging",
+      "source_snippet": "pub fn log_el_update_head<H>(block_hash: &H, block_number: u64, block_time: u64)\nwhere\n    H: std::fmt::Display,\n{\n    tracing::debug!(target: targets::BLOCK_LIFECYCLE, block_phase = true, label = \"el_update_head\", path = \"block_accept\", ...);\n}",
+      "semantic_claim": "The old divergence adds a structured execution-layer head update log event carrying timestamp, canonical head block hash, block number, and block time under the block lifecycle target.",
+      "high_risk": false,
+      "risk_tags": [
+        "observability",
+        "canonical-head",
+        "block-accept",
+        "structured-logging"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-metrics/src/block.rs",
+          "symbols": [
+            "log_el_update_head"
+          ],
+          "evidence": "Destination lines 564-587 exactly match source-added diff lines 55523-55546."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/engine/tree/src/tree/mod.rs",
+          "symbols": [
+            "log_el_update_head"
+          ],
+          "evidence": "Engine tree calls `ritual_metrics::block::log_el_update_head` when updating the canonical tip."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves canonical-head update observability fields and labels.",
+      "test_strategy": "el_head_update_logging_tests",
+      "negative_test_candidate": "A canonical tip update should emit the `el_update_head` label with path `block_accept` and the new block hash/number/time.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The block metrics module is exact-port preserved, including the block-build attempt trace model and ring buffer, attempt recording/snapshot APIs, generic phase logging, block verification lifecycle logs, payload-build lifecycle and phase logs, and execution-layer canonical head update logging.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 311: A\tcrates/ritual-metrics/src/block.rs.",
+    "Source-added hunk spans diff lines 54960-55546 with header `@@ -0,0 +1,587 @@`; the next diff starts at line 55547.",
+    "Destination `crates/ritual-metrics/src/block.rs` has 587 lines and matches the source-added content exactly.",
+    "Bounded usage evidence found payload builder attempt recording/logging, unified execution phase logging, Ritual RPC trace snapshot access, and engine canonical-head update logging.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

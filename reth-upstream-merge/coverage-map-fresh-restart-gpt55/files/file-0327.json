@@ -1,0 +1,134 @@
+{
+  "record_type": "file",
+  "file_index": 327,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-precompile-codecs/src/storage_ref.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "precompile-codecs",
+    "storage-ref",
+    "abi"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0327-atom-0001",
+      "file_index": 327,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/ritual-precompile-codecs/src/storage_ref.rs",
+      "source_hunk_hint": "@@ -0,0 +1,40 @@; StorageRef type and convenience predicates",
+      "source_kind": "storage_ref_type_and_predicates",
+      "source_snippet": "pub struct StorageRef {\n    pub platform: String,\n    pub path: String,\n    pub key_ref: String,\n}\n\nimpl StorageRef {\n    pub fn is_empty(&self) -> bool { ... }\n    pub fn is_inline(&self) -> bool { ... }\n    pub fn needs_auth(&self) -> bool { ... }\n}",
+      "semantic_claim": "The old divergence adds a shared `StorageRef` type for external data/storage references, carrying platform, path, and credential key placeholder fields plus predicates for empty, inline, and authenticated references.",
+      "high_risk": false,
+      "risk_tags": [
+        "storage-ref",
+        "external-data",
+        "credential-placeholder",
+        "precompile-codecs"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/storage_ref.rs",
+          "symbols": [
+            "StorageRef",
+            "StorageRef::is_empty",
+            "StorageRef::is_inline",
+            "StorageRef::needs_auth"
+          ],
+          "evidence": "Destination lines 1-40 exactly match source-added diff lines 61049-61088."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the shared storage-reference shape and helper semantics unchanged for sovereign and persistent agent codecs.",
+      "test_strategy": "storage_ref_predicate_tests",
+      "negative_test_candidate": "A ref with a nonempty `key_ref` should report `needs_auth() == true`, while an `inline` platform should report `is_inline() == true`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0327-atom-0002",
+      "file_index": 327,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/ritual-precompile-codecs/src/storage_ref.rs",
+      "source_hunk_hint": "@@ -0,0 +42,93 @@; ABI tuple type, decode, and encode helpers",
+      "source_kind": "storage_ref_abi_codec",
+      "source_snippet": "pub fn abi_param_type() -> ParamType { ParamType::Tuple(vec![ParamType::String, ParamType::String, ParamType::String]) }\n\npub fn from_token(token: &Token) -> Result<Self, CodecError> { ... }\n\npub fn to_token(&self) -> Token { ... }",
+      "semantic_claim": "The old divergence adds ABI codec helpers for `StorageRef`, representing it as a `(string,string,string)` tuple, decoding tuple fields with type checks and `CodecError` failures, and encoding back into an `ethabi::Token::Tuple`.",
+      "high_risk": false,
+      "risk_tags": [
+        "abi-decoding",
+        "abi-encoding",
+        "storage-ref",
+        "tuple"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/storage_ref.rs",
+          "symbols": [
+            "StorageRef::abi_param_type",
+            "StorageRef::from_token",
+            "StorageRef::to_token"
+          ],
+          "evidence": "Destination lines 42-93 exactly match source-added diff lines 61090-61141."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/persistent_agent.rs",
+          "symbols": [
+            "StorageRef"
+          ],
+          "evidence": "Persistent agent codec uses `StorageRef` for external data/model references."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/sovereign_agent.rs",
+          "symbols": [
+            "StorageRef"
+          ],
+          "evidence": "Sovereign agent codec uses `StorageRef` for external data references."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves StorageRef ABI tuple layout, error behavior, and round-trip token encoding.",
+      "test_strategy": "storage_ref_abi_roundtrip_tests",
+      "negative_test_candidate": "A tuple with a non-string path field should return `CodecError::FieldExtractionFailed(\"Invalid StorageRef.path\")`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The shared `StorageRef` codec is exact-port preserved, including external storage reference fields, convenience predicates, ABI tuple layout, decode validation, and encode helper.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 327: A\tcrates/ritual-precompile-codecs/src/storage_ref.rs.",
+    "Source-added hunk spans diff lines 61049-61141 with header `@@ -0,0 +1,93 @@`; the next diff starts at line 61142.",
+    "Destination `crates/ritual-precompile-codecs/src/storage_ref.rs` has 93 lines and matches the source-added content exactly.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

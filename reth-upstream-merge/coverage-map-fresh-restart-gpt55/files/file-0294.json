@@ -1,0 +1,90 @@
+{
+  "record_type": "file",
+  "file_index": 294,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-async/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "ritual-async",
+    "manifest",
+    "workspace-wiring",
+    "dependency-graph"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0294-atom-0001",
+      "file_index": 294,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-async/Cargo.toml",
+      "source_hunk_hint": "@@ -0,0 +1,43 @@; ritual-async crate manifest plus root workspace member/dependency wiring",
+      "source_kind": "ritual_async_manifest_workspace_wiring",
+      "source_snippet": "[package]\nname = \"ritual-async\"\nversion = \"0.1.0\"\nedition = \"2021\"\ndescription = \"Async transaction detection for Ritual Network\"\n\n[dependencies]\nritual-async-inspector = { workspace = true }\nritual-async-fees = { workspace = true }\nritual-async-registry = { workspace = true }\nrevm = { workspace = true }\nreth-evm = { workspace = true }\nreth-evm-ethereum = { workspace = true }\nreth-revm = { workspace = true }\nreth-primitives = { workspace = true }\nreth-chain-state = { workspace = true }\nreth-primitives-traits = { workspace = true }\nreth-provider = { workspace = true }\nreth-chainspec = { workspace = true }\nreth-storage-api = { workspace = true }\nalloy-evm = { workspace = true }\nreth-ethereum-primitives = { workspace = true }\nalloy-consensus = { workspace = true }\nritual-precompile-codecs = { path = \"../ritual-precompile-codecs\" }\nalloy-eips = {workspace = true}\nalloy-primitives = { workspace = true }\nalloy-rlp = { workspace = true }\nalloy-sol-types = { workspace = true }\ntracing = { workspace = true }\ntokio.workspace = true\nthiserror = { workspace = true }\nfutures-util = { workspace = true }\nonce_cell = { workspace = true }\n\n[dev-dependencies]\nethabi = { workspace = true }\nproptest = \"1.4\"\n\n# root Cargo.toml wiring:\n\"crates/ritual-async/\"\nritual-async = { path = \"crates/ritual-async\" }",
+      "semantic_claim": "The old divergence introduces `ritual-async` as the central async transaction detection crate, wiring it to the shared inspector, fees, registry, EVM/reth execution crates, async precompile codecs, Alloy utilities, Tokio/error/logging helpers, and test dependencies. The root workspace must expose it as both member and workspace dependency.",
+      "high_risk": false,
+      "risk_tags": [
+        "workspace-member",
+        "workspace-dependency",
+        "async-detection-crate",
+        "dependency-graph"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async/Cargo.toml",
+          "symbols": [
+            "package:ritual-async",
+            "ritual-async-inspector.workspace",
+            "ritual-async-fees.workspace",
+            "ritual-async-registry.workspace",
+            "reth-evm.workspace",
+            "ritual-precompile-codecs"
+          ],
+          "evidence": "Destination manifest preserves the same 43-line package metadata, dependency groups, dependency spelling, path dependency, and dev-dependency set as the source-added file."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "Cargo.toml",
+          "symbols": [
+            "workspace.members",
+            "workspace.dependencies.ritual-async"
+          ],
+          "evidence": "Destination root `Cargo.toml` includes `crates/ritual-async/` in workspace members and `ritual-async = { path = \"crates/ritual-async\" }` in `[workspace.dependencies]`."
+        }
+      ],
+      "equivalence_argument": "The destination keeps the manifest and root workspace wiring exactly, preserving the source build graph for the central async detection crate.",
+      "test_strategy": "source_diff_manifest_to_destination_manifest_text_match_plus_root_workspace_wiring_read",
+      "negative_test_candidate": "Removing `ritual-async-registry` or `ritual-async-inspector` from the manifest should break detector/validation code imports; removing root workspace dependency should break downstream workspace references.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers only the `ritual-async` manifest and root workspace wiring, not any `crates/ritual-async/src/*` implementation files."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The `ritual-async` crate manifest and root workspace wiring are exact-port preserved, including package metadata, shared Ritual crate dependencies, Reth/EVM dependencies, utility dependencies, test dependencies, workspace member entry, and workspace dependency path.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 294: A\tcrates/ritual-async/Cargo.toml.",
+    "The source file diff starts at line 45010 and the Cargo.toml hunk ends at line 45058 before the `crates/ritual-async/src/detector.rs` header at line 45059.",
+    "Destination `crates/ritual-async/Cargo.toml` contains the same 43-line manifest body as the source-added file.",
+    "Destination root `Cargo.toml` includes `crates/ritual-async/` in workspace members and `ritual-async = { path = \"crates/ritual-async\" }` in workspace dependencies.",
+    "No review queue entry was required because the audited manifest and workspace wiring are preserved exactly."
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-495bd404f2-phase-pricing-polling-plus-payload",
+  "invariant_index": 376,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "calculate_async_fees_phase2 delivery_result_len LONG_RUNNING_HTTP_PRECOMPILE",
+      "phase2_long_running http_executor_fee",
+      "delivery_result.len calculate_async_fees_phase2",
+      "delivery fees mismatch"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "calculate_async_fees_phase2",
+      "AsyncFees::phase2_long_running",
+      "http_executor_fee",
+      "prepare_delivery_settlement_transaction",
+      "verify_settlements"
+    ],
+    "missing_behavior": "Long-running HTTP Phase 2 pricing ignores delivery_result_len and charges only FEE_PER_POLL_BLOCK_WEI * blocks_polled instead of polling_fee plus http_executor_fee(0, delivery_result_len).",
+    "related_but_insufficient_code": [
+      "crates/ethereum/payload/src/ritual_async.rs and crates/ritual-block-verification/src/lib.rs pass delivery result length into calculate_async_fees_phase2.",
+      "crates/ritual-async-fees/src/lib.rs branches LONG_RUNNING_HTTP_PRECOMPILE to AsyncFees::phase2_long_running(blocks_polled), whose executor fee is polling only."
+    ]
+  },
+  "notes": "Confirmed gap: builder/verifier parity exists, but both share a helper that undercharges long-running HTTP delivery payload bytes.",
+  "rationale": "The commit adds calculate_async_fees_phase2(), uses delivery_result_len in payload and verification, documents validator fees as already paid in Phase 1, and sets Phase 2 commitment/inclusion validator fees to zero. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "09942d53e1ecc9fcaa4f5861c7fbbfd60aa2e5c7"
+  ],
+  "statement": "Phase 2 long-running HTTP settlement fees must pay only the executor, with executor_fee equal to polling_fee plus http_executor_fee(0, delivery_result_len), and commitment and inclusion validator fees set to zero.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "For a 0x0805 job with known commit block, settlement block, and delivery_result length, assert payload construction and block verification compute the same executor fee as fee_per_poll_block * blocks_polled plus http_executor_fee(0, len), with zero validator fees."
+  ],
+  "summary": "Long-running HTTP Phase 2 pricing omits the payload fee.",
+  "test_or_falsification_candidate": "For a 0x0805 delivery with a non-empty delivery result, compare expected polling + http_executor_fee(0, len) against current calculate_async_fees_phase2 output; current output omits the payload fee.",
+  "title": "Phase 2 pricing is polling plus payload",
+  "total_invariants": 1954
+}

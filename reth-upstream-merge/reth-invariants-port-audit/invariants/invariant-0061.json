@@ -1,0 +1,76 @@
+{
+  "cluster_key": "scheduler:payload-building:part-03",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-metrics/src/scheduling.rs",
+    "crates/rpc/rpc-api/src/ritual.rs"
+  ],
+  "invariant_id": "cur-af91dbee21-scheduled-execution-errors-record-full-incident-context",
+  "invariant_index": 61,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-metrics/src/scheduling.rs",
+      "crates/rpc/rpc-api/src/ritual.rs"
+    ],
+    "checked_queries": [
+      "record_scheduled_incident|ScheduledIncidentInput|SCHEDULED_TX_TYPE_ID",
+      "decoded_call_id|decoded_execution_index|revert_selector|error_chain",
+      "maybe_record_scheduled_incident"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "record_scheduled_incident",
+      "ScheduledIncidentInput",
+      "SCHEDULED_TX_TYPE_ID",
+      "decoded_call_id",
+      "revert_selector",
+      "error_chain",
+      "maybe_record_scheduled_incident"
+    ],
+    "missing_behavior": "Missing payload-builder incident recording hook for scheduled transaction execution errors, including scheduled-only filtering, decoded Scheduler calldata, full error/source chain, debug text, and revert selector classification.",
+    "related_but_insufficient_code": [
+      "ritual-metrics defines ScheduledIncidentInput/Trace fields for decoded call IDs, error chains, debug text, and revert selector metadata.",
+      "RPC exposes those fields, but no payload builder callsite records incidents on BlockExecutionError for SCHEDULED_TX_TYPE_ID transactions."
+    ]
+  },
+  "notes": "Confirmed gap; data model alone is insufficient.",
+  "rationale": "The incident recorder evolves from ScheduledEventNotFound-only recording to scheduled-transaction type filtering while retaining decoded scheduler calldata, full error/debug context, classified revert metadata, and added execution contexts.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "ae2068ea03dc3b3f762d5f0193bba9e5268efabc",
+    "ae2068ea03dc3b3f762d5f0193bba9e5268efabc",
+    "4cfd2b4284523787d926eb12a6d14c92725a3599",
+    "f3084852a85954ee3bb88f8597a16dbf9c279dc4",
+    "efb44d8fd3c59bd19e95dcf333b28d82be000257",
+    "8a0660f57736b826231b3db41f503c3011853d24",
+    "3eda2e3a9cbaf308f7e8c7273e756aa0bd988059",
+    "3eda2e3a9cbaf308f7e8c7273e756aa0bd988059"
+  ],
+  "statement": "When payload building handles a BlockExecutionError for a transaction whose type is SCHEDULED_TX_TYPE_ID, it records a scheduled incident, including payload/block/transaction metadata, execution context and source, decoded scheduler selector/call_id/execution_index when calldata permits, full bounded BlockExecutionError display/source chain, debug representation, and classified revert selector/reason when available; non-scheduled transaction errors are ignored.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Call maybe_record_scheduled_incident with a scheduled transaction and an error chain that lacks ScheduledEventNotFound and assert an incident is recorded with full chain and debug text; repeat with a non-scheduled transaction and assert no incident is recorded.",
+    "Force augmented scheduled transaction execution to fail and assert the recorded incident has execution_context augmented_scheduled_execute and tx_source augmented_scheduled.",
+    "Use 4-byte and 68-byte Scheduler execute calldata plus a known revert selector and assert selector-only or full call_id/execution_index decoding and revertReason classification."
+  ],
+  "summary": "Scheduled execution error incident recording is absent as an end-to-end behavior.",
+  "test_or_falsification_candidate": "Force scheduled tx BlockExecutionError in payload builder and assert an incident is recorded; current port has recorder structs but no payload callsite.",
+  "title": "Scheduled execution errors record full incident context",
+  "total_invariants": 1954
+}

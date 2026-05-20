@@ -1,0 +1,183 @@
+{
+  "record_type": "file",
+  "file_index": 274,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-async-commitment-validator/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "async-commitment-validator",
+    "block-verification",
+    "stateful-validation",
+    "async-precompile-inspector",
+    "tests"
+  ],
+  "atoms_total": 3,
+  "atoms": [
+    {
+      "record_id": "file-0274-atom-0001",
+      "file_index": 274,
+      "atom_index": 1,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-async-commitment-validator/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +34,116 @@",
+      "source_kind": "static_commitment_validation",
+      "source_snippet": "pub enum CommitmentValidationError { NoAsyncDetected, PrecompileMismatch { .. }, InputMismatch, OriginTxDecodeError(String), SignerRecoveryError(String), EvmError(String), TTLExceeded { ttl: u64, max: u64 }, InvalidPrecompileAddress(Address), ZeroExecutorAddress }\n\npub fn validate_commitment_structure(commitment: &TxAsyncCommitment) -> Result<(), CommitmentValidationError> {\n    let max_ttl = max_ttl_blocks();\n    if commitment.ttl == 0 || commitment.ttl > max_ttl { ... }\n    if commitment.precompile_address != HTTP_CALL_PRECOMPILE && ... && commitment.precompile_address != PERSISTENT_AGENT_PRECOMPILE { ... }\n    if commitment.executor_address.is_zero() { ... }\n    Ok(())\n}",
+      "semantic_claim": "The old divergence adds the async commitment validator error taxonomy and static commitment validation: TTL must be nonzero and no greater than the configured max, precompile_address must be one of the async precompile allowlist, and executor_address must be nonzero.",
+      "high_risk": false,
+      "risk_tags": [
+        "ttl-bounds",
+        "precompile-allowlist",
+        "executor-validation",
+        "consensus-validation"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-commitment-validator/src/lib.rs",
+          "symbols": [
+            "CommitmentValidationError",
+            "validate_commitment_structure"
+          ],
+          "evidence": "Destination implementation preserves the same error variants, TTL bound check via `max_ttl_blocks()`, full async precompile allowlist, and zero-executor rejection."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "BlockVerifier::verify_async_commitments",
+            "validate_commitment_structure"
+          ],
+          "evidence": "Destination verifier imports and calls `validate_commitment_structure(commitment)` during async commitment verification before wallet/deadline/state consistency checks."
+        }
+      ],
+      "equivalence_argument": "The destination preserves the static validation behavior exactly at the same crate boundary and wires it into block verification at the expected async-commitment phase.",
+      "test_strategy": "unit_and_property_regression",
+      "negative_test_candidate": "Assert TTL 0, TTL greater than `max_ttl_blocks()`, an unknown precompile address, and `Address::ZERO` executor each fail with the expected validation error.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "The `SignerRecoveryError` variant is preserved as part of the source taxonomy even though the current signer recovery branch maps recovery failures to `EvmError`; this is exact source behavior."
+    },
+    {
+      "record_id": "file-0274-atom-0002",
+      "file_index": 274,
+      "atom_index": 2,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-async-commitment-validator/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +118,278 @@",
+      "source_kind": "stateful_reexecution_validation",
+      "source_snippet": "pub fn validate_commitment_with_state<DB>(commitment: &TxAsyncCommitment, db: DB, env: EvmEnv, parent_header: &SealedHeader) -> Result<(), CommitmentValidationError> where DB: revm::Database, ... {\n    let original_tx = commitment.decode_original_transaction()?;\n    let (tx_signed, signer) = match original_tx { OriginalTransaction::AsyncSettlement(signed) => (signed.into(), ASYNC_SETTLEMENT_SYSTEM_SENDER), other => { ... tx_signed.recover_signer()? ... } };\n    let recovered = Recovered::new_unchecked(tx_signed, signer);\n    let mut inspector = AsyncPrecompileInspector::new();\n    let ctx = Context::mainnet().with_db(db).with_cfg(env.cfg_env).with_block(env.block_env).build_mainnet_with_inspector(&mut inspector);\n    let mut evm = EthEvm::new(ctx, true);\n    let result = evm.transact(&recovered)?;\n    let detected = inspector.async_call_result().ok_or(NoAsyncDetected)?;\n    if detected.precompile_address != commitment.precompile_address { ... }\n    if detected.input != commitment.precompile_input { ... }\n    Ok(())\n}",
+      "semantic_claim": "The old divergence adds stateful async commitment validation by decoding the committed origin transaction, using the async settlement system sender for AsyncSettlement origins and recovered signers for other origin transaction types, re-executing a Recovered<TransactionSigned> with AsyncPrecompileInspector in the supplied parent-state EVM environment, and requiring the detected async precompile address and input to match the commitment.",
+      "high_risk": false,
+      "risk_tags": [
+        "origin-transaction-decode",
+        "signer-recovery",
+        "parent-state-reexecution",
+        "async-precompile-inspector",
+        "commitment-consistency"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-commitment-validator/src/lib.rs",
+          "symbols": [
+            "validate_commitment_with_state",
+            "AsyncPrecompileInspector",
+            "EthEvm::new"
+          ],
+          "evidence": "Destination implementation preserves the same decode, system-sender/recovered-signer conversion, Recovered transaction construction, parent-state Context/EthEvm inspector execution, and detected precompile/input comparisons."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "BlockVerifier::verify_async_commitments",
+            "validate_commitment_with_state"
+          ],
+          "evidence": "Destination verifier obtains parent block state and parent header, builds an EVM environment with `evm_env_factory`, creates a sealed parent header, and calls `validate_commitment_with_state(commitment, state, env, &sealed_header)`."
+        }
+      ],
+      "equivalence_argument": "The destination preserves the consensus-critical replay validation path exactly, including the parent-state execution context and all fail-closed mismatch/no-detection errors.",
+      "test_strategy": "integration_regression",
+      "negative_test_candidate": "Construct commitments whose origin transaction decodes but either triggers no async precompile, triggers a different async precompile, or uses different precompile input, and assert block verification rejects them.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "The source and destination both use the supplied `parent_header` for validation-context logging and the supplied `EvmEnv` block/cfg values for replay execution."
+    },
+    {
+      "record_id": "file-0274-atom-0003",
+      "file_index": 274,
+      "atom_index": 3,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-async-commitment-validator/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +280,576 @@",
+      "source_kind": "validator_tests",
+      "source_snippet": "struct MockCommitment { ttl: u64, precompile_address: Address, executor_address: Address, commit_block: u64 }\n\n#[test] fn test_c_ac_1_ttl_zero_rejected() { ... }\n#[test] fn test_c_ac_2_ttl_exceeds_max_rejected() { ... }\n#[test] fn test_c_ac_3_invalid_precompile_rejected() { ... }\n#[test] fn test_c_ac_4_zero_executor_rejected() { ... }\n\nproptest! { fn prop_zero_executor_always_rejected(...); fn prop_invalid_ttl_always_rejected(...); fn prop_valid_commitment_accepted(...); fn prop_no_panics(...); }\n\n#[test] fn diff_eq_builder_commitment_passes_verifier() { ... }\n#[test] fn diff_eq_builder_cannot_produce_zero_executor() { ... }",
+      "semantic_claim": "The old divergence adds focused tests for static async commitment validation: TTL zero/one/max/above-max behavior, invalid precompile rejection, zero/nonzero executor behavior, property tests for invalid TTLs, zero executors, accepted valid samples, no panics on random inputs, and builder-vs-verifier differential examples.",
+      "high_risk": false,
+      "risk_tags": [
+        "unit-tests",
+        "property-tests",
+        "builder-verifier-parity",
+        "negative-validation-tests"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-commitment-validator/src/lib.rs",
+          "symbols": [
+            "tests::MockCommitment",
+            "tests::test_c_ac_1_ttl_zero_rejected",
+            "tests::test_c_ac_2_ttl_exceeds_max_rejected",
+            "tests::test_c_ac_3_invalid_precompile_rejected",
+            "tests::test_c_ac_4_zero_executor_rejected",
+            "tests::prop_zero_executor_always_rejected",
+            "tests::prop_invalid_ttl_always_rejected",
+            "tests::diff_eq_builder_commitment_passes_verifier"
+          ],
+          "evidence": "Destination test module preserves the same MockCommitment builder, unit tests, proptests, and differential builder/verifier examples."
+        }
+      ],
+      "equivalence_argument": "The destination preserves the source test coverage exactly, including the same representative valid precompile samples and the same negative TTL/precompile/executor assertions.",
+      "test_strategy": "cargo_test_regression",
+      "negative_test_candidate": "Run `cargo test -p ritual-async-commitment-validator` and confirm the static validation tests and proptests execute against the preserved implementation.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "The test valid-precompile sample is narrower than the implementation allowlist in both source and destination; this is exact preservation, not a merge drift."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The async commitment validator implementation is exact-port preserved: static validation, stateful parent-state replay validation, and the included unit/property/differential tests all match the source addition and are wired into block verification.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 274: A\tcrates/ritual-async-commitment-validator/src/lib.rs.",
+    "Source diff adds a new 576-line implementation ending before `crates/ritual-async-fees/Cargo.toml`; the destination file preserves the same implementation behavior.",
+    "Destination block verification imports `validate_commitment_structure` and `validate_commitment_with_state`, calls the structural validator before wallet/deadline checks, and calls the stateful validator with parent-state database, parent EVM environment, and sealed parent header.",
+    "No non-exact mapping or review queue entry is required for this file."
+  ]
+}

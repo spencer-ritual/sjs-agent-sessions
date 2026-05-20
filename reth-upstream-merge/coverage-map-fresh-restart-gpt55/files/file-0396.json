@@ -1,0 +1,224 @@
+{
+  "record_type": "file",
+  "file_index": 396,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/rpc/rpc/src/async_tx_validator.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "partial",
+  "tags": [
+    "async-fsm",
+    "non-exact",
+    "rpc-validation",
+    "confirmed-gap",
+    "non-fsm-rpc-ux"
+  ],
+  "atoms_total": 4,
+  "atoms": [
+    {
+      "record_id": "file-0396-atom-0001",
+      "file_index": 396,
+      "atom_index": 1,
+      "atoms_total": 4,
+      "source_path": "crates/rpc/rpc/src/async_tx_validator.rs",
+      "source_hunk_hint": "@@ -0,0 +1,33 @@; @@ -0,0 +148,159 @@",
+      "source_kind": "rpc_preflight_validation",
+      "source_snippet": "RPC-level validation exists to provide immediate user feedback... This is a UX improvement, not consensus enforcement.\n\npub(crate) fn validate_async_payload(precompile_address: Address, input: &Bytes) -> Result<(), AsyncValidationError> { validation::validate_async_payload(precompile_address, input).map_err(Into::into) }",
+      "semantic_claim": "The old RPC layer validates async precompile payload ABI, TTL, executor zero-address, URL/model/message shape, and input size before accepting async transactions into the pool.",
+      "high_risk": false,
+      "risk_tags": [
+        "rpc",
+        "negative-path",
+        "non-fsm-rpc-ux"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/validation.rs",
+          "symbols": [
+            "validate_async_payload"
+          ],
+          "evidence": "Static payload validation and focused tests exist in `ritual-precompile-codecs`; no `reth-rpc` RPC preflight wrapper exists."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "validate_async_payload"
+          ],
+          "evidence": "Builder-side async payload validation calls the shared validator."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "validate_async_payload"
+          ],
+          "evidence": "Verifier-side async payload validation calls the shared validator."
+        }
+      ],
+      "equivalence_argument": "Non-exact: the consensus-relevant static validation exists in shared builder/verifier paths, but the old immediate RPC rejection/user-feedback wrapper is not present in `reth-rpc`.",
+      "test_strategy": "shared validator unit tests plus RPC sendRawTransaction negative test",
+      "negative_test_candidate": "Submit an async HTTP precompile transaction with TTL 0 through RPC and verify whether the destination rejects immediately or only later skips/rejects in builder/verifier paths.",
+      "adversarial_review": {
+        "required": false,
+        "status": "closed_confirmed_non_exact",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Definitive after current-edits check: core builder/verifier/shared-codec validation remains covered, but old immediate RPC preflight/user-feedback behavior is not restored."
+    },
+    {
+      "record_id": "file-0396-atom-0002",
+      "file_index": 396,
+      "atom_index": 2,
+      "atoms_total": 4,
+      "source_path": "crates/rpc/rpc/src/async_tx_validator.rs",
+      "source_hunk_hint": "@@ -0,0 +164,226 @@",
+      "source_kind": "executor_selection",
+      "source_snippet": "validate_executor_registration(state, executor, precompile_address) queries the TEE registry and checks required Capability for HTTP, LLM, sovereign/persistent agent, media, ZK, and FHE precompiles.",
+      "semantic_claim": "The old RPC preflight checks executor registration and maps each async precompile to an allowed TEE capability before pool admission completes.",
+      "high_risk": false,
+      "risk_tags": [
+        "rpc",
+        "executor-selection",
+        "precompile",
+        "non-fsm-rpc-ux"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "read_executor"
+          ],
+          "evidence": "Builder path reads executor registry and validates async capability."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "read_executor"
+          ],
+          "evidence": "Verifier path reads executor registry for async/SPC validation."
+        }
+      ],
+      "equivalence_argument": "Non-exact: executor/capability checks are present in live builder/verifier validation, but the old RPC-level pre-admission capability error path is absent.",
+      "test_strategy": "builder/verifier capability regression plus RPC preflight check",
+      "negative_test_candidate": "Use an executor registered with the wrong capability and compare destination RPC response timing with old immediate `ExecutorWrongCapability` behavior.",
+      "adversarial_review": {
+        "required": false,
+        "status": "closed_confirmed_non_exact",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Definitive after current-edits check: core builder/verifier/shared-codec validation remains covered, but old immediate RPC preflight/user-feedback behavior is not restored."
+    },
+    {
+      "record_id": "file-0396-atom-0003",
+      "file_index": 396,
+      "atom_index": 3,
+      "atoms_total": 4,
+      "source_path": "crates/rpc/rpc/src/async_tx_validator.rs",
+      "source_hunk_hint": "@@ -0,0 +241,360 @@",
+      "source_kind": "wallet_and_model_validation",
+      "source_snippet": "validate_llm_model_registration reads ModelRegistry; validate_wallet_for_async delegates to verify_wallet_for_commitment and translates insufficient balance, lock duration, and model errors into RPC-facing errors.",
+      "semantic_claim": "The old RPC preflight validates LLM model registration and wallet balance/lock duration using the same shared commitment verifier as the builder.",
+      "high_risk": false,
+      "risk_tags": [
+        "rpc",
+        "fees",
+        "negative-path",
+        "model-registry",
+        "non-fsm-rpc-ux"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "verify_wallet_for_commitment",
+            "read_model_from_db"
+          ],
+          "evidence": "Builder path uses shared fee/model validation."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "verify_wallet_for_commitment"
+          ],
+          "evidence": "Verifier path uses shared wallet validation."
+        }
+      ],
+      "equivalence_argument": "Non-exact: wallet/model validity remains enforced in live async execution/verification, but the old RPC-specific descriptive preflight errors are not exact-port preserved.",
+      "test_strategy": "wallet/model negative tests at RPC and builder/verifier boundaries",
+      "negative_test_candidate": "Submit an async LLM transaction with an unregistered model or insufficient wallet lock and verify whether RPC returns the old descriptive error before pool admission.",
+      "adversarial_review": {
+        "required": false,
+        "status": "closed_confirmed_non_exact",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Definitive after current-edits check: core builder/verifier/shared-codec validation remains covered, but old immediate RPC preflight/user-feedback behavior is not restored."
+    },
+    {
+      "record_id": "file-0396-atom-0004",
+      "file_index": 396,
+      "atom_index": 4,
+      "atoms_total": 4,
+      "source_path": "crates/rpc/rpc/src/async_tx_validator.rs",
+      "source_hunk_hint": "@@ -0,0 +361,550 @@",
+      "source_kind": "two_phase_deadline_and_tests",
+      "source_snippet": "validate_two_phase_deadline delegates offset-vs-TTL checks; tests cover valid HTTP request, ttl_zero, ttl_exceeded, zero_executor, empty_url, invalid_url_scheme, malformed_abi, and input_too_large.",
+      "semantic_claim": "The old RPC preflight rejects invalid two-phase deadline offsets and carries unit coverage for common async payload negative cases.",
+      "high_risk": false,
+      "risk_tags": [
+        "rpc",
+        "two-phase",
+        "tests",
+        "non-fsm-rpc-ux"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/validation.rs",
+          "symbols": [
+            "validate_two_phase_deadline",
+            "validate_async_payload"
+          ],
+          "evidence": "Shared codec validation includes payload/deadline validation and tests for the static negative cases."
+        }
+      ],
+      "equivalence_argument": "Non-exact: validation logic and static tests are preserved in the shared codec crate, but the old RPC-local test module and preflight deadline rejection surface are absent.",
+      "test_strategy": "shared validation unit tests plus RPC two-phase send negative test",
+      "negative_test_candidate": "Submit a long-running/two-phase precompile with deadline offset <= TTL and check whether destination RPC rejects immediately.",
+      "adversarial_review": {
+        "required": false,
+        "status": "closed_confirmed_non_exact",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Definitive after current-edits check: core builder/verifier/shared-codec validation remains covered, but old immediate RPC preflight/user-feedback behavior is not restored."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 4,
+  "adversarial_reviews": [],
+  "summary": "Confirmed non-exact RPC/API behavior: old RPC async preflight validation module remains absent. Core async validation is still enforced by shared codec, payload builder, and verifier paths, so this is not a final-chain FSM gap.",
+  "review_required": false,
+  "status": "confirmed_gap",
+  "notes": [
+    "Current working tree has no `crates/rpc/rpc/src/async_tx_validator.rs` implementation and no `simulate_for_rpc_validation` use in `crates/rpc/rpc/src`.",
+    "Static payload/deadline validation remains in `ritual-precompile-codecs`; executor/wallet/model validation remains in payload builder and block verification.",
+    "This is confirmed non-parity for immediate RPC user feedback/pre-admission validation, not for consensus/payload validation authority."
+  ]
+}

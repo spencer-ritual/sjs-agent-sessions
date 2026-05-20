@@ -1,0 +1,187 @@
+{
+  "record_type": "file",
+  "file_index": 422,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/scheduling/src/transaction.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "high-risk",
+    "non-exact",
+    "missing",
+    "needs-review",
+    "scheduled",
+    "transaction-synthesis"
+  ],
+  "atoms_total": 3,
+  "atoms": [
+    {
+      "record_id": "file-0422-atom-0001",
+      "file_index": 422,
+      "atom_index": 1,
+      "atoms_total": 3,
+      "source_path": "crates/scheduling/src/transaction.rs",
+      "source_hunk_hint": "@@ -0,0 +1,112 @@",
+      "source_kind": "transaction_synthesis",
+      "source_snippet": "create_scheduled_transaction(...) encodes Scheduler.execute(callId, executionIndex), targets Scheduler, uses origin_hash/call_id/index/start/frequency/ttl/caller, and signs with zero signature.",
+      "semantic_claim": "The old file creates protocol `TxScheduled` transactions for Scheduler execution.",
+      "high_risk": true,
+      "risk_tags": [
+        "scheduled",
+        "transaction-identity",
+        "payload"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+          "symbols": [
+            "create_scheduled_execution_transaction",
+            "create_scheduled_execution_transaction_from_state"
+          ],
+          "evidence": "Destination encodes `execute(uint256,uint256)`, targets `get_scheduler_address()`, fills scheduled runtime fields from `ScheduledCall` and `ScheduledObligation`, and returns a recovered scheduled system transaction."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "build_scheduled_origin_tx_hash",
+            "validate_scheduled_commitment_origin"
+          ],
+          "evidence": "Verifier reconstructs scheduled origin hashes from Scheduler state for async commitment validation."
+        }
+      ],
+      "equivalence_argument": "The transaction synthesis behavior is structurally preserved under the split block-building crate and verifier hash reconstruction, though the old API and singleton scheduler address lookup are gone.",
+      "test_strategy": "scheduled tx hash and calldata parity regression",
+      "negative_test_candidate": "Mutate call_id, execution_index, origin_hash, caller, start_block, frequency, or ttl and assert builder/verifier hash agreement fails as expected.",
+      "adversarial_review": {
+        "required": true,
+        "status": "queued",
+        "review_record_id": "review-file-0422-atom-0001"
+      },
+      "review_required": true,
+      "notes": "High-risk because transaction identity is consensus-critical."
+    },
+    {
+      "record_id": "file-0422-atom-0002",
+      "file_index": 422,
+      "atom_index": 2,
+      "atoms_total": 3,
+      "source_path": "crates/scheduling/src/transaction.rs",
+      "source_hunk_hint": "@@ -0,0 +113,157 @@",
+      "source_kind": "heartbeat_transaction",
+      "source_snippet": "create_heartbeat_system_transaction(calldata, caller, current_block) targets AgentHeartbeat as a type 0x10 system transaction.",
+      "semantic_claim": "The old file creates heartbeat system transactions that bypass Scheduler and target AgentHeartbeat.",
+      "high_risk": true,
+      "risk_tags": [
+        "heartbeat",
+        "scheduled",
+        "missing"
+      ],
+      "mapping_status": "partial",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+          "symbols": [
+            "filter_scheduled_transactions"
+          ],
+          "evidence": "Destination recognizes heartbeat-targeted scheduled transactions and lets them pass through filtering."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/lib.rs",
+          "symbols": [
+            "get_heartbeat_address",
+            "is_heartbeat_tx"
+          ],
+          "evidence": "Destination identifies heartbeat-targeted scheduled transactions and exposes heartbeat storage readers."
+        }
+      ],
+      "equivalence_argument": "Only recognition/allowance of heartbeat scheduled transactions was found; builder-side heartbeat transaction construction was not found, so synthesis is partial at best.",
+      "test_strategy": "heartbeat tx synthesis regression",
+      "negative_test_candidate": "Drive a heartbeat action requiring builder synthesis and assert no payload transaction is created if only filtering/recognition exists.",
+      "adversarial_review": {
+        "required": true,
+        "status": "queued",
+        "review_record_id": "review-file-0422-atom-0002"
+      },
+      "review_required": true,
+      "notes": "Paired with the missing heartbeat revival atom in file 415."
+    },
+    {
+      "record_id": "file-0422-atom-0003",
+      "file_index": 422,
+      "atom_index": 3,
+      "atoms_total": 3,
+      "source_path": "crates/scheduling/src/transaction.rs",
+      "source_hunk_hint": "transaction.rs tests: fee overflow rejection",
+      "source_kind": "negative_path",
+      "source_snippet": "test_create_scheduled_transaction_rejects_max_fee_per_gas_overflow; test_create_scheduled_transaction_rejects_max_priority_fee_overflow",
+      "semantic_claim": "The old helper rejects scheduled transaction creation when fee fields exceed `u128::MAX`.",
+      "high_risk": true,
+      "risk_tags": [
+        "scheduled",
+        "fees",
+        "negative-path",
+        "missing"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+          "symbols": [
+            "create_scheduled_execution_transaction"
+          ],
+          "evidence": "Destination passes `U256` fee fields from `ScheduledCall` into `TxScheduled::new_with_options` without the old explicit `u128::MAX` rejection."
+        }
+      ],
+      "equivalence_argument": "Not exact: the old explicit overflow rejection is absent. This may be acceptable if the current Alloy scheduled transaction model supports `U256` fee fields end-to-end, but the negative path is not preserved as written.",
+      "test_strategy": "scheduled fee boundary regression",
+      "negative_test_candidate": "Construct a Scheduler call with `max_fee_per_gas=U256::MAX` or `max_priority_fee_per_gas=U256::MAX` and assert the destination either rejects it deterministically before payload inclusion or proves the value is consensus-valid.",
+      "adversarial_review": {
+        "required": true,
+        "status": "queued",
+        "review_record_id": "review-file-0422-atom-0003"
+      },
+      "review_required": true,
+      "notes": "This weak-prior atom remains high-risk because fee representation changed."
+    }
+  ],
+  "high_risk_atoms_total": 3,
+  "non_exact_atoms_total": 3,
+  "adversarial_reviews": [
+    {
+      "review_record_id": "review-file-0422-atom-0001",
+      "atom_id": "file-0422-atom-0001",
+      "status": "queued",
+      "reason": "Scheduled transaction synthesis is structurally equivalent but non-exact."
+    },
+    {
+      "review_record_id": "review-file-0422-atom-0002",
+      "atom_id": "file-0422-atom-0002",
+      "status": "queued",
+      "reason": "Heartbeat system transaction synthesis is only partially mapped."
+    },
+    {
+      "review_record_id": "review-file-0422-atom-0003",
+      "atom_id": "file-0422-atom-0003",
+      "status": "queued",
+      "reason": "Old scheduled fee overflow rejection is missing in the observed destination helper."
+    }
+  ],
+  "summary": "Scheduler execution transaction synthesis is structurally preserved in `ritual-scheduled-block-building`, but heartbeat system transaction creation is only partially mapped and the old fee overflow rejection path is missing.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": [
+    "Queue entry verified as file 422: A\tcrates/scheduling/src/transaction.rs.",
+    "Source hunk begins at divergence diff line 83464."
+  ]
+}

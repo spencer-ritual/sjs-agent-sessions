@@ -1,0 +1,30 @@
+{
+  "record_type": "file",
+  "file_index": 482,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/storage/libmdbx-rs/mdbx-sys/build.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "Rustfmt-only control-flow punctuation or line-wrapping change; no semantic coverage atom required.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0482: M\tcrates/storage/libmdbx-rs/mdbx-sys/build.rs.",
+    "Diff lines 87741-87834 contain 38 added and 38 removed diff lines across 2 hunk(s).",
+    "Fresh audit classified the changes as formatting-only after inspecting the downstream diff; destination semantic mapping is not required."
+  ]
+}

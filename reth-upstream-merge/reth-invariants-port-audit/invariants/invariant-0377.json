@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/async_pool.rs"
+  ],
+  "invariant_id": "cur-45436e2824-long-running-phase-aware",
+  "invariant_index": 377,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/ritual-precompile-codecs/src/validation.rs"
+    ],
+    "checked_queries": [
+      "PHASE2_TTL_BUFFER_BLOCKS",
+      "TTL_BUFFER",
+      "max_poll_block + 100",
+      "phase2_deadline_offset",
+      "mark_awaiting_delivery max_poll_block"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "AsyncTxMetadata::awaiting_execution",
+      "phase2_deadline_offset",
+      "mark_awaiting_delivery",
+      "cleanup_expired_by_time",
+      "PHASE2_TTL_BUFFER_BLOCKS"
+    ],
+    "missing_behavior": "The pool extracts max_poll_block and uses settlement_block + max_poll_block as the Phase 2 deadline, but no 100-block buffer constant or addition is present.",
+    "related_but_insufficient_code": [
+      "AwaitingDelivery entries skip wall-clock expiry and DeliveryReady entries use delivery_ready_timestamp.",
+      "phase2_deadline_offset extracts the precompile-specific max_poll_block field.",
+      "mark_awaiting_delivery extends contract_expiry_block to settlement_block + max_poll_block only."
+    ]
+  },
+  "notes": "Confirmed gap: the wall-clock state behavior is present, but the block TTL buffer required by the invariant is absent.",
+  "rationale": "The async pool extracts max_poll_block from 0x0805 input, adds PHASE2_TTL_BUFFER_BLOCKS, skips time expiry for AwaitingDelivery, and starts time expiry from delivery_ready_timestamp for DeliveryReady. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "09942d53e1ecc9fcaa4f5861c7fbbfd60aa2e5c7"
+  ],
+  "statement": "Long-running async jobs in AwaitingDelivery must not expire by wall-clock txpool lifetime while the executor is polling, DeliveryReady jobs must use time-based expiry from delivery result submission, and Phase 2 block TTL must use max_poll_block plus a 100-block buffer.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Advance time beyond max_tx_lifetime for an AwaitingDelivery job and assert it is not time-expired; submit a delivery result and assert the DeliveryReady entry expires only after max_tx_lifetime from submission; advance block number beyond max_poll_block + 100 and assert block TTL expires it."
+  ],
+  "summary": "Long-running TTL handling is missing the 100-block Phase 2 buffer.",
+  "test_or_falsification_candidate": "Set max_poll_block to N, mark Phase 1 settled at block B, and assert current contract_expiry_block is B+N rather than the invariant-required B+N+100.",
+  "title": "Long-running TTL is Phase-aware",
+  "total_invariants": 1954
+}

@@ -1,0 +1,67 @@
+{
+  "cluster_key": "scheduler:payload-building:part-02",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-heartbeat-tracker/src/lib.rs",
+    "crates/ritual-scheduled-verification/src/lib.rs",
+    "crates/scheduling/src/canonical.rs"
+  ],
+  "invariant_id": "cur-0e3374965f-heartbeat-revival-uses-hydrated-state-respects-build-deadline",
+  "invariant_index": 84,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-heartbeat-tracker/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs"
+    ],
+    "checked_queries": [
+      "HeartbeatTracker|sync_from_storage|get_expired_agents|checkAndRevive|global_deadline|synthesize_heartbeat_revival_transactions"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "HeartbeatTracker::sync_from_storage",
+      "HeartbeatTracker::get_expired_agents",
+      "synthesize_heartbeat_revival_transactions",
+      "global_deadline"
+    ],
+    "missing_behavior": "Missing end-to-end heartbeat revival/deadline invariant: payload building does not hydrate/use HeartbeatTracker state, does not run a direct checkAndRevive phase, and does not gate remaining build phases immediately after that system transaction.",
+    "related_but_insufficient_code": [
+      "HeartbeatTracker can hydrate from storage, and payload building can synthesize heartbeat revival transactions from parent storage.",
+      "Those revival transactions are enqueued as scheduled candidates, not executed as a direct pre-phase with a post-checkAndRevive deadline boundary."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The heartbeat candidates together define when the builder may rely on tracker state, when it must execute the heartbeat system transaction, and how the global deadline gates subsequent work.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "64b67813746b81c92f10283f93c4899b92c604c3",
+    "0579c20011c1ffddd0f8ef1fe6d9f2265fa1dde0",
+    "5d0f30edbed7d1ceb780cb1cd4b42a45e9636666"
+  ],
+  "statement": "Before payload building or canonical scheduling uses HeartbeatTracker state, an unsynced tracker must hydrate from AgentHeartbeat contract storage; during payload building, configured heartbeat state with expired agents, or unsynced state with registered agents in storage, must trigger a direct checkAndRevive system transaction, and if the global deadline is exceeded after that transaction the remaining build phases must be skipped for the attempt.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Unsynced tracker plus registered heartbeat storage should hydrate before payload use.",
+    "Expired tracker state should trigger a direct checkAndRevive system transaction.",
+    "Force deadline expiry after revival and assert later build phases are skipped."
+  ],
+  "summary": "Heartbeat revival exists only as synthesized scheduled candidates; hydrated tracker and deadline-bound direct revival are absent.",
+  "test_or_falsification_candidate": "Payload build with unsynced/expired heartbeat state; current port lacks tracker hydration and direct post-revival deadline gating.",
+  "title": "Heartbeat revival uses hydrated state and respects build deadline",
+  "total_invariants": 1954
+}

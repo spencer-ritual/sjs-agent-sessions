@@ -1,0 +1,163 @@
+{
+  "record_type": "file",
+  "file_index": 337,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-sequencing-rights/src/classifier.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "intentionally_absent",
+  "tags": [
+    "high-risk",
+    "intentionally_absent",
+    "needs-review",
+    "non-exact"
+  ],
+  "atoms_total": 3,
+  "atoms": [
+    {
+      "record_id": "file-0337-atom-0001",
+      "file_index": 337,
+      "atom_index": 1,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-sequencing-rights/src/classifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,763 @@",
+      "source_kind": "other",
+      "source_snippet": "//! Transaction classifier for determining contract interactions via EVM simulation.\n//!\n//! # Overview\n//!\n//! This module classifies transactions by their contract interactions to determine\n//! which sequencing rights bucket they belong to.",
+      "semantic_claim": "The downstream diff for crates/ritual-sequencing-rights/src/classifier.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "intentionally_absent",
+      "destinations": [],
+      "equivalence_argument": null,
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Sequencing-rights classification/reordering is not active in the current v2.2 slice. Payload building keeps upstream tip ordering plus scheduled/async obligation handling, so old sequencing-rights crate/API atoms are intentionally absent.",
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope."
+    },
+    {
+      "record_id": "file-0337-atom-0002",
+      "file_index": 337,
+      "atom_index": 2,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-sequencing-rights/src/classifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,763 @@",
+      "source_kind": "state_transition",
+      "source_snippet": "mod tests {\n    use super::*;\n\n    #[test]\n    fn test_inspector_single_contract() {\n        let mut inspector = ContractCallInspector::new();\n        let contract = Address::repeat_byte(0x42);\n        let selector = FixedBytes::from_slice(&[0x11, 0x22, 0x33, 0x44]);\n\n        inspector.contract_calls.entry(contract).or_default().insert(selector);\n        inspector.call_order.push((contract, selector));\n\n        let (count, interaction) = inspector.classify();\n        assert_eq!(count, 1);\n        assert!(interaction.is_some());\n\n        let interaction = interaction.unwrap();\n        assert_eq!(interaction.contract, contract);\n        assert!(interaction.selectors.contains(&selector));\n    }\n---\n        assert!(interaction.selectors.contains(&selector));\n    }\n\n    #[test]\n    fn test_inspector_multi_contract() {\n        let mut inspector = ContractCallInspector::new();\n        let contract1 = Address::repeat_byte(0x42);\n        let contract2 = Address::repeat_byte(0x43);\n        let selector = FixedBytes::from_slice(&[0x11, 0x22, 0x33, 0x44]);\n\n        inspector.contract_calls.entry(contract1).or_default().insert(selector);\n        inspector.contract_calls.entry(contract2).or_default().insert(selector);\n\n        let (count, interaction) = inspector.classify();\n        assert_eq!(count, 2);\n        assert!(interaction.is_none());\n    }\n\n    #[test]\n    fn test_inspector_into_classif\n---\n        assert!(interaction.is_none());\n    }\n\n    #[test]\n    fn test_inspector_into_classification() {\n        // Empty inspector -> SimpleTransfer\n        let inspector = ContractCallInspector::new();\n        assert!(matches!(inspector.into_classification(), Classification::SimpleTransfer));\n\n        // Single contract -> SingleContract\n        let mut inspector = ContractCallInspector::new();\n        let contract = Address::repeat_byte(0x42);\n        let selector = FixedBytes::from_slice(&[0x11, 0x22, 0x33, 0x44]);\n        inspector.contract_calls.entry(contract).or_default().insert(selector);\n        assert!(matches!(inspector.into_classification(), Classification::SingleContract(_)));\n",
+      "semantic_claim": "inspector preserves sequencing-rights classification, priority, bucket, or ordering behavior covered by downstream tests: test_inspector_single_contract, test_inspector_multi_contract, test_inspector_into_classification, test_selectors_for_contract.",
+      "high_risk": true,
+      "risk_tags": [
+        "executor-selection",
+        "negative-path"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [],
+      "equivalence_argument": null,
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_inspector_single_contract, test_inspector_multi_contract, test_inspector_into_classification, test_selectors_for_contract, test_inspector_reset, test_exactly_4_byte_selector, test_input_boundary_cases, test_multiple_selectors_same_contract, ...",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Sequencing-rights classification/reordering is not active in the current v2.2 slice. Payload building keeps upstream tip ordering plus scheduled/async obligation handling, so old sequencing-rights crate/API atoms are intentionally absent.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_inspector_single_contract",
+        "test_inspector_multi_contract",
+        "test_inspector_into_classification",
+        "test_selectors_for_contract",
+        "test_inspector_reset",
+        "test_exactly_4_byte_selector",
+        "test_input_boundary_cases",
+        "test_multiple_selectors_same_contract",
+        "test_duplicate_selector_calls",
+        "test_many_contracts_multi_contract_classification",
+        "test_get_contracts",
+        "test_call_depth_tracking",
+        "test_empty_inspector_get_contracts",
+        "prop_classify_deterministic",
+        "prop_empty_is_simple_transfer",
+        "prop_single_contract_classification",
+        "prop_multi_contract_classification",
+        "prop_reset_clears_state",
+        "prop_selectors_for_contract"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0337-atom-0001",
+        "test-file-0337-atom-0002",
+        "test-file-0337-atom-0003",
+        "test-file-0337-atom-0004",
+        "test-file-0337-atom-0005",
+        "test-file-0337-atom-0006",
+        "test-file-0337-atom-0007",
+        "test-file-0337-atom-0008",
+        "test-file-0337-atom-0009",
+        "test-file-0337-atom-0010",
+        "test-file-0337-atom-0011",
+        "test-file-0337-atom-0012",
+        "test-file-0337-atom-0013",
+        "test-file-0337-atom-0017",
+        "test-file-0337-atom-0019",
+        "test-file-0337-atom-0020",
+        "test-file-0337-atom-0021",
+        "test-file-0337-atom-0022",
+        "test-file-0337-atom-0023"
+      ],
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope."
+    },
+    {
+      "record_id": "file-0337-atom-0003",
+      "file_index": 337,
+      "atom_index": 3,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-sequencing-rights/src/classifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,763 @@",
+      "source_kind": "test_fixture",
+      "source_snippet": "    }\n\n    /// Test Classification enum variants\n    #[test]\n    fn test_classification_enum_coverage() {\n        // SimpleTransfer\n        let simple = Classification::SimpleTransfer;\n        assert!(matches!(simple, Classification::SimpleTransfer));\n\n        // SingleContract\n        let contract = Address::repeat_byte(0x42);\n        let mut selectors = SelectorSet::new();\n        selectors.insert(FixedBytes::from_slice(&[0x11, 0x22, 0x33, 0x44]));\n        let single =\n            Classification::SingleContract(ContractInteraction::new(contract, selectors.clone()));\n        assert!(matches!(single, Classification::SingleContract(_)));\n\n        // MultiContract\n        let multi = Classific",
+      "semantic_claim": "selector preserves sequencing-rights classification, priority, bucket, or ordering behavior covered by downstream tests: test_classification_enum_coverage.",
+      "high_risk": true,
+      "risk_tags": [
+        "executor-selection",
+        "negative-path"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [],
+      "equivalence_argument": null,
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_classification_enum_coverage.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Sequencing-rights classification/reordering is not active in the current v2.2 slice. Payload building keeps upstream tip ordering plus scheduled/async obligation handling, so old sequencing-rights crate/API atoms are intentionally absent.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_classification_enum_coverage"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0337-atom-0014"
+      ],
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope."
+    }
+  ],
+  "high_risk_atoms_total": 2,
+  "non_exact_atoms_total": 3,
+  "adversarial_reviews": [],
+  "summary": "Atoms in this file are intentionally absent or mapped to active v2.2 behavior where applicable.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "No same-path or uniquely named destination evidence was found in the configured search scope. Curated test-atom insertion appended 2 grouped behavior atom(s) from coverage-map/test-atom-audit; raw helper/no-assert/default-only cases were not canonicalized."
+}

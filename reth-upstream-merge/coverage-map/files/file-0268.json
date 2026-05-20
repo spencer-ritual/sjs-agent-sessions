@@ -1,0 +1,52 @@
+{
+  "record_type": "file",
+  "file_index": 268,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/ress/protocol/src/provider.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "non-exact"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0268-atom-0001",
+      "file_index": 268,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ress/protocol/src/provider.rs",
+      "source_hunk_hint": "@@ -24,3 +24,3 @@ pub trait RessProtocolProvider: Send + Sync {",
+      "source_kind": "other",
+      "source_snippet": "            if headers.len() >= request.limit as usize\n                || headers.len() >= MAX_HEADERS_SERVE\n                || total_bytes > SOFT_RESPONSE_LIMIT\n                break;\n                    break;\n                break;",
+      "semantic_claim": "The downstream diff for crates/ress/protocol/src/provider.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "noise",
+      "destinations": [],
+      "equivalence_argument": null,
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Legacy RESS protocol file-level atom only captures generic response-limit/break structure and has no live v2.2 runtime surface in the current port."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "No same-path or uniquely named destination evidence was found in the configured search scope."
+}

@@ -1,0 +1,33 @@
+{
+  "record_type": "file",
+  "file_index": 138,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/net/downloaders/src/receipt_file_client.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "semicolon_only",
+    "net",
+    "downloaders"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The receipt file-client divergence is semicolon-only rustfmt noise in decode loop control and test decoder empty-buffer handling; no receipt file client behavior changed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 138: M\tcrates/net/downloaders/src/receipt_file_client.rs.",
+    "The isolated patch only adds semicolons to `break`, `continue`, and `return Ok(None)` expressions.",
+    "No partial decode handling, lower-block receipt skipping, receipt counting, or test decoder behavior changed."
+  ]
+}

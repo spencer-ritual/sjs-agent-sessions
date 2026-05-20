@@ -1,0 +1,69 @@
+{
+  "cluster_key": "executor delivery:delivery-uses-field-cd3309d2",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "Only partial support was found: FHE field-10 deadline extraction and a raw field-11 delivery config decoder exist, but the reachable builder/verifier delivery path rejects FHE as unsupported before delivery settlement creation or verification.",
+  "evidence_files": [
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/transaction-pool/src/pool/async_pool.rs",
+    "crates/ritual-precompile-codecs/src/long_running.rs",
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-71b2e7f108-delivery-uses-field-deadline-delivery-config",
+  "invariant_index": 203,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ritual-precompile-codecs/src/validation.rs"
+    ],
+    "checked_queries": [
+      "FHE_PRECOMPILE|phase2_deadline_offset|decode_delivery_config_at\\(input, 11\\)|ensure_supported_two_phase_metadata",
+      "DeliveryConfig::from_fhe_abi|from_fhe_abi|supported_two_phase_helper_rejects_unported_fee_families"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "phase2_deadline_offset",
+      "decode_delivery_config",
+      "FHE_PRECOMPILE",
+      "is_supported_two_phase_precompile",
+      "ensure_supported_two_phase_metadata"
+    ],
+    "missing_behavior": "Missing reachable FHE Phase 2 delivery settlement support that uses field-10 deadline and field-11-through-16 callback config in both builder and verifier.",
+    "related_but_insufficient_code": [
+      "crates/transaction-pool/src/pool/async_pool.rs reads FHE max_poll_block from field index 10.",
+      "crates/ethereum/payload/src/ritual_async.rs contains FHE_PRECOMPILE => decode_delivery_config_at(input, 11), but prepare_delivery_settlement_transaction calls ensure_supported_two_phase_metadata first.",
+      "is_supported_two_phase_precompile allows long-running HTTP, ZK, sovereign-agent, and persistent-agent only; FHE is excluded.",
+      "crates/ritual-block-verification/src/lib.rs has the same supported-two-phase guard and tests rejecting IMAGE/AUDIO/VIDEO/FHE families.",
+      "No audited repo contains DeliveryConfig::from_fhe_abi; that name appears only in the non-audited legacy checkout."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The diff documents that FHE has dynamic fields where field 6 is an ABI tail pointer, adds tests proving FHE reads field 10 while non-FHE still reads field 6, and adds an FHE-specific DeliveryConfig decoder used by payload building and wallet verification. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "7b3a20cc665d054a7b03f06da1cadfbfd11ca492"
+  ],
+  "statement": "For FHE precompile input, Phase 2 deadline extraction must read max_inference_block from field 10 at byte offset 320 with a 352-byte minimum, not field 6 at byte offset 192, and delivery callback config must be decoded from the FHE ABI fields 11 through 16.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Encode an FHE request with field 6 set to 9999 and field 10 set to 5000 and assert verifier and async pool deadline extraction return 5000; encode a non-FHE request with field 6 set and field 10 different and assert it returns field 6; assert FHE delivery config decodes target, selector, gas limit, fee caps, and value from fields 11-16."
+  ],
+  "summary": "FHE delivery ABI handling is not fully reachable in the audited port.",
+  "test_or_falsification_candidate": "Submit an FHE two-phase job with field 10 and fields 11-16 populated; current local builder/verifier should reject FHE as unsupported before creating/verifying a delivery settlement.",
+  "title": "FHE delivery ABI uses field 10 deadline and FHE delivery config",
+  "total_invariants": 1954
+}

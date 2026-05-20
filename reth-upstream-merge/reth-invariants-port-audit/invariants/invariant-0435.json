@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "970542d1b36413978b3179faeb582ddec3dfc136",
+      "evidence": "Prepared fulfilled-async settlement data stores settlement_calldata_gas computed from settlement_tx.input(), not the u64::MAX EVM gas limit.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let settlement_calldata_gas = calculate_calldata_gas(settlement_tx.input())\n    .map_err(|err| format!(\"settlement calldata gas calculation failed: {err}\"))?;\n...\nOk(PreparedAsyncSettlement {\n    original_rlp_len: original_tx.inner().length(),\n    settlement_rlp_len: settlement_tx.inner().length(),\n    original_tx,\n    settlement_tx,\n    original_miner_fee,\n    settlement_calldata_gas,\n})",
+      "symbols": [
+        "prepare_async_settlement_transaction",
+        "calculate_calldata_gas",
+        "execute_async_settlement"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "970542d1b36413978b3179faeb582ddec3dfc136",
+      "evidence": "Payload gas-fit accounting subtracts prepared.settlement_calldata_gas, and system settlement execution contributes calldata gas to block gas accounting.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let regular_available_gas = block_gas_limit\n    .saturating_sub(block_regular_gas_used)\n    .saturating_sub(prepared.settlement_calldata_gas);\n...\nlet calldata_gas = match calculate_calldata_gas(settlement_tx.input()) {\n    Ok(gas) => gas,\n    Err(err) => return Err(BlockExecutionError::msg(format!(\"Gas calculation overflow: {err}\"))),\n};\n...\nbuilder.execute_system_transaction_with_gas(settlement_tx, |_| calldata_gas)?;",
+      "symbols": [
+        "PayloadCandidate::FulfilledAsync",
+        "prepared.settlement_calldata_gas"
+      ]
+    }
+  ],
+  "equivalence_argument": "The v2 port no longer exposes the old PreparedBundle::estimated_gas name, but the same consensus accounting is implemented by carrying settlement_calldata_gas from calculate_calldata_gas(settlement_tx.input()) into payload gas-fit checks and system transaction gas contribution.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/unified_execution.rs"
+  ],
+  "invariant_id": "cur-6a00e0e825-settlement-estimates-calldata",
+  "invariant_index": 435,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The unlimited settlement EVM gas limit is not used for block gas fit; calldata gas is the block accounting contribution.",
+  "rationale": "The primary diff replaces settlement_tx.gas_limit() in estimated_gas with ritual_async_fees::calculate_calldata_gas for FulfilledAsyncPair and DeliverySettlement variants, matching the commit body's explanation that settlement gas_limit is u64::MAX and was causing all fulfilled async transactions to fail the pre-execution gas limit check. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "623bc83103e5c41493a487ddc391bce7b5a6da8e"
+  ],
+  "statement": "PreparedBundle::estimated_gas must use calculate_calldata_gas(settlement_tx.input()) for async settlement and delivery settlement system transactions, rather than settlement_tx.gas_limit(), because those transactions use u64::MAX as an unlimited EVM execution gas limit but only calldata gas contributes to block gas accounting.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create a FulfilledAsyncPair and a DeliverySettlement whose settlement_tx.gas_limit() is u64::MAX and whose input has known calldata gas; assert PreparedBundle::estimated_gas returns effective_gas plus calldata gas for the pair and calldata gas for the delivery settlement, and remains below a normal block gas limit."
+  ],
+  "summary": "Settlement gas accounting uses settlement calldata gas.",
+  "test_or_falsification_candidate": "Create a FulfilledAsyncPair and a DeliverySettlement whose settlement_tx.gas_limit() is u64::MAX and whose input has known calldata gas; assert PreparedBundle::estimated_gas returns effective_gas plus calldata gas for the pair and calldata gas for the delivery settlement, and remains below a normal block gas limit.",
+  "title": "Settlement estimates use calldata gas",
+  "total_invariants": 1954
+}

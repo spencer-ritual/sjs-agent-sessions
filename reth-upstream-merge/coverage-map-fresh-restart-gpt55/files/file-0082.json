@@ -1,0 +1,89 @@
+{
+  "record_type": "file",
+  "file_index": 82,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/ethereum/node/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "spc",
+    "verifier",
+    "module-export",
+    "reth-port",
+    "reviewed"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0082-atom-0001",
+      "file_index": 82,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ethereum/node/src/lib.rs",
+      "source_hunk_hint": "@@ around pub mod payload; / pub use spc::SpcVerifierImpl;",
+      "source_kind": "module_export",
+      "source_snippet": "pub mod spc; pub use spc::SpcVerifierImpl;",
+      "semantic_claim": "The reth-node-ethereum crate publicly declares the SPC bridge module and re-exports SpcVerifierImpl so downstream nodebuilder code can wrap the concrete SPC verifier as the reth_evm::spc::SpcVerifier trait object used during block execution.",
+      "high_risk": true,
+      "risk_tags": [
+        "spc-verification",
+        "module-export",
+        "compile-blocker",
+        "consensus-critical-integration"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/lib.rs",
+          "symbols": [
+            "pub mod spc",
+            "SpcVerifierImpl"
+          ],
+          "snippet": "pub mod spc; pub use spc::SpcVerifierImpl;",
+          "evidence": "The Ethereum node crate now declares the SPC bridge module and re-exports SpcVerifierImpl."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/spc.rs",
+          "symbols": [
+            "SpcVerifierImpl"
+          ],
+          "snippet": "pub struct SpcVerifierImpl<N> where N: FullNodeTypes { inner: Arc<ConcreteSpcVerifier<N::Provider>>, _phantom: PhantomData<N> }",
+          "evidence": "The backing bridge file now exists and stores the provider-backed concrete verifier."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Compile ritual-reth-nodebuilder-internal against the v2.2 port and expect unresolved reth_node_ethereum::SpcVerifierImpl unless the public export and backing bridge exist.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Resolved by 7f8a668d24: pub mod spc and pub use spc::SpcVerifierImpl now exist with the backing bridge module."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [
+    {
+      "review_record_id": "review-files-0077-0089-mechanical",
+      "required": false,
+      "status": "completed",
+      "reason": "Mechanical review completed; remaining non-exact atoms are now confirmed covered, confirmed missing, intentionally absent, or support/test/telemetry only."
+    }
+  ],
+  "summary": "Mechanical re-review complete after 7f8a668d24. The public SPC module and SpcVerifierImpl re-export are now present in reth-node-ethereum.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "The prior compile/integration blocker for nodebuilder's reth_node_ethereum::SpcVerifierImpl import is closed."
+}

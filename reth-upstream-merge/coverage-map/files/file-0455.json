@@ -1,0 +1,86 @@
+{
+  "record_type": "file",
+  "file_index": 455,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/storage/codecs/derive/src/compact/mod.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "covered_by_upstream",
+  "tags": [
+    "covered_by_upstream",
+    "high-risk",
+    "non-exact"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0455-atom-0001",
+      "file_index": 455,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/storage/codecs/derive/src/compact/mod.rs",
+      "source_hunk_hint": "@@ -151,4 +151,5 @@ fn load_field_from_segments(",
+      "source_kind": "other",
+      "source_snippet": "            let should_compact = is_flag_type(&ftype)\n                || field\n                    .attrs\n                    .iter()\n                    .any(|attr| attr.path().segments.iter().any(|path| path.ident == \"maybe_zero\"));\n                        return true;",
+      "semantic_claim": "The downstream diff for crates/storage/codecs/derive/src/compact/mod.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": true,
+      "risk_tags": [
+        "encoding"
+      ],
+      "mapping_status": "covered_by_upstream",
+      "destinations": [
+        {
+          "repo": "/home/ritual/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/reth-codecs-derive-0.3.1",
+          "path": "src/compact/mod.rs",
+          "symbols": [
+            "load_field_from_segments"
+          ],
+          "snippet": "let should_compact = is_flag_type(&ftype) ||\n    field.attrs.iter().any(|attr| {\n        attr.path().segments.iter().any(|path| path.ident == \"maybe_zero\")\n    });",
+          "evidence": "The registry `reth-codecs-derive 0.3.1` used by the v2 port already contains the downstream `maybe_zero` compact-field handling."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "Cargo.toml",
+          "symbols": [
+            "reth-codecs-derive"
+          ],
+          "snippet": "reth-codecs = { path = \"crates/storage/codecs\", default-features = false }\nreth-codecs-derive = \"0.3.1\"",
+          "evidence": "The v2 port consumes upstream `reth-codecs-derive 0.3.1` rather than carrying a local derive crate copy."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/src/alloy/mod.rs",
+          "symbols": [
+            "validate_bitflag_backwards_compat"
+          ],
+          "snippet": "validate_bitflag_backwards_compat!(TxEip1559, UnusedBits::NotZero);\nvalidate_bitflag_backwards_compat!(TxEip4844, UnusedBits::NotZero);\nvalidate_bitflag_backwards_compat!(TxEip7702, UnusedBits::NotZero);",
+          "evidence": "The active v2 storage codec adapters keep explicit bitflag compatibility tests for transaction DB encoding."
+        }
+      ],
+      "equivalence_argument": "The old downstream local derive crate taught `Compact` derive to treat `#[maybe_zero]` fields like compact/flag fields. The v2 port no longer carries that derive source locally, but it depends on `reth-codecs-derive 0.3.1`, whose installed source contains the same `maybe_zero` detection. Active transaction storage compatibility is additionally guarded by local adapter structs and bitflag compatibility tests in `reth-codecs`.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Derive `Compact` for a fixture with `#[maybe_zero] maybe: B256`, encode a zero value and a nonzero value, and assert the generated compact flags distinguish absence from encoded bytes without shifting downstream transaction bitflags.",
+      "adversarial_review": {
+        "required": true,
+        "status": "pass",
+        "review_record_id": "review-file-0455-atom-0001"
+      },
+      "review_required": true,
+      "notes": "Reclassified after confirming the consumed upstream derive crate already includes `maybe_zero` handling and local transaction codec bitflag tests remain in place.",
+      "required_change": null
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [
+    "coverage-map/reviews/review-file-0455-atom-0001.json"
+  ],
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "Reclassified from missing based on upstream derive source and local codec compatibility evidence."
+}

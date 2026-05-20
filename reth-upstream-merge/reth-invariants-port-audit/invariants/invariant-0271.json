@@ -1,0 +1,90 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Malformed precompile input turns the builder conversion into Err before any commitment transaction is created.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "validate_async_payload(async_call.precompile_address, input, MAX_SHORT_ASYNC_TTL_BLOCKS).map_err(|err| format!(\"invalid async commitment payload: {err}\"))?;\ntry_decode_precompile_data(async_call.precompile_address, input).map_err(|err| format!(\"malformed async commitment input: {err}\"))",
+      "symbols": [
+        "validate_async_commitment_call",
+        "build_short_async_commitment_transaction"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "When conversion fails, the payload builder skips the invalid short async transaction rather than creating async system state.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "Err(reason) => { warn!(target: \"ritual::async::payload_builder\", ?tx_hash, async_call_count, reason, \"skipping invalid short async transaction\"); }",
+      "symbols": [
+        "build_payload",
+        "build_short_async_commitment_transaction"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "RPC admission also rejects malformed detected async payloads before pool insertion.",
+      "path": "crates/rpc/rpc/src/async_tx_validator.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "validate_async_payload(...).map_err(|err| format!(\"payload validation failed for {}: {err}\", metadata.address))?;\nlet decoded = try_decode_precompile_data(...).map_err(|err| format!(\"failed to decode precompile input: {err}\"))?;",
+      "symbols": [
+        "validate_detected_async_call"
+      ]
+    }
+  ],
+  "equivalence_argument": "The current inspector may observe the raw precompile call, but malformed base request decoding prevents it from becoming an async commitment or valid pool admission, preserving the fail-closed behavior.",
+  "evidence_files": [
+    "crates/ritual-async/src/detector.rs"
+  ],
+  "invariant_id": "cur-24f30f35b7-malformed-executor-request-async",
+  "invariant_index": 271,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/rpc/rpc/src/async_tx_validator.rs"
+    ],
+    "checked_queries": [
+      "malformed async commitment input",
+      "detector returns None",
+      "invalid async payload"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "validate_async_commitment_call",
+      "validate_detected_async_call",
+      "skipping invalid short async transaction"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in port through validation-before-commitment semantics.",
+  "rationale": "The detection path now logs failure to extract precompile data and returns None when ExecutorRequest decoding fails. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "c9600cd244439ccdadff8c3643edc5cd88885d1a"
+  ],
+  "statement": "If decoding the base ExecutorRequest fields fails, async detection must return None and the transaction must not be considered an async precompile call.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Provide malformed precompile input that reaches the async inspector but cannot decode as ExecutorRequest and assert detect_async_transaction returns None and no TxAsyncExec is created."
+  ],
+  "summary": "Malformed executor request input cannot create async commitment state.",
+  "test_or_falsification_candidate": "Pass malformed HTTP precompile input through RPC admission and payload building and assert admission rejects or the builder skips without creating a TxAsyncCommitment.",
+  "title": "Malformed executor request is not async",
+  "total_invariants": 1954
+}

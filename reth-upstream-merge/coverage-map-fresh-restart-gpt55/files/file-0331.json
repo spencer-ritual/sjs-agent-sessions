@@ -1,0 +1,112 @@
+{
+  "record_type": "file",
+  "file_index": 331,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-scheduled-verification/src/error.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "scheduled-verification",
+    "errors"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0331-atom-0001",
+      "file_index": 331,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/ritual-scheduled-verification/src/error.rs",
+      "source_hunk_hint": "@@ -0,0 +1,20 @@; SchedulerError database/storage/call-not-found errors",
+      "source_kind": "scheduler_storage_error_surface",
+      "source_snippet": "pub enum SchedulerError {\n    DatabaseError(String),\n    InvalidStorageData { slot: U256, reason: String },\n    CallNotFound { call_id: u64 },\n}",
+      "semantic_claim": "The old divergence adds the `SchedulerError` type for database read failures, invalid raw storage data, and missing Scheduler calls.",
+      "high_risk": false,
+      "risk_tags": [
+        "errors",
+        "scheduler-storage",
+        "database"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/error.rs",
+          "symbols": [
+            "SchedulerError"
+          ],
+          "evidence": "Destination lines 1-20 exactly match source-added diff lines 62146-62165."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps state-reading error variants and display messages unchanged.",
+      "test_strategy": "scheduler_error_variant_tests",
+      "negative_test_candidate": "A missing scheduled call should surface `SchedulerError::CallNotFound` with the requested call id.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0331-atom-0002",
+      "file_index": 331,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/ritual-scheduled-verification/src/error.rs",
+      "source_hunk_hint": "@@ -0,0 +22,158 @@; ScheduledConstraintViolation C1-C11 variants and Display",
+      "source_kind": "scheduled_constraint_violation_surface",
+      "source_snippet": "pub enum ScheduledConstraintViolation { CallNotFound { .. }, InvalidCallState { .. }, IndexOutOfBounds { .. }, ExecutionTooEarly { .. }, ExecutionTooLate { .. }, CallExpired { .. }, InvalidSignature { .. }, InvalidTarget { .. }, InsufficientFunds { .. }, AlreadyExecuted { .. }, DuplicateInBlock { .. }, PredicateFailed { .. }, PredicateReverted { .. } }\n\nimpl std::fmt::Display for ScheduledConstraintViolation { ... }",
+      "semantic_claim": "The old divergence adds the consensus-facing scheduled transaction violation enum and display messages for C1-C11 failures, including replay/duplicate and predicate failure/revert variants.",
+      "high_risk": false,
+      "risk_tags": [
+        "scheduled-constraints",
+        "c1-c11",
+        "display",
+        "consensus-errors"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/error.rs",
+          "symbols": [
+            "ScheduledConstraintViolation",
+            "Display for ScheduledConstraintViolation"
+          ],
+          "evidence": "Destination lines 22-158 exactly match source-added diff lines 62167-62303."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the violation taxonomy and user/log-facing formatting for scheduled verification failures.",
+      "test_strategy": "scheduled_constraint_violation_display_tests",
+      "negative_test_candidate": "A duplicate scheduled transaction in the same block should be representable as `DuplicateInBlock` rather than conflated with cross-block execution.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The scheduled-verification error surface is exact-port preserved, including storage read errors and C1-C11 scheduled constraint violation variants/display messages.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 331: A\tcrates/ritual-scheduled-verification/src/error.rs.",
+    "Source-added hunk spans diff lines 62146-62303 with header `@@ -0,0 +1,158 @@`.",
+    "Destination `crates/ritual-scheduled-verification/src/error.rs` has 158 lines and matches the source-added file exactly.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

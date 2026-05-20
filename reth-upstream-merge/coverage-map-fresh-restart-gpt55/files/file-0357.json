@@ -1,0 +1,272 @@
+{
+  "record_type": "file",
+  "file_index": 357,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-tee-registry-reader/src/reader.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "structural-equivalent",
+    "tee-registry-reader",
+    "storage-reader"
+  ],
+  "atoms_total": 6,
+  "atoms": [
+    {
+      "record_id": "file-0357-atom-0001",
+      "file_index": 357,
+      "atom_index": 1,
+      "atoms_total": 6,
+      "source_path": "crates/ritual-tee-registry-reader/src/reader.rs",
+      "source_hunk_hint": "@@ -0,0 +1,69 @@; imports and public key read entrypoints",
+      "source_kind": "tee_registry_public_key_reader",
+      "source_snippet": "pub fn read_executor_public_keys<DB: Database>(db: &mut DB, contract: Address, tee_addresses: &[Address]) -> Result<HashMap<Address, Vec<u8>>, RegistryReadError> { ... }\npub fn read_executor_public_keys_from_state<SP: StateProvider>(state: &SP, contract: Address, tee_addresses: &[Address]) -> Result<HashMap<Address, Vec<u8>>, RegistryReadError> { ... }",
+      "semantic_claim": "The old divergence adds deduplicated executor public-key reads for block verification and a `StateProvider` bridge wrapper.",
+      "high_risk": false,
+      "risk_tags": [
+        "public-key-read",
+        "deduplication",
+        "state-provider-bridge"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-tee-registry-reader/src/reader.rs",
+          "symbols": [
+            "read_executor_public_keys",
+            "read_executor_public_keys_from_state"
+          ],
+          "evidence": "Destination lines 1-69 preserve the source behavior, with the import list also bringing `SLOT_SERVICE_RECORDS` into scope for later tests."
+        }
+      ],
+      "equivalence_argument": "The destination preserves the public-key read semantics; the non-exactness is an import-scope fix for test code.",
+      "test_strategy": "test_read_public_keys_empty_addresses",
+      "negative_test_candidate": "Duplicate TEE addresses should trigger one public-key read result per unique address.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Non-exact only for import scope normalization."
+    },
+    {
+      "record_id": "file-0357-atom-0002",
+      "file_index": 357,
+      "atom_index": 2,
+      "atoms_total": 6,
+      "source_path": "crates/ritual-tee-registry-reader/src/reader.rs",
+      "source_hunk_hint": "@@ -0,0 +71,183 @@; single executor reader",
+      "source_kind": "tee_registry_single_executor_reader",
+      "source_snippet": "pub fn read_executor<DB: Database>(db: &mut DB, contract: Address, tee_address: Address) -> Result<Option<ExecutorInfo>, RegistryReadError> { ... }\npub fn read_executor_from_state<SP: StateProvider>(state: &SP, contract: Address, tee_address: Address) -> Result<Option<ExecutorInfo>, RegistryReadError> { ... }",
+      "semantic_claim": "The old divergence adds single-executor reads by TEE address, decoding payment address, packed TEE address/type, public key, capability, workload id, and a StateProvider wrapper.",
+      "high_risk": false,
+      "risk_tags": [
+        "executor-read",
+        "packed-storage",
+        "capability",
+        "workload-id"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-tee-registry-reader/src/reader.rs",
+          "symbols": [
+            "read_executor",
+            "read_executor_from_state"
+          ],
+          "evidence": "Destination lines 71-183 exactly preserve the source single-executor read behavior."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves raw storage decoding semantics.",
+      "test_strategy": "read_executor_storage_layout_tests",
+      "negative_test_candidate": "A zero payment address should return `Ok(None)`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact behavior in destination."
+    },
+    {
+      "record_id": "file-0357-atom-0003",
+      "file_index": 357,
+      "atom_index": 3,
+      "atoms_total": 6,
+      "source_path": "crates/ritual-tee-registry-reader/src/reader.rs",
+      "source_hunk_hint": "@@ -0,0 +185,279 @@; all-executors reader",
+      "source_kind": "tee_registry_all_executors_reader",
+      "source_snippet": "pub fn read_all_executors<DB: Database>(db: &mut DB, contract: Address) -> Result<Vec<ExecutorInfo>, RegistryReadError> { ... }",
+      "semantic_claim": "The old divergence adds full registry enumeration, reading service address array length, enforcing `MAX_SERVICES`, iterating primary TEE addresses, reading service records, and keeping only executor capabilities.",
+      "high_risk": false,
+      "risk_tags": [
+        "registry-enumeration",
+        "dos-bound",
+        "executor-capability-filter"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-tee-registry-reader/src/reader.rs",
+          "symbols": [
+            "read_all_executors"
+          ],
+          "evidence": "Destination lines 185-279 exactly preserve full registry enumeration behavior."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves enumeration, bounds checking, and capability filtering.",
+      "test_strategy": "read_all_executors_registry_tests",
+      "negative_test_candidate": "A service count above `MAX_SERVICES` should return `ExecutorCountExceeded`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact behavior in destination."
+    },
+    {
+      "record_id": "file-0357-atom-0004",
+      "file_index": 357,
+      "atom_index": 4,
+      "atoms_total": 6,
+      "source_path": "crates/ritual-tee-registry-reader/src/reader.rs",
+      "source_hunk_hint": "@@ -0,0 +281,350 @@; dynamic public key storage helper",
+      "source_kind": "tee_registry_dynamic_bytes_reader",
+      "source_snippet": "fn read_public_key_from_slot<DB: Database>(db: &mut DB, contract: Address, pk_slot: U256, tee_address: Address) -> Result<Vec<u8>, RegistryReadError> { ... }",
+      "semantic_claim": "The old divergence adds Solidity `bytes` decoding for public keys, handling inline short bytes and long bytes stored at `keccak256(slot)`, with maximum length enforcement.",
+      "high_risk": false,
+      "risk_tags": [
+        "dynamic-bytes",
+        "public-key",
+        "storage-layout",
+        "bounds"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-tee-registry-reader/src/reader.rs",
+          "symbols": [
+            "read_public_key_from_slot"
+          ],
+          "evidence": "Destination lines 281-350 exactly preserve the dynamic bytes decoder."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves Solidity dynamic bytes decoding and bounds checks.",
+      "test_strategy": "public_key_storage_decoder_tests",
+      "negative_test_candidate": "A long public key length above `MAX_PUBLIC_KEY_LEN` should return `PublicKeyLengthExceeded` before allocating data.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact behavior in destination."
+    },
+    {
+      "record_id": "file-0357-atom-0005",
+      "file_index": 357,
+      "atom_index": 5,
+      "atoms_total": 6,
+      "source_path": "crates/ritual-tee-registry-reader/src/reader.rs",
+      "source_hunk_hint": "@@ -0,0 +352,417 @@; mock database test harness",
+      "source_kind": "tee_registry_reader_test_harness",
+      "source_snippet": "#[cfg(test)]\nmod tests { struct MockDatabase { ... } impl Database for MockDatabase { ... } const TEST_CONTRACT: Address = ...; const TEST_TEE_ADDRESS: Address = ...; }",
+      "semantic_claim": "The old divergence adds a mock REVM database and fixtures for testing registry storage reads and slot calculations.",
+      "high_risk": false,
+      "risk_tags": [
+        "tests",
+        "mock-database",
+        "revm-database"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-tee-registry-reader/src/reader.rs",
+          "symbols": [
+            "MockDatabase",
+            "MockDbError",
+            "TEST_CONTRACT",
+            "TEST_TEE_ADDRESS"
+          ],
+          "evidence": "Destination lines 352-421 preserve the mock database test harness."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the test harness used by reader tests.",
+      "test_strategy": "cargo test -p ritual-tee-registry-reader reader",
+      "negative_test_candidate": "An unknown mock account should return `Ok(None)` from `basic`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Test harness atom."
+    },
+    {
+      "record_id": "file-0357-atom-0006",
+      "file_index": 357,
+      "atom_index": 6,
+      "atoms_total": 6,
+      "source_path": "crates/ritual-tee-registry-reader/src/reader.rs",
+      "source_hunk_hint": "@@ -0,0 +422,477 @@; reader unit tests",
+      "source_kind": "tee_registry_reader_unit_tests",
+      "source_snippet": "#[test] fn test_capability_is_executor() { ... }\n#[test] fn test_capability_try_from() { ... }\n#[test] fn test_read_public_keys_empty_addresses() { ... }\n#[test] fn test_service_record_slot_calculation() { ... }",
+      "semantic_claim": "The old divergence adds unit tests for executor capability classification, capability byte conversion, empty-address public-key reads, and service-record slot calculation.",
+      "high_risk": false,
+      "risk_tags": [
+        "tests",
+        "capability",
+        "slot-calculation"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-tee-registry-reader/src/reader.rs",
+          "symbols": [
+            "test_capability_is_executor",
+            "test_capability_try_from",
+            "test_read_public_keys_empty_addresses",
+            "test_service_record_slot_calculation"
+          ],
+          "evidence": "Destination lines 422-480 preserve the same tests; import normalization supplies `SLOT_SERVICE_RECORDS` to the test module."
+        }
+      ],
+      "equivalence_argument": "The destination preserves test semantics and fixes import scope for the slot constant.",
+      "test_strategy": "cargo test -p ritual-tee-registry-reader reader::tests",
+      "negative_test_candidate": "Capability byte 13 should return `Err(())`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Non-exact only for import scope and line shifting."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 2,
+  "adversarial_reviews": [],
+  "summary": "The TEE registry reader implementation is structurally equivalent in the v2.2.0 port, preserving direct no-cache contract reads for executor public keys, single executors, full registry enumeration, Solidity dynamic bytes decoding, and tests.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 357: A\tcrates/ritual-tee-registry-reader/src/reader.rs.",
+    "Source-added hunk spans diff lines 75322-75799 with header `@@ -0,0 +1,477 @@`.",
+    "Destination `crates/ritual-tee-registry-reader/src/reader.rs` has 480 lines and is semantically equivalent with import-scope normalization for `SLOT_SERVICE_RECORDS`.",
+    "No review queue entry required because non-exactness is limited to imports/test compilation support."
+  ]
+}

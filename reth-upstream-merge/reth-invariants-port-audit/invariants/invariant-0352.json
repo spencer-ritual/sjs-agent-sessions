@@ -1,0 +1,78 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "The payload builder treats settlement preparation, including fee calculation, as fallible and skips the async settlement entry on error.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let prepared = prepare_fulfilled_async_settlement(...);\nlet prepared = match prepared { Ok(prepared) => prepared, Err(reason) => { debug!(..., \"skipping fulfilled async settlement entry\"); continue; } };",
+      "symbols": [
+        "prepare_fulfilled_async_settlement"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Settlement construction uses the shared fee calculator and propagates calculation errors to the caller.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let fees = calculate_async_fees(db, get_model_registry_address(), contract_job.precompile_address, &metadata.precompile_input, Some(execution_result), model_cache).map_err(|err| format!(\"async fee calculation failed: {err}\"))?;",
+      "symbols": [
+        "prepare_fulfilled_async_settlement",
+        "calculate_async_fees"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Block verification rejects settlements whose shared fee calculation fails or whose fee fields differ from the calculated components.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let fees = calculate_async_fees(&mut db, get_model_registry_address(), job.precompile_address, &precompile_input, Some(&spc_output), &mut model_cache).map_err(|err| BlockVerificationError::InvalidAsyncSettlement(format!(\"fee calculation failed for job {}: {err}\", settlement.origin_tx)))?;\nif settlement.executor_fee != fees.executor_fee || settlement.commitment_fee != fees.commitment_fee || settlement.inclusion_fee != fees.inclusion_fee || settlement.total_amount != fees.total { return Err(...); }",
+      "symbols": [
+        "verify_settlements",
+        "calculate_async_fees"
+      ]
+    }
+  ],
+  "equivalence_argument": "Both builder and verifier call the same shared pricing function with the settlement precompile/input/output and handle Err as skip/reject while enforcing component equality for priceable settlements.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/ritual-block-verification/src/error.rs"
+  ],
+  "invariant_id": "cur-4629647eee-settlement-fees-built-verified-shared-pricing",
+  "invariant_index": 352,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to the port payload builder and block verifier.",
+  "rationale": "The payload builder now treats create_settlement_transaction as fallible and continues without the async transaction on pricing errors. Block verification imports calculate_async_fees, replaces fixed expected fees with calculated values, and introduces FeeCalculationFailed for unpriceable settlements. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "7a12cae9882c0310c67a99096593ccee3727e1a4"
+  ],
+  "statement": "Payload building must skip an async transaction if settlement fee calculation fails, and block verification must reject settlements whose expected fees cannot be calculated or whose executor, commitment, or inclusion fees do not match the shared calculated values.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Build or verify an LLM async settlement with unpriceable output and assert payload building skips it while block verification returns FeeCalculationFailed; for a priceable settlement, mutate each fee field in turn and assert verification rejects the mismatch."
+  ],
+  "summary": "Payload building and verification share settlement pricing and fail on calculation errors or fee mismatches.",
+  "test_or_falsification_candidate": "Use an unpriceable LLM settlement and assert payload building skips it while block verification rejects it; then mutate each fee component for a priceable settlement and assert verification rejects.",
+  "title": "Settlement fees are built and verified from shared pricing",
+  "total_invariants": 1954
+}

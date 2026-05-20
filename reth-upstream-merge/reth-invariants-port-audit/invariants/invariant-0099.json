@@ -1,0 +1,60 @@
+{
+  "cluster_key": "scheduler:scheduler-does-implicitly-90f71302",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/scheduling/src/canonical.rs"
+  ],
+  "invariant_id": "cur-eef8a4838d-canonical-scheduler-skips-missed-windows-instead-catch-bursts",
+  "invariant_index": 99,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/scheduling/src/canonical.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs"
+    ],
+    "checked_queries": [
+      "canonical scheduler|SchedulerService|SynchronousScheduler|catch-up|missed windows|exact scheduled target|due_index_bounds"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "canonical scheduler",
+      "SchedulerServiceState",
+      "due_index_bounds"
+    ],
+    "missing_behavior": "Missing canonical scheduler exact-target no-catch-up processing. The old scheduling crate/path is absent locally, and the live parent-state due-window logic intentionally includes any execution index whose target block is within TTL rather than only exact target blocks.",
+    "related_but_insufficient_code": [
+      "ritual-scheduled-verification::due_index_bounds computes a TTL window: start + i*frequency <= block <= start + i*frequency + ttl.",
+      "ritual-scheduled-block-building notes it replaces the old SchedulerServiceState-specific helper."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The current canonical processing path uses modulo-based firing and submits only calls whose execution block is an exact target block; non-target blocks are skipped before transaction construction.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "5253552c8bb8754f4bacf8a93c8a29ccf7d6708a"
+  ],
+  "statement": "Canonical scheduled-call processing must not implicitly burst-catch-up missed schedule windows: it may submit a scheduled transaction only when the candidate execution block is an exact scheduled target for that call, and it skips blocks that are not valid targets.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Advance several missed schedule windows and assert canonical scheduler submits no burst catch-up, only exact target-block executions.",
+    "Compare parent-state due-window builder behavior against canonical exact-target expectations."
+  ],
+  "summary": "Canonical no-catch-up scheduler processing is absent from the port.",
+  "test_or_falsification_candidate": "Current port lacks the canonical scheduler service path and its exact-target modulo firing rule.",
+  "title": "Canonical scheduler skips missed windows instead of catch-up bursts",
+  "total_invariants": 1954
+}

@@ -1,0 +1,71 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-async-fees/src/constants.rs",
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-23b61fad34-image-call-fees-tiered-output-dimensions",
+  "invariant_index": 408,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-async-fees/src/constants.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "ritual-revm-internal/crates/precompile/src/image_call.rs"
+    ],
+    "checked_queries": [
+      "calculate_image",
+      "image_escrow",
+      "output dimensions",
+      "IMAGE_OUTPUT",
+      "width height tier",
+      "Image Call fees tiered"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "calculate_image_fees_phase2",
+      "image_escrow_lockup",
+      "IMAGE_CALL_PRECOMPILE",
+      "calculate_image_call_gas_cost"
+    ],
+    "missing_behavior": "The audited repo set has no Reth async fee calculation that tiers Image Call Phase 2 executor fees by delivered output dimensions.",
+    "related_but_insufficient_code": [
+      "crates/ritual-async-fees/src/lib.rs has no calculate_image_fees_phase2 or image escrow helper.",
+      "crates/ethereum/payload/src/ritual_async.rs explicitly rejects image/audio/video/FHE async commitment metadata without fee parity.",
+      "ritual-revm-internal/crates/precompile/src/image_call.rs documents per-pixel image pricing and computes precompile gas from input/output byte lengths, but it is not the Reth async settlement fee path and does not tier fees by delivered image dimensions for builder/verifier parity."
+    ]
+  },
+  "notes": "A revm precompile exists, but the consensus async fee/builder/verifier pricing path is absent.",
+  "rationale": "The primary diff adds image fee constants and helpers, uses the highest tier for escrow lockup, routes Phase 1 calculate_async_fees through calculate_image_fees_phase1, routes Image Phase 2 through calculate_image_fees_phase2, and adds dimension extraction in both payload building and block verification. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "8d67dbd1b9bb99012e6aec1814c0473e6d8f11a1"
+  ],
+  "statement": "Image Call Phase 1 pricing should use a constant registration-style fee plus normal commitment and inclusion fees, while Phase 2 pricing should calculate only an executor fee from output width * height using the configured image resolution tiers; malformed or too-short Phase 2 image delivery data should cause builder settlement creation to skip and verifier settlement validation to fail.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Assert calculate_async_fees(0x0818, input_len, None) returns the image Phase 1 fee shape, image_escrow_lockup equals the highest tier fee, and calculate_image_fees_phase2 returns tier 0/1/2/3 fees at representative dimensions. Then build/verify Phase 2 image settlements with valid and truncated delivery_result bytes and assert valid dimensions are priced by tier while truncated data is skipped by the builder or rejected by the verifier."
+  ],
+  "summary": "Image Call dimension-tiered async fees are not ported.",
+  "test_or_falsification_candidate": "Build/verify Image Call Phase 2 settlements with representative width/height tiers; the current port has no image fee function and cannot price them by output dimensions.",
+  "title": "Image Call fees are tiered by output dimensions",
+  "total_invariants": 1954
+}

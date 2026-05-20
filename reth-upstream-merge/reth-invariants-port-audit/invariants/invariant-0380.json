@@ -1,0 +1,55 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Both Phase 1 and delivery settlement builders resolve the TEE executor through TEEServiceRegistry, reject zero/missing payment addresses, and encode/payment fields with executor.payment_address.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let executor = read_executor(db, tee_registry, contract_job.executor_address)?.ok_or_else(...)?;\nif executor.payment_address.is_zero() { return Err(...); }\n...\nexecutor.payment_address,\n...\nlet mut settlement_tx = TxAsyncSettlement::new(..., executor.payment_address, fees.executor_fee, ...);",
+      "symbols": [
+        "prepare_fulfilled_async_settlement",
+        "prepare_delivery_settlement_transaction",
+        "read_executor"
+      ]
+    }
+  ],
+  "equivalence_argument": "Settlement construction uses the contract job TEE address only as a registry lookup key and writes the resolved payment address into settlement calldata and TxAsyncSettlement fields.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ethereum/payload/Cargo.toml"
+  ],
+  "invariant_id": "cur-ab130d3c04-settlements-registry-payment-address",
+  "invariant_index": 380,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in the port payload builder.",
+  "rationale": "The commit body calls this out as a fix for Phase 2 settlements using TEE address and causing verifier payment-address mismatches. The payload builder now has lookup_payment_address and uses payment_address in both Phase 1 and Phase 2 encoded settlement parameters. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "c007d9554f63732c9063618990d9d81ac9c65211"
+  ],
+  "statement": "Phase 1 and Phase 2 async settlement transaction creation must resolve the executor TEE address from the commitment metadata through TEEServiceRegistry and encode the resolved payment address in the settlement transaction; if lookup fails or the TEE is unregistered, settlement creation must return an error instead of falling back to the TEE address.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Build Phase 1 and Phase 2 settlement transactions from metadata whose commitment executor_address is TEE and whose registry record maps TEE to payment address P. Decode the settlement transaction input and assert executor_address is P. Repeat with no registry record and assert settlement creation returns an error and does not create a transaction using TEE."
+  ],
+  "summary": "Settlement builders pay the registry payment address.",
+  "test_or_falsification_candidate": "Build Phase 1 and Phase 2 settlements for a TEE mapped to payment address P and assert decoded executor_address is P; remove the registry record and assert construction errors.",
+  "title": "Settlements pay registry payment address",
+  "total_invariants": 1954
+}

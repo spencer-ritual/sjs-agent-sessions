@@ -1,0 +1,73 @@
+{
+  "record_type": "file",
+  "file_index": 353,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-tee-registry-reader/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "structural-equivalent",
+    "tee-registry-reader",
+    "manifest"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0353-atom-0001",
+      "file_index": 353,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-tee-registry-reader/Cargo.toml",
+      "source_hunk_hint": "@@ -0,0 +1,28 @@; TEE registry reader manifest",
+      "source_kind": "manifest",
+      "source_snippet": "[package]\nname = \"ritual-tee-registry-reader\"\nversion = \"0.1.0\"\nedition = \"2021\"\nlicense = \"MIT OR Apache-2.0\"\nrepository = \"https://github.com/ritual-net/ritual-reth-internal\"\ndescription = \"Unified TEEServiceRegistry contract reader for Ritual Network\"\n...\n[dependencies]\nalloy-primitives.workspace = true\nrevm.workspace = true\nreth-storage-api.workspace = true\nreth-revm.workspace = true\nthiserror.workspace = true\ntracing.workspace = true",
+      "semantic_claim": "The old divergence adds the TEE registry reader crate manifest with dependencies needed for raw TEEServiceRegistry storage reads through REVM database/state-provider abstractions, Alloy primitives, tracing, and typed errors.",
+      "high_risk": false,
+      "risk_tags": [
+        "manifest",
+        "workspace-normalization",
+        "storage-reader"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-tee-registry-reader/Cargo.toml",
+          "symbols": [
+            "package ritual-tee-registry-reader",
+            "dependencies"
+          ],
+          "evidence": "Destination preserves the crate name, description, dependency set, and storage-reader role while normalizing package version/edition/rust-version/license/repository/lints to workspace values and enabling `revm` std feature through workspace form."
+        }
+      ],
+      "equivalence_argument": "The destination manifest keeps the same build capabilities under v2.2.0 workspace conventions.",
+      "test_strategy": "cargo check -p ritual-tee-registry-reader",
+      "negative_test_candidate": "Removing `reth-revm` should break the `StateProviderDatabase` bridge import.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Non-exact only for manifest normalization."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The TEE registry reader manifest is structurally equivalent in the v2.2.0 port with workspace-normalized metadata and dependencies.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 353: A\tcrates/ritual-tee-registry-reader/Cargo.toml.",
+    "Source-added hunk spans diff lines 75202-75230 with header `@@ -0,0 +1,28 @@`.",
+    "Destination `crates/ritual-tee-registry-reader/Cargo.toml` has 19 lines and preserves the semantic dependency set with workspace normalization.",
+    "No review queue entry required because non-exactness is manifest-only normalization."
+  ]
+}

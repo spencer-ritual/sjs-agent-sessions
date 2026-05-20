@@ -1,0 +1,85 @@
+{
+  "record_type": "file",
+  "file_index": 222,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/optimism/primitives/src/transaction/signed.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "missing",
+  "tags": [
+    "missing",
+    "non-exact",
+    "review-closed",
+    "confirmed-gap",
+    "optimism",
+    "transaction-primitives",
+    "signature-api",
+    "non-fsm"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0222-atom-0001",
+      "file_index": 222,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/optimism/primitives/src/transaction/signed.rs",
+      "source_hunk_hint": "@@ -151,6 +151,10 @@",
+      "source_kind": "public_api",
+      "source_snippet": "fn signature(&self) -> Signature {\n    self.signature\n}",
+      "semantic_claim": "The old Optimism signed transaction primitive exposes its raw signature through the SignedTransaction implementation, including for the OP transaction envelope type.",
+      "high_risk": false,
+      "risk_tags": [
+        "optimism",
+        "signature-api",
+        "api-compatibility"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/optimism/primitives/src/transaction/signed.rs",
+          "evidence": "No exact OP signed transaction primitive exists in the port."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "Cargo.toml / Cargo.lock",
+          "evidence": "The port resolves `reth-primitives-traits` from crates.io 0.3.1; that trait has no `signature()` accessor and no OP transaction envelope implementation."
+        },
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/envelope.rs",
+          "symbols": [
+            "EthereumTxEnvelope::signature"
+          ],
+          "evidence": "The active Ethereum/custom envelope has a raw `signature()` helper for standard, scheduled, async, and passkey variants, but this is not an OP deposit transaction API."
+        }
+      ],
+      "equivalence_argument": "Confirmed gap, scoped to OP API compatibility: the old OP signed transaction `signature()` accessor is not present because the port does not carry OP transaction primitives. Active Ethereum/custom transaction signature access exists in local Alloy, so this is not evidence of a Ritual FSM/runtime gap.",
+      "test_strategy": "api_regression",
+      "negative_test_candidate": "If OP transaction support becomes required, add a compile/API regression that can retrieve a raw signature from OP signed transaction envelopes, including deposit handling.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Review closed as confirmed OP API/support gap only; not an active FSM issue in the current Ritual port."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The old OP signed transaction `signature()` API is not preserved in the current port. Active Ethereum/custom signature helpers live in local Alloy, but OP transaction primitives are absent, so this is a confirmed non-FSM API gap.",
+  "review_required": false,
+  "status": "confirmed_gap",
+  "notes": [
+    "Review closed against current port code: no `crates/optimism/primitives/src/transaction/signed.rs` exists.",
+    "`reth-primitives-traits` is pulled from crates.io 0.3.1 and its `SignedTransaction` trait has no `signature()` method.",
+    "Local Alloy provides `EthereumTxEnvelope::signature()` for active custom Ethereum variants, so the gap is OP API compatibility, not active Ritual FSM behavior."
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "record_type": "file",
+  "file_index": 302,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-block-verification/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "structural_equivalent",
+  "tags": [
+    "high-risk",
+    "non-exact",
+    "structural_equivalent"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0302-atom-0001",
+      "file_index": 302,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-block-verification/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,12 @@",
+      "source_kind": "other",
+      "source_snippet": "pub use crate::{\n    error::BlockVerificationError,\n    verifier::{BlockVerifier, BlockVerifierTrait},\n};\n\npub mod constants;",
+      "semantic_claim": "The downstream diff for crates/ritual-block-verification/src/lib.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": true,
+      "risk_tags": [
+        "verifier"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "verify_short_async_block_with_simulators",
+            "recover_original_transaction",
+            "SimulatedAsyncCall",
+            "validate_ritual_async_block_structure"
+          ],
+          "snippet": "pub fn verify_short_async_block_with_simulators(...) -> Result<(), BlockVerificationError> { ... verify_spc_calls(block, parent_state)?; verify_nonce_locks(block, parent_state)?; }",
+          "evidence": "The v2.2 crate exposes function-based verifier entry points and public helper types instead of the old `BlockVerifier` trait-object wrapper."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+          "path": "bin/src/main.rs",
+          "symbols": [
+            "RitualShortAsyncPostExecutionValidator::validate_post_execution_block"
+          ],
+          "snippet": "ritual_block_verification::verify_short_async_block_with_simulators(block, parent_state, |commitment| { ... }, |caller, call_id, execution_index, predicate_addr| { ... })",
+          "evidence": "Nodebuilder supplies the EVM replay and predicate-evaluation hooks that the old in-crate `BlockVerifier` owned, consuming the v2.2 function API directly."
+        }
+      ],
+      "equivalence_argument": "The old `BlockVerifier`/`BlockVerifierTrait` public wrapper is not carried forward verbatim. In the v2.2 architecture, block verification is exposed as function-based hooks from `ritual-block-verification`, while nodebuilder owns the EVM replay and post-execution validator integration. This preserves the verifier behavior without retaining the old trait-object API surface.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run nodebuilder/Reth post-execution validation on a block containing async settlement/SPC data and assert `verify_short_async_block_with_simulators` rejects malformed SPC proofs while accepting the happy path.",
+      "adversarial_review": {
+        "required": true,
+        "status": "pass",
+        "review_record_id": "review-file-0302-atom-0001"
+      },
+      "review_required": true,
+      "notes": "Resolved the blocked atom by identifying the v2.2 function API and nodebuilder integration that replace the old trait-object wrapper.",
+      "required_change": null,
+      "human_question": null
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [
+    "coverage-map/reviews/review-file-0302-atom-0001.json"
+  ],
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "Reclassified from blocked after reviewing the same-path verifier crate and nodebuilder integration surface."
+}

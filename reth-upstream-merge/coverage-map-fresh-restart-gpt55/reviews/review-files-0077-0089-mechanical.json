@@ -1,0 +1,238 @@
+{
+  "record_type": "mechanical_review_batch",
+  "record_id": "review-files-0077-0089-mechanical",
+  "file_indices": [
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    85,
+    87,
+    88,
+    89
+  ],
+  "review_result": "complete",
+  "completed_at": "2026-05-11T18:01:59.175885+00:00",
+  "summary": "Reviewed all prior needs-review atoms in files 77-83, 85, and 87-89. file-0080 is confirmed covered. file-0088 and file-0089 are confirmed covered for core payload behavior after ba3727354e. Remaining confirmed FSM/integration gaps are concentrated in node/SPC bridge and node orchestration rows.",
+  "atom_verdicts": {
+    "file-0077-atom-0001": {
+      "mapping_status": "intentionally_absent",
+      "notes": "Reviewed: confirmed not a live build/FSM bug. Current reth-evm-ethereum has no direct revm_context imports; async TxEnv/context wiring is provided by Alloy/Revm dependency layers."
+    },
+    "file-0077-atom-0002": {
+      "mapping_status": "missing",
+      "notes": "Reviewed: confirmed missing telemetry only. No tracing dependency or oversized-extra_data debug diagnostic exists in reth-evm-ethereum."
+    },
+    "file-0078-atom-0001": {
+      "mapping_status": "structural_equivalent",
+      "notes": "Reviewed: confirmed covered. build.rs writes ctx.extra_data into Header.extra_data, and lib.rs populates ctx.extra_data from both existing block headers and NextBlockEnvAttributes."
+    },
+    "file-0078-atom-0002": {
+      "mapping_status": "missing",
+      "notes": "Reviewed: confirmed missing telemetry only. The oversized-extra_data debug event and MAXIMUM_EXTRA_DATA_SIZE import are absent."
+    },
+    "file-0079-atom-0002": {
+      "mapping_status": "missing",
+      "notes": "Reviewed: confirmed missing test fixture only. The production custom reward path is covered by ChainSpec/Alloy EVM reward code, but this exact EVM execution regression test is absent."
+    },
+    "file-0079-atom-0003": {
+      "mapping_status": "missing",
+      "notes": "Reviewed: confirmed missing test fixture only. The production no-custom-reward path is covered by ChainSpec/Alloy EVM reward code, but this exact EVM execution regression test is absent."
+    },
+    "file-0080-atom-0001": {
+      "mapping_status": "moved_to_dependency",
+      "notes": "Reviewed: confirmed covered. TxEnv carries commitment_tx, settlement_tx, and spc_calls in ritual-revm-internal, while ritual-alloy-evm-internal converts recovered Ritual transactions into that TxEnv."
+    },
+    "file-0080-atom-0002": {
+      "mapping_status": "structural_equivalent",
+      "notes": "Reviewed: confirmed covered. context_for_block clones the sealed block header extra_data into EthBlockExecutionCtx."
+    },
+    "file-0080-atom-0003": {
+      "mapping_status": "structural_equivalent",
+      "notes": "Reviewed: confirmed covered. context_for_next_block passes NextBlockEnvAttributes.extra_data into EthBlockExecutionCtx; file-0076 confirmed upstream CL population."
+    },
+    "file-0081-atom-0001": {
+      "mapping_status": "missing",
+      "notes": "Reviewed: confirmed missing manifest surface only. reth-db remains a dev-dependency and no non-test reth_db use was found in reth-node-ethereum."
+    },
+    "file-0081-atom-0003": {
+      "mapping_status": "moved_to_dependency",
+      "notes": "Reviewed: confirmed covered by decomposition. The legacy ritual-async crate edge is absent, but active async behavior is split across payload, txpool, async-inspector, async-fees, and async-registry crates."
+    },
+    "file-0081-atom-0004": {
+      "mapping_status": "moved_to_dependency",
+      "notes": "Reviewed: confirmed covered by decomposition for active scheduled behavior. The legacy ritual-scheduling edge is absent from reth-node-ethereum; scheduled behavior lives in scheduled block-building/verification and nodebuilder surfaces."
+    },
+    "file-0081-atom-0005": {
+      "mapping_status": "missing",
+      "notes": "Reviewed: confirmed missing integration/build surface. reth-node-ethereum still has no ritual-spc-verification dependency or SpcVerifierImpl export while nodebuilder imports it."
+    },
+    "file-0081-atom-0006": {
+      "mapping_status": "missing",
+      "notes": "Reviewed: confirmed missing compatibility surface. reth-node-ethereum exposes no async-context feature; lower and umbrella crates do not preserve this crate's old feature name."
+    },
+    "file-0082-atom-0001": {
+      "mapping_status": "missing",
+      "notes": "Reviewed: confirmed missing. No crates/ethereum/node/src/spc.rs exists and lib.rs does not declare pub mod spc or pub use SpcVerifierImpl."
+    },
+    "file-0083-atom-0001": {
+      "mapping_status": "missing",
+      "notes": "Reviewed: confirmed missing behavior at the RPC boundary. launch_add_ons registers only a pool-backed ritual_async_rpc module and does not capture provider/EVM config/SPC verifier for RPC-side proof verification."
+    },
+    "file-0083-atom-0002": {
+      "mapping_status": "structural_equivalent",
+      "notes": "Reviewed: confirmed covered for RPC method surface. ritual_submitAsyncResult, ritual_submitAsyncResultBatch, and ritual_submitDeliveryResult exist and route into the pool; full SPC verification is not in this atom and remains missing in atom 0001."
+    },
+    "file-0083-atom-0003": {
+      "mapping_status": "missing",
+      "notes": "Reviewed: confirmed non-equivalent for active node execution. Nodebuilder contains a richer RitualExecutorBuilder path, but the active binary wires a static precompile map and the SpcVerifierImpl bridge it imports is absent from the v2.2 port."
+    },
+    "file-0083-atom-0004": {
+      "mapping_status": "missing",
+      "notes": "Reviewed: confirmed missing non-default control surface. The destination always uses build_and_spawn_maintenance_task and has no EthereumPoolBuilder spawn_maintenance_task flag."
+    },
+    "file-0083-atom-0005": {
+      "mapping_status": "missing",
+      "notes": "Reviewed: confirmed missing txpool admission switch. The generic custom-tx hook exists, but no caller enables SCHEDULED_TX_TYPE_ID during EthereumPoolBuilder validation setup."
+    },
+    "file-0083-atom-0006": {
+      "mapping_status": "structural_equivalent",
+      "notes": "Reviewed: confirmed covered for known consumers. The exact PoolManager singleton is absent, but async RPC and block-verifier paths receive the pool explicitly."
+    },
+    "file-0083-atom-0007": {
+      "mapping_status": "missing",
+      "notes": "Reviewed: confirmed missing. Blocking canonical-state subscription infrastructure exists, but no txpool-specific blocking handler registration is wired in EthereumPoolBuilder."
+    },
+    "file-0083-atom-0008": {
+      "mapping_status": "moved_to_dependency",
+      "notes": "Reviewed: confirmed covered. Pool::on_canonical_state_change owns async commitment, settlement, and expiry lifecycle processing in the transaction-pool crate."
+    },
+    "file-0085-atom-0001": {
+      "mapping_status": "missing",
+      "notes": "Reviewed: confirmed missing. SpcVerifierImpl is absent from the v2.2 port, while nodebuilder imports reth_node_ethereum::SpcVerifierImpl."
+    },
+    "file-0085-atom-0002": {
+      "mapping_status": "missing",
+      "notes": "Reviewed: confirmed missing. No destination bridge converts trait-level SPC verify_batch requests into concrete verifier requests/results."
+    },
+    "file-0085-atom-0003": {
+      "mapping_status": "missing",
+      "notes": "Reviewed: confirmed missing. No destination verify_parallel_optimized bridge implementation was found."
+    },
+    "file-0085-atom-0004": {
+      "mapping_status": "missing",
+      "notes": "Reviewed: confirmed missing. No destination trait bridge exposes previous-block data lookup through SpcVerifierImpl."
+    },
+    "file-0085-atom-0005": {
+      "mapping_status": "missing",
+      "notes": "Reviewed: confirmed missing. The bridge no-op ensure_registry_synced method is absent."
+    },
+    "file-0085-atom-0006": {
+      "mapping_status": "missing",
+      "notes": "Reviewed: confirmed missing. Nodebuilder constructs registry tuples, but the reth_node_ethereum bridge that receives and applies update_registry_from_data is absent."
+    },
+    "file-0087-atom-0001": {
+      "mapping_status": "moved_to_dependency",
+      "notes": "Reviewed: confirmed covered by decomposition. lib.rs declares a local ritual_async module rather than importing an external ritual-async crate; active async helpers use decomposed async-inspector/fees/registry crates."
+    },
+    "file-0087-atom-0002": {
+      "mapping_status": "structural_equivalent",
+      "notes": "Reviewed: confirmed covered. revm-context is a direct dependency with async-context and optional fee features enabled."
+    },
+    "file-0087-atom-0004": {
+      "mapping_status": "missing",
+      "notes": "Reviewed: confirmed missing support/observability surface. Scheduled behavior is decomposed, but ritual-metrics, heartbeat-tracker, and legacy ritual-scheduling manifest edges are absent from the payload crate."
+    },
+    "file-0087-atom-0005": {
+      "mapping_status": "intentionally_absent",
+      "notes": "Reviewed: confirmed obsolete support surface. once_cell and rayon are not declared because current payload sources do not use them."
+    },
+    "file-0087-atom-0006": {
+      "mapping_status": "structural_equivalent",
+      "notes": "Reviewed: confirmed covered for behavior. async-context is always enabled through revm-context and alloy-evm dependency features, though the old public feature flag is not preserved."
+    },
+    "file-0087-atom-0007": {
+      "mapping_status": "missing",
+      "notes": "Reviewed: confirmed missing test-support surface. The payload manifest still has no alloy-dyn-abi or secp256k1 dev-dependencies."
+    },
+    "file-0088-atom-0001": {
+      "mapping_status": "structural_equivalent",
+      "notes": "Reviewed: confirmed covered operationally. PayloadCandidate variants preserve fulfilled-async, delivery, and regular source identity; scheduled state obligations remain a separate pre-candidate phase rather than a TxSource enum variant."
+    },
+    "file-0088-atom-0002": {
+      "mapping_status": "structural_equivalent",
+      "notes": "Reviewed: confirmed covered. Regular PayloadCandidate/SequencingCandidate keeps the pool transaction and recovered tx; size is computed at execution time."
+    },
+    "file-0088-atom-0003": {
+      "mapping_status": "structural_equivalent",
+      "notes": "Reviewed: confirmed covered. PreparedAsyncSettlement carries original/settlement txs, RLP sizes, miner fee, and settlement calldata gas; metadata stays in the candidate."
+    },
+    "file-0088-atom-0004": {
+      "mapping_status": "structural_equivalent",
+      "notes": "Reviewed: confirmed covered. PreparedDeliverySettlement now includes settlement tx, RLP size, and effective_tip; the caller tracks the original tx hash."
+    },
+    "file-0088-atom-0005": {
+      "mapping_status": "structural_equivalent",
+      "notes": "Reviewed: confirmed covered after ba3727354e. sort_candidates_by_effective_tip globally sorts PayloadCandidate values by descending effective tip with original-index tie break."
+    },
+    "file-0088-atom-0006": {
+      "mapping_status": "structural_equivalent",
+      "notes": "Reviewed: confirmed covered after ba3727354e. PayloadCandidate::primary_tx feeds reorder_payload_candidates for fulfilled async originals, delivery settlements, and regular txs."
+    },
+    "file-0088-atom-0007": {
+      "mapping_status": "structural_equivalent",
+      "notes": "Reviewed: confirmed covered. Gas accounting uses ritual-async-fees helpers and explicit overflow skip/error handling rather than the old fallback helper."
+    },
+    "file-0088-atom-0008": {
+      "mapping_status": "structural_equivalent",
+      "notes": "Reviewed: confirmed covered. The payload loop uses prepared RLP lengths and checked/saturating size estimates for pairs and delivery settlements."
+    },
+    "file-0088-atom-0009": {
+      "mapping_status": "structural_equivalent",
+      "notes": "Reviewed: confirmed covered for behavior. Hash and identity data flow is local rather than exposed through TxBundle helper accessors."
+    },
+    "file-0088-atom-0010": {
+      "mapping_status": "structural_equivalent",
+      "notes": "Reviewed: confirmed covered/superseded. Delivery config is decoded and effective_tip is computed, stored on PreparedDeliverySettlement, and used in candidate sorting."
+    },
+    "file-0089-atom-0001": {
+      "mapping_status": "structural_equivalent",
+      "notes": "Reviewed: confirmed covered. The enum shape is absent, but async inspector and validation branches preserve regular, valid async, transient skip, and permanent invalid paths."
+    },
+    "file-0089-atom-0002": {
+      "mapping_status": "structural_equivalent",
+      "notes": "Reviewed: confirmed covered for behavior. The active builder aggregates fulfilled async, delivery, and regular candidates into PayloadCandidate and processes scheduled state obligations separately; old counters are absent."
+    },
+    "file-0089-atom-0003": {
+      "mapping_status": "intentionally_absent",
+      "notes": "Reviewed: confirmed intentionally absent with the removed CollectedBundles wrapper."
+    },
+    "file-0089-atom-0004": {
+      "mapping_status": "intentionally_absent",
+      "notes": "Reviewed: confirmed intentionally absent with the removed CollectedBundles wrapper."
+    },
+    "file-0089-atom-0005": {
+      "mapping_status": "structural_equivalent",
+      "notes": "Reviewed: confirmed covered after ba3727354e for payload candidates. sort_candidates_by_effective_tip globally orders fulfilled async, delivery, and regular candidates; scheduled state obligations remain an earlier deterministic phase."
+    },
+    "file-0089-atom-0006": {
+      "mapping_status": "structural_equivalent",
+      "notes": "Reviewed: confirmed covered. CollectorConfig fields are represented by builder state, payload attributes, local gas/size counters, and async-fee/model-registry helpers."
+    },
+    "file-0089-atom-0007": {
+      "mapping_status": "covered_by_upstream",
+      "notes": "Reviewed: confirmed covered by canonical RLP block-size accounting rather than the old tx.size()+256 heuristic."
+    },
+    "file-0089-atom-0008": {
+      "mapping_status": "structural_equivalent",
+      "notes": "Reviewed: confirmed covered. Active block-size branches reject only when estimated size is strictly greater than the limit, so equality fits."
+    },
+    "file-0089-atom-0009": {
+      "mapping_status": "missing",
+      "notes": "Reviewed: confirmed missing test-only fixture. Production inclusive fit behavior exists, but the old collector unit test is absent."
+    }
+  }
+}

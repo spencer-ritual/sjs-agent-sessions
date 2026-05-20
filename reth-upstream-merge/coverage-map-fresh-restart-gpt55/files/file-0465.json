@@ -1,0 +1,108 @@
+{
+  "record_type": "file",
+  "file_index": 465,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/storage/codecs/src/alloy/transaction/mod.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "high-risk",
+    "transaction-codecs"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0465-atom-0001",
+      "file_index": 465,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/storage/codecs/src/alloy/transaction/mod.rs",
+      "source_hunk_hint": "@@ -21,6 +22,31 @@ impl Compact for EthereumTypedTransaction",
+      "source_kind": "encoding_rule",
+      "source_snippet": "Scheduled, AsyncCommitment, AsyncSettlement, Passkey variants in to/from compact",
+      "semantic_claim": "Typed transaction compact encoding and decoding dispatches scheduled, async commitment, async settlement, and passkey variants to their dedicated codecs.",
+      "high_risk": true,
+      "risk_tags": [
+        "encoding",
+        "transaction-type",
+        "async-fsm",
+        "passkey"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/src/alloy/transaction/mod.rs",
+          "symbols": [
+            "impl Compact for EthereumTypedTransaction"
+          ],
+          "evidence": "Destination `to_compact` and `from_compact` include all four custom variants."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Round-trip each custom `EthereumTypedTransaction` variant through `Compact`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": ""
+    },
+    {
+      "record_id": "file-0465-atom-0002",
+      "file_index": 465,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/storage/codecs/src/alloy/transaction/mod.rs",
+      "source_hunk_hint": "@@ -67,8 +90,8 @@ cond_mod!",
+      "source_kind": "module_wiring",
+      "source_snippet": "cond_mod!(..., passkey, scheduled, async_commitment, txtype, async_settlement); mod spc_call;",
+      "semantic_claim": "The transaction codec module wires passkey, scheduled, async commitment, async settlement, and SPC call codec modules into the alloy transaction codec tree.",
+      "high_risk": true,
+      "risk_tags": [
+        "module-wiring",
+        "encoding"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/src/alloy/transaction/mod.rs",
+          "symbols": [
+            "cond_mod"
+          ],
+          "evidence": "Destination `cond_mod!` includes async_commitment, async_settlement, passkey, scheduled, spc_call, and txtype."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Cargo-check imports for each custom transaction codec module under the alloy feature.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": ""
+    }
+  ],
+  "high_risk_atoms_total": 2,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "Custom typed transaction compact dispatch and module wiring are present.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0465: M\tcrates/storage/codecs/src/alloy/transaction/mod.rs.",
+    "Diff lines 86677-86729 contain the behavior-bearing variant dispatch and module wiring."
+  ]
+}

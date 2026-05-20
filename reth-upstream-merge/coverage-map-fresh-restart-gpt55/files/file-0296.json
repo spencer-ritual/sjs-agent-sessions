@@ -1,0 +1,191 @@
+{
+  "record_type": "file",
+  "file_index": 296,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-async/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "ritual-async",
+    "crate-root",
+    "public-api",
+    "re-exports"
+  ],
+  "atoms_total": 3,
+  "atoms": [
+    {
+      "record_id": "file-0296-atom-0001",
+      "file_index": 296,
+      "atom_index": 1,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-async/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,24 @@; crate docs and module declarations",
+      "source_kind": "ritual_async_crate_root_modules",
+      "source_snippet": "//! Async transaction detection for Ritual Network\n//!\n//! Async transactions are always simulated at the **parent block** (i.e., `inclusion_block - 1`).\n// ...\n\npub mod detector;\npub mod validation;\npub mod wallet;",
+      "semantic_claim": "The old divergence adds the `ritual-async` crate root, documenting the parent-block simulation model and shared validation boundary, and declaring the detector, validation, and wallet modules.",
+      "high_risk": false,
+      "risk_tags": [
+        "crate-root",
+        "module-boundary",
+        "parent-block-simulation"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async/src/lib.rs",
+          "symbols": [
+            "pub mod detector",
+            "pub mod validation",
+            "pub mod wallet"
+          ],
+          "evidence": "Destination `lib.rs` preserves the same crate documentation and module declarations as the source-added 54-line file."
+        }
+      ],
+      "equivalence_argument": "The destination crate-root structure and documented module boundary are identical to the source divergence.",
+      "test_strategy": "crate_root_compile_and_module_resolution",
+      "negative_test_candidate": "Removing any module declaration should break downstream imports for detector, validation, or wallet APIs.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers crate-level module shape and documentation only."
+    },
+    {
+      "record_id": "file-0296-atom-0002",
+      "file_index": 296,
+      "atom_index": 2,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-async/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +26,43 @@; backwards-compatible inspector and detector re-exports",
+      "source_kind": "ritual_async_inspector_and_detector_reexports",
+      "source_snippet": "pub use ritual_async_inspector::{\n    max_ttl_blocks, AsyncPrecompileInspector, BasicAsyncCallResult, AUDIO_CALL_PRECOMPILE,\n    DEFAULT_MAX_TTL_BLOCKS, DKMS_KEY_PRECOMPILE, FHE_PRECOMPILE, HTTP_CALL_PRECOMPILE,\n    IMAGE_CALL_PRECOMPILE, LLM_CALL_PRECOMPILE, LONG_RUNNING_HTTP_PRECOMPILE, MAX_TTL_BLOCKS,\n    PERSISTENT_AGENT_PRECOMPILE, SOVEREIGN_AGENT_PRECOMPILE, VIDEO_CALL_PRECOMPILE,\n    ZK_TWO_PHASE_PRECOMPILE,\n};\n\npub use detector::{\n    async_simulation_trace_count, detect_async_transaction,\n    detect_async_transaction_with_provider, recent_async_simulation_traces,\n    simulate_for_rpc_validation, AsyncCallResult, AsyncSimulationTraceEntry, RpcSimulationResult,\n    ASYNC_SIM_TRACE_CAPACITY,\n};",
+      "semantic_claim": "The old divergence keeps `ritual-async` as the backwards-compatible public surface for inspector constants/types, TTL helpers, detector entrypoints, RPC simulation, async simulation traces, and `AsyncCallResult`.",
+      "high_risk": false,
+      "risk_tags": [
+        "public-api",
+        "backwards-compatibility",
+        "detector-api",
+        "ttl-source"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async/src/lib.rs",
+          "symbols": [
+            "max_ttl_blocks",
+            "AsyncPrecompileInspector",
+            "detect_async_transaction",
+            "detect_async_transaction_with_provider",
+            "simulate_for_rpc_validation",
+            "AsyncCallResult",
+            "ASYNC_SIM_TRACE_CAPACITY"
+          ],
+          "evidence": "Destination `lib.rs` preserves the exact inspector and detector re-export lists, including TTL helpers and async simulation trace APIs."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "detect_async_transaction",
+            "detect_async_transaction_with_provider",
+            "AsyncCallResult"
+          ],
+          "evidence": "Destination payload builder imports detector APIs from the preserved public crate surface."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc/src/eth/helpers/transaction.rs",
+          "symbols": [
+            "simulate_for_rpc_validation"
+          ],
+          "evidence": "Destination Eth RPC transaction helper uses the preserved RPC simulation API."
+        }
+      ],
+      "equivalence_argument": "The destination keeps the same public detector and inspector API surface, preserving downstream import compatibility and canonical TTL access.",
+      "test_strategy": "workspace_compile_public_imports",
+      "negative_test_candidate": "Removing `max_ttl_blocks` or `detect_async_transaction_with_provider` from the re-export list should break existing builder, verifier, or RPC imports.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping; no review queue entry required."
+    },
+    {
+      "record_id": "file-0296-atom-0003",
+      "file_index": 296,
+      "atom_index": 3,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-async/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +44,54 @@; validation and wallet API re-exports",
+      "source_kind": "ritual_async_validation_and_wallet_reexports",
+      "source_snippet": "pub use validation::{\n    extract_precompile_data, extract_two_phase_deadline, try_decode_precompile_data,\n    validate_async_payload, validate_audio_call_payload, validate_image_call_payload,\n    validate_long_running_http_payload, validate_sovereign_agent_payload,\n    validate_two_phase_deadline, validate_video_call_payload, AsyncPayloadError,\n    PrecompileDataError, TwoPhaseDeadlineError, MAX_ASYNC_INPUT_SIZE,\n};\npub use wallet::{\n    check_user_wallet_balance, check_user_wallet_balance_with_provider,\n    get_async_delivery_address, get_model_registry_address, get_ritual_wallet_address,\n};",
+      "semantic_claim": "The old divergence exposes shared async validation functions/errors and wallet balance/address helpers from the crate root so RPC, builder, and other consumers use one public API for payload validation and wallet verification.",
+      "high_risk": false,
+      "risk_tags": [
+        "public-api",
+        "validation-api",
+        "wallet-validation"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async/src/lib.rs",
+          "symbols": [
+            "validate_async_payload",
+            "validate_two_phase_deadline",
+            "AsyncPayloadError",
+            "MAX_ASYNC_INPUT_SIZE",
+            "check_user_wallet_balance",
+            "check_user_wallet_balance_with_provider"
+          ],
+          "evidence": "Destination `lib.rs` preserves the exact validation and wallet re-export lists."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc/src/async_tx_validator.rs",
+          "symbols": [
+            "validate_async_payload"
+          ],
+          "evidence": "Destination async RPC validation uses the preserved shared validation API."
+        }
+      ],
+      "equivalence_argument": "The destination public API keeps validation and wallet helper imports identical, avoiding divergence between builder/RPC callers and the source divergence.",
+      "test_strategy": "workspace_compile_public_imports",
+      "negative_test_candidate": "Removing `validate_async_payload` or `check_user_wallet_balance_with_provider` from the crate root should break consumers that rely on `ritual_async::*` imports.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping; no review queue entry required."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The `ritual-async` crate root is exact-port preserved: parent-block simulation documentation, module declarations, backwards-compatible inspector/detector re-exports, shared validation exports, and wallet helper exports all match the source divergence.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 296: A\tcrates/ritual-async/src/lib.rs.",
+    "The source file diff starts at line 46611 and adds a 54-line crate root before the `crates/ritual-async/src/validation.rs` diff header at line 46671.",
+    "Destination `crates/ritual-async/src/lib.rs` preserves the same 54-line crate root body.",
+    "Bounded destination usage evidence confirms detector, RPC simulation, validation, and wallet APIs are consumed through the public crate surface.",
+    "No review queue entry was required because the audited crate-root API is preserved exactly."
+  ]
+}

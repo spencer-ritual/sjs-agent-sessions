@@ -1,0 +1,55 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "The generic BasicBlockExecutor only creates a strategy, executes recovered transactions, and merges transitions; it has no registry sync fields, SPC verifier field, or block-verifier callback.",
+      "path": "crates/evm/evm/src/execute.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let result = self.strategy_factory.executor_for_block(&mut self.db, block)?.execute_block(block.transactions_recovered())?;\nself.db.merge_transitions(BundleRetention::Reverts);\n...\nlet result = self.strategy_factory.executor_for_block(&mut self.db, block)?.with_state_hook(Some(Box::new(state_hook))).execute_block(block.transactions_recovered())?;",
+      "symbols": [
+        "BasicBlockExecutor::execute_one",
+        "BasicBlockExecutor::execute_one_with_state_hook"
+      ]
+    }
+  ],
+  "equivalence_argument": "Ritual-specific registry update, async-context injection, and block verification are outside this generic executor path, preserving the upstream-style BasicBlockExecutor boundary.",
+  "evidence_files": [
+    "crates/evm/src/execute.rs",
+    "crates/evm/src/lib.rs",
+    "crates/evm/src/registry_db.rs"
+  ],
+  "invariant_id": "cur-7fecf9d42d-generic-block-execution-stays-verification-agnostic",
+  "invariant_index": 343,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to the port generic EVM executor implementation.",
+  "rationale": "The commit deletes the EVM-local registry_db module, SPC/block verifier fields and constructors, registry update pass, SPC context swapping, and block verifier callback from BasicBlockExecutor, leaving a standard execute-transaction loop. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "48896ba696cb119028faee3f3731511f663c3d41"
+  ],
+  "statement": "The generic BasicBlockExecutor must execute and record recovered transactions without performing per-block executor registry synchronization, per-transaction SPC context injection, or optional block-verifier callbacks; those responsibilities are moved out of the generic EVM executor path.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Instantiate BasicBlockExecutorProvider directly and execute a block containing an SPC-bearing transaction; assert it does not call registry storage reads, does not mutate an SPC verifier registry, and only records the recovered transaction returned by execution. Separately verify the Ritual block verification path still enforces SPC proof validity."
+  ],
+  "summary": "The generic BasicBlockExecutor remains free of Ritual verification responsibilities.",
+  "test_or_falsification_candidate": "Instantiate BasicBlockExecutorProvider directly and assert executing a block does not call registry storage reads or a block-verifier callback from BasicBlockExecutor itself.",
+  "title": "Generic EVM block execution stays verification-agnostic",
+  "total_invariants": 1954
+}

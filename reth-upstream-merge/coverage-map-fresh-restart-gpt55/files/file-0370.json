@@ -1,0 +1,101 @@
+{
+  "record_type": "file",
+  "file_index": 370,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/rpc/rpc-builder/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "rpc-builder",
+    "ritual-rpc"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0370-atom-0001",
+      "file_index": 370,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/rpc/rpc-builder/src/lib.rs",
+      "source_hunk_hint": "@@ -1261,6 +1261,9 @@",
+      "source_kind": "rpc_builder_ritual_module_placeholder",
+      "source_snippet": "// only relevant for Ethereum and configured in `EthereumAddOns` implementation\n// implementation\nRethRpcModule::Ritual => Default::default(),",
+      "semantic_claim": "The old divergence teaches the generic RPC builder that `RethRpcModule::Ritual` exists but has no generic implementation, because Ethereum add-ons configure the Ritual RPC module.",
+      "high_risk": true,
+      "risk_tags": [
+        "rpc-builder",
+        "ritual-rpc",
+        "module-routing",
+        "missing"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc-builder/src/lib.rs",
+          "symbols": [
+            "RethRpcModule::Ritual"
+          ],
+          "evidence": "Destination `crates/rpc/rpc-builder/src/lib.rs` now includes `RethRpcModule::Ritual` in the implementation-specific `Default::default()` branch."
+        }
+      ],
+      "equivalence_argument": "Exact: the generic builder recognizes the Ritual module variant as an implementation-specific module registered by Ethereum add-ons.",
+      "test_strategy": "RPC module selection test including `RethRpcModule::Ritual`",
+      "negative_test_candidate": "Selecting the Ritual module in generic RPC module config should fail while the variant/branch is missing.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": "review-file-0370-atom-0001"
+      },
+      "review_required": false,
+      "notes": "Resolved by adding the Ritual module placeholder branch."
+    },
+    {
+      "record_id": "file-0370-atom-0002",
+      "file_index": 370,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/rpc/rpc-builder/src/lib.rs",
+      "source_hunk_hint": "@@ -1458,9 +1461,9 @@; @@ -1531,9 +1534,9 @@; @@ -1899,7 +1902,7 @@; @@ -1911,7 +1914,7 @@; @@ -1923,7 +1926,7 @@; @@ -2191,8 +2194,8 @@",
+      "source_kind": "rustfmt_noise",
+      "source_snippet": "self.http_server_config.is_some()\n    || self.ws_server_config.is_some()\n    || self.ipc_server_config.is_some()\n...\nreturn http.merge(other.into()).map(|_| true);",
+      "semantic_claim": "The remaining old divergence in this file is rustfmt-only boolean operator wrapping and semicolon insertion.",
+      "high_risk": false,
+      "risk_tags": [
+        "rustfmt",
+        "noise"
+      ],
+      "mapping_status": "noise",
+      "destinations": [],
+      "equivalence_argument": "Formatting-only changes have no semantic mapping requirement.",
+      "test_strategy": "rustfmt",
+      "negative_test_candidate": "N/A formatting-only.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Noise atom."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The generic RPC builder's old Ritual module placeholder is restored; remaining hunks are formatting-only.",
+  "review_required": false,
+  "status": "resolved",
+  "notes": [
+    "Queue entry verified as line 370: M\tcrates/rpc/rpc-builder/src/lib.rs.",
+    "Source semantic hunk spans diff lines 76881-76887; later hunks are rustfmt-only.",
+    "Resolved in this pass by adding the implementation-specific `RethRpcModule::Ritual` placeholder branch.",
+    "Verified by the targeted package check."
+  ]
+}

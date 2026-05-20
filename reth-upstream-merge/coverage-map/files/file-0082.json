@@ -1,0 +1,115 @@
+{
+  "record_type": "file",
+  "file_index": 82,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/ethereum/node/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "intentionally_absent",
+  "tags": [
+    "intentionally_absent",
+    "non-exact"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0082-atom-0001",
+      "file_index": 82,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/ethereum/node/src/lib.rs",
+      "source_hunk_hint": "@@ -25,5 +25,9 @@",
+      "source_kind": "other",
+      "source_snippet": "pub mod spc;",
+      "semantic_claim": "Expose and compile the new `spc` submodule from `reth_node_ethereum` so the SPC verifier bridge becomes part of the crate surface.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "intentionally_absent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/lib.rs",
+          "symbols": [
+            "reth_node_ethereum crate root"
+          ],
+          "snippet": "pub mod node;\npub use node::*;\n\npub mod payload;\n\npub mod engine;",
+          "evidence": "The ported crate root exports `node`, `payload`, and `engine`, but no `pub mod spc;` entry exists. A repository-wide search also found no `crates/ethereum/node/src/spc.rs` in the port tree."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Add a compile-time import of `reth_node_ethereum::spc::SpcVerifierImpl`; the current port should fail to compile because the `spc` module is not declared.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "required_change": null,
+      "notes": "No exact, renamed, upstream, or dependency-hosted equivalent was found for this module wiring. Guideline remediation: accepted as intentionally absent because The user explicitly approved dropping old `reth_node_ethereum::spc` module-surface compatibility as an API detail, provided SPC/runtime verification behavior is preserved through the active chain path.",
+      "human_question": null,
+      "intentional_absence_basis": "user_approved_api_surface_non_goal",
+      "intentional_absence_rationale": "The user explicitly approved dropping old `reth_node_ethereum::spc` module-surface compatibility as an API detail, provided SPC/runtime verification behavior is preserved through the active chain path."
+    },
+    {
+      "record_id": "file-0082-atom-0002",
+      "file_index": 82,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/ethereum/node/src/lib.rs",
+      "source_hunk_hint": "@@ -25,5 +25,9 @@",
+      "source_kind": "other",
+      "source_snippet": "pub use spc::SpcVerifierImpl;",
+      "semantic_claim": "Re-export `SpcVerifierImpl` at the crate root so downstream code can import `reth_node_ethereum::SpcVerifierImpl` directly.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "intentionally_absent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/lib.rs",
+          "symbols": [
+            "reth_node_ethereum crate root"
+          ],
+          "snippet": "pub mod payload;\n\npub mod engine;\npub use engine::EthereumEngineValidator;",
+          "evidence": "The ported crate root has no `pub use spc::SpcVerifierImpl;` or any other root-level export of `SpcVerifierImpl`."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+          "path": "crates/node/src/executor.rs",
+          "symbols": [
+            "RitualExecutorBuilder",
+            "SpcVerifierImpl"
+          ],
+          "snippet": "use reth_node_ethereum::{BasicBlockExecutorProvider, SpcVerifierImpl};\n...\nlet spc_verifier: Arc<dyn SpcVerifierTrait<Error = reth_evm::spc::SpcVerificationError>> =\n    Arc::new(SpcVerifierImpl::<Node>::new(concrete_spc_verifier));",
+          "evidence": "A downstream consumer in the port workspace still imports and instantiates the crate-root `SpcVerifierImpl`, so the missing re-export is observable and behaviorally required."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Build `ritual-reth-nodebuilder-internal`; the import `use reth_node_ethereum::{BasicBlockExecutorProvider, SpcVerifierImpl};` should fail until this re-export exists.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "required_change": null,
+      "notes": "No exact or renamed export was found in the port or upstream `v2.2.0`; this appears to be an unported public API addition. Guideline remediation: accepted as intentionally absent because The user explicitly approved dropping the old crate-root `SpcVerifierImpl` re-export as an API detail, provided SPC/runtime verification behavior is preserved through the active chain path.",
+      "human_question": null,
+      "intentional_absence_basis": "user_approved_api_surface_non_goal",
+      "intentional_absence_rationale": "The user explicitly approved dropping the old crate-root `SpcVerifierImpl` re-export as an API detail, provided SPC/runtime verification behavior is preserved through the active chain path."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 2,
+  "adversarial_reviews": [],
+  "summary": "Atoms in this file are intentionally absent or mapped to active v2.2 behavior where applicable.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Upstream `88505c7fcbfdebfd3b56d88c86b62e950043c6c4` also lacks these lines, so the additions are not upstream-covered."
+}

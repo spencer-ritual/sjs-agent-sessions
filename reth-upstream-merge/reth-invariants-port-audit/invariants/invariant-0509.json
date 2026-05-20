@@ -1,0 +1,67 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: heartbeat scheduled transaction synthesis exists, but the fee-exempt settlement behavior is missing.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-74fda6fd4f-heartbeat-commitments-protocol-exempt",
+  "invariant_index": 509,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ritual-async-fees/src/lib.rs"
+    ],
+    "checked_queries": [
+      "heartbeat protocol fee exempt",
+      "heartbeat zero executor fee",
+      "heartbeat settlement fees zero",
+      "is_heartbeat_tx delivery settlement fee"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "synthesize_heartbeat_revival_transactions",
+      "is_heartbeat_tx",
+      "prepare_delivery_settlement",
+      "calculate_async_fees_phase2",
+      "TxAsyncSettlement::new"
+    ],
+    "missing_behavior": "Heartbeat revival scheduling is present, but no local builder/verifier path zeroes executor fee, total amount, or all settlement fees specifically for heartbeat async settlements.",
+    "related_but_insufficient_code": [
+      "crates/ethereum/payload/src/lib.rs synthesizes heartbeat scheduled transactions and bypasses scheduler-routed handling.",
+      "crates/ethereum/payload/src/ritual_async.rs constructs delivery settlements with fees.executor_fee as total_amount and executor_fee.",
+      "crates/ritual-block-verification/src/lib.rs checks commitment/inclusion validators and fees are zero for delivery settlements, but does not enforce zero executor fee or total amount for heartbeat settlements."
+    ]
+  },
+  "notes": "The checked code has heartbeat authorization but no heartbeat-specific zero-fee settlement branch.",
+  "rationale": "The payload builder detects heartbeat scheduled transactions and skips wallet/TTL gates, zeroes all settlement fees for heartbeat settlements, and the verifier mirrors the heartbeat wallet bypass and zero-fee settlement behavior. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "64b67813746b81c92f10283f93c4899b92c604c3"
+  ],
+  "statement": "Heartbeat system transactions and their async settlements must skip wallet balance and TTL validation and must settle with zero executor, commitment, inclusion, and total fees.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Build and verify a heartbeat revival async commitment from an owner with no wallet funds and long TTL, asserting builder includes it, verifier accepts it, and settlement calldata/payment fields have all fee amounts set to zero; assert a non-heartbeat async transaction still requires wallet and TTL checks."
+  ],
+  "summary": "Heartbeat async settlements are not proven protocol-fee exempt.",
+  "test_or_falsification_candidate": "Build a heartbeat revival through async settlement and assert executor_fee, total_amount, commitment_fee, inclusion_fee, and validator addresses are all zero.",
+  "title": "Heartbeat commitments are protocol-fee exempt",
+  "total_invariants": 1954
+}

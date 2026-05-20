@@ -1,0 +1,34 @@
+{
+  "record_type": "file",
+  "file_index": 245,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/primitives-traits/src/block/recovered.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "line-wrap",
+    "primitives-traits",
+    "recovered-block",
+    "equality"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The recovered block divergence is line-wrap-only rustfmt noise in the equality implementation; no equality behavior changed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 245: M\tcrates/primitives-traits/src/block/recovered.rs.",
+    "The isolated patch only moves `&&` operators to the start of continuation lines in `RecoveredBlock::eq`.",
+    "No hash, block, sender-list, or Eq/PartialEq behavior changed."
+  ]
+}

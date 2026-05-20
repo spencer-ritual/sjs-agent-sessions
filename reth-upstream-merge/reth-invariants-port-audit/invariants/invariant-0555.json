@@ -1,0 +1,66 @@
+{
+  "cluster_key": "block building:block-lifecycle-metrics-160eed65",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: block_time-aware helpers and EL-head wiring exist, but payload start/end and verified-block metric emission are not wired in the audited payload and verification paths.",
+  "evidence_files": [
+    "crates/ritual-metrics/src/block.rs",
+    "crates/engine/tree/src/tree/mod.rs"
+  ],
+  "invariant_id": "cur-1646306e47-block-lifecycle-metrics-include-header-block-time",
+  "invariant_index": 555,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-metrics/src/block.rs",
+      "crates/engine/tree/src/tree/mod.rs",
+      "crates/engine/tree/src/tree/payload_validator.rs",
+      "crates/ethereum/payload/src/lib.rs"
+    ],
+    "checked_queries": [
+      "record_block_build_attempt log_payload_building_start log_payload_building_end log_el_update_head",
+      "block_time payload start end verified block metrics",
+      "log_payload_building_start call sites"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "record_block_build_attempt",
+      "log_payload_building_start",
+      "log_payload_building_end",
+      "log_el_update_head",
+      "block_time"
+    ],
+    "missing_behavior": "Payload build start/end and verified-block metric events are not produced with header block_time; only EL head update is wired with the canonical header timestamp.",
+    "related_but_insufficient_code": [
+      "crates/ritual-metrics/src/block.rs defines block_time fields on BlockBuildAttemptTrace and payload lifecycle helpers.",
+      "crates/engine/tree/src/tree/mod.rs calls log_el_update_head with tip.timestamp().",
+      "Search found no producer calls to record_block_build_attempt, log_payload_building_start, or log_payload_building_end outside helper definitions."
+    ]
+  },
+  "notes": "This is stricter than the helper definitions: the invariant requires emitted events in the relevant lifecycle paths.",
+  "rationale": "The primary diff adds block.timestamp-derived block_time fields to block lifecycle logging and changes log_el_update_head to accept and emit the canonical head timestamp. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Block Building",
+  "source_commits": [
+    "2f0ab41e2a7428e307d8336fba146ac2a224112b"
+  ],
+  "statement": "Block lifecycle metric events for verified blocks, payload build start/end, and EL head updates should emit block_time from the block or payload header timestamp, distinct from local wall-clock microsecond trace timestamps.",
+  "status": "current",
+  "subsystem": "block building",
+  "suggested_falsification_tests": [
+    "Install a tracing subscriber, call representative block lifecycle logging helpers with blocks or payloads whose header timestamp is known, and assert emitted events include block_time equal to that header timestamp while ts/ts_start/ts_end remain local microsecond wall-clock values."
+  ],
+  "summary": "Block lifecycle block_time metrics are only partially wired.",
+  "test_or_falsification_candidate": "Capture block lifecycle metrics during payload build, block verification, and EL head update; current code should only show EL head block_time while payload/verified-block producers are absent.",
+  "title": "Block lifecycle metrics include header block time",
+  "total_invariants": 1954
+}

@@ -1,0 +1,220 @@
+{
+  "record_type": "file",
+  "file_index": 200,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/node/core/src/args/payload_builder.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "partial",
+  "tags": [
+    "partial",
+    "high-risk",
+    "non-exact",
+    "node-core",
+    "payload-builder",
+    "cli",
+    "empty-payload",
+    "block-size",
+    "extra-data",
+    "reviewed",
+    "confirmed-gap"
+  ],
+  "atoms_total": 3,
+  "atoms": [
+    {
+      "record_id": "file-0200-atom-0001",
+      "file_index": 200,
+      "atom_index": 1,
+      "atoms_total": 3,
+      "source_path": "crates/node/core/src/args/payload_builder.rs",
+      "source_hunk_hint": "@@ -32,9 +31,19 @@; @@ -44,7 +53,9 @@; @@ -62,6 +73,10 @@",
+      "source_kind": "config",
+      "source_snippet": "/// Grace period before an `Earliest` resolve is allowed to spawn an empty payload fallback.\n#[arg(long = \"builder.empty-payload-grace\", value_parser = parse_duration_from_secs_or_ms, default_value = \"200ms\", value_name = \"DURATION\")]\npub empty_payload_grace: Duration,\n\nimpl Default for PayloadBuilderArgs {\n    fn default() -> Self {\n        Self {\n            empty_payload_grace: Duration::from_millis(200),\n            /* ... */\n        }\n    }\n}\n\nfn empty_payload_grace(&self) -> Duration {\n    self.empty_payload_grace\n}",
+      "semantic_claim": "The old payload-builder CLI adds `--builder.empty-payload-grace`, defaults it to 200ms, parses seconds-or-milliseconds durations, and exposes it through `PayloadBuilderConfig` so empty payload fallback timing is configurable.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload-building",
+        "empty-payload",
+        "timing-config",
+        "cli-config"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/node/core/src/args/payload_builder.rs",
+          "symbols": [
+            "PayloadBuilderArgs"
+          ],
+          "evidence": "Current payload-builder CLI args expose interval, deadline, max_payload_tasks, max_blobs_per_block, max_block_size_bytes, and extra_data. There is no builder.empty-payload-grace flag, no empty_payload_grace field, and no duration parser path for this setting."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/node/core/src/cli/config.rs",
+          "symbols": [
+            "PayloadBuilderConfig"
+          ],
+          "evidence": "Current PayloadBuilderConfig exposes payload timing and resource controls, including max_block_size_bytes, but has no empty_payload_grace method."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/payload.rs",
+          "symbols": [
+            "EthereumPayloadBuilder::build_payload_builder"
+          ],
+          "evidence": "The Ethereum node payload builder hardcodes EthereumBuilderConfig::with_await_payload_on_missing(false) and forwards max_block_size_bytes and extra_data. It does not forward any empty-payload grace duration."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "EthereumPayloadBuilder::on_missing_payload"
+          ],
+          "evidence": "On missing payload, current behavior is binary: AwaitInProgress when await_payload_on_missing is true, otherwise RaceEmptyPayload immediately. There is no grace-period delay before racing/building an empty payload."
+        }
+      ],
+      "equivalence_argument": "Reviewed against actual production usage: the old builder.empty-payload-grace CLI/config option only controlled PayloadKind::Earliest fallback timing. Ritual's production getPayload path used PayloadKind::WaitForPending downstream, and the v2.2.0 port preserves WaitForPending on the PayloadStore::resolve path. The destination intentionally does not carry this unused Earliest-mode CLI/config option because it is not part of Ritual's hot-path behavior.",
+      "test_strategy": "not_required_for_production_path",
+      "negative_test_candidate": "No production-path CLI/config regression is required for builder.empty-payload-grace because Ritual does not use PayloadKind::Earliest for getPayload. If Earliest becomes supported product behavior, add coverage for the optional grace setting then.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed 2026-05-11 and reclassified: builder.empty-payload-grace is absent, but it only affects PayloadKind::Earliest. Ritual production uses WaitForPending, so this CLI/config option is intentionally unported rather than a hot-path parity gap."
+    },
+    {
+      "record_id": "file-0200-atom-0002",
+      "file_index": 200,
+      "atom_index": 2,
+      "atoms_total": 3,
+      "source_path": "crates/node/core/src/args/payload_builder.rs",
+      "source_hunk_hint": "@@ -32,9 +31,19 @@; @@ -44,7 +53,9 @@; @@ -69,6 +84,10 @@",
+      "source_kind": "config",
+      "source_snippet": "/// Maximum block size in bytes. If not specified, no size limit is enforced.\n#[arg(long = \"builder.max-block-size\", value_parser = RangedU64ValueParser::<usize>::new().range(1..), value_name = \"BYTES\")]\npub max_block_size_bytes: Option<usize>,\n\nimpl Default for PayloadBuilderArgs {\n    fn default() -> Self {\n        Self { max_block_size_bytes: None, /* ... */ }\n    }\n}\n\nfn max_block_size_bytes(&self) -> Option<usize> {\n    self.max_block_size_bytes\n}",
+      "semantic_claim": "The old payload-builder CLI adds an optional `--builder.max-block-size` byte limit and exposes it through `PayloadBuilderConfig`, allowing payload construction to enforce a total block-size cap when configured.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload-building",
+        "block-size",
+        "cli-config",
+        "resource-limit"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/node/core/src/args/payload_builder.rs",
+          "symbols": [
+            "PayloadBuilderArgs",
+            "PayloadBuilderConfig for PayloadBuilderArgs"
+          ],
+          "evidence": "Current destination `crates/node/core/src/args/payload_builder.rs` exposes `--builder.max-block-size`, stores `max_block_size_bytes: Option<usize>`, defaults it to `None`, implements `PayloadBuilderConfig::max_block_size_bytes`, and includes parser tests for valid and invalid max-block-size values."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/payload.rs",
+          "symbols": [
+            "EthereumPayloadBuilder::build_payload_builder"
+          ],
+          "evidence": "The Ethereum node payload builder forwards `conf.max_block_size_bytes()` into `EthereumBuilderConfig::with_max_block_size_bytes(...)`."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "effective_block_size_limit",
+            "build_payload"
+          ],
+          "evidence": "The payload builder computes an effective block-size limit from `builder_config.max_block_size_bytes` and applies it to scheduled obligations, async commitments/settlements/deliveries, and regular pool transactions using RLP length estimates."
+        }
+      ],
+      "equivalence_argument": "The current destination preserves the old CLI/config surface and extends it into active payload-building enforcement. This atom was stale in the previous record and is now exact-covered for the audited behavior.",
+      "test_strategy": "covered_by_destination_tests",
+      "negative_test_candidate": "Retain parser coverage for `--builder.max-block-size` and add payload-size enforcement regressions if future changes touch `effective_block_size_limit` or candidate RLP accounting.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Rechecked against latest commit c7d36f341b; max-block-size CLI/config and enforcement are present."
+    },
+    {
+      "record_id": "file-0200-atom-0003",
+      "file_index": 200,
+      "atom_index": 3,
+      "atoms_total": 3,
+      "source_path": "crates/node/core/src/args/payload_builder.rs",
+      "source_hunk_hint": "@@ -1,5 +1,4 @@; @@ -86,14 +105,6 @@; @@ -141,14 +152,16 @@",
+      "source_kind": "config",
+      "source_snippet": "use crate::{cli::config::PayloadBuilderConfig, version::default_extra_data};\n\nimpl TypedValueParser for ExtraDataValueParser {\n    fn parse_ref(/* ... */) -> Result<Self::Value, clap::Error> {\n        let val = value.to_str().ok_or_else(|| clap::Error::new(clap::error::ErrorKind::InvalidUtf8))?;\n        Ok(val.to_string())\n    }\n}\n\n#[test]\nfn test_large_extra_data() {\n    let extra_data = \"x\".repeat(1024);\n    let args = CommandParser::<PayloadBuilderArgs>::try_parse_from([\n        \"reth\",\n        \"--builder.extradata\",\n        extra_data.as_str(),\n    ]).unwrap().args;\n    assert_eq!(args.extra_data, extra_data);\n}",
+      "semantic_claim": "The old payload-builder CLI removes the 32-byte extra-data limit and changes the regression to accept a 1024-byte `--builder.extradata` value.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload-building",
+        "extra-data",
+        "header-fields",
+        "cli-config"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/node/core/src/args/payload_builder.rs",
+          "symbols": [
+            "ExtraDataValueParser::parse_ref",
+            "test_invalid_extra_data"
+          ],
+          "evidence": "Current payload-builder CLI parsing still imports MAXIMUM_EXTRA_DATA_SIZE, rejects extra data whose decoded byte length exceeds that limit, and keeps the invalid oversized extra-data regression. It does not preserve the old 1024-byte acceptance behavior."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/chainspec/src/spec.rs",
+          "symbols": [
+            "ChainSpec::max_extra_data_bytes",
+            "From<Genesis> for ChainSpec"
+          ],
+          "evidence": "ChainSpec stores max_extra_data_bytes as Option<usize>. Static Ethereum specs use Some(MAXIMUM_EXTRA_DATA_SIZE), while ChainSpec::from(Genesis) sets max_extra_data_bytes to None for genesis-derived custom chains, which makes consensus unbounded for those chains."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/consensus/src/lib.rs",
+          "symbols": [
+            "EthBeaconConsensus::new",
+            "HeaderValidator::validate_header"
+          ],
+          "evidence": "Consensus reads chain_spec.max_extra_data_bytes() into max_extra_data_size and passes it to validate_header_extra_data during header validation. Chain-level policy is therefore enforced, but the payload-builder CLI still rejects oversized configured extra_data before payload construction."
+        }
+      ],
+      "equivalence_argument": "Confirmed missing for payload-builder CLI behavior. The destination still rejects oversized configured builder extra_data at CLI parse time. ChainSpec can represent unbounded consensus extra-data policy for genesis-derived chains, but that does not make the old payload-builder CLI acceptance of a 1024-byte --builder.extradata value equivalent.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "If large builder extra_data should be supported, replace test_invalid_extra_data with an acceptance regression and verify payload headers are valid under the intended ChainSpec policy.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed 2026-05-11: confirmed payload-builder CLI behavior gap, not ambiguity. Consensus policy may be unbounded for custom genesis specs, but builder CLI still rejects oversized configured extra_data."
+    }
+  ],
+  "high_risk_atoms_total": 3,
+  "non_exact_atoms_total": 2,
+  "adversarial_reviews": [],
+  "summary": "Reviewed and clarified: max_block_size_bytes is exact-covered. empty_payload_grace is intentionally not ported because Ritual production getPayload uses WaitForPending, not Earliest. The remaining confirmed gap in this file is oversized builder extra_data acceptance.",
+  "review_required": false,
+  "status": "confirmed_gap",
+  "notes": [
+    "Reviewed 2026-05-11 against current port code.",
+    "max_block_size_bytes remains exact-covered through CLI/config and payload enforcement.",
+    "empty_payload_grace is absent from payload-builder args, PayloadBuilderConfig, Ethereum node payload config, and on_missing_payload behavior, but the old setting applied to PayloadKind::Earliest rather than Ritual's production WaitForPending getPayload path.",
+    "Builder extra_data parsing still rejects values over MAXIMUM_EXTRA_DATA_SIZE.",
+    "Only the oversized builder extra_data behavior remains a confirmed gap in this file."
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "cluster_key": "executor delivery:async-fulfillment-state-7e41455e",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The short-result transition is one-way from AwaitingExecution to Fulfilled; already fulfilled or later two-phase states fail the transition guard.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub enum AsyncState { AwaitingExecution, Fulfilled, AwaitingDelivery, DeliveryReady }\n...\nif metadata.state != AsyncState::AwaitingExecution { return Err(AsyncPoolError::InvalidState(metadata.state.clone())); }\n...\nmetadata.state = AsyncState::Fulfilled;\nmetadata.execution_result = Some(execution_result);\nmetadata.execution_proof = Some(execution_proof);",
+      "symbols": [
+        "AsyncState",
+        "AsyncPool::submit_result_with_context",
+        "AsyncPool::fulfill_result"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The regression test exercises the second fulfillment attempt and confirms it is rejected as InvalidState rather than overwriting the fulfilled result.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pool.submit_result_with_context(result_submission(tx_hash)).unwrap();\nassert_eq!(pool.submit_result_with_context(result_submission(tx_hash)), Err(AsyncPoolError::InvalidState(AsyncState::Fulfilled)));",
+      "symbols": [
+        "tests::rejects_result_for_non_awaiting_entry",
+        "tests::rejects_result_context_mismatches"
+      ]
+    }
+  ],
+  "equivalence_argument": "The v2.2 async pool has additional two-phase states, but the execution-result transition still has a single valid source state. submit_result_with_context rejects missing entries and every non-AwaitingExecution state before setting state/result/proof, so fulfilled metadata cannot be overwritten by a later result submission.",
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/async_pool.rs"
+  ],
+  "invariant_id": "cur-fd20b9f5fe-async-fulfillment-state-transition",
+  "invariant_index": 146,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/async_pool.rs"
+    ],
+    "checked_queries": [
+      "AsyncState|AwaitingExecution|Fulfilled|rejects_result_for_non_awaiting_entry"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "AsyncState::AwaitingExecution",
+      "AsyncState::Fulfilled",
+      "AsyncPool::submit_result_with_context"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped; two-phase states extend the enum without weakening the execution-result guard.",
+  "rationale": "The new AsyncState enum has AwaitingExecution and Fulfilled, and fulfill_transaction enforces the transition guard before setting result/proof fields. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: Additional async states could be introduced later, making this a first implementation of the state machine rather than a stable external contract.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "4572196e75a786b76753489370333931236250b8"
+  ],
+  "statement": "A transaction in the async pool may be fulfilled only from AwaitingExecution state; fulfillment sets the state to Fulfilled and stores the output and optional proof, while missing transactions return TransactionNotFound and already fulfilled transactions return InvalidState.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Insert an AwaitingExecution async transaction, fulfill it once and verify state/result/proof; then call fulfill again and assert InvalidState, and call fulfill for an unknown hash and assert TransactionNotFound."
+  ],
+  "summary": "Async fulfillment remains a guarded one-way transition from AwaitingExecution to Fulfilled.",
+  "test_or_falsification_candidate": "Insert an AwaitingExecution async transaction, fulfill it once and verify state/result/proof; then call fulfill again and assert InvalidState, and call fulfill for an unknown hash and assert TransactionNotFound.",
+  "title": "Async fulfillment is a one-way state transition",
+  "total_invariants": 1954
+}

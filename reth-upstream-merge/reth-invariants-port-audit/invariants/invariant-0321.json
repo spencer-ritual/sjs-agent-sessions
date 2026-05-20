@@ -1,0 +1,70 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/service.rs"
+  ],
+  "invariant_id": "cur-c60b71f77f-executor-events-decode-registry-payload",
+  "invariant_index": 321,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-spc-verification/src/service.rs (absent locally)",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-spc-verification/src/types.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-spc-verification/src/verifier.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-tee-registry-reader/src/constants.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-tee-registry-reader/src/reader.rs",
+      "ritual-reth-nodebuilder-internal/crates/node/src/executor.rs",
+      "all audited dependency repos searched for the listed symbols"
+    ],
+    "checked_queries": [
+      "ExecutorRegistered ExecutorUpdated teeType workloadId capability publicKey",
+      "paymentAddress teeAddress indexed",
+      "ExecutorInfo::new"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "ExecutorRegistered",
+      "ExecutorUpdated",
+      "paymentAddress",
+      "teeAddress",
+      "teeType",
+      "workloadId",
+      "publicKey"
+    ],
+    "missing_behavior": "No local audited repo decodes ExecutorRegistered/ExecutorUpdated logs as indexed paymentAddress/teeAddress topics plus non-indexed teeType, workloadId, capability, and dynamic publicKey fields into the in-memory registry.",
+    "related_but_insufficient_code": [
+      "ritual-spc-verification/src/types.rs still defines ExecutorRegistry and deactivate_executor, but it is only an in-memory map and has no log-watching service.",
+      "ritual-tee-registry-reader reads TEEServiceRegistry storage via TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS; it does not decode ExecutorRegistry event logs.",
+      "ritual-reth-nodebuilder-internal/crates/node/src/executor.rs syncs registry state from storage before execution but uses TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS and read_all_executors, not ExecutorRegistry event receipts."
+    ]
+  },
+  "notes": "Confirmed by exact event-symbol searches across all audited local repos; the current local architecture reads registry storage instead of consuming ExecutorRegistry event logs.",
+  "rationale": "The commit body says it handles the new ExecutorRegistered event structure and applies the same fix to ExecutorUpdated; the diff decodes these fields manually and passes payment address, public key, tee address, capability, tee type, and workload ID into ExecutorInfo::new before registering it. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "9f08fcce9941bbbf84ae81140fad5282fd83f58e"
+  ],
+  "statement": "ExecutorRegistered and ExecutorUpdated logs are decoded as indexed paymentAddress and teeAddress topics plus non-indexed teeType, workloadId, capability, and dynamic publicKey fields, and those decoded values populate the in-memory ExecutorRegistry entry.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Build ABI-encoded ExecutorRegistered and ExecutorUpdated logs with paymentAddress, teeAddress, teeType, workloadId, capability, and publicKey, pass them to the service handlers, and assert the registry entry stores exactly those decoded values."
+  ],
+  "summary": "New ExecutorRegistry event payload decoding is absent.",
+  "test_or_falsification_candidate": "Feed a valid new registry event and assert no local log handler updates the in-memory registry.",
+  "title": "Executor events decode new registry payload",
+  "total_invariants": 1954
+}

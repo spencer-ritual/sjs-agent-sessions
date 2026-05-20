@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "The shared wallet helper reads balance and lock_until from RitualWallet state, sums executor, commitment, inclusion, and Phase 2 callback costs, and rejects insufficient balance or lock duration.",
+      "path": "crates/ritual-async-fees/src/wallet.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let balance = read_wallet_mapping(db, wallet_address, user_address, BALANCE_MAPPING_SLOT)?;\nlet lock_until = read_wallet_mapping(db, wallet_address, user_address, LOCK_MAPPING_SLOT)?;\n...\nlet total_required_fees = executor_fee + commitment_fee + inclusion_fee + callback_fee;\nlet required_lock_until = commit_block.saturating_add(ttl);\n\nif balance < total_required_fees {\n    return Err(format!(\n        \"insufficient RitualWallet balance for short async commitment: balance={balance}, required={total_required_fees}, user={user_address}\"\n    ));\n}\nif lock_until < U256::from(required_lock_until) {\n    return Err(format!(\n        \"insufficient RitualWallet lock for short async commitment: lock_until={lock_until}, required={required_lock_until}, user={user_address}\"\n    ));\n}",
+      "symbols": [
+        "verify_wallet_for_commitment",
+        "delivery_callback_cost",
+        "verify_fixed_fee_wallet_lock"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "Consensus verification invokes the same wallet check at parent state for each async commitment before executor validation and simulation parity checks.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let original_payer = original_transaction_payer(&original_tx);\nverify_wallet_for_commitment(\n    &mut db,\n    original_payer,\n    commitment.precompile_address,\n    &commitment.precompile_input,\n    commitment.ttl,\n    current_block,\n)\n.map_err(|err| {\n    BlockVerificationError::InvalidAsyncCommitment(format!(\n        \"wallet balance/lock check failed for {}: {err}\",\n        commitment.origin_tx\n    ))\n})?;",
+      "symbols": [
+        "verify_async_commitments",
+        "verify_wallet_for_commitment"
+      ]
+    }
+  ],
+  "equivalence_argument": "The wallet helper sums executor_fee + commitment_fee + inclusion_fee + callback_fee into total_required_fees and rejects balances below that amount. It computes required_lock_until as commit_block + ttl and rejects lock_until below that value, and block verification calls this helper at parent state.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/wallet.rs"
+  ],
+  "invariant_id": "cur-59daef06f9-wallet-balance-lock-cover-full-async-requirement",
+  "invariant_index": 423,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Same shared wallet helper as invariant 421; this invariant focuses on the exact balance and lock formula.",
+  "rationale": "The function sums all required components into `total_required_fees`, computes required lock as `commit_block + ttl`, and returns errors when either balance or lock is insufficient. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "dee26616f409fb88ead87fd2b0c881b7c1c2a91d"
+  ],
+  "statement": "Wallet verification requires balance to cover executor fee, commitment fee, inclusion fee, and any Phase 2 callback cost, and requires `lock_until >= commit_block + ttl`.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Construct wallet state with balance one wei below the computed total and assert rejection; construct state with adequate balance but `lock_until < commit_block + ttl` and assert rejection; assert both adequate passes."
+  ],
+  "summary": "Wallet verification covers full required fees and lock duration.",
+  "test_or_falsification_candidate": "Construct wallet state with balance one wei below the computed total and assert rejection; construct state with adequate balance but `lock_until < commit_block + ttl` and assert rejection; assert both adequate passes.",
+  "title": "Wallet balance and lock cover full async requirement",
+  "total_invariants": 1954
+}

@@ -1,0 +1,11 @@
+{
+  "record_type": "adversarial_review",
+  "record_id": "review-file-0524-atom-0001",
+  "atom_record_id": "file-0524-atom-0001",
+  "review_result": "pass",
+  "falsification_attempt": "Compared the old lib.rs txpool extension surface with v2.2 traits and Pool wrappers. Async result submission, metadata lookup, fulfilled-original replay, delivery-ready replay, and sender locking remain live; scheduled direct subpool insertion was replaced by payload/verifier scheduled obligation handling.",
+  "missed_risks": [
+    "Old ritual_metrics::tx validation logging is not restored; this is observability loss, not an admission or ordering invariant in the current feature scope."
+  ],
+  "notes": "Existing async_pool and PoolInner tests cover fulfilled replay, delivery-ready replay, and sender-lock admission; the new canonical commitment test covers the old async inclusion boundary."
+}

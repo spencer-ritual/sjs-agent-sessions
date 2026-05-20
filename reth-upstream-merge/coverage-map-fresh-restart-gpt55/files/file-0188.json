@@ -1,0 +1,99 @@
+{
+  "record_type": "file",
+  "file_index": 188,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/node/builder/src/builder/mod.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "partial",
+  "tags": [
+    "partial",
+    "high-risk",
+    "non-exact",
+    "node-builder",
+    "builder-context",
+    "spc",
+    "verifier-lifecycle",
+    "reviewed",
+    "structural-equivalent"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0188-atom-0001",
+      "file_index": 188,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/node/builder/src/builder/mod.rs",
+      "source_hunk_hint": "@@ -36,6 +36,7 @@; @@ -593,17 +594,29 @@; @@ -643,6 +656,11 @@",
+      "source_kind": "lifecycle",
+      "source_snippet": "use ritual_spc_verification::SpcVerifier;\n\npub struct BuilderContext<Node: FullNodeTypes> {\n    pub(crate) config_container: WithConfigs<<Node::Types as NodeTypes>::ChainSpec>,\n    /// Shared SPC verifier instance\n    pub(crate) spc_verifier: Arc<SpcVerifier<Node::Provider>>,\n}\n\npub fn new(\n    head: Head,\n    provider: Node::Provider,\n    executor: TaskExecutor,\n    config_container: WithConfigs<<Node::Types as NodeTypes>::ChainSpec>,\n) -> Self {\n    use ritual_spc_verification::{ExecutorRegistry, SpcVerifier};\n    let executor_registry = Arc::new(std::sync::RwLock::new(ExecutorRegistry::new(100)));\n    let spc_verifier = Arc::new(\n        SpcVerifier::new_from_env(executor_registry, provider.clone())\n            .expect(\"FATAL: Failed to create SPC verifier\"),\n    );\n\n    Self { head, provider, executor, config_container, spc_verifier }\n}\n\npub const fn spc_verifier(&self) -> &Arc<SpcVerifier<Node::Provider>> {\n    &self.spc_verifier\n}",
+      "semantic_claim": "The old builder context owns a shared provider-backed SPC verifier, initializes it during node builder context construction with an in-memory executor registry of capacity 100, fails node startup if environment-based verifier construction fails, and exposes the verifier to later launch/add-on wiring.",
+      "high_risk": true,
+      "risk_tags": [
+        "spc-verification",
+        "verifier-lifecycle",
+        "builder-context",
+        "startup-fail-closed",
+        "executor-registry",
+        "public-api-support"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/node.rs",
+          "symbols": [
+            "EthereumAddOns::launch_add_ons"
+          ],
+          "evidence": "Current Ethereum add-ons build an ExecutorRegistry with capacity 100, construct SpcVerifier::new_from_env_simple(...)? with the node provider, and pass the verifier into ritual_async_rpc::module. The ? means verifier construction failure aborts add-on launch instead of allowing the async-result RPC without verifier state."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/ritual_async_rpc.rs",
+          "symbols": [
+            "submit_async_result",
+            "sync_spc_registry_from_state"
+          ],
+          "evidence": "The async-result RPC loads the canonical AsyncJobTracker job, rebuilds the SPC request from canonical job context, syncs the verifier registry from state at the commit block, calls spc_verifier.verify_single, and only then calls pool.submit_async_result. Missing registry/job data, invalid requests, invalid proofs, and verifier errors all return failed async responses before pool state is advanced."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "verify_short_async_block_with_simulators",
+            "verify_spc_calls"
+          ],
+          "evidence": "Block verification still includes the SPC phase: scheduled verification, scheduled censorship, async commitments, settlements, verify_spc_calls, nonce locks, and sequencing rights all run from parent state. This covers verifier-side block acceptance without needing an AddOnsContext-held SpcVerifier object."
+        }
+      ],
+      "equivalence_argument": "Confirmed after mechanical review: the builder-context-owned verifier object is not exact-preserved, but the runtime lifecycle properties that matter for active traffic are preserved at the ethereum/node add-ons boundary. The verifier is constructed with ExecutorRegistry capacity 100, construction is fail-closed via ?, async-result RPC verifies before mutating pool state, and block verification performs state-backed SPC checks. The old BuilderContext accessor is an API/ownership difference, not a missing FSM transition.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Keep startup/RPC regressions proving verifier construction failure aborts add-on launch and invalid SPC submissions do not call pool.submit_async_result.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed 2026-05-11: builder-owned verifier API is absent by design; active verifier startup and RPC/block-verification FSM are covered elsewhere."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Reviewed and downgraded: the old BuilderContext verifier object is not exact-preserved, but verifier startup, registry capacity, fail-closed behavior, RPC verification, and block-verification phases are covered by current ethereum/node and ritual-block-verification code.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Reviewed 2026-05-11 against current port code.",
+    "Destination BuilderContext remains verifier-free and const-shaped.",
+    "The verifier is instead constructed in EthereumAddOns::launch_add_ons with ExecutorRegistry::new(100) and SpcVerifier::new_from_env_simple(...)? .",
+    "The ? preserves fail-closed add-on launch semantics for the active async-result RPC surface.",
+    "No unresolved verifier-lifecycle proof remains; the difference is ownership/API shape."
+  ]
+}

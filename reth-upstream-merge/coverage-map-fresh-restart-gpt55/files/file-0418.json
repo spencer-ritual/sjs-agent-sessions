@@ -1,0 +1,68 @@
+{
+  "record_type": "file",
+  "file_index": 418,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/scheduling/src/job.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "intentionally_absent",
+  "tags": [
+    "non-exact",
+    "scheduled",
+    "compatibility-api"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0418-atom-0001",
+      "file_index": 418,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/scheduling/src/job.rs",
+      "source_hunk_hint": "@@ -0,0 +1,10 @@",
+      "source_kind": "compatibility_reexport",
+      "source_snippet": "This file is kept for compatibility, but we're now using the Call struct directly from the types module instead of the Job struct.",
+      "semantic_claim": "The old file only preserves a `Job` compatibility surface by re-exporting scheduling types.",
+      "high_risk": false,
+      "risk_tags": [
+        "compatibility",
+        "scheduled"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/src/lib.rs",
+          "symbols": [
+            "ScheduledCall"
+          ],
+          "evidence": "Destination has the concrete scheduled call model used by builder and verifier paths; no old `Job` compatibility module is present."
+        }
+      ],
+      "equivalence_argument": "The old compatibility module has no independent runtime behavior and is intentionally absent with the old crate boundary.",
+      "test_strategy": "compile-time API check only",
+      "negative_test_candidate": "A stale import of `ritual_scheduling::job::Job` should fail, confirming no hidden runtime dependency remains.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Not high-risk because this file is a compatibility shim, not scheduling execution logic."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The old job compatibility shim is intentionally absent; destination scheduled behavior uses `ScheduledCall` directly.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file 418: A\tcrates/scheduling/src/job.rs.",
+    "Source hunk begins at divergence diff line 82824."
+  ]
+}

@@ -1,0 +1,173 @@
+{
+  "record_type": "file",
+  "file_index": 194,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/node/builder/src/launch/engine.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "partial",
+  "tags": [
+    "partial",
+    "high-risk",
+    "non-exact",
+    "engine-launch",
+    "blocking-handler",
+    "transaction-pool",
+    "spc",
+    "add-ons-context",
+    "reviewed",
+    "structural-equivalent"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0194-atom-0001",
+      "file_index": 194,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/node/builder/src/launch/engine.rs",
+      "source_hunk_hint": "@@ -15,8 +15,8 @@; @@ -73,11 +73,14 @@; @@ -153,6 +156,13 @@; @@ -165,6 +175,7 @@; @@ -393,3 +405,53 @@",
+      "source_kind": "control_flow",
+      "source_snippet": "CB::Components: NodeComponents<T, Pool: reth_transaction_pool::TransactionPoolExt>,\n<<Types as NodeTypes>::Primitives as NodePrimitives>::SignedTx:\n    From<reth_ethereum_primitives::TransactionSigned>,\n\nlet blocking_handler = Self::create_backfill_blocking_handler::<Types, _, _>(\n    ctx.components().pool().clone(),\n    ctx.node_adapter().provider.clone(),\n);\n\nlet pipeline = build_networked_pipeline(\n    /* ... */\n    pipeline_exex_handle,\n    blocking_handler,\n)?;\n\nfn create_backfill_blocking_handler<Types, Pool, Client>(\n    pool: Pool,\n    client: Client,\n) -> Option<std::sync::Arc<dyn Fn(&reth_execution_types::Chain<Types::Primitives>) + Send + Sync>>\nwhere\n    Types: NodeTypes,\n    Pool: reth_transaction_pool::TransactionPoolExt + Clone + 'static,\n    Client: reth_provider::StateProviderFactory + reth_provider::BlockReaderIdExt + reth_provider::ChainSpecProvider + Clone + 'static,\n{\n    let handle = tokio::runtime::Handle::current();\n    Some(std::sync::Arc::new(move |chain| {\n        let tip = chain.tip();\n        reth_transaction_pool::blocking_handlers::process_canonical_state_transactions(\n            &client, &pool, tip, tip.number(), tip.hash(), &handle,\n        );\n    }))\n}",
+      "semantic_claim": "The old engine launcher creates a synchronous backfill blocking handler from the transaction pool and provider, passes it into pipeline construction, and uses it to process canonical-state scheduled/async transaction work before asynchronous chain notifications proceed.",
+      "high_risk": true,
+      "risk_tags": [
+        "canonical-state",
+        "blocking-handler",
+        "transaction-pool",
+        "scheduled-transactions",
+        "async-commitment",
+        "pipeline"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/node/builder/src/launch/engine.rs",
+          "symbols": [
+            "EngineNodeLauncher::launch_node"
+          ],
+          "evidence": "Current engine launch does not construct create_backfill_blocking_handler, does not pass a transaction-pool backfill handler into build_networked_pipeline, and exact searches found no process_canonical_state_transactions callback in this launch path."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/node/builder/src/setup.rs",
+          "symbols": [
+            "build_networked_pipeline",
+            "build_pipeline"
+          ],
+          "evidence": "Current pipeline setup has no blocking_handler parameter and no ExecutionStage::with_blocking_handler call, so the old execution-stage synchronous registration path is absent."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/node/builder/src/components/pool.rs",
+          "symbols": [
+            "spawn_pool_maintenance_task"
+          ],
+          "evidence": "Current pool maintenance now registers pool.on_blocking_canonical_state_change through provider.subscribe_blocking_canon_state before spawning the existing async maintain_transaction_pool_future. This preserves the blocking-before-notifications ordering for Ritual async lifecycle side effects while keeping ordinary txpool maintenance on the v2 stream path."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/maintain.rs",
+          "symbols": [
+            "maintain_transaction_pool"
+          ],
+          "evidence": "The maintenance task still handles Commit/Reorg notifications and calls pool.on_canonical_state_change(update), preserving ordinary v2 txpool maintenance. The ordering-sensitive Ritual async lifecycle side effects are also exposed through TransactionPoolExt::on_blocking_canonical_state_change for the provider-level blocking subscription."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/mod.rs",
+          "symbols": [
+            "Pool::on_canonical_state_change"
+          ],
+          "evidence": "Pool::process_blocking_canonical_state_change processes async commitments, async settlements, and expiry cleanup from the canonical tip. Pool::on_canonical_state_change delegates to the same idempotent hook after ordinary txpool updates, so existing stream maintenance remains safe while the provider blocking subscriber restores pre-notification visibility."
+        }
+      ],
+      "equivalence_argument": "Resolved with v2-style wiring. The port still does not restore the old engine-launch/pipeline blocking-handler plumbing, but it now registers the transaction-pool canonical async lifecycle hook through provider.subscribe_blocking_canon_state. CanonicalInMemoryState runs blocking subscribers before async canonical broadcasts, so async metadata/sender-lock/settlement cleanup state is visible before downstream notification consumers can race result submission.",
+      "test_strategy": "covered_by_destination_tests",
+      "negative_test_candidate": "Keep the txpool regression that processes a canonical async commitment through process_blocking_canonical_state_change and proves metadata plus sender lock are populated before stream maintenance.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed and updated 2026-05-11: resolved by provider-level blocking subscription in spawn_pool_maintenance_task plus TransactionPoolExt::on_blocking_canonical_state_change. The v2 path preserves ordering without restoring execution-stage plumbing."
+    },
+    {
+      "record_id": "file-0194-atom-0002",
+      "file_index": 194,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/node/builder/src/launch/engine.rs",
+      "source_hunk_hint": "@@ -194,6 +205,7 @@",
+      "source_kind": "lifecycle",
+      "source_snippet": "let add_ons_ctx = AddOnsContext {\n    node: ctx.node_adapter().clone(),\n    config: ctx.node_config(),\n    beacon_engine_handle: beacon_engine_handle.clone(),\n    jwt_secret,\n    engine_events: event_sender.clone(),\n    spc_verifier: ctx.spc_verifier().clone(),\n};",
+      "semantic_claim": "The old engine launcher passes the shared launch-context SPC verifier into `AddOnsContext` so engine validators/add-ons can access the same verifier instance.",
+      "high_risk": true,
+      "risk_tags": [
+        "spc-verification",
+        "add-ons-context",
+        "engine-validator",
+        "verifier-lifecycle"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/node.rs",
+          "symbols": [
+            "EthereumAddOns::launch_add_ons"
+          ],
+          "evidence": "Current Ethereum add-ons build an ExecutorRegistry with capacity 100, construct SpcVerifier::new_from_env_simple(...)? with the node provider, and pass the verifier into ritual_async_rpc::module. The ? means verifier construction failure aborts add-on launch instead of allowing the async-result RPC without verifier state."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/ritual_async_rpc.rs",
+          "symbols": [
+            "submit_async_result",
+            "sync_spc_registry_from_state"
+          ],
+          "evidence": "The async-result RPC loads the canonical AsyncJobTracker job, rebuilds the SPC request from canonical job context, syncs the verifier registry from state at the commit block, calls spc_verifier.verify_single, and only then calls pool.submit_async_result. Missing registry/job data, invalid requests, invalid proofs, and verifier errors all return failed async responses before pool state is advanced."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "verify_short_async_block_with_simulators",
+            "verify_spc_calls"
+          ],
+          "evidence": "Block verification still includes the SPC phase: scheduled verification, scheduled censorship, async commitments, settlements, verify_spc_calls, nonce locks, and sequencing rights all run from parent state. This covers verifier-side block acceptance without needing an AddOnsContext-held SpcVerifier object."
+        }
+      ],
+      "equivalence_argument": "Confirmed after mechanical review: AddOnsContext no longer receives a launch-context verifier, but active SPC verifier behavior is installed in ethereum/node RPC setup and block verification. This is a non-exact ownership/API change, not a missing verifier FSM transition.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Keep RPC verifier fail-closed tests around ritual_submitAsyncResult and invalid SPC proof/job/registry cases.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed 2026-05-11: verifier handoff is structurally covered elsewhere; no unresolved proof remains for atom 2."
+    }
+  ],
+  "high_risk_atoms_total": 2,
+  "non_exact_atoms_total": 2,
+  "adversarial_reviews": [],
+  "summary": "Reviewed and resolved: atom 1 is now structurally covered by provider-level blocking canonical-state subscription from txpool maintenance, preserving the old blocking-before-async-notification ordering without restoring execution-stage plumbing. Atom 2 remains structurally covered by current ethereum/node RPC setup and block verification.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Reviewed 2026-05-11 against current port code.",
+    "No create_backfill_blocking_handler or process_canonical_state_transactions engine-launch registration exists; this is intentionally not restored in the v2 architecture.",
+    "Current pool maintenance registers TransactionPoolExt::on_blocking_canonical_state_change with provider.subscribe_blocking_canon_state.",
+    "Pool::process_blocking_canonical_state_change processes async commitments, settlements, and cleanup before async canonical notifications are broadcast.",
+    "The focused txpool regression and local HTTP async traffic passed after this wiring.",
+    "SPC verifier handoff is covered by ethereum/node RPC-local verifier construction and state-backed block verification."
+  ]
+}

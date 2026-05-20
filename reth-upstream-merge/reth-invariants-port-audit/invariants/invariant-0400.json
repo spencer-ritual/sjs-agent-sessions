@@ -1,0 +1,64 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/rpc/rpc/src/async_tx_validator.rs"
+  ],
+  "invariant_id": "cur-e876a2d713-async-payload-constraints-enforced",
+  "invariant_index": 400,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/rpc/rpc/src/async_tx_validator.rs",
+      "crates/ritual-precompile-codecs/src/validation.rs"
+    ],
+    "checked_queries": [
+      "MAX_TTL_BLOCKS 30",
+      "MAX_ASYNC_INPUT_SIZE 5 * 1024",
+      "validate_async_payload ttl 31",
+      "input size 5KB"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "MAX_SHORT_ASYNC_TTL_BLOCKS",
+      "MAX_ASYNC_INPUT_SIZE",
+      "validate_async_payload",
+      "validate_executor_and_ttl_bounds",
+      "validate_required_http_url"
+    ],
+    "missing_behavior": "RPC async payload validation does not enforce the invariant-required 5KB input ceiling or 30-block TTL ceiling.",
+    "related_but_insufficient_code": [
+      "crates/ritual-precompile-codecs/src/validation.rs sets MAX_ASYNC_INPUT_SIZE to 10 * 1024, not 5 * 1024.",
+      "crates/rpc/rpc/src/async_tx_validator.rs passes MAX_SHORT_ASYNC_TTL_BLOCKS = 500 into validate_async_payload, not 30.",
+      "The same validation code does reject malformed ABI, zero executor, zero TTL, and bad HTTP URLs, but with wider size and TTL bounds than required."
+    ]
+  },
+  "notes": "The structural validator exists, but the required numeric limits are not ported.",
+  "rationale": "The new async_tx_validator module defines MAX_TTL_BLOCKS = 30, MAX_ASYNC_INPUT_SIZE = 5 * 1024, validation errors for each rejected condition, HTTP-specific URL checks, and base ExecutorRequest validation for executor and TTL. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "8f0f52c33921e9c95acc5d0cb4a9bdc66a4d7d19"
+  ],
+  "statement": "RPC-level async payload validation must enforce input size <= 5KB, decodable ABI payloads, nonzero executor address, ttl greater than 0 and no more than 30 blocks, and for HTTP or long-running HTTP calls a nonempty URL beginning with http:// or https://.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Unit-test validate_async_payload across HTTP and LLM payloads: valid payloads pass, oversized payloads fail, malformed ABI fails, zero executor fails, ttl 0 fails, ttl 31 fails, and HTTP payloads with empty or scheme-less URLs fail with the documented error variants."
+  ],
+  "summary": "RPC async payload bounds are wider than required.",
+  "test_or_falsification_candidate": "Submit an async HTTP payload of 6KB or TTL 31; the invariant expects InvalidParams, while the current validator accepts those bounds if other fields are valid.",
+  "title": "Async payload constraints enforced",
+  "total_invariants": 1954
+}

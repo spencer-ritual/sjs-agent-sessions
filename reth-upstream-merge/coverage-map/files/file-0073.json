@@ -1,0 +1,135 @@
+{
+  "record_type": "file",
+  "file_index": 73,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/errors/src/error.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "covered_by_upstream",
+  "tags": [
+    "covered_by_upstream",
+    "non-exact"
+  ],
+  "atoms_total": 3,
+  "atoms": [
+    {
+      "record_id": "file-0073-atom-0001",
+      "file_index": 73,
+      "atom_index": 1,
+      "atoms_total": 3,
+      "source_path": "crates/errors/src/error.rs",
+      "source_hunk_hint": "@@ -53,2 +53,5 @@",
+      "source_kind": "other",
+      "source_snippet": "// Note: RethError and BlockExecutionError sizes vary based on whether the async-context\n// feature is enabled in alloy-evm (56 bytes without, 64 bytes with), so we don't assert\n// their sizes here.",
+      "semantic_claim": "The file documents that `RethError` and `BlockExecutionError` no longer have a stable exact size because `alloy-evm`'s `async-context` feature can enlarge them from 56 to 64 bytes.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "covered_by_upstream",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/errors/src/error.rs",
+          "symbols": [
+            "size_asserts",
+            "static_assert_max_size"
+          ],
+          "snippet": "macro_rules! static_assert_max_size {\n    ($t:ty, $sz:expr) => {\n        const _: () = assert!(core::mem::size_of::<$t>() <= $sz);\n    };\n}\n\nstatic_assert_max_size!(RethError, 64);\nstatic_assert_max_size!(BlockExecutionError, 64);",
+          "evidence": "The port does not carry the explanatory comment, but upstream logic encodes the same rationale by allowing both types to vary up to 64 bytes instead of requiring a fixed size."
+        }
+      ],
+      "equivalence_argument": "Upstream v2.2.0 covers the downstream intent structurally: rather than documenting the feature-driven size variance in comments, it changes the compile-time contract to a max-size assertion that tolerates both the 56-byte and 64-byte layouts.",
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Comment text is absent, but the destination behavior matches the documented reason for dropping exact-size assertions."
+    },
+    {
+      "record_id": "file-0073-atom-0002",
+      "file_index": 73,
+      "atom_index": 2,
+      "atoms_total": 3,
+      "source_path": "crates/errors/src/error.rs",
+      "source_hunk_hint": "@@ -63,4 +66,2 @@",
+      "source_kind": "changed_constant",
+      "source_snippet": "static_assert_size!(RethError, 56);",
+      "semantic_claim": "The file stops enforcing that `RethError` must be exactly 56 bytes on x86_64.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "covered_by_upstream",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/errors/src/error.rs",
+          "symbols": [
+            "size_asserts",
+            "static_assert_max_size"
+          ],
+          "snippet": "static_assert_max_size!(RethError, 64);",
+          "evidence": "The port replaces the removed exact-size invariant with a looser compile-time upper bound, which permits the feature-dependent 56/64-byte layouts."
+        }
+      ],
+      "equivalence_argument": "This is not an exact textual carry-forward, but upstream v2.2.0 preserves the intended compatibility by asserting only that `RethError` stays within 64 bytes rather than exactly 56 bytes.",
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Destination is stricter than outright removal because it still guards against unbounded growth while accepting async-context expansion."
+    },
+    {
+      "record_id": "file-0073-atom-0003",
+      "file_index": 73,
+      "atom_index": 3,
+      "atoms_total": 3,
+      "source_path": "crates/errors/src/error.rs",
+      "source_hunk_hint": "@@ -63,4 +66,2 @@",
+      "source_kind": "changed_constant",
+      "source_snippet": "static_assert_size!(BlockExecutionError, 56);",
+      "semantic_claim": "The file stops enforcing that `BlockExecutionError` must be exactly 56 bytes on x86_64.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "covered_by_upstream",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/errors/src/error.rs",
+          "symbols": [
+            "size_asserts",
+            "static_assert_max_size"
+          ],
+          "snippet": "static_assert_max_size!(BlockExecutionError, 64);",
+          "evidence": "The port carries the same effective relaxation for `BlockExecutionError` by allowing any layout up to 64 bytes instead of requiring 56 bytes exactly."
+        }
+      ],
+      "equivalence_argument": "Upstream v2.2.0 implements the same portability intent through a max-size assertion that accepts both non-async and async-context-enabled layouts.",
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "No dependency move was needed; the relevant guard lives directly in the destination file."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 3,
+  "adversarial_reviews": [],
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Destination evidence was found directly in the ported `crates/errors/src/error.rs`; no implementation change is needed for this file."
+}

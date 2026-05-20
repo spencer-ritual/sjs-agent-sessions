@@ -1,0 +1,76 @@
+{
+  "record_type": "file",
+  "file_index": 528,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/transaction-pool/src/pool/async_pool.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "structural_equivalent",
+  "tags": [
+    "structural_equivalent",
+    "reviewed",
+    "txpool",
+    "async"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0528-atom-0001",
+      "file_index": 528,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "source_hunk_hint": "@@ -0,0 +1,1471 @@",
+      "source_kind": "async_pool_state_machine",
+      "source_snippet": "use crate::identifier::SenderId;\nuse crate::EthPooledTransaction;\nuse crate::{pool::TransactionId, traits::PoolTransaction, validate::ValidPoolTransaction};\nuse alloy_consensus::transaction::OriginalTransaction;\nuse alloy_primitives::{Address, Bytes, B256, U256};\nuse dashmap::DashMap;\nuse reth_ethereum_primitives::TransactionSigned;\nuse reth_primitives_traits::{Recovered, SignedTransaction};\nuse ritual_metrics;\nuse std::sync::Arc;",
+      "semantic_claim": "The old added async pool tracks awaiting execution, fulfilled, awaiting delivery, delivery-ready states, sender locks, expiry cleanup, original transaction replay, and two-phase delivery results.",
+      "high_risk": true,
+      "risk_tags": [
+        "txpool",
+        "async",
+        "state-machine"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/async_pool.rs",
+          "symbols": [
+            "AsyncState",
+            "AsyncTxMetadata",
+            "submit_result_with_context",
+            "submit_delivery_result_with_context",
+            "cleanup_expired"
+          ],
+          "evidence": "Destination has a refactored async pool with the same core states, sender locks, context-checked result submissions, delivery readiness, original replay conversion, and cleanup tests."
+        }
+      ],
+      "equivalence_argument": "Reviewed structural equivalent for the active v2.2 async lifecycle: destination async pool preserves awaiting-execution, fulfilled, awaiting-delivery, delivery-ready, sender locks, expiry cleanup, original transaction replay, and two-phase delivery transitions with context-checked result submissions. It is intentionally not textually exact to the old broad implementation.",
+      "test_strategy": "async pool unit tests plus payload/RPC async-result E2E",
+      "negative_test_candidate": "Duplicate sender async commitments, expired fulfilled entries, and invalid delivery transitions should be rejected.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed: active async pool FSM behavior is present with focused unit coverage in destination."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Reviewed: core async pool behavior is present in a refactored v2.2 async metadata implementation.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0528: A\tcrates/transaction-pool/src/pool/async_pool.rs.",
+    "Source diff lines 91240-92716; first hunk `@@ -0,0 +1,1471 @@`.",
+    "Fresh destination evidence was checked against /home/ritual/repos/ritual-reth-internal-v2.2.0-port.",
+    "Review conclusion: no active async-pool FSM gap remains in this file."
+  ]
+}

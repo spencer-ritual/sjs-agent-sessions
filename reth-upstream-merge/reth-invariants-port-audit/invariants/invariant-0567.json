@@ -1,0 +1,68 @@
+{
+  "cluster_key": "block building:compact-signatures-include-22d53679",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: the audited Alloy dependency has passkey transaction type 0x77 and passkey RLP support, but no TransactionSignature compact encoding with ECDSA marker 0xEC and passkey marker/length framing.",
+  "evidence_files": [
+    "crates/ethereum/primitives/src/transaction.rs"
+  ],
+  "invariant_id": "cur-f6636ebd19-compact-signatures-include-ecdsa-passkey-type-markers",
+  "invariant_index": 567,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/primitives/src/transaction.rs",
+      "crates/consensus/src/transaction/envelope.rs",
+      "crates/consensus/src/transaction/typed.rs",
+      "crates/consensus/src/transaction/rlp_passkey.rs"
+    ],
+    "checked_queries": [
+      "TransactionSignature compact 0xEC 0x77",
+      "0xEC compact signature marker",
+      "PasskeySignature compact length prefix",
+      "to_compact from_compact PasskeySignature"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "TransactionSignature",
+      "PasskeySignature",
+      "0xEC",
+      "0x77",
+      "to_compact",
+      "from_compact",
+      "RlpPasskeyEncodableTx"
+    ],
+    "missing_behavior": "Compact TransactionSignature encoding does not distinguish ECDSA and passkey signatures with the required 0xEC and 0x77 markers plus passkey RLP length framing.",
+    "related_but_insufficient_code": [
+      "ritual-reth-internal-v2.2.0-port has no crates/ethereum/primitives/src/transaction.rs path and no TransactionSignature compact marker implementation.",
+      "ritual-alloy-internal encodes Passkey transactions as envelope type 0x77 and provides RLP passkey helpers.",
+      "Search found no 0xEC marker or compact ECDSA/passkey signature framing with a two-byte big-endian RLP length."
+    ]
+  },
+  "notes": "The present 0x77 transaction envelope type is related but not the compact signature-storage encoding required by the invariant.",
+  "rationale": "The commit introduces explicit type-byte markers to distinguish ECDSA and Passkey signatures while preserving a compact storage representation. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Block Building",
+  "source_commits": [
+    "58d0d760dbc18206761bdd8633b51d6592354c06"
+  ],
+  "statement": "TransactionSignature compact encoding must prefix ECDSA signatures with type byte 0xEC followed by the standard ECDSA compact signature, and prefix Passkey signatures with type byte 0x77 followed by a two-byte big-endian RLP length and the RLP-encoded PasskeySignature bytes.",
+  "status": "current",
+  "subsystem": "block building",
+  "suggested_falsification_tests": [
+    "Compact-encode an ECDSA TransactionSignature and assert the first byte is 0xEC and the remaining bytes decode as the original ECDSA signature; compact-encode a Passkey signature and assert the first byte is 0x77, the next two bytes equal the RLP payload length, and the payload RLP-decodes to the original passkey signature."
+  ],
+  "summary": "Compact signature type markers are not implemented in the audited repos.",
+  "test_or_falsification_candidate": "Compact-encode ECDSA and passkey signatures and assert first bytes 0xEC/0x77 with passkey length framing; no such compact encoder is present locally.",
+  "title": "Compact signatures include ECDSA and passkey type markers",
+  "total_invariants": 1954
+}

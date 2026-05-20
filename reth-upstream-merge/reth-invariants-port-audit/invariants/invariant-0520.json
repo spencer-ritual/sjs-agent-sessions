@@ -1,0 +1,54 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "85b41ec83e0009175c328eb0b9a07c92c3008129",
+      "evidence": "ExecutorRequest-based validators all share the helper that rejects malformed non-empty encrypted secret blobs and non-empty user public keys that are not 65-byte 0x04-prefixed keys.",
+      "path": "crates/ritual-precompile-codecs/src/validation.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "fn validate_executor_base_fields(...) {\n    validate_executor_and_ttl_bounds(executor, ttl, max_ttl)?;\n    validate_ecies_blob_array(encrypted_secrets)?;\n    validate_user_public_key(user_public_key)\n}\n...\nif blob.len() < MIN_ECIES_CIPHERTEXT_LENGTH { return Err(...); }\nif blob[0] != 0x04 { return Err(...); }\nif key.len() != 65 { return Err(...); }",
+      "symbols": [
+        "validate_executor_base_fields",
+        "validate_ecies_blob_array",
+        "validate_user_public_key"
+      ]
+    }
+  ],
+  "equivalence_argument": "HTTP, LLM, long-running HTTP, FHE, DKMS, persistent-agent, and multimodal ExecutorRequest-derived payload validators call the shared base helper, preserving the crypto-shape invariant at the common validation point.",
+  "evidence_files": [
+    "crates/ritual-async/src/validation.rs"
+  ],
+  "invariant_id": "cur-c30cf53bb9-base-executor-fields-validate-crypto-shapes",
+  "invariant_index": 520,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This mapping is the shared helper underlying invariant 518.",
+  "rationale": "The primary diff adds shared validate_base_fields, validate_ecies_blob_array, validate_ecies_blob, and validate_user_public_key helpers and wires them into HTTP, LLM, executor, long-running HTTP, and agent validation paths. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "e769a194b3aa57c901de5ae2c2f1b0945cc2634c"
+  ],
+  "statement": "Async payload validators that consume ExecutorRequest base fields must reject nonzero encrypted secret blobs shorter than 93 bytes or not starting with 0x04, and must reject nonempty user_public_key values unless they are exactly 65-byte uncompressed SEC1 keys starting with 0x04.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "For each ExecutorRequest-based precompile validator, submit payloads with empty secrets/key, valid ECIES blob plus uncompressed key, a 3-byte nonempty secret, a secret with 0x02 prefix, a 3-byte user_public_key, and a 65-byte key with 0x02 prefix; assert only the empty/valid cases pass."
+  ],
+  "summary": "Base executor fields validate ECIES and user public key shapes.",
+  "test_or_falsification_candidate": "For each ExecutorRequest-based validator, submit empty fields, valid 0x04-prefixed ECIES/user keys, short ECIES blobs, wrong ECIES prefixes, short user keys, and wrong user-key prefixes and assert only valid/empty cases pass.",
+  "title": "Base executor fields validate crypto shapes",
+  "total_invariants": 1954
+}

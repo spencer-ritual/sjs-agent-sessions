@@ -1,0 +1,69 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Settlement fee calculation selects LLM metric pricing or HTTP byte pricing by precompile address and derives commitment/inclusion fees from input/output lengths rather than fixed 0.01 ETH constants.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let executor_fee = if precompile_address == LLM_CALL_PRECOMPILE {\n    compute_llm_executor_fee(db, model_registry_contract, output, is_encrypted, model_cache)?\n} else if precompile_address == HTTP_CALL_PRECOMPILE || precompile_address == LONG_RUNNING_HTTP_PRECOMPILE {\n    http_executor_fee(input_len, output_len)\n} else { return Err(...); };\nlet commitment_fee = async_commitment_fee(input_len);\nlet inclusion_fee = async_inclusion_fee(input_len, output_len);",
+      "symbols": [
+        "calculate_async_fees",
+        "http_executor_fee",
+        "compute_llm_executor_fee",
+        "async_commitment_fee",
+        "async_inclusion_fee"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "LLM executor fees are computed from decoded response metrics and registry-backed model parameters, with errors for missing or undecodable output except explicit executor error responses.",
+      "path": "crates/ritual-async-fees/src/llm.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let metrics = match exec_output {\n    Some(bytes) => decode_llm_response(bytes, is_encrypted_output)?,\n    None => return Err(\"Missing LLM executor output\".to_string()),\n};\nlet config = resolve_llm_model_config(db, model_registry_contract, metrics.model.as_deref(), model_cache)?;\nlet total_gas = llm_compute_gas(metrics.clone(), config);\nlet total_wei = total_gas * LLM_EXECUTOR_GAS_PRICE_WEI as f64;",
+      "symbols": [
+        "compute_llm_executor_fee",
+        "decode_llm_response",
+        "llm_compute_gas"
+      ]
+    }
+  ],
+  "equivalence_argument": "The fixed three-fee settlement model is replaced by ritual-async-fees: HTTP uses input/output byte formulas, LLM uses decoded model/token metrics, and validator fee components scale with data size.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-7f8787749f-async-settlement-fees-dynamically-priced",
+  "invariant_index": 301,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in the port shared async-fees crate used by payload and block-verification paths.",
+  "rationale": "The commit removes the three fixed settlement fee constants, adds explicit byte-based HTTP fee functions, adds LLM response decoding and gas computation, selects the LLM pricing path for `LLM_CALL_PRECOMPILE`, and computes commitment/inclusion fees from input and output lengths. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "0192e13de434f8b6a35ee509944ea31422ff3adb"
+  ],
+  "statement": "Async settlement transactions must compute executor, commitment, and inclusion fees from the async precompile input/output instead of using fixed 0.01 ETH fees: HTTP executor fee is base plus per-input and per-output byte fees, validator fees are byte-count gas estimates, and LLM executor fee is computed from decoded LLM response metrics when available with documented fallback behavior.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Build settlement transactions for HTTP async metadata with two different input/output lengths and assert the executor, commitment, and inclusion fee fields change according to the byte formulas. Build an LLM settlement with ABI-encoded response metrics and assert the executor fee follows the decoded token/model metrics instead of the HTTP byte formula; then provide malformed or missing LLM output and assert the documented fallback path is used."
+  ],
+  "summary": "Async settlement fees are dynamically calculated from precompile input/output and LLM response metrics.",
+  "test_or_falsification_candidate": "Build HTTP settlements with different input/output lengths and LLM settlements with decoded metrics and assert fee fields vary according to the selected formulas.",
+  "title": "Async settlement fees are dynamically priced",
+  "total_invariants": 1954
+}

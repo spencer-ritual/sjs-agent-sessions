@@ -1,0 +1,86 @@
+{
+  "cluster_key": "executor delivery:delivery-requires-canonical-54f0bad5",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Delivery submissions are accepted only after canonical transition to AwaitingDelivery; Fulfilled is rejected before any delivery result is stored or sender lock released.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if metadata.state == AsyncState::Fulfilled {\n    return Err(AsyncPoolError::InvalidState(AsyncState::Fulfilled));\n}\nif metadata.state != AsyncState::AwaitingDelivery {\n    return Err(AsyncPoolError::InvalidState(metadata.state.clone()));\n}\nmetadata.delivery_result = Some(submission.delivery_result);\nmetadata.state = AsyncState::DeliveryReady;",
+      "symbols": [
+        "AsyncCommitmentPool::submit_delivery_result_with_context"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The separate canonical Phase 1 transition moves Fulfilled to AwaitingDelivery and releases the sender lock only after settlement is observed.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if metadata.state != AsyncState::Fulfilled {\n    return Err(AsyncPoolError::InvalidState(metadata.state.clone()));\n}\nmetadata.state = AsyncState::AwaitingDelivery;\n...\ninner.sender_locks.remove(&sender);",
+      "symbols": [
+        "AsyncCommitmentPool::mark_awaiting_delivery"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "A focused unit test covers rejection of delivery results submitted while the job is still Fulfilled.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "assert_eq!(\n    pool.submit_delivery_result_with_context(delivery_submission(tx_hash)),\n    Err(AsyncPoolError::InvalidState(AsyncState::Fulfilled))\n);",
+      "symbols": [
+        "submit_delivery_result_rejects_fulfilled_before_awaiting_delivery"
+      ]
+    }
+  ],
+  "equivalence_argument": "The pool separates executor result fulfillment from canonical Phase 1 settlement: submit_delivery_result_with_context rejects Fulfilled and all non-AwaitingDelivery states, while mark_awaiting_delivery is the only path that transitions from Fulfilled to AwaitingDelivery and unlocks the original sender after canonical settlement.",
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/async_pool.rs"
+  ],
+  "invariant_id": "cur-05b52e8f2f-delivery-requires-canonical-phase",
+  "invariant_index": 194,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/async_pool.rs"
+    ],
+    "checked_queries": [
+      "submit_delivery_result|AwaitingDelivery|Fulfilled|InvalidState|sender_locks.remove"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "submit_delivery_result_with_context",
+      "mark_awaiting_delivery",
+      "AsyncState::Fulfilled",
+      "AsyncState::AwaitingDelivery",
+      "AsyncState::DeliveryReady"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The commit removes the recovery path that converted Fulfilled directly to AwaitingDelivery on delivery submission and replaces it with an explicit InvalidState rejection, with comments explaining that accepting early delivery results can make builders include Phase 2 before verifiers see canonical Phase 1 state. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "7bc50799d09dde2b3c119dcd09c18aa7c2d415d0"
+  ],
+  "statement": "AsyncCommitmentPool::submit_delivery_result must accept delivery results only when the transaction is already in AsyncState::AwaitingDelivery; if it is still AsyncState::Fulfilled, the pool must return InvalidState and must not auto-transition to AwaitingDelivery or release the sender lock.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create a long-running async transaction in Fulfilled state, call submit_delivery_result, and assert it returns AsyncUpdateError::InvalidState, leaves the state as Fulfilled, and keeps the sender index unchanged; then transition via the canonical-state-change path to AwaitingDelivery and assert the same delivery result is accepted."
+  ],
+  "summary": "Delivery result submission is gated on canonical AwaitingDelivery state in the port pool.",
+  "test_or_falsification_candidate": "Create a two-phase async entry, submit Phase 1 result so it is Fulfilled, then submit delivery result and assert InvalidState(Fulfilled), state remains Fulfilled, and sender lock remains until mark_awaiting_delivery runs.",
+  "title": "Delivery requires canonical Phase 1",
+  "total_invariants": 1954
+}

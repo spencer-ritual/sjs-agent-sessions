@@ -1,0 +1,78 @@
+{
+  "cluster_key": "scheduler:pool-accounting:part-01",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/async_pool.rs",
+    "crates/transaction-pool/src/pool/txpool.rs",
+    "crates/transaction-pool/src/maintain.rs",
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/ritual-block-verification/src/nonce_lock.rs",
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-e33e049f37-scheduled-async-pool-lanes-coordinate-without-duplicate-ownership",
+  "invariant_index": 69,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/transaction-pool/src/pool/txpool.rs",
+      "crates/transaction-pool/src/maintain.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ethereum/payload/src/lib.rs"
+    ],
+    "checked_queries": [
+      "scheduled.*async.*pool|duplicate ownership|async pool|scheduled pool",
+      "prune_original|InvalidAsync|by_id|sender_index"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "AsyncPool::add_metadata",
+      "is_system_original",
+      "verify_nonce_locks",
+      "included_scheduled_indices",
+      "decide_active_job_augmentation",
+      "prune_original_transaction_by_hash",
+      "scheduled pool"
+    ],
+    "missing_behavior": "Missing full cross-lane ownership coordination: no scheduled subpool ownership checks, no scheduled-or-async local-known verifier path, and no stale-pool pruning for duplicate active jobs.",
+    "related_but_insufficient_code": [
+      "AsyncPool skips sender locks for scheduled/system originals, and verifier exempts scheduled-origin commitments from duplicate sender nonce-lock checks.",
+      "However the dedicated scheduled pool, known-in-scheduled-or-async local check, scheduling skip for hashes already in async pool, and duplicate-job prune/cache side effects are missing."
+    ]
+  },
+  "notes": "Confirmed gap because required scheduled-pool and prune behaviors are absent.",
+  "rationale": "The later candidates establish that scheduled transactions may interact with async execution without being duplicated or rejected by ordinary sender locking/indexing. Verification accepts scheduled transactions known in either scheduled or async pools, while scheduling and payload paths avoid duplicate async work.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "7ce306fe1d391baa1e90d7efc85a16d64916f361",
+    "17e9dd62627c9832cdb37dda6c747828ce0cc586",
+    "83d0ef1155ef351e3f024bc14793e7307bf5cd63",
+    "8e43cd53f4d6e3f3f434dcb718250cbad6d53d86",
+    "59666581bbf3fb58a46df7aeeb059c5b1d68ef97"
+  ],
+  "statement": "Scheduled transactions that participate in async execution must not be duplicated across scheduled and async lanes: scheduling skips hashes already in the async pool, block verification accepts scheduled transactions known in either scheduled or async pool, and scheduled async transactions bypass indexes or sender checks that would collide because of dummy sender/nonce values while duplicate async jobs prune stale pool entries.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Generate a scheduled transaction whose hash is already in the async pool and assert scheduling does not add it to the scheduled subpool.",
+    "Verify a block containing a scheduled transaction whose hash is absent from the scheduled pool but present in the async pool and assert scheduled verification succeeds past the local-known check.",
+    "Insert scheduled async transactions sharing dummy sender/nonce values and assert they do not collide in by_id or sender indexes while non-scheduled async transactions still enforce sender locks.",
+    "Create a scheduled or regular async transaction whose job already exists in AsyncJobTracker and assert payload building skips it, marks it invalid in the async detection cache, and prunes the original transaction hash from the pool."
+  ],
+  "summary": "Scheduled/async lane coordination is only partial and therefore a confirmed gap.",
+  "test_or_falsification_candidate": "Exercise all four lane-coordination cases from the invariant; current port only satisfies the scheduled async index/sender-lock subset.",
+  "title": "Scheduled and async pool lanes coordinate without duplicate ownership",
+  "total_invariants": 1954
+}

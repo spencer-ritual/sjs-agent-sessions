@@ -1,0 +1,63 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping was found: the audited block executor does not extract pending SPC calls from async context and inject them into stored recovered Legacy/EIP-1559 transactions.",
+  "evidence_files": [
+    "crates/evm/src/execute.rs"
+  ],
+  "invariant_id": "cur-f233363780-executed-persist-pending-calls",
+  "invariant_index": 221,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/evm/evm/src/execute.rs",
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs"
+    ],
+    "checked_queries": [
+      "pending_spc|take_pending|async_context|spc_calls|inject.*spc|execute.rs"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "pending_spc_calls",
+      "spc_calls",
+      "AsyncContextFactory",
+      "Executor::execute_one",
+      "BlockExecutor"
+    ],
+    "missing_behavior": "Missing async-context-gated extraction and injection of pending SPC calls into executed recovered transactions in the block executor storage path.",
+    "related_but_insufficient_code": [
+      "crates/evm/evm/src/execute.rs contains generic executor traits and no async-context SPC-call injection path.",
+      "payload code reuses existing spc_calls during async replay and annotates settlement/original transactions in later paths, but it is not the generic post-execution recovered-transaction storage behavior described by this invariant.",
+      "alloy transaction types expose spc_calls fields, but the audited port lacks the execute.rs injection helper named by the evidence file."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The primary commit replaces unconditional transaction storage with async-context-gated extraction of pending SPC calls, calls injection helpers before pushing the recovered transaction, and adds helpers that append or initialize spc_calls on Legacy and EIP-1559 transactions. The commit subject explicitly frames this as SPC call injection for verification mode. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "e66ff44f38736e818069f164b8e50862d8e2687d"
+  ],
+  "statement": "When async-context is enabled and a transaction execution leaves pending SPC calls in async context, the recovered transaction stored by the block executor should include those SPC calls for supported Legacy and EIP-1559 transaction types; if injection cannot be performed, execution should still store the original recovered transaction instead of dropping the transaction.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "With the async-context feature enabled, execute a block containing a Legacy or EIP-1559 transaction that causes the async context to record two pending SPC calls, then inspect the executor's stored recovered transaction and assert its spc_calls field contains both calls; also execute an unsupported transaction type and assert the original transaction is still pushed without failing block execution."
+  ],
+  "summary": "Executed-transaction SPC call injection is absent from the audited executor path.",
+  "test_or_falsification_candidate": "Execute a Legacy/EIP-1559 transaction that records pending SPC calls in async context and inspect the block executor stored transaction; current execute.rs has no injection path to populate spc_calls.",
+  "title": "Executed transactions persist pending SPC calls",
+  "total_invariants": 1954
+}

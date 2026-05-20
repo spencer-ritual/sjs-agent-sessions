@@ -1,0 +1,84 @@
+{
+  "record_type": "file",
+  "file_index": 242,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/primitives-traits/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "partial",
+  "tags": [
+    "partial",
+    "non-exact",
+    "moved-to-dependency",
+    "manifest",
+    "primitives-traits",
+    "tracing",
+    "transaction-recovery",
+    "non-fsm"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0242-atom-0001",
+      "file_index": 242,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/primitives-traits/Cargo.toml",
+      "source_hunk_hint": "@@ -41,6 +41,7 @@ and @@ -95,6 +96,7 @@",
+      "source_kind": "dependency",
+      "source_snippet": "tracing = { workspace = true }\n\nstd = [\n    \"tracing/std\",\n]",
+      "semantic_claim": "The old primitives-traits crate adds a normal `tracing` dependency and wires `tracing/std` into the crate's `std` feature so transaction primitive code can emit tracing logs under the standard feature set.",
+      "high_risk": false,
+      "risk_tags": [
+        "manifest",
+        "observability"
+      ],
+      "mapping_status": "moved_to_dependency",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "Cargo.toml / Cargo.lock",
+          "evidence": "The port no longer has a local `crates/primitives-traits` manifest; `reth-primitives-traits` resolves to crates.io 0.3.1."
+        },
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/Cargo.toml",
+          "symbols": [
+            "dependencies.tracing"
+          ],
+          "evidence": "The active local Alloy consensus dependency used by the port declares `tracing.workspace = true`."
+        },
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/async_commitment.rs",
+          "evidence": "Active custom transaction decode paths emit `tracing::debug!` events under Ritual async targets."
+        }
+      ],
+      "equivalence_argument": "The exact old `reth-primitives-traits` manifest edit is not present because that crate is external in the port, but the active custom transaction tracing dependency/call sites moved to local Alloy. This is observability/support coverage, not FSM behavior.",
+      "test_strategy": "build_regression",
+      "negative_test_candidate": "Build `reth-primitives-traits` with default/std features and transaction signed recovery code that emits `tracing::debug!` enabled.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reclassified from exact to moved_to_dependency after current-code recheck."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The old primitives-traits tracing manifest edit is not exact-port preserved at that crate path; the active tracing support moved into local Alloy consensus, which carries the custom transaction code.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Current port has no local `crates/primitives-traits/Cargo.toml`; `reth-primitives-traits` is crates.io 0.3.1.",
+    "Local `ritual-alloy-internal/crates/consensus` has a tracing dependency and active custom transaction decode tracing.",
+    "Non-FSM status: moved observability/support surface, not a runtime state-machine gap."
+  ]
+}

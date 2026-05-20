@@ -1,0 +1,80 @@
+{
+  "record_type": "file",
+  "file_index": 542,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/transaction-pool/src/validate/eth.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "partial",
+  "tags": [
+    "partial",
+    "needs-review",
+    "txpool",
+    "validation"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0542-atom-0001",
+      "file_index": 542,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/transaction-pool/src/validate/eth.rs",
+      "source_hunk_hint": "@@ -14,8 +14,8 @@ use crate::{",
+      "source_kind": "validation_rule",
+      "source_snippet": "        ASYNC_COMMITMENT_TX_TYPE_ID, EIP1559_TX_TYPE_ID, EIP2930_TX_TYPE_ID, EIP4844_TX_TYPE_ID,\n        EIP7702_TX_TYPE_ID, LEGACY_TX_TYPE_ID, PASSKEY_TX_TYPE_ID, SCHEDULED_TX_TYPE_ID,\n    scheduled: bool,\n    async_commitment: bool,\n                return TransactionValidationOutcome::Invalid(\n                    transaction,\n                    InvalidTransactionError::TxTypeNotSupported.into(),\n                )\n                    );\n                    );",
+      "semantic_claim": "The old validator explicitly accepts or rejects scheduled, async commitment, and passkey transaction types based on feature booleans; scheduled and async raw txpool admission are legacy/non-hot-path surfaces, while passkey needs separate traffic verification.",
+      "high_risk": true,
+      "risk_tags": [
+        "txpool",
+        "custom-tx-types",
+        "validation"
+      ],
+      "mapping_status": "partial",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/validate/eth.rs",
+          "symbols": [
+            "other_tx_types",
+            "TxTypeNotSupported"
+          ],
+          "evidence": "Destination validates unknown transaction types through the generic `other_tx_types` bitset and exposes `with_custom_tx_type`, but the active node/pool builder wiring does not call `with_custom_tx_type` for passkey tx type IDs. Raw scheduled and async commitment txpool admission is not expected to be used: those transactions are synthesized by payload building, not submitted through RPC."
+        }
+      ],
+      "equivalence_argument": "Scheduled and async custom transaction admission through RPC/txpool can be dismissed for active parity because users should not submit raw `TxScheduled` or raw async commitment transactions; the payload builder synthesizes those system transactions. The remaining question is passkey: `gold-1p.json` has no passkey traffic, while `gold-passkey.json` does. Run or inspect `gold-passkey.json` traffic to confirm whether passkey user submissions rely on direct txpool validator admission or are handled through another path.",
+      "test_strategy": "Run or inspect `traffic-gen-internal/scripts/example_configs/gold-passkey.json` traffic and verify passkey transactions are accepted end-to-end; if they fail with `TxTypeNotSupported`, wire `with_custom_tx_type(PASSKEY_TX_TYPE_ID)` or equivalent active node config.",
+      "negative_test_candidate": "`gold-passkey.json` traffic should fail with `TxTypeNotSupported` if passkey workloads submit raw passkey transactions and active node wiring still leaves passkey absent from `other_tx_types`.",
+      "adversarial_review": {
+        "required": true,
+        "status": "queued",
+        "review_record_id": "review-file-0542-atom-0001-passkey"
+      },
+      "review_required": true,
+      "notes": "Scheduled and async raw txpool admission dismissed as not user/RPC hot path. Passkey remains to verify with `traffic-gen-internal/scripts/example_configs/gold-passkey.json`."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [
+    {
+      "review_record_id": "review-file-0542-atom-0001-passkey",
+      "atom_id": "file-0542-atom-0001",
+      "status": "queued",
+      "reason": "Passkey traffic is not in gold-1p.json; verify gold-passkey.json traffic before deciding whether passkey raw txpool admission is required."
+    }
+  ],
+  "summary": "Scheduled and async raw txpool admission are dismissed as non-hot-path because those system transactions are synthesized by payload building, not submitted through RPC. Passkey remains the relevant follow-up: `gold-1p.json` does not cover it, so verify `gold-passkey.json` traffic before deciding whether active node wiring must enable the passkey tx type.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": [
+    "Queue entry verified as file-0542: M\tcrates/transaction-pool/src/validate/eth.rs.",
+    "Source diff lines 96568-96946; first hunk `@@ -14,8 +14,8 @@ use crate::{`.",
+    "Fresh destination evidence was checked against /home/ritual/repos/ritual-reth-internal-v2.2.0-port.",
+    "Review conclusion: scheduled/async custom raw admission is not required for active RPC/payload parity; passkey needs targeted verification with `traffic-gen-internal/scripts/example_configs/gold-passkey.json`."
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/rpc/rpc/src/async_tx_validator.rs"
+  ],
+  "invariant_id": "cur-fb34ce289c-multimodal-executors-require-capability",
+  "invariant_index": 455,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-precompile-addresses/src/lib.rs",
+      "crates/rpc/rpc/src/async_tx_validator.rs",
+      "crates/ritual-tee-registry-reader/src/types.rs"
+    ],
+    "checked_queries": [
+      "IMAGE_CALL_PRECOMPILE AUDIO_CALL_PRECOMPILE VIDEO_CALL_PRECOMPILE",
+      "ImageCall AudioCall VideoCall Llm is_executor_capability",
+      "Capability::try_from metadata.expected_capability_tag validate_executor"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "IMAGE_CALL_PRECOMPILE",
+      "AUDIO_CALL_PRECOMPILE",
+      "VIDEO_CALL_PRECOMPILE",
+      "AsyncPrecompileCapabilityTag::Llm",
+      "Capability::Llm",
+      "validate_executor"
+    ],
+    "missing_behavior": "The current port does not require Capability::Llm for image, audio, or video precompile executor validation; it requires ImageCall, AudioCall, and VideoCall respectively.",
+    "related_but_insufficient_code": [
+      "crates/ritual-precompile-addresses/src/lib.rs maps IMAGE/AUDIO/VIDEO to ImageCall/AudioCall/VideoCall, not Llm.",
+      "crates/rpc/rpc/src/async_tx_validator.rs derives the required capability from metadata and rejects mismatches."
+    ]
+  },
+  "notes": "This Atlas record conflicts with the newer distinct-capability records in the same batch; the local port implements the newer behavior.",
+  "rationale": "The validator maps IMAGE_CALL_PRECOMPILE, AUDIO_CALL_PRECOMPILE, and VIDEO_CALL_PRECOMPILE into the Llm capability branch so only executors registered for that capability are accepted. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "badad554d3056cef139a0f78859e7448dbfe6d6f"
+  ],
+  "statement": "RPC executor registration validation must require Capability::Llm for image, audio, and video precompile addresses, the same capability class used for LLM and agent-call precompiles.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Validate executor registration for each multimodal precompile against a registry entry with Capability::Llm and one without it; assert only the Llm-capable executor passes under this rule."
+  ],
+  "summary": "Multimodal executor validation no longer uses generic LLM capability.",
+  "test_or_falsification_candidate": "Validate executor registration for each multimodal precompile against a registry entry with Capability::Llm and one without it; assert only the Llm-capable executor passes under this rule.",
+  "title": "Multimodal executors require LLM capability",
+  "total_invariants": 1954
+}

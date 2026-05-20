@@ -1,0 +1,168 @@
+{
+  "record_type": "file",
+  "file_index": 277,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-async-fees/src/delivery.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "async-fees",
+    "phase2-delivery",
+    "callback-gas-accounting",
+    "event-decoding",
+    "tests"
+  ],
+  "atoms_total": 3,
+  "atoms": [
+    {
+      "record_id": "file-0277-atom-0001",
+      "file_index": 277,
+      "atom_index": 1,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-async-fees/src/delivery.rs",
+      "source_hunk_hint": "@@ -0,0 +1,61 @@",
+      "source_kind": "delivery_event_and_result_surface",
+      "source_snippet": "sol! {\n    event Delivered(bytes32 indexed jobId, address indexed user, address indexed target, bool success, uint256 gasConsumed, uint256 gasRefunded, uint256 valueRefunded);\n    event DeliveryFailed(bytes32 indexed jobId, address indexed user, string reason);\n}\n\npub enum DeliveryGasResult {\n    Delivered { callback_gas: u64, job_id: B256, success: bool },\n    Failed { job_id: B256 },\n    EventNotFound,\n}",
+      "semantic_claim": "The old divergence adds the AsyncDelivery event ABI surface and result taxonomy for Phase 2 callback gas extraction: Delivered carries job id, user, target, success, gasConsumed, gasRefunded, and valueRefunded; DeliveryFailed carries job id, user, and reason; DeliveryGasResult distinguishes callback execution, pre-callback delivery failure, and absence of relevant delivery events.",
+      "high_risk": false,
+      "risk_tags": [
+        "async-delivery-abi",
+        "event-signature-hashes",
+        "phase2-gas-accounting",
+        "result-taxonomy"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/delivery.rs",
+          "symbols": [
+            "Delivered",
+            "DeliveryFailed",
+            "DeliveryGasResult"
+          ],
+          "evidence": "Destination `delivery.rs` preserves the same sol! event definitions, indexed fields, non-indexed gas/refund/value fields, and DeliveryGasResult variants with identical payload fields."
+        }
+      ],
+      "equivalence_argument": "The destination keeps the source ABI declarations and public enum shape exactly, so event signature hashes and caller-observable result variants remain behaviorally unchanged.",
+      "test_strategy": "unit_event_decode_regression",
+      "negative_test_candidate": "Construct Delivered and DeliveryFailed logs with the expected AsyncDelivery address and assert they map to the corresponding DeliveryGasResult variants; construct an unrelated event and assert EventNotFound.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers only the event/result surface introduced in `crates/ritual-async-fees/src/delivery.rs`."
+    },
+    {
+      "record_id": "file-0277-atom-0002",
+      "file_index": 277,
+      "atom_index": 2,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-async-fees/src/delivery.rs",
+      "source_hunk_hint": "@@ -0,0 +63,120 @@",
+      "source_kind": "delivery_callback_gas_extraction",
+      "source_snippet": "pub fn extract_delivery_callback_gas(logs: &[Log], delivery_address: Address) -> DeliveryGasResult {\n    for log in logs {\n        if log.address != delivery_address { continue; }\n        if log.topics().is_empty() { continue; }\n        if log.topics()[0] == Delivered::SIGNATURE_HASH {\n            if let Ok(event) = Delivered::decode_log(log) {\n                match event.gasConsumed.try_into() {\n                    Ok(gas) => return DeliveryGasResult::Delivered { callback_gas: gas, job_id: event.jobId, success: event.success },\n                    Err(_) => continue,\n                }\n            }\n        }\n        if log.topics()[0] == DeliveryFailed::SIGNATURE_HASH {\n            if let Ok(event) = DeliveryFailed::decode_log(log) {\n                return DeliveryGasResult::Failed { job_id: event.jobId };\n            }\n        }\n    }\n    DeliveryGasResult::EventNotFound\n}",
+      "semantic_claim": "The old divergence adds the Phase 2 delivery callback-gas extraction helper. It scans execution logs, ignores logs from other addresses and logs without topics, decodes Delivered events first to return the user's callback gas, job id, and callback success flag, skips malformed/overflowing gasConsumed values, decodes DeliveryFailed as a no-callback failure, and returns EventNotFound when no recognized AsyncDelivery event is found.",
+      "high_risk": false,
+      "risk_tags": [
+        "log-address-filtering",
+        "event-decoding",
+        "u256-to-u64-gas-conversion",
+        "failed-delivery-handling",
+        "deterministic-gas-accounting"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/delivery.rs",
+          "symbols": [
+            "extract_delivery_callback_gas"
+          ],
+          "evidence": "Destination helper preserves the same loop order, delivery-address filter, empty-topic guard, Delivered-first decode, `gasConsumed.try_into()` overflow handling, DeliveryFailed decode path, and EventNotFound fallback."
+        }
+      ],
+      "equivalence_argument": "The destination implementation is textually and semantically equivalent for every branch that affects callback gas accounting: successful callback, reverted callback with emitted Delivered event, pre-callback delivery failure, wrong address, malformed log, overflow gas value, and no event.",
+      "test_strategy": "unit_and_edge_case_regression",
+      "negative_test_candidate": "Add a Delivered log whose gasConsumed exceeds u64::MAX followed by no valid delivery event and assert EventNotFound, then add a valid DeliveryFailed log after the overflow and assert Failed.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "A narrow usage search found the exact exported helper name only in this file and the crate re-export; no divergent downstream call site was found for this record."
+    },
+    {
+      "record_id": "file-0277-atom-0003",
+      "file_index": 277,
+      "atom_index": 3,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-async-fees/src/delivery.rs",
+      "source_hunk_hint": "@@ -0,0 +122,252 @@",
+      "source_kind": "delivery_gas_fallback_and_tests",
+      "source_snippet": "pub fn get_delivery_callback_gas_or_fallback(result: &DeliveryGasResult, fallback: u64) -> u64 {\n    match result {\n        DeliveryGasResult::Delivered { callback_gas, .. } => *callback_gas,\n        DeliveryGasResult::Failed { .. } | DeliveryGasResult::EventNotFound => fallback,\n    }\n}\n\n#[test] fn test_extract_delivery_gas_success() { ... }\n#[test] fn test_extract_delivery_gas_callback_failed() { ... }\n#[test] fn test_extract_delivery_gas_wrong_address() { ... }\n#[test] fn test_extract_delivery_gas_empty_logs() { ... }\n#[test] fn test_get_delivery_callback_gas_or_fallback_delivered() { ... }\n#[test] fn test_get_delivery_callback_gas_or_fallback_failed() { ... }\n#[test] fn test_get_delivery_callback_gas_or_fallback_not_found() { ... }",
+      "semantic_claim": "The old divergence adds a fallback helper that returns measured callback gas only for Delivered results and otherwise uses the supplied fallback gas, plus tests covering successful delivery, callback revert with gas still reported, wrong-address filtering, empty logs, and fallback behavior for Delivered, Failed, and EventNotFound.",
+      "high_risk": false,
+      "risk_tags": [
+        "fallback-gas",
+        "delivery-failure",
+        "event-filter-tests",
+        "callback-revert-tests"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/delivery.rs",
+          "symbols": [
+            "get_delivery_callback_gas_or_fallback",
+            "tests"
+          ],
+          "evidence": "Destination preserves the fallback match exactly and includes the same mock Delivered log constructor plus the seven unit tests for extraction and fallback behavior."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "extract_delivery_callback_gas",
+            "get_delivery_callback_gas_or_fallback",
+            "DeliveryGasResult"
+          ],
+          "evidence": "Destination crate root re-exports the delivery helper surface, making the exact preserved functions available to the same crate consumers."
+        }
+      ],
+      "equivalence_argument": "The destination preserves the fallback rule and unit coverage exactly: measured callback gas wins only when a Delivered event decoded successfully, while failed or missing delivery events retain the caller-provided fallback gas.",
+      "test_strategy": "unit_regression",
+      "negative_test_candidate": "Assert that a Failed result with any job id and an EventNotFound result both return the fallback value instead of zero, while Delivered returns the measured callback gas.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "The lib.rs mention is usage evidence only; this coverage record audits source queue entry `file-0277` and no source content from later queue entries."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The async fees delivery helper module is exact-port preserved in the destination.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 277: A\tcrates/ritual-async-fees/src/delivery.rs.",
+    "Source diff for file-0277 starts at the `delivery.rs` diff header and ends before the `src/gas.rs` diff header.",
+    "Destination `crates/ritual-async-fees/src/delivery.rs` preserves the added 252-line module exactly, including event ABI declarations, DeliveryGasResult, extraction/fallback helpers, and tests.",
+    "No content from `crates/ritual-async-fees/src/gas.rs` was audited or persisted in this record."
+  ]
+}

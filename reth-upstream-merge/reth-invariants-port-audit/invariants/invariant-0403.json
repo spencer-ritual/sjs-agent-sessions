@@ -1,0 +1,67 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "RPC validation reads latest TEE registry state and rejects a missing executor.",
+      "path": "crates/rpc/rpc/src/async_tx_validator.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let executor = read_executor(db, registry, executor_address)?\n    .ok_or_else(|| format!(\"TEE executor {executor_address} not found\"))?;",
+      "symbols": [
+        "validate_executor",
+        "read_executor"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "send_transaction runs async admission validation before local pool insertion.",
+      "path": "crates/rpc/rpc/src/eth/helpers/transaction.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "async_tx_validator::validate_rpc_async_admission::<N>(...) .await?;\n...\nlet AddedTransactionOutcome { hash, .. } = self.inner.add_pool_transaction(origin, pool_transaction).await?;",
+      "symbols": [
+        "send_transaction",
+        "validate_rpc_async_admission",
+        "add_pool_transaction"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port rejects unregistered executors before the transaction reaches the pool, which preserves the invariant that RPC does not admit async work for unknown executors.",
+  "evidence_files": [
+    "crates/rpc/rpc/src/async_tx_validator.rs",
+    "crates/rpc/rpc/src/eth/helpers/transaction.rs"
+  ],
+  "invariant_id": "cur-b9a739cb98-rejects-unregistered-async-executors",
+  "invariant_index": 403,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in the port RPC admission guard.",
+  "rationale": "The primary diff adds `validate_executor_registration`, reads the executor from the TEE registry using latest state, defines `ExecutorNotRegistered` and `RegistryQueryFailed`, and wires those errors into RPC `InvalidParams` rejection before pool broadcast. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "e4609dc212444f5f07771bf27f226322ecf985f9"
+  ],
+  "statement": "When `send_raw_transaction` receives a valid async PrecompileConsumer call, it must extract the executor address from the precompile payload, query latest TEE registry state, and reject the transaction with `InvalidParams` if the executor is not registered or the registry cannot be queried.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Submit a raw transaction calling PrecompileConsumer with a statically valid async payload whose executor address is absent from the TEE registry, and assert `send_raw_transaction` returns `InvalidParams` containing `executor ... is not registered` and does not broadcast to the transaction pool; also mock a registry read failure and assert it is rejected."
+  ],
+  "summary": "RPC admission rejects unregistered async executors.",
+  "test_or_falsification_candidate": "Submit an otherwise valid async call whose executor has no TEE registry record; RPC should return invalid params before the tx appears in the pool.",
+  "title": "RPC rejects unregistered async executors",
+  "total_invariants": 1954
+}

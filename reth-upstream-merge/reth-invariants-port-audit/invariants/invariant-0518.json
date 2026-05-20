@@ -1,0 +1,72 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "85b41ec83e0009175c328eb0b9a07c92c3008129",
+      "evidence": "Shared base validation enforces executor/TTL bounds, 93-byte 0x04-prefixed ECIES blobs, and optional 65-byte 0x04-prefixed user keys.",
+      "path": "crates/ritual-precompile-codecs/src/validation.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "validate_executor_and_ttl_bounds(executor, ttl, max_ttl)?;\nvalidate_ecies_blob_array(encrypted_secrets)?;\nvalidate_user_public_key(user_public_key)\n...\nif blob.len() < MIN_ECIES_CIPHERTEXT_LENGTH { ... }\nif blob[0] != 0x04 { ... }\nif key.len() != 65 { ... }",
+      "symbols": [
+        "validate_executor_base_fields",
+        "validate_ecies_blob_array",
+        "validate_user_public_key"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "85b41ec83e0009175c328eb0b9a07c92c3008129",
+      "evidence": "The metadata router applies the shared checks to ExecutorRequest-derived payloads, DKMS, FHE, and sovereign-agent validation paths.",
+      "path": "crates/ritual-precompile-codecs/src/validation.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "HTTP_CALL_PRECOMPILE => validate_http_call_payload(...)\nLLM_CALL_PRECOMPILE => validate_llm_call_payload(...)\nFHE_PRECOMPILE => validate_fhe_call_payload(...)\nDKMS_KEY_PRECOMPILE => validate_dkms_key_payload(...)\nSOVEREIGN_AGENT_PRECOMPILE => validate_sovereign_agent_payload(...)",
+      "symbols": [
+        "validate_http_call_payload",
+        "validate_llm_call_payload",
+        "validate_fhe_call_payload",
+        "validate_dkms_key_payload",
+        "validate_sovereign_agent_payload"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port centralizes the crypto-shape checks in validate_executor_base_fields and direct sovereign-agent single-blob validation; empty optional fields pass, while non-empty malformed ECIES/user-key values fail before RPC admission.",
+  "evidence_files": [
+    "crates/ritual-async/src/validation.rs",
+    "crates/rpc/rpc/src/async_tx_validator.rs"
+  ],
+  "invariant_id": "cur-744ee49433-async-payloads-validate-ecies-user-public-format",
+  "invariant_index": 518,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "FHE storage credentials are intentionally excluded from ECIES validation; the base encrypted_secrets/user_public_key fields still use the shared checks.",
+  "rationale": "The commit message says ECIES and user_public_key validation was added to all async precompiles through a shared validate_base_fields helper. The helper validates executor/ttl, every encrypted secret blob, and user_public_key format, and individual validators now route through it. The primary diff adds validate_base_fields, validate_ecies_blob, validate_ecies_blob_array, validate_user_public_key, new error variants, and routes HTTP, LLM, ExecutorRequest-derived payloads, DKMS, and other async validators through those shared checks. Collapsed 2 closely related historical candidate statements into the latest effective formulation.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "4e01f5cf0a738daced79a27858de471014ee3495",
+    "c71534953a8535dbfa711a8145ebf02bf41b10e9"
+  ],
+  "statement": "Async payload validation should reject non-empty encrypted_secrets entries shorter than 93 bytes or not starting with 0x04, and should reject non-empty user_public_key values unless they are exactly 65 bytes with 0x04 prefix; these base checks should be applied across ExecutorRequest-based async precompiles and DKMS-style requests in addition to executor and TTL checks.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "For each async payload type using ExecutorRequest base fields, submit payloads with encrypted_secrets empty, valid 93+ byte 0x04-prefixed ECIES blob, 92-byte blob, 0x03-prefixed blob, empty user_public_key, valid 65-byte 0x04-prefixed key, and invalid 64-byte or non-0x04 key. RPC validation must accept only the valid/empty cases and map errors to the new structured RPC variants.",
+    "For representative async precompiles, submit payloads with a non-empty encrypted secret shorter than 93 bytes, a secret not starting with 0x04, a 64-byte user_public_key, and a 65-byte key not starting with 0x04; assert validation returns the corresponding errors. Then submit empty optional fields and well-formed 0x04-prefixed values and assert base validation passes."
+  ],
+  "summary": "Async payload validation enforces ECIES and user public key shapes.",
+  "test_or_falsification_candidate": "For representative async payload types, submit non-empty ECIES blobs shorter than 93 bytes, blobs without 0x04, invalid 64-byte user keys, and valid/empty controls; assert only valid or empty cases pass.",
+  "title": "Async payloads validate ECIES and user public key format",
+  "total_invariants": 1954
+}

@@ -1,0 +1,57 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "Nodebuilder emits block start/end, phase metrics for registry update/setup/transactions/consensus/finalization, and transaction start/end metrics carrying gas used.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "ritual_metrics::block::log_block_verify_start(&block.hash(), block.number());\nritual_metrics::block::log_payload_phase(\"block_execute_registry_update\", ...);\nritual_metrics::block::log_payload_phase(\"block_execute_setup\", ...);\nritual_metrics::tx::log_tx_verify_start(txn.tx_hash(), &block.hash(), block.number());\nlet gas_used = strategy.execute_transaction(tx)?;\nritual_metrics::tx::log_tx_verify_end(txn, &block.hash(), block.number(), gas_used);\nritual_metrics::block::log_payload_phase(\"block_execute_consensus_verification\", ...);\nritual_metrics::block::log_payload_phase(\"block_execute_finalization\", ...);\nritual_metrics::block::log_block_verify_end(block, 0);",
+      "symbols": [
+        "RitualBlockExecutor::execute_one",
+        "ritual_metrics::block::log_payload_phase",
+        "ritual_metrics::tx::log_tx_verify_start",
+        "ritual_metrics::tx::log_tx_verify_end"
+      ]
+    }
+  ],
+  "equivalence_argument": "The metrics are implemented at the Ritual executor layer that owns the block phases and transaction loop in the current architecture.",
+  "evidence_files": [
+    "crates/node/src/executor.rs",
+    "Cargo.toml",
+    "crates/node/Cargo.toml"
+  ],
+  "invariant_id": "cur-664c638a6e-execution-emits-block-metrics",
+  "invariant_index": 347,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in nodebuilder RitualBlockExecutor.",
+  "rationale": "The commit adds ritual-metrics dependencies and wraps each major execution phase and transaction execution with metric logging calls. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "7e16c872fe94f5ffdd3f4ba315413db9b91b0ad1"
+  ],
+  "statement": "RitualBlockExecutor emits block verification start/end metrics, phase metrics for registry update, setup, transaction processing, consensus verification, and finalization, and per-transaction verification start/end metrics including gas used.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Install a test metrics sink or capture structured logs during execute_one on a block with two transactions. Assert one block start and end event, one phase metric for each named phase, and matching tx start/end events for both transaction hashes with the gas value returned by execute_transaction."
+  ],
+  "summary": "Nodebuilder emits block, phase, and per-transaction execution metrics.",
+  "test_or_falsification_candidate": "Capture ritual_metrics output while executing a two-transaction block and assert each named phase plus tx start/end records are emitted with gas used.",
+  "title": "Execution emits block and transaction metrics",
+  "total_invariants": 1954
+}

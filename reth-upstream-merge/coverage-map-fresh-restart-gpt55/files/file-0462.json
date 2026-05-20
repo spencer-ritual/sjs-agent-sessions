@@ -1,0 +1,110 @@
+{
+  "record_type": "file",
+  "file_index": 462,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/storage/codecs/src/alloy/transaction/eip1559.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "high-risk",
+    "eip1559",
+    "encoding"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0462-atom-0001",
+      "file_index": 462,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/storage/codecs/src/alloy/transaction/eip1559.rs",
+      "source_hunk_hint": "@@ -29,6 +31,9 @@ pub(crate) struct TxEip1559",
+      "source_kind": "encoding_rule",
+      "source_snippet": "spc_calls: Vec<SpcCall>, commitment_tx: Option<B256>, settlement_tx: Option<B256>",
+      "semantic_claim": "EIP-1559 compact storage preserves Ritual runtime metadata fields for SPC calls plus commitment and settlement transaction hashes.",
+      "high_risk": true,
+      "risk_tags": [
+        "encoding",
+        "async-fsm",
+        "storage"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/src/alloy/transaction/eip1559.rs",
+          "symbols": [
+            "TxEip1559"
+          ],
+          "evidence": "Destination compact mirror includes `spc_calls`, `commitment_tx`, and `settlement_tx`."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Round-trip EIP-1559 with nonempty SPC calls and both async tx hashes.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": ""
+    },
+    {
+      "record_id": "file-0462-atom-0002",
+      "file_index": 462,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/storage/codecs/src/alloy/transaction/eip1559.rs",
+      "source_hunk_hint": "@@ -42,6 +58,32 @@ impl Compact for AlloyTxEip1559",
+      "source_kind": "encoding_rule",
+      "source_snippet": "spc_calls unwrap_or_default on encode; empty vec decodes to None; commitment_tx and settlement_tx preserved",
+      "semantic_claim": "EIP-1559 compact conversion stores optional SPC calls as vectors, restores empty vectors to None, and preserves commitment/settlement hashes.",
+      "high_risk": true,
+      "risk_tags": [
+        "encoding",
+        "async-fsm",
+        "rlp-identity"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/src/alloy/transaction/eip1559.rs",
+          "symbols": [
+            "impl Compact for AlloyTxEip1559"
+          ],
+          "evidence": "Destination `to_compact` uses `unwrap_or_default`; `from_compact` restores empty `spc_calls` to `None` and returns the inner remaining slice."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Decode compact EIP-1559 bytes with empty stored SPC vector and assert `spc_calls` is `None` while hashes survive.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": ""
+    }
+  ],
+  "high_risk_atoms_total": 2,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The EIP-1559 compact codec runtime metadata additions are present; old debug tracing around the conversion is not present and is accounted for by file 0452.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0462: M\tcrates/storage/codecs/src/alloy/transaction/eip1559.rs.",
+    "Diff lines 86247-86339 add metadata fields and conversion behavior.",
+    "Destination omits the old tracing debug calls but preserves the storage behavior."
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "",
+  "evidence_files": [
+    "crates/evm/src/execute.rs",
+    "crates/ritual-metrics/src/block.rs"
+  ],
+  "invariant_id": "cur-c40724167f-block-execution-emits-phase-timings",
+  "invariant_index": 299,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "ritual-reth-nodebuilder-internal/crates/node/src/executor.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-metrics/src/block.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "block_execute_spc_batch",
+      "log_payload_phase(\"block_execute_spc_batch\"",
+      "block_execute_registry_update",
+      "block_execute_consensus_verification"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "log_payload_phase",
+      "block_execute_spc_batch",
+      "block_execute_setup",
+      "block_execute_transactions",
+      "block_execute_consensus_verification",
+      "block_execute_finalization"
+    ],
+    "missing_behavior": "No audited repo emits the required block_execute_spc_batch lifecycle phase in normal and state-hook block execution paths.",
+    "related_but_insufficient_code": [
+      "ritual-reth-nodebuilder-internal/crates/node/src/executor.rs logs block_execute_registry_update, block_execute_setup, block_execute_transactions, block_execute_consensus_verification, and block_execute_finalization in both execute paths, but there is no block_execute_spc_batch phase record.",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-metrics/src/block.rs provides log_payload_phase helpers but not the missing phase call."
+    ]
+  },
+  "notes": "Confirmed by exact searches for the phase label across the port and nodebuilder.",
+  "rationale": "The diff instruments both execute_one paths around SPC verification, strategy setup, transaction loop, block verifier, and finalization with the same log_payload_phase helper. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "31e38a763254d9095c3e1515a5aed85772fe5a7f"
+  ],
+  "statement": "Block execution must emit block lifecycle phase records for SPC batch verification, executor setup, transaction processing, consensus verification, and post-execution finalization in both normal and state-hook execution paths.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Execute a block through both execute_one and execute_one_with_state_hook and assert block lifecycle logs include block_execute_spc_batch, block_execute_setup, block_execute_transactions, block_execute_consensus_verification, and block_execute_finalization with valid timing fields."
+  ],
+  "summary": "Block execution phase logging is missing the required SPC batch phase record.",
+  "test_or_falsification_candidate": "Execute blocks through execute_one and execute_one_with_state_hook and assert lifecycle logs include block_execute_spc_batch; current code emits registry_update/setup/transactions/consensus/finalization but no SPC batch phase.",
+  "title": "Block execution emits phase timings",
+  "total_invariants": 1954
+}

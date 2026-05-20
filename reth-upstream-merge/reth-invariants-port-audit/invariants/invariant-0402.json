@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "LLM payload validation rejects malformed ABI, zero executor, invalid TTL bounds, empty model, and empty/non-array messages.",
+      "path": "crates/ritual-precompile-codecs/src/validation.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let request = LLMCallRequest::from_abi(input)?;\nvalidate_executor_base_fields(request.executor, request.ttl, ...)?;\nif request.model.trim().is_empty() { return Err(PayloadValidationError::EmptyModel); }\nif !request.has_valid_messages() { return Err(PayloadValidationError::EmptyMessages); }",
+      "symbols": [
+        "validate_llm_call_payload",
+        "LLMCallRequest::from_abi"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "RPC admission routes detected async calls through shared payload validation before pool insertion.",
+      "path": "crates/rpc/rpc/src/async_tx_validator.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "validate_async_payload(async_call.precompile_address, async_call.input.as_ref(), MAX_SHORT_ASYNC_TTL_BLOCKS)?;",
+      "symbols": [
+        "validate_detected_async_call",
+        "validate_rpc_async_admission"
+      ]
+    }
+  ],
+  "equivalence_argument": "RPC admission performs the LLM-specific payload checks through the shared codec validator; invalid LLM model/messages/executor/TTL or malformed ABI is converted to an RPC invalid-params rejection.",
+  "evidence_files": [
+    "crates/rpc/rpc/src/async_tx_validator.rs",
+    "crates/ritual-precompile-codecs/src/llm_call.rs"
+  ],
+  "invariant_id": "cur-c0caf0e293-invalid-requests-rejected",
+  "invariant_index": 402,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped through async_tx_validator and ritual-precompile-codecs validation.",
+  "rationale": "The validator now routes LLM precompile input through LLMCallRequest and explicitly checks executor, TTL bounds, non-empty model, and has_valid_messages. The commit message says this enables RPC-level rejection of invalid LLM call requests. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "d710dd149783d6143f6ae5a028986f498826adb7"
+  ],
+  "statement": "RPC async payload validation for the LLM precompile must reject requests with zero executor address, zero TTL, TTL above MAX_TTL_BLOCKS, empty model, or empty/non-array messages_json.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call validate_async_payload with LLM precompile inputs covering valid payload, Address::ZERO executor, ttl 0, ttl greater than MAX_TTL_BLOCKS, empty model, empty messages string, non-array messages string, and [] messages; assert only the valid payload is accepted and the invalid cases return the specific validation errors."
+  ],
+  "summary": "Invalid LLM async requests are rejected during RPC admission.",
+  "test_or_falsification_candidate": "Submit LLM precompile calls with zero executor, zero TTL, TTL over the configured max, empty model, empty messages, and non-array messages; each should fail RPC admission.",
+  "title": "Invalid LLM requests are rejected at RPC",
+  "total_invariants": 1954
+}

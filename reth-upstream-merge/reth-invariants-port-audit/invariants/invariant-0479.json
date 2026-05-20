@@ -1,0 +1,80 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "The port defines a DKMS-specific fixed executor fee constant.",
+      "path": "crates/ritual-async-fees/src/constants.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const DKMS_EXECUTOR_FEE_WEI: u128 = 2_650_000_000_000;",
+      "symbols": [
+        "DKMS_EXECUTOR_FEE_WEI"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "DKMS fee calculation always uses the fixed fee and a 20-byte output for inclusion fee input.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const DKMS_OUTPUT_SIZE_BYTES: usize = 20;\npub fn calculate_dkms_fees(input_len: usize) -> AsyncFees {\n    let executor_fee = dkms_executor_fee();\n    let commitment_fee = async_commitment_fee(input_len);\n    let inclusion_fee = async_inclusion_fee(input_len, DKMS_OUTPUT_SIZE_BYTES);\n    AsyncFees::new(executor_fee, commitment_fee, inclusion_fee)\n}\n...\nif precompile_address == DKMS_KEY_PRECOMPILE {\n    return Ok(calculate_dkms_fees(input_len));\n}",
+      "symbols": [
+        "DKMS_OUTPUT_SIZE_BYTES",
+        "calculate_dkms_fees",
+        "dkms_escrow_lockup",
+        "calculate_async_fees"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "Wallet validation uses the complete fixed DKMS total as the escrow requirement.",
+      "path": "crates/ritual-async-fees/src/wallet.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "else if precompile_address == DKMS_KEY_PRECOMPILE {\n    return verify_fixed_fee_wallet_lock(\n        balance,\n        lock_until,\n        dkms_escrow_lockup(input_len),\n        commit_block.saturating_add(ttl),\n        user_address,\n    );\n}",
+      "symbols": [
+        "verify_wallet_for_commitment",
+        "dkms_escrow_lockup"
+      ]
+    }
+  ],
+  "equivalence_argument": "The fee dispatcher, fee helper, and wallet validation all converge on calculate_dkms_fees(input_len), whose executor fee is fixed and whose inclusion output size is the constant 20-byte DKMS output.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/constants.rs",
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ritual-async-fees/src/wallet.rs"
+  ],
+  "invariant_id": "cur-d214e45d04-dkms-uses-fixed-executor",
+  "invariant_index": 479,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This maps directly to the current fixed-fee DKMS implementation.",
+  "rationale": "The diff adds a DKMS-specific fee constant and fee functions, routes calculate_async_fees to calculate_dkms_fees for DKMS_KEY_PRECOMPILE, and updates wallet escrow to call dkms_escrow_lockup instead of deriving an HTTP-style fee. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "d7acc32607b42ed22d7b43a14b96b9e018a4cbac"
+  ],
+  "statement": "For the DKMS key precompile at 0x081B, async fee calculation must use the fixed DKMS_EXECUTOR_FEE_WEI executor fee, assume a 20-byte DKMS output for validator fee inputs, and make dkms_escrow_lockup(input_len) equal the complete DKMS fee total.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call calculate_async_fees for DKMS_KEY_PRECOMPILE with different input/output lengths and assert executor_fee always equals DKMS_EXECUTOR_FEE_WEI, total equals calculate_dkms_fees(input_len).total, and dkms_escrow_lockup(input_len) matches that total."
+  ],
+  "summary": "DKMS uses a fixed executor fee and 20-byte output fee inputs.",
+  "test_or_falsification_candidate": "Call calculate_async_fees for DKMS_KEY_PRECOMPILE with different input/output lengths and assert executor_fee always equals DKMS_EXECUTOR_FEE_WEI, total equals calculate_dkms_fees(input_len).total, and dkms_escrow_lockup(input_len) matches that total.",
+  "title": "DKMS uses fixed executor fee",
+  "total_invariants": 1954
+}

@@ -1,0 +1,56 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "Nodebuilder constructs BlockVerifier through new_with_evm_classification and passes the full Ritual EthEvmConfig built with RitualEvmFactory.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "let evm_config =\n    EthEvmConfig::new_with_evm_factory(ctx.chain_spec(), RitualEvmFactory::default());\n\nlet block_verifier = std::sync::Arc::new(BlockVerifier::<_, reth_ethereum_primitives::Block, _, _>::new_with_evm_classification(\n    pool.clone(),\n    ctx.provider().clone(),\n    evm_config.clone(),\n    None,\n));",
+      "symbols": [
+        "RitualExecutorBuilder::build_evm_with_pool",
+        "BlockVerifier::new_with_evm_classification",
+        "EthEvmConfig::new_with_evm_factory"
+      ]
+    }
+  ],
+  "equivalence_argument": "In the v2.2 architecture, nodebuilder owns executor construction. Passing the same EthEvmConfig into new_with_evm_classification preserves verifier EVM classification and async validation support on the active node path.",
+  "evidence_files": [
+    "crates/node/src/executor.rs"
+  ],
+  "invariant_id": "cur-4662e37e3e-blockverifier-constructed-classification",
+  "invariant_index": 436,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This is mapped in the nodebuilder dependency because the active v2 node executor is assembled there.",
+  "rationale": "The primary diff removes the ad hoc EVM environment factory and switches from new_with_async_validation to new_with_evm_classification, passing evm_config directly. The diff removes the environment-factory-only BlockVerifier construction and replaces new_with_async_validation with new_with_evm_classification(evm_config.clone()), with comments stating this enables EVM simulation for sequencing rights and async validation. Collapsed 2 closely related historical candidate statements into the latest effective formulation.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "0c18336bc82c982bf35b44ef0d74e1776fc618fa",
+    "a5ab05410e76b2ff98783def0c91409bf68e2a95"
+  ],
+  "statement": "The node executor must construct BlockVerifier with new_with_evm_classification and pass the full Ritual EthEvmConfig so block verification can perform EVM simulation/classification for sequencing-rights call graph analysis in addition to async commitment validation.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Instantiate nodebuilder's executor path and assert the BlockVerifier is built through new_with_evm_classification with the same EthEvmConfig used by RitualEvmFactory; verify sequencing-rights EVM classification is available during block verification.",
+    "Start a node with this executor path and assert the BlockVerifier receives an EVM config capable of running classification simulations; a sequencing-rights verification scenario that requires call graph simulation should use the EVM classification path rather than failing due to missing EVM factory/config."
+  ],
+  "summary": "Nodebuilder constructs BlockVerifier with EVM classification.",
+  "test_or_falsification_candidate": "Instantiate nodebuilder's executor path and assert the BlockVerifier is built through new_with_evm_classification with the same EthEvmConfig used by RitualEvmFactory; verify sequencing-rights EVM classification is available during block verification.",
+  "title": "BlockVerifier is constructed with EVM classification",
+  "total_invariants": 1954
+}

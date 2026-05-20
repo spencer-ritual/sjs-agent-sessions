@@ -1,0 +1,62 @@
+{
+  "cluster_key": "executor delivery:delivery-result-submission-3250f793",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping was found: the current RPC path performs one pool submission and returns the error immediately; retry constants and sleeps are absent from audited repos.",
+  "evidence_files": [
+    "crates/rpc/rpc/src/ritual.rs"
+  ],
+  "invariant_id": "cur-111f55932f-delivery-result-submission-retries-pool-lookup",
+  "invariant_index": 196,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "crates/rpc/rpc/src/ritual.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs"
+    ],
+    "checked_queries": [
+      "MAX_POOL_RETRIES|RETRY_DELAY_MS|submitDeliveryResult|submit_delivery_result",
+      "pool.get_async_metadata|submit_async_delivery_result"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "submit_delivery_result",
+      "MAX_POOL_RETRIES",
+      "RETRY_DELAY_MS",
+      "get_async_metadata"
+    ],
+    "missing_behavior": "Missing submitDeliveryResult retry loop of 10 pool lookups with 100 ms sleeps before not-found failure.",
+    "related_but_insufficient_code": [
+      "crates/ethereum/node/src/ritual_async_rpc.rs builds AsyncDeliverySubmission and calls pool.submit_async_delivery_result once, then returns Err as success=false.",
+      "Only rpc_compat tests contain unrelated retry constants for node syncing, not submitDeliveryResult pool lookup.",
+      "Invariant 201 in this same batch maps the replacement single-lookup behavior."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The commit message describes a race where Phase 2 delivery can arrive before Phase 1 finalization inserts the pool entry, and the diff adds MAX_POOL_RETRIES, RETRY_DELAY_MS, repeated async sleeps/lookups, and only fails after retries. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "20c2eea55c70761390b874f8bc34124ffb7bc368"
+  ],
+  "statement": "When submitDeliveryResult cannot immediately find the target transaction in the async pool, it must retry the pool lookup up to 10 times with 100 ms delays before returning a not-found failure, and must proceed if the transaction appears during a retry.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Mock the pool so get_async_transaction_by_hash returns None initially and Some after several calls; assert submitDeliveryResult waits/retries and succeeds. Also mock permanent None and assert it returns success=false only after exhausting 10 retries."
+  ],
+  "summary": "Delivery-result RPC lookup retries are not present in the current audited repos.",
+  "test_or_falsification_candidate": "Mock an initially absent async pool entry that appears after several lookups; current local submitDeliveryResult should still fail after the first pool submission path.",
+  "title": "Delivery result submission retries pool lookup",
+  "total_invariants": 1954
+}

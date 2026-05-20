@@ -1,0 +1,66 @@
+{
+  "cluster_key": "block building:build-attempts-flush-85e411f1",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: metrics/RPC types can carry demotions, but there is no BlockBuildAttemptRecorder-style producer that snapshots demotions on better_payload, aborted_not_better, or cancelled exits.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-a68de514e1-build-attempts-flush-demotions-every-outcome",
+  "invariant_index": 557,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-metrics/src/block.rs",
+      "crates/rpc/rpc-api/src/ritual.rs"
+    ],
+    "checked_queries": [
+      "BlockBuildAttemptRecorder record_demotions demotions every outcome",
+      "record_block_build_attempt call sites",
+      "better_payload aborted_not_better cancelled demotions"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "BlockBuildAttemptRecorder",
+      "record_demotions",
+      "record_block_build_attempt",
+      "better_payload",
+      "aborted_not_better",
+      "cancelled",
+      "demotions"
+    ],
+    "missing_behavior": "Payload build attempts do not snapshot policy demotions before success, abort, or cancellation outcomes, because the attempt recorder/producer path is absent.",
+    "related_but_insufficient_code": [
+      "crates/ritual-metrics/src/block.rs defines BlockBuildAttemptTrace.demotions and record_block_build_attempt.",
+      "crates/rpc/rpc-api/src/ritual.rs exposes demotions in the debug response shape.",
+      "Search found no BlockBuildAttemptRecorder, record_demotions, or payload-builder call to record_block_build_attempt."
+    ]
+  },
+  "notes": "This aligns with the adjacent block-build trace producer gap.",
+  "rationale": "The commit adds demotions to BlockBuildAttemptRecorder, record_demotions converts policy events to metric traces when enabled, Drop passes demotions to the metrics ring buffer, and all shown cancellation/abort/success paths call record_demotions. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Block Building",
+  "source_commits": [
+    "cfa8b75c431b003bf1b6b06f37d65df0c73c4eed"
+  ],
+  "statement": "When block building exits as better_payload, aborted_not_better, or cancelled, BlockBuildAttemptRecorder must record the current policy demotions before setting the final outcome and flushing the attempt trace on drop.",
+  "status": "current",
+  "subsystem": "block building",
+  "suggested_falsification_tests": [
+    "Force payload building through cancelled, aborted_not_better, and better_payload outcomes after at least one policy demotion and assert the emitted build attempt trace includes the demotion work_class, reason, and elapsed_micros for each outcome."
+  ],
+  "summary": "Build attempts do not flush demotions on terminal outcomes.",
+  "test_or_falsification_candidate": "Force cancelled, not-better, and better-payload exits after a demotion and assert ritual_getBlockBuildTrace contains the demotion for each; current producer wiring is absent.",
+  "title": "Build attempts flush demotions on every outcome",
+  "total_invariants": 1954
+}

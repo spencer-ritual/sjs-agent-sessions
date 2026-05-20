@@ -1,0 +1,107 @@
+{
+  "cluster_key": "precompile pricing:addresses:part-01",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "No complete implementation mapping was found in the audited local repo set: Missing end-to-end preservation of caller address and program counter from detection through commitment/SPC metadata and fulfilled execution; address, input, result/proof, and commit block are partially preserved, but the full callsite metadata required by the invariant is dropped.",
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/async_exec.rs",
+    "crates/ritual-async/src/detector.rs",
+    "crates/storage/codecs/src/alloy/transaction/asyncexec.rs",
+    "crates/rpc/rpc-eth-types/src/receipt.rs",
+    "docs/async-transactions.md",
+    "crates/rpc/rpc/src/txpool.rs",
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-async/src/inspector.rs",
+    "crates/evm/src/lib.rs"
+  ],
+  "invariant_id": "cur-f9ff9c44b5-async-precompile-metadata-carried-detection-through-fulfilled-execution",
+  "invariant_index": 179,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-inspector/src/lib.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "ritual-alloy-internal/crates/consensus/src/transaction/async_commitment.rs",
+      "ritual-alloy-internal/crates/consensus/src/transaction/spc_call.rs",
+      "ritual-alloy-evm-internal/crates/evm/src/tx.rs",
+      "crates/rpc/rpc/src/async_tx_validator.rs"
+    ],
+    "checked_queries": [
+      "TxAsyncExec|AsyncTxMeta|precompile_address|precompile_input|commit_block|timeout_block|pending_spc_calls|spc_calls",
+      "struct TxAsyncCommitment|pub struct TxAsyncCommitment|program_counter|caller_address",
+      "pub struct SpcCall|impl SpcCall|fn new\\(",
+      "AsyncPrecompileInspector|program_counter|caller_address|DetectedShortAsyncCall"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "BasicAsyncCallResult",
+      "DetectedShortAsyncCall",
+      "TxAsyncCommitment",
+      "AsyncTxMetadata",
+      "SpcCall",
+      "pending_spc_calls",
+      "program_counter",
+      "caller_address"
+    ],
+    "missing_behavior": "Missing end-to-end preservation of caller address and program counter from detection through commitment/SPC metadata and fulfilled execution; address, input, result/proof, and commit block are partially preserved, but the full callsite metadata required by the invariant is dropped.",
+    "related_but_insufficient_code": [
+      "crates/ritual-async-inspector/src/lib.rs captures caller_address and program_counter in BasicAsyncCallResult.",
+      "crates/ethereum/payload/src/ritual_async.rs reduces that detection result to DetectedShortAsyncCall fields commitment_tx, executor, precompile_address, precompile_input, and ttl.",
+      "ritual-alloy-internal/crates/consensus/src/transaction/async_commitment.rs stores origin_tx_rlp, precompile_address, precompile_input, ttl, executor, and validator, but no caller_address or program_counter.",
+      "ritual-alloy-internal/crates/consensus/src/transaction/spc_call.rs stores address, input, output, proof, and block_number only.",
+      "crates/ethereum/payload/src/lib.rs injects pending_spc_calls and AsyncCallMetadata with precompile address/input/result/proof/commit block, but no caller/program-counter callsite metadata survives into the fulfilled execution path."
+    ]
+  },
+  "notes": "Confirmed architectural gap. Scoped implementation plan written at ../invariant-0179-async-callsite-metadata/impl-plan.md.",
+  "rationale": "The candidates connect the same metadata lineage across detection, TxAsyncExec encoding, pool storage, receipts, txpool views, payload replay, and signed SPC injection. The final form is the injected SPC-call path with proof/result/callsite metadata populated before execution.",
+  "record_type": "invariant_mapping",
+  "section": "Precompile Pricing",
+  "source_commits": [
+    "8d05a1a80464ea9298abccacef63f40301fb2872",
+    "8d05a1a80464ea9298abccacef63f40301fb2872",
+    "4f8f7384c16355064bbb81a2da4c6fcae1fdda0c",
+    "db83d0119d869193dd40464ebb8ac174dd76e4d1",
+    "9abc8b338bf200dcf99bb581169624477807fb28",
+    "de5224693aa41cb68161208352d94e7c33185b90",
+    "cba0db7a686da1cda1d6817433aed4f430e6dc33",
+    "b1aaba6593e6dd447350860beb6f2b68691a076a",
+    "f816893f618fb38af2b31242a4ba4e2b1f2567c9",
+    "725789f5c9f737e4958cf162327145da06beff38",
+    "580d29ce378086d51977be3f14e315c61d2e4031",
+    "28c4fc4f952b6edb63d43f4a88b6c59e815160e0",
+    "ea2b12c0af1e691fb320469bba0079f9944299f5"
+  ],
+  "statement": "AsyncExec system transactions, pool metadata, RPC/txpool exposure, and fulfilled payload execution must preserve concrete precompile address, input, commit/timeout blocks, caller, program counter, sender-derived commitment data, execution result/proof, and injected SPC calls instead of zero placeholders or address-only result maps.",
+  "status": "current",
+  "subsystem": "precompile pricing",
+  "suggested_falsification_tests": [
+    "Add an async-exec transaction with distinctive precompile address, input, commit block, and timeout block to AsyncExecPool, then assert the stored AsyncTxMeta contains those exact values and not zero/empty placeholders.",
+    "Create an async call result with a nonzero precompile address and nonempty input, compact-encode and decode its TxAsyncExec, and assert both fields round-trip unchanged.",
+    "Create an AsyncExec transaction with a known embedded original transaction, precompile address, and input, build its RPC receipt, and assert the receipt fields equal the original transaction hash, address, and input; repeat with a legacy transaction and assert those fields are null.",
+    "Run block-building simulation for a transaction that calls the documented HTTP_CALL_PRECOMPILE and assert that an async system transaction is produced with orig_tx_rlp, precompile_address, precompile_input, commit_block, and timeout_block matching the original transaction and block context.",
+    "Insert an async-exec system transaction with nonzero precompile_address, nonempty precompile_input, and distinct commit_block and timeout_block into the txpool, call the detailed async-exec txpool RPC, and assert those returned fields exactly match the TxAsyncExec values and are not default placeholders.",
+    "Build a payload containing a fulfilled async-exec transaction whose pool metadata has `execution_result` bytes and a distinct `precompile_address`; instrument or assert in the HTTP precompile path that execution observes those bytes from async context before any live HTTP call is attempted, and fail if the result is missing or keyed under the wrong address.",
+    "Execute a transaction that calls an async precompile from a known contract at a known bytecode program counter, run async detection, decode the produced AsyncExec transaction, and assert its `program_counter` and `caller_address` match the inspector's captured values.",
+    "Build with async-context enabled, execute block-building for a transaction whose contract calls the configured async precompile address, and assert that inspector validation storage contains the call site's program counter and the contract caller address. Repeat with async-context disabled and assert the builder uses the normal EVM construction path.",
+    "Run a transaction that calls an async precompile under an EVM context implementing AsyncContextTr. Assert the async context contains InspectorValidationData with the call-site PC and caller address, and assert no thread-local validation mechanism is required for the comparison.",
+    "Run a simulation with async-context feature enabled and an async precompile call. Assert `AsyncPrecompileInspector::async_call_result()` still returns the detected call data, and assert the EVM async context contains no inspector validation data written by the inspector.",
+    "Feed detect_async_transaction a transaction that otherwise reaches async detection but whose signature recovery fails, and assert the result is None and no commitment transaction is created.",
+    "Execute a fulfilled async transaction during payload building with injected spc_calls and assert the AsyncExecutionContext seen by precompile validation contains those same calls in pending_spc_calls; a regression would leave pending_spc_calls empty or rely only on result maps.",
+    "Create fulfilled async pool metadata with execution_result and execution_proof plus a commitment transaction containing program_counter and caller_address, build a payload, and assert the executed recovered transaction has exactly one SPC call with those metadata fields and that async_context.pending_spc_calls is populated from the injected transaction field."
+  ],
+  "summary": "Async metadata propagation is partial and is a confirmed gap for caller/program-counter lineage.",
+  "test_or_falsification_candidate": "Execute an async call from a known contract and program counter, then inspect the produced commitment, txpool metadata, fulfilled original transaction, and pending SPC call; current local structures should lack caller_address and program_counter after the inspector stage.",
+  "title": "Async precompile metadata is carried from detection through fulfilled execution",
+  "total_invariants": 1954
+}

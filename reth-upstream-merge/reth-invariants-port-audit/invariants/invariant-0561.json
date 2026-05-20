@@ -1,0 +1,68 @@
+{
+  "cluster_key": "block building:builder-reorders-sequencing-767d8737",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "The payload builder first tip-sorts candidates, calls reorder_block, and applies the returned hash permutation without dropping candidates; on reorder error it preserves the tip order.",
+      "path": "crates/ethereum/payload/src/sequencing_rights.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "sort_candidates_by_effective_tip(&mut payload_candidates, ...);\n...\nlet reordered = match reorder_block(classified, parent_header, client) {\n    Ok(reordered) => reordered,\n    Err(err) => { ... return candidates; }\n};\n...\ncandidates = permutation.into_iter().filter_map(|original_index| by_original_position.get_mut(original_index).and_then(Option::take)).collect();",
+      "symbols": [
+        "sort_candidates_by_effective_tip",
+        "reorder_payload_candidates"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "Only single-contract transactions whose contract returns sequencingRights are bucketed; all others stay unbucketed for original-position reassembly.",
+      "path": "crates/ritual-sequencing-rights/src/bucket.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "match classification {\n    Classification::SingleContract(interaction) => {\n        if let Some(ordering) = reader.read_ordering(interaction.contract, state) { bucket.add_transaction(idx, tx, interaction.selectors); } else { partition.unbucketed.push((idx, tx)); }\n    }\n    Classification::MultiContract | Classification::NoSequencingRights | Classification::SimpleTransfer | Classification::Exempt | Classification::Failed(_) => partition.unbucketed.push((idx, tx)),\n}",
+      "symbols": [
+        "BucketManager::create_partition",
+        "Partition::reassemble"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port preserves the sequencing-rights bucket invariant for direct/top-level candidates: tip order is the input order, SR buckets are sorted by contract ordering, unbucketed transactions remain in their positions, and hash permutation preserves cardinality.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/unified_builder.rs",
+    "crates/ritual-sequencing-rights/src/lib.rs",
+    "crates/ritual-sequencing-rights/src/bucket.rs",
+    "crates/ritual-sequencing-rights/src/classifier.rs"
+  ],
+  "invariant_id": "cur-2b0ca409c7-builder-reorders-sequencing-rights-buckets",
+  "invariant_index": 561,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This maps the bucket/reassembly behavior, while full simulated call-graph classification is covered by separate gap records.",
+  "rationale": "The new unified builder path tip-sorts collected transactions, calls reorder_block, and then updates collection order from the reordered transaction hashes. The sequencing crate classifies transactions, buckets only contracts with readable sequencing rights, sorts buckets by priority, and asserts all positions are filled during reassembly. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Block Building",
+  "source_commits": [
+    "8c281cff26acdd09503689a43a914d923f315ac6"
+  ],
+  "statement": "After collecting and tip-sorting payload transactions, the builder must classify transactions by direct contract interaction, bucket transactions for contracts whose sequencingRights() call returns an ordering, sort each bucket by the contract-defined selector priority, and reassemble without dropping transactions while leaving unbucketed transactions in their original positions.",
+  "status": "current",
+  "subsystem": "block building",
+  "suggested_falsification_tests": [
+    "Given a tip-sorted set containing multiple calls to the same sequencing-rights contract in reverse priority order plus unrelated transactions, build a payload and assert the contract's bucket is reordered by sequencingRights priority, unrelated transactions remain in their positions, and the final transaction count equals the input count."
+  ],
+  "summary": "Builder reorders sequencing-rights buckets without dropping transactions.",
+  "test_or_falsification_candidate": "Build a tip-sorted candidate set with one SR contract bucket and unrelated transactions; assert bucket members reorder by priority and the final hash set/count matches the input.",
+  "title": "Builder reorders sequencing-rights buckets",
+  "total_invariants": 1954
+}

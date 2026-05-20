@@ -1,0 +1,263 @@
+{
+  "record_type": "file",
+  "file_index": 325,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-precompile-codecs/src/persistent_agent.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "precompile-codecs",
+    "persistent-agent",
+    "storage-ref",
+    "phase2"
+  ],
+  "atoms_total": 5,
+  "atoms": [
+    {
+      "record_id": "file-0325-atom-0001",
+      "file_index": 325,
+      "atom_index": 1,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-precompile-codecs/src/persistent_agent.rs",
+      "source_hunk_hint": "@@ -0,0 +1,203 @@; enums, DeliveryConfig, PersistentAgentRequest shape, and ABI metadata",
+      "source_kind": "persistent_agent_request_shape",
+      "source_snippet": "pub enum LLMProvider { Anthropic = 0, OpenAI = 1, Gemini = 2, XAI = 3, OpenRouter = 4 }\npub enum AgentRuntime { ZeroClaw = 0, OpenClaw = 1, Hermes = 2 }\npub struct DeliveryConfig { ... }\npub struct PersistentAgentRequest { ... }\npub fn abi_types() -> Vec<&'static str> { ... }",
+      "semantic_claim": "The old divergence adds the Persistent Agent codec type surface: LLM provider and agent runtime enums with validation/API-string conversion, Phase 2 delivery config, the 26-field persistent agent request shape, StorageRef workspace/DA references, RPC URLs, and ABI field metadata.",
+      "high_risk": false,
+      "risk_tags": [
+        "persistent-agent",
+        "abi-layout",
+        "llm-provider",
+        "agent-runtime",
+        "storage-ref"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/persistent_agent.rs",
+          "symbols": [
+            "LLMProvider",
+            "AgentRuntime",
+            "DeliveryConfig",
+            "PersistentAgentRequest",
+            "PersistentAgentRequest::abi_types"
+          ],
+          "evidence": "Destination lines 1-203 exactly match source-added diff lines 59526-59728."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps enum discriminants, API names, request field layout, and ABI metadata unchanged.",
+      "test_strategy": "persistent_agent_shape_and_enum_tests",
+      "negative_test_candidate": "Provider or runtime discriminants outside the preserved ranges should return `CodecError::InvalidFieldValue`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0325-atom-0002",
+      "file_index": 325,
+      "atom_index": 2,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-precompile-codecs/src/persistent_agent.rs",
+      "source_hunk_hint": "@@ -0,0 +205,529 @@; PersistentAgentRequest ABI decoder",
+      "source_kind": "persistent_agent_full_abi_decoder",
+      "source_snippet": "pub fn from_abi(data: &[u8]) -> Result<Self, CodecError> {\n    // decode base executor fields, max_spawn_block, DeliveryConfig, LLM config,\n    // DA/workspace StorageRefs, restore CID, rpc_urls, and agent_runtime\n}",
+      "semantic_claim": "The old divergence adds strict 26-field Persistent Agent ABI decoding for base executor fields, Phase 2 spawn deadline, delivery config, LLM provider/model/key reference, DA config, seven workspace `StorageRef`s, restore CID, RPC URLs, and agent runtime with overflow and enum-boundary checks.",
+      "high_risk": false,
+      "risk_tags": [
+        "persistent-agent",
+        "abi-decoding",
+        "storage-ref",
+        "delivery-config",
+        "rpc-urls",
+        "agent-runtime"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/persistent_agent.rs",
+          "symbols": [
+            "PersistentAgentRequest::from_abi"
+          ],
+          "evidence": "Destination lines 205-529 exactly match source-added diff lines 59730-60054."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async/src/validation.rs",
+          "symbols": [
+            "PersistentAgentRequest"
+          ],
+          "evidence": "Async payload validation decodes Persistent Agent payloads through this request type."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves Persistent Agent ABI offsets, typed conversions, StorageRef decoding, and field-level error behavior.",
+      "test_strategy": "persistent_agent_full_decode_tests",
+      "negative_test_candidate": "A payload with `agent_runtime` outside the preserved enum range should fail decode rather than defaulting.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0325-atom-0003",
+      "file_index": 325,
+      "atom_index": 3,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-precompile-codecs/src/persistent_agent.rs",
+      "source_hunk_hint": "@@ -0,0 +531,628 @@; PersistentAgentRequest encoder and helper methods",
+      "source_kind": "persistent_agent_encoder_and_helpers",
+      "source_snippet": "pub fn to_abi(&self) -> Vec<u8> { ... }\npub fn extract_ttl(data: &[u8]) -> Result<u64, CodecError> { ... }\npub fn extract_executor(data: &[u8]) -> Result<Address, CodecError> { ... }\npub fn get_all_storage_refs(&self) -> Vec<(&'static str, &StorageRef)> { ... }\npub fn get_required_secret_keys(&self) -> Vec<&str> { ... }",
+      "semantic_claim": "The old divergence adds Persistent Agent ABI encoding, efficient TTL/executor extractors via the base executor decoder, helper enumeration of all DA/workspace StorageRefs, and required secret-key discovery from LLM and authenticated storage refs.",
+      "high_risk": false,
+      "risk_tags": [
+        "persistent-agent",
+        "abi-encoding",
+        "field-extraction",
+        "storage-ref",
+        "secret-keys"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/persistent_agent.rs",
+          "symbols": [
+            "PersistentAgentRequest::to_abi",
+            "PersistentAgentRequest::extract_ttl",
+            "PersistentAgentRequest::extract_executor",
+            "PersistentAgentRequest::extract_executor_and_ttl",
+            "PersistentAgentRequest::get_all_storage_refs",
+            "PersistentAgentRequest::get_required_secret_keys"
+          ],
+          "evidence": "Destination lines 531-628 exactly match source-added diff lines 60056-60153."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps Persistent Agent roundtrip encoding, fast extraction, and credential discovery semantics unchanged.",
+      "test_strategy": "persistent_agent_roundtrip_and_secret_key_tests",
+      "negative_test_candidate": "A request with an LLM key ref and an authenticated DA storage ref should report both keys from `get_required_secret_keys`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0325-atom-0004",
+      "file_index": 325,
+      "atom_index": 4,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-precompile-codecs/src/persistent_agent.rs",
+      "source_hunk_hint": "@@ -0,0 +630,719 @@; PersistentAgentResponse ABI codec",
+      "source_kind": "persistent_agent_response_codec",
+      "source_snippet": "pub struct PersistentAgentResponse { pub instance_id: String, pub gateway_url: String, pub container_id: String, pub checkpoint_cid: String, pub error_message: String }\nimpl PersistentAgentResponse { pub fn success(&self) -> bool { ... } pub fn error(message: String) -> Self { ... } pub fn from_abi(data: &[u8]) -> Result<Self, CodecError> { ... } pub fn to_abi(&self) -> Vec<u8> { ... } }",
+      "semantic_claim": "The old divergence adds the Persistent Agent spawn response codec with instance, gateway, container, checkpoint, and error fields, success/error helpers, and strict five-string ABI decode/encode behavior.",
+      "high_risk": false,
+      "risk_tags": [
+        "persistent-agent",
+        "response-codec",
+        "abi-decoding",
+        "abi-encoding"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/persistent_agent.rs",
+          "symbols": [
+            "PersistentAgentResponse",
+            "PersistentAgentResponse::success",
+            "PersistentAgentResponse::error",
+            "PersistentAgentResponse::from_abi",
+            "PersistentAgentResponse::to_abi"
+          ],
+          "evidence": "Destination lines 630-719 exactly match source-added diff lines 60155-60244."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves response field order, success classification, and ABI roundtrip behavior.",
+      "test_strategy": "persistent_agent_response_codec_tests",
+      "negative_test_candidate": "A response with only `error_message` set should report `success() == false`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0325-atom-0005",
+      "file_index": 325,
+      "atom_index": 5,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-precompile-codecs/src/persistent_agent.rs",
+      "source_hunk_hint": "@@ -0,0 +721,968 @@; Persistent Agent codec tests",
+      "source_kind": "persistent_agent_codec_tests",
+      "source_snippet": "#[cfg(test)]\nmod tests {\n    #[test] fn test_roundtrip_request() { ... }\n    #[test] fn test_roundtrip_request_with_rpc_urls() { ... }\n    #[test] fn test_extract_ttl() { ... }\n    #[test] fn test_get_required_secret_keys() { ... }\n    #[test] fn test_delivery_config_extraction() { ... }\n    #[test] fn test_response_roundtrip() { ... }\n    #[test] fn test_llm_provider_api_string() { ... }\n}",
+      "semantic_claim": "The old divergence adds Persistent Agent tests covering request roundtrip, RPC URLs and runtime preservation, TTL/executor extraction, required secret-key discovery, delivery config extraction, response roundtrip/error helpers, and LLM provider API strings.",
+      "high_risk": false,
+      "risk_tags": [
+        "tests",
+        "persistent-agent",
+        "roundtrip",
+        "storage-ref",
+        "delivery-config"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/persistent_agent.rs",
+          "symbols": [
+            "test_roundtrip_request",
+            "test_roundtrip_request_with_rpc_urls",
+            "test_extract_ttl",
+            "test_get_required_secret_keys",
+            "test_delivery_config_extraction",
+            "test_response_roundtrip",
+            "test_llm_provider_api_string"
+          ],
+          "evidence": "Destination lines 721-968 exactly match source-added diff lines 60246-60493."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the Persistent Agent regression coverage embedded in the source file.",
+      "test_strategy": "cargo test -p ritual-precompile-codecs persistent_agent",
+      "negative_test_candidate": "Roundtripping a Persistent Agent request with Hermes runtime and RPC URLs should preserve both fields.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Test atom only."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The Persistent Agent precompile codec is exact-port preserved, including request enums/shape, full 26-field ABI decoding, ABI encoding, fast extractors, StorageRef/secret-key helpers, response codec, and tests.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 325: A\tcrates/ritual-precompile-codecs/src/persistent_agent.rs.",
+    "Source-added hunk spans diff lines 59526-60493 with header `@@ -0,0 +1,968 @@`; the next diff starts at line 60494.",
+    "Destination `crates/ritual-precompile-codecs/src/persistent_agent.rs` has 968 lines and matches the source-added content exactly.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

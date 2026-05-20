@@ -1,0 +1,72 @@
+{
+  "cluster_key": "scheduler:pool-accounting:part-02",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/scheduling/src/contract.rs"
+  ],
+  "invariant_id": "cur-8678779d10-terminal-scheduler-events-retain-calls",
+  "invariant_index": 44,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/scheduling/src/contract.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs",
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs"
+    ],
+    "checked_queries": [
+      "ExecutionFailed|SkippedInsufficientFunds|SkippedTTLExpired|Complete|Expired|Cancel",
+      "Scheduler.*event|event processing|retain.*call|remove.*call",
+      "crates/scheduling/src/contract.rs"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "Scheduler event processing",
+      "ExecutionFailed",
+      "SkippedInsufficientFunds",
+      "SkippedTTLExpired",
+      "Cancel",
+      "Complete",
+      "Expired",
+      "remove call",
+      "retain call",
+      "read_scheduled_call",
+      "compute_obligations"
+    ],
+    "missing_behavior": "No audited repo contains the old Scheduler event-processing lifecycle that retains calls on non-terminal failure/skip events and removes calls on cancel/complete/expire events.",
+    "related_but_insufficient_code": [
+      "Current scheduled verification reads Scheduler parent storage directly with read_scheduled_call/compute_obligations; it does not process event streams to mutate an in-memory Scheduler call lifecycle.",
+      "Payload building and block verification synthesize/validate scheduled work from parent state and included transactions, not from Scheduler events."
+    ]
+  },
+  "notes": "Confirmed gap because the event processor itself is gone; parent-state scanning is related but not equivalent to event-driven call lifecycle retention/removal.",
+  "rationale": "The event-processing candidate defines a durable call lifecycle rule: temporary failures and skips retain calls for retry, while terminal events remove them.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "41c8572f4e28ba0d6419018ef9bb859190b2c7ac"
+  ],
+  "statement": "At current tip, Scheduler event processing must retain calls after execution failures, insufficient-funds skips, and TTL-expired skips so they can retry, but must remove calls on cancel, complete, and expire events.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Apply each Scheduler event status to scheduler state and assert Cancel, Complete, and Expired remove the call, while ExecutionFailed, SkippedInsufficientFunds, and SkippedTTLExpired leave the call available for future scheduling."
+  ],
+  "summary": "Non-terminal Scheduler event call-retention behavior is absent in the port.",
+  "test_or_falsification_candidate": "Replay each Scheduler event status against the port; there is no event-state processor to retain ExecutionFailed/SkippedInsufficientFunds/SkippedTTLExpired calls or remove Cancel/Complete/Expired calls.",
+  "title": "Non-terminal scheduler events retain calls",
+  "total_invariants": 1954
+}

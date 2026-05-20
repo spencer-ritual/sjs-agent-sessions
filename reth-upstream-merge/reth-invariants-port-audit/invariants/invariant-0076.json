@@ -1,0 +1,61 @@
+{
+  "cluster_key": "scheduler:payload-building:part-02",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-fd2fbb50e0-scheduled-async-sources-share-detection-path",
+  "invariant_index": 76,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs"
+    ],
+    "checked_queries": [
+      "async_cache|classification|merged before async simulation|scheduled-plus-regular|heartbeat-aware wallet|sender de-duplication",
+      "PayloadCandidate::Scheduled|PayloadCandidate::Regular|execute_transaction_with_commit_condition"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "PayloadCandidate::Scheduled",
+      "PayloadCandidate::Regular",
+      "build_short_async_commitment_transaction",
+      "validate_short_commitment_parent_state"
+    ],
+    "missing_behavior": "Missing unified pre-simulation detection path with async_cache classification for pool-sourced and augmented scheduled async sources.",
+    "related_but_insufficient_code": [
+      "Both scheduled and regular candidates eventually use build_short_async_commitment_transaction, but the port executes them in separate match arms and has no async_cache classification or common pre-simulation merge gate."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The unified source path supersedes the separate augmented async loop and represents the effective builder rule for scheduled async candidates.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "d29be70783b5e2b05f8c8c04b0e41efa8b76f6e1",
+    "72d3c12a31e1e1416971070c2eb0621caab0d5ee"
+  ],
+  "statement": "Pool-sourced scheduled transactions and contract-state-augmented scheduled transactions must be merged before async simulation so both sources receive the same sender de-duplication, active-job suppression, heartbeat-aware wallet and TTL checks, async_cache classification, and commitment-generation logic.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Create one pool-sourced scheduled async tx and one contract-state-augmented scheduled async tx that need identical async_cache and wallet/TTL decisions; assert they pass through one shared detection/classification path.",
+    "Assert async_cache entries are required for both sources before commitment generation."
+  ],
+  "summary": "Scheduled async sources do not share the specified unified async detection/cache path.",
+  "test_or_falsification_candidate": "Search for async_cache/classification in payload builder; current port lacks the shared cache and uses separate candidate arms.",
+  "title": "Scheduled async sources share one detection path",
+  "total_invariants": 1954
+}

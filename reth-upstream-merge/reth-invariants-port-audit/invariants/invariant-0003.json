@@ -1,0 +1,86 @@
+{
+  "cluster_key": "scheduler:canonical-processing-requires-d4ac61fa",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "evidence": "The port keeps direct parent-state scheduled-obligation scans as the single scheduler source of truth. Payload building now propagates compute_obligations and predicate-filtering SchedulerError values as PayloadBuilderError instead of logging and continuing with Vec::new().",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "collect_scheduled_obligations(...).map_err(PayloadBuilderError::other)?",
+      "symbols": [
+        "collect_scheduled_obligations",
+        "compute_obligations",
+        "filter_obligations_by_predicates"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port after selecting Option B: the v2.2 port does not restore SynchronousScheduler memory, but it preserves the invariant's safety property by making direct Scheduler parent-state obligation discovery fail closed instead of proceeding with empty scheduled state on read/filter failures.",
+  "evidence_files": [
+    "crates/scheduling/src/canonical.rs",
+    "crates/scheduling/src/singleton.rs"
+  ],
+  "invariant_id": "cur-746095455f-canonical-scheduler-processing-hydrates-state-before-startup-work",
+  "invariant_index": 3,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/scheduling/src/canonical.rs",
+      "crates/scheduling/src/singleton.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs",
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "try_begin_startup_hydration|hydrate_from_storage|StartupHydrationFailed",
+      "SynchronousScheduler|SchedulerServiceState|startup hydration",
+      "process_blocking_scheduling_for_canonical_state|canonical.*scheduler"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "try_begin_startup_hydration",
+      "hydrate_from_storage",
+      "StartupHydrationFailed",
+      "SynchronousScheduler",
+      "SchedulerServiceState",
+      "last_synced_block",
+      "compute_obligations",
+      "read_active_scheduled_calls"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "The old audit expected the downstream SynchronousScheduler startup-hydration implementation shape. The selected v2.2 architecture keeps direct parent-state scans and now makes payload scheduled-obligation discovery fail closed on scan/filter errors."
+    ]
+  },
+  "notes": "Resolved via Option B: direct parent-state scanner is the durable v2.2 path, and Scheduler scan/filter failures are no longer converted to an empty obligation set.",
+  "rationale": "The packet describes a high-confidence, load-bearing addition in the current internal reth scheduler path: startup is serialized through try_begin_startup_hydration, hydrate_from_storage must succeed, and failure aborts canonical processing rather than allowing empty in-memory state. For the v2.2 port, the old singleton is not the durable architecture; the current load-bearing behavior is the fail-closed guarantee that Scheduler state read/filter failures cannot be silently converted into no scheduled obligations.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "2b6842b59f2c3fa7ddea963894507089d363296e"
+  ],
+  "statement": "Scheduler obligation discovery must fail closed before scheduled work is treated as absent. Downstream implements this through SynchronousScheduler startup hydration from Scheduler contract storage before canonical processing; the v2.2 port preserves the same safety property through direct parent-state scans that return an error instead of continuing with an empty obligation set when Scheduler state reads or predicate filtering fail.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Start with scheduler last_synced_block at zero and a state provider that fails or returns malformed Scheduler storage; assert downstream canonical processing returns StartupHydrationFailed and does not submit scheduled transactions.",
+    "In the v2.2 direct-scan port, inject a Scheduler parent-state storage failure during payload scheduled-obligation collection and assert payload building returns an error instead of treating obligations as empty.",
+    "Start with valid Scheduler storage at the canonical block hash or parent state; assert scheduled transactions are derived from that state rather than from an empty/default in-memory scheduler state."
+  ],
+  "summary": "Mapped through v2.2 direct scanner fail-closed behavior.",
+  "test_or_falsification_candidate": "Force Scheduler parent-state reads to fail during scheduled-obligation payload collection; expected behavior is a payload-builder error rather than an empty obligation set.",
+  "title": "Canonical scheduler processing hydrates state before startup work",
+  "total_invariants": 1954
+}

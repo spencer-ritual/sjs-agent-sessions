@@ -1,0 +1,33 @@
+{
+  "record_type": "file",
+  "file_index": 151,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/net/eth-wire/src/p2pstream.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "semicolon_only",
+    "net",
+    "eth-wire"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The P2P stream divergence is semicolon-only rustfmt noise in handshake, read/write polling, decompression, disconnect, and ping/pong decode paths; no P2P stream behavior changed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 151: M\tcrates/net/eth-wire/src/p2pstream.rs.",
+    "The isolated patch only adds semicolons to existing MessageTooBig, MismatchedProtocolVersion, disconnecting, empty message, disconnect reason, reserved ID, decompressed message, ping timeout, flush, send buffer, and snappy ping/pong decode returns.",
+    "No handshake validation, payload size limit, disconnect decoding, snappy decompression, message ID classification, outbound capacity, flush behavior, or ping/pong payload validation changed."
+  ]
+}

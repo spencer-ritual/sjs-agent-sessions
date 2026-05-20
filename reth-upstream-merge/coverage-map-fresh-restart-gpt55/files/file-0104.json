@@ -1,0 +1,34 @@
+{
+  "record_type": "file",
+  "file_index": 104,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/evm/execution-types/src/chain.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "deterministic_noise",
+    "formatting_only",
+    "semicolon_only",
+    "reviewed"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The downstream patch only adds semicolons to early return expressions in Chain methods. This is Rust formatting noise and does not alter execution outcome selection, append-chain error behavior, chain split semantics, block state, trie data, hashing, encoding, or tests.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Verified queue entry 104 is exactly 'M\\tcrates/evm/execution-types/src/chain.rs' before writing.",
+    "Source hunks are limited to semicolon insertion after return expressions in execution_outcome_at_block, append_chain, and split target early-return paths.",
+    "Exact destination search found no semicolon-form matches in the destination repos; ritual-reth-internal-v2.2.0-port retains the same no-semicolon expression form for surviving methods, while split-chain-specific early returns are absent from that file.",
+    "No behavior-bearing atoms were emitted because the modified tokens do not affect branch conditions, error paths, state transitions, execution semantics, trie/state-root behavior, encoding, hashing, or fixtures."
+  ]
+}

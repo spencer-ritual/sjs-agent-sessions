@@ -1,0 +1,68 @@
+{
+  "record_type": "file",
+  "file_index": 172,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/net/network/src/test_utils/testnet.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "structural_equivalent",
+  "tags": [
+    "needs-review",
+    "non-exact",
+    "structural_equivalent"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0172-atom-0001",
+      "file_index": 172,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/net/network/src/test_utils/testnet.rs",
+      "source_hunk_hint": "@@ -362 +362 @@ impl<C, Pool> TestnetHandle<C, Pool> {",
+      "source_kind": "other",
+      "source_snippet": "            return;\n                return Some((peer_id, reason));\n                NetworkEvent::ActivePeerSession { info, .. }\n                | NetworkEvent::Peer(PeerEvent::SessionEstablished(info)) => {",
+      "semantic_claim": "The downstream diff for crates/net/network/src/test_utils/testnet.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/net/network/src/test_utils/testnet.rs",
+          "symbols": [
+            "create_with",
+            "try_create_with",
+            "extend_peer_with_config",
+            "peers_mut",
+            "peers"
+          ],
+          "snippet": "    /// Same as [`Self::try_create_with`] but panics on error\n    pub async fn create_with(num_peers: usize, provider: C) -> Self {\n        Self::try_create_with(num_peers, provider).await.unwrap()\n    }\n",
+          "evidence": "The destination keeps the module at the same relative path with overlapping symbols ['create_with', 'try_create_with', 'extend_peer_with_config', 'peers_mut', 'peers']."
+        }
+      ],
+      "equivalence_argument": "The downstream behavior still resides in the same integration surface in the destination workspace, but the implementation was refactored or reshaped; review is required to confirm full semantic parity.",
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "The destination keeps the module at the same relative path with overlapping symbols ['create_with', 'try_create_with', 'extend_peer_with_config', 'peers_mut', 'peers'].",
+      "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "The destination keeps the module at the same relative path with overlapping symbols ['create_with', 'try_create_with', 'extend_peer_with_config', 'peers_mut', 'peers']."
+}

@@ -1,0 +1,190 @@
+{
+  "record_type": "file",
+  "file_index": 64,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/engine/tree/src/tree/mod.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "blocked",
+    "high-risk",
+    "missing",
+    "needs-review",
+    "non-exact",
+    "split-atoms"
+  ],
+  "atoms_total": 4,
+  "atoms": [
+    {
+      "record_id": "file-0064-atom-0001",
+      "file_index": 64,
+      "atom_index": 1,
+      "atoms_total": 4,
+      "source_path": "crates/engine/tree/src/tree/mod.rs",
+      "source_hunk_hint": "@@ -89,7 +92,13 @@ use reth_evm::execute::BlockExecutionOutput;",
+      "source_kind": "constant_policy",
+      "source_snippet": "/// Set to 64 blocks based on analysis of execution layer trade-offs:\n/// - Pipeline execution time (~13.8s) stays well under consensus message timeout window\n/// - Triggers pipeline only when batch mode provides meaningful efficiency gains (>28%)\n/// - Handles 95-97% of typical gaps in responsive live sync mode\n/// - Maintains healthy memory utilization (25% of block buffer capacity)\npub(crate) const MIN_BLOCKS_FOR_PIPELINE_RUN: u64 = 64;",
+      "semantic_claim": "Downstream changes the engine-tree backfill handoff threshold from `EPOCH_SLOTS` to a fixed 64-block threshold.",
+      "high_risk": false,
+      "risk_tags": [
+        "sync-policy"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/engine/tree/src/tree/mod.rs",
+          "symbols": [
+            "MIN_BLOCKS_FOR_PIPELINE_RUN"
+          ],
+          "snippet": "pub(crate) const MIN_BLOCKS_FOR_PIPELINE_RUN: u64 = EPOCH_SLOTS;",
+          "evidence": "Destination still defines the threshold as `EPOCH_SLOTS`, so the downstream fixed-64 policy is not preserved by same-path structure."
+        }
+      ],
+      "equivalence_argument": "Not equivalent as written: the v2.2 destination retains `EPOCH_SLOTS` while downstream explicitly selected a fixed value of 64 blocks.",
+      "test_strategy": "focused_regression_or_config_assertion",
+      "negative_test_candidate": "Assert that the backfill threshold policy uses the downstream fixed 64-block value rather than `EPOCH_SLOTS`, or record an explicit accepted divergence.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Actionable policy delta split out of the previous broad same-path atom.",
+      "human_question": "Should the port preserve downstream's fixed 64-block pipeline threshold?",
+      "required_change": "Change `MIN_BLOCKS_FOR_PIPELINE_RUN` to 64 in the v2.2 port, or record an explicit scope decision explaining why `EPOCH_SLOTS` is intended.",
+      "needs_atomization": false
+    },
+    {
+      "record_id": "file-0064-atom-0002",
+      "file_index": 64,
+      "atom_index": 2,
+      "atoms_total": 4,
+      "source_path": "crates/engine/tree/src/tree/mod.rs",
+      "source_hunk_hint": "multiple hunks adding `ritual_metrics` block/tx phase logging",
+      "source_kind": "observability_wiring",
+      "source_snippet": "use ritual_metrics;\nritual_metrics::block::log_el_update_head(&tip.hash(), tip.number(), tip.timestamp());\nritual_metrics::tx::log_tx_finalized_chain_update(&chain_update);\nritual_metrics::block::log_block_phase(\"block_accept_execution\", ...);",
+      "semantic_claim": "Downstream wires Ritual-specific EL head, finalized transaction, and block-acceptance phase metrics into the engine tree.",
+      "high_risk": false,
+      "risk_tags": [
+        "observability"
+      ],
+      "mapping_status": "needs_review",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/engine/tree/src/tree/mod.rs",
+          "symbols": [],
+          "snippet": "(no `ritual_metrics::` callsites found in destination file)",
+          "evidence": "Destination file exists at the same path, but same-path structure does not prove the downstream Ritual metrics hooks were preserved."
+        }
+      ],
+      "equivalence_argument": "No behavioral equivalence is established by the current mapping. The v2.2 port appears to omit these Ritual metrics hooks; this may be intentional observability scope removal, but it needs an explicit decision rather than a same-path structural mapping.",
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Observability-only unless downstream consumers require these metrics/log streams for runtime operations.",
+      "human_question": "Are Ritual engine-tree metrics intentionally out of scope for the v2.2 port, or should the block/tx phase logging be restored?",
+      "required_change": "Restore the relevant `ritual_metrics` hooks or record an intentional omission with downstream consumer impact.",
+      "needs_atomization": false
+    },
+    {
+      "record_id": "file-0064-atom-0003",
+      "file_index": 64,
+      "atom_index": 3,
+      "atoms_total": 4,
+      "source_path": "crates/engine/tree/src/tree/mod.rs",
+      "source_hunk_hint": "formatting-only hunks throughout file",
+      "source_kind": "formatting",
+      "source_snippet": "return true\nreturn false\nInsertPayloadOk::Inserted(BlockStatus::Disconnected { .. }) |\nInsertPayloadOk::AlreadySeen(BlockStatus::Disconnected { .. })",
+      "semantic_claim": "Several downstream hunks only add semicolons or reflow match arms and do not encode Ritual runtime behavior.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "noise",
+      "destinations": [],
+      "equivalence_argument": "Formatting-only changes are not merge requirements and should not be bundled with live engine-tree behavior.",
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Split out to avoid treating line-wrapping and semicolon churn as behavioral coverage work.",
+      "human_question": null,
+      "required_change": null,
+      "needs_atomization": false
+    },
+    {
+      "record_type": "pr_preservation_derived_atom",
+      "pr_preservation_derived": true,
+      "pr_preservation_grounded": true,
+      "file_index": 64,
+      "source_path": "crates/engine/tree/src/tree/mod.rs",
+      "source_hunk_hint": "crates/engine/tree/src/tree/mod.rs:2907-2927",
+      "source_kind": "encoding_rule",
+      "source_snippet": "    ) -> Result<PayloadStatus, InsertBlockFatalError> {\n        let (block, error) = error.split();\n\n        // Temporary ONNX model unavailability: return SYNCING instead of INVALID.\n        // The block is NOT added to the invalid_headers cache, allowing retry\n        // once the model is downloaded. The CL advances forkchoice and the EL\n        // catches up via backfill sync.\n        #[cfg(feature = \"async-context\")]\n        if matches!(\n            &error,\n            InsertBlockErrorKind::Execution(reth_errors::BlockExecutionError::Validation(\n                reth_errors::BlockValidationError::OnnxModelUnavailableForVerification { .. }\n            ))\n        ) {\n            warn!(\n                target: \"engine::tree\",\n                block_hash = %block.hash(),\n                block_number = block.number(),\n                %error,\n                \"ONNX model temporarily unavailable during verification, returning SYNCING\"\n            );",
+      "semantic_claim": "PR preservation `#298` `fix-onnx-building-verification-divergence` keeps live downstream behavior: temporary ONNX model unavailability as retryable `SYNCING`.",
+      "high_risk": true,
+      "risk_tags": [
+        "encoding"
+      ],
+      "mapping_status": "needs_review",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/engine/tree/src/tree/mod.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/engine/tree/src/tree/mod.rs."
+        }
+      ],
+      "equivalence_argument": "Same-path structure is insufficient. The downstream behavior requires an explicit `OnnxModelUnavailableForVerification` execution-validation branch that returns `SYNCING` before invalid-header insertion; the destination must be reviewed or fixed for that exact FSM behavior.",
+      "required_change": "Add the explicit retryable `SYNCING` handling for `OnnxModelUnavailableForVerification` in `on_insert_block_error`, or prove an equivalent path prevents this error from becoming `INVALID` and entering `invalid_headers`.",
+      "test_strategy": "pr_diff_equivalence_regression",
+      "negative_test_candidate": "Replay or unit-test the smallest downstream scenario introduced by #298 that exercises `temporary ONNX model unavailability as retryable `SYNCING`` and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0064-atom-0002"
+      },
+      "review_required": false,
+      "source_prs": [
+        {
+          "key": "#298",
+          "slug": "fix-onnx-building-verification-divergence",
+          "merge_commit": "5c9e7e1842ee1fcea74db679738eed9b905909fd"
+        }
+      ],
+      "source_pr_claims": [
+        "temporary ONNX model unavailability as retryable `SYNCING`"
+      ],
+      "source_flow_ids": [
+        "pr-raw-0135"
+      ],
+      "notes": "High-risk engine API status behavior; structural same-path mapping should not close this atom.",
+      "atom_index": 4,
+      "record_id": "file-0064-atom-0004",
+      "atoms_total": 4,
+      "needs_atomization": false
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 3,
+  "adversarial_reviews": [],
+  "summary": "The previous broad same-path atom has been split into concrete pipeline threshold, Ritual metrics, formatting-noise, and ONNX retryable-SYNCING atoms.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "Same-path structure is not sufficient evidence for this file. The fixed 64-block pipeline threshold and ONNX retryable-SYNCING behavior are actionable candidates; Ritual metrics require an explicit scope decision; formatting-only hunks are noise."
+}

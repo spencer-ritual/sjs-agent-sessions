@@ -1,0 +1,64 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "AsyncSettlement receipt population exposes executor_address and fee/validator fields, with no settlement_executor_address field populated.",
+      "path": "crates/rpc/rpc-eth-types/src/receipt.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "receipt.executor_address = Some(async_settlement.executor_address);\nreceipt.executor_fee = async_settlement.executor_fee.try_into().ok();\nreceipt.commitment_validator = Some(async_settlement.commitment_validator);\nreceipt.inclusion_validator = Some(async_settlement.inclusion_validator);",
+      "symbols": [
+        "build_receipt"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Otterscan placeholder receipts likewise expose executor_address and settlement fee/validator fields without a redundant settlement_executor_address field.",
+      "path": "crates/rpc/rpc/src/otterscan.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "executor_address: None,\nuser_address: None,\ntotal_amount: None,\nexecutor_fee: None,\ncommitment_validator: None,\ninclusion_validator: None,",
+      "symbols": [
+        "OtsTransactionReceipt placeholder construction"
+      ]
+    }
+  ],
+  "equivalence_argument": "The current RPC receipt schema uses executor_address for async settlement executor identity and omits the former redundant settlement_executor_address surface; fee and validator fields remain populated.",
+  "evidence_files": [
+    "crates/rpc/rpc-eth-types/src/receipt.rs",
+    "crates/rpc/rpc/src/otterscan.rs"
+  ],
+  "invariant_id": "cur-f16c442495-async-settlement-receipt-omits-redundant-executor-field",
+  "invariant_index": 289,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in port RPC receipt conversion and otterscan placeholder receipt construction.",
+  "rationale": "The commit subject says an unnecessary field is removed, and the diff removes settlement_executor_address from both receipt construction and otterscan placeholder receipts while retaining executor_fee and other settlement fields. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "c14ad2863803229750353f6234a4657d717a0239"
+  ],
+  "statement": "RPC receipt construction for AsyncSettlement transactions must not populate or expose settlement_executor_address; executor identity should be represented by the remaining executor address/fee fields.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Fetch an AsyncSettlement transaction receipt and assert the response does not contain settlement_executor_address while still containing user_address, total_amount, executor_fee, commitment/inclusion validator and fee fields, and settlement_block."
+  ],
+  "summary": "AsyncSettlement receipts omit the redundant settlement_executor_address field.",
+  "test_or_falsification_candidate": "Fetch or construct an AsyncSettlement receipt and assert settlement_executor_address is absent while executor_address, executor_fee, validators, fees, and settlement_block are present.",
+  "title": "Async settlement receipt omits redundant executor field",
+  "total_invariants": 1954
+}

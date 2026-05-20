@@ -1,0 +1,64 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-async-registry/src/lib.rs"
+  ],
+  "invariant_id": "cur-3c1f46245d-missing-async-jobs-fail-registry-reads",
+  "invariant_index": 490,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-registry/src/lib.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "read_jobs_for_settlement jobExecutor zero return Err",
+      "read_jobs_for_spc_verification jobExecutor zero return Err",
+      "missing async jobs fail registry reads",
+      "job not found executor is zero continue"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "read_jobs_for_settlement",
+      "read_jobs_for_spc_verification",
+      "RegistryError",
+      "jobExecutor"
+    ],
+    "missing_behavior": "read_jobs_for_settlement does not return RegistryError when jobExecutor[job_id] is zero; it logs and continues, returning partial/empty results. Only read_jobs_for_spc_verification fails closed.",
+    "related_but_insufficient_code": [
+      "crates/ritual-async-registry/src/lib.rs read_jobs_for_spc_verification returns RegistryError::DatabaseError for zero executor.",
+      "crates/ritual-async-registry/src/lib.rs read_jobs_for_settlement explicitly continues on zero executor.",
+      "Payload and verifier callers handle absent settlement jobs after the registry reader omits them."
+    ]
+  },
+  "notes": "The invariant requires both settlement and SPC reads to fail; the current port intentionally diverges for settlement reads.",
+  "rationale": "Both reader functions replace continue on zero executor with a DatabaseError explaining that non-existent jobs cannot be settled or SPC-verified. The commit message states silent fallback masked upstream bugs and should surface immediately. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "bfe42dbde7ba6bc30a4df72c0e0c8a9efe85f27d"
+  ],
+  "statement": "read_jobs_for_settlement and read_jobs_for_spc_verification must return RegistryError when AsyncJobTracker.jobExecutor[job_id] is zero, rather than silently skipping that job and returning a partial result.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call each reader with a job ID whose jobExecutor storage slot is zero and assert the function returns RegistryError rather than omitting the job from the returned vector; call with multiple IDs and one missing job to assert no partial success is returned."
+  ],
+  "summary": "Settlement registry reads skip missing jobs instead of failing closed.",
+  "test_or_falsification_candidate": "Call each reader with a job ID whose jobExecutor storage slot is zero and assert the function returns RegistryError rather than omitting the job from the returned vector; call with multiple IDs and one missing job to assert no partial success is returned.",
+  "title": "Missing async jobs fail registry reads",
+  "total_invariants": 1954
+}

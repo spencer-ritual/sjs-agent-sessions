@@ -1,0 +1,102 @@
+{
+  "cluster_key": "scheduler:pool-accounting:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "The current async pool primary index is the original transaction hash map. Scheduled originals are classified as system originals.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "struct AsyncPoolInner<T: PoolTransaction> {\n    transactions: HashMap<TxHash, AsyncTxMetadata<T>>,\n    sender_locks: HashMap<Address, TxHash>,\n}\n...\nfn is_system_original(&self) -> bool {\n    matches!(self.original_tx, OriginalTransaction::Scheduled(_) | OriginalTransaction::AsyncSettlement(_))\n}",
+      "symbols": [
+        "AsyncPoolInner",
+        "AsyncTxMetadata::is_system_original"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "All metadata, including scheduled originals, is stored in the primary map. Sender-lock insertion is skipped for scheduled/system originals, avoiding shared sender/nonce collisions.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let tx_hash = metadata.original_tx_hash();\nlet original_sender = metadata.original_sender;\nlet locks_sender = !metadata.is_system_original();\n...\ninner.transactions.insert(tx_hash, metadata);\n...\nif locks_sender { inner.sender_locks.insert(original_sender, tx_hash); }",
+      "symbols": [
+        "AsyncPool::add_metadata"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Removal also skips sender-lock cleanup for scheduled/system originals, mirroring the no-index-insertion invariant.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let metadata = inner.transactions.remove(original_tx_hash)?;\nif !metadata.is_system_original() {\n    inner.sender_locks.remove(&metadata.original_sender);\n}",
+      "symbols": [
+        "AsyncPool::remove_by_hash"
+      ]
+    }
+  ],
+  "equivalence_argument": "The old AsyncCommitmentPool by_id/sender_index surface is replaced by a smaller primary-map plus sender_locks design. The collision-avoidance invariant is preserved because scheduled originals remain addressable by original hash and never enter the sender lock index that non-system originals use.",
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/async_pool.rs"
+  ],
+  "invariant_id": "cur-fad388ed5b-scheduled-async-skip-colliding-indexes",
+  "invariant_index": 42,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/async_pool.rs"
+    ],
+    "checked_queries": [
+      "by_id|sender_index|AsyncCommitmentPool",
+      "is_system_original|sender_locks|OriginalTransaction::Scheduled",
+      "TransactionId.*async_pool"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "AsyncPoolInner",
+      "transactions",
+      "sender_locks",
+      "is_system_original",
+      "add_metadata",
+      "remove_by_hash",
+      "TransactionId",
+      "by_id",
+      "sender_index"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "No by_id TransactionId index exists in the port async pool; TransactionId appears only when converting fulfilled originals back into normal pool transactions."
+    ]
+  },
+  "notes": "Mapped structurally: exact by_id/sender_index names are gone, but the indexed vs non-indexed behavior is preserved with sender_locks.",
+  "rationale": "Scheduled async transactions share dummy identity fields, so the effective pool invariant is that they live in the primary async transaction map without participating in sender or TransactionId indexes that would collide.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "b27be5b927c0e7b0e02852dfa77627b49ce1b0c8"
+  ],
+  "statement": "At current tip, AsyncCommitmentPool must store scheduled transactions in its primary transaction map but skip by_id TransactionId and sender_index insertion/removal for those scheduled transactions, while non-scheduled transactions continue updating both indexes.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Add two scheduled async transactions with dummy sender and nonce to AsyncCommitmentPool and assert both remain accessible by original hash without by_id collision or sender_index orphaning on removal.",
+    "Add and remove a non-scheduled async transaction and assert by_id and sender_index are still populated and cleaned up normally."
+  ],
+  "summary": "Scheduled async transactions skip colliding sender/TransactionId indexes structurally in the port async pool.",
+  "test_or_falsification_candidate": "Add two scheduled async metadata entries with the same dummy sender/nonce but different original hashes and assert both remain in transactions; add a non-scheduled duplicate sender and assert SenderLocked.",
+  "title": "Scheduled async transactions skip colliding indexes",
+  "total_invariants": 1954
+}

@@ -1,0 +1,11 @@
+{
+  "record_type": "adversarial_review",
+  "record_id": "review-file-0300-atom-0001",
+  "atom_record_id": "file-0300-atom-0001",
+  "review_result": "pass",
+  "falsification_attempt": "Checked whether the v2.2 block-verification crate lost the old constants surface. The destination still re-exports Ritual precompile addresses and keeps DEFAULT_TEE_SERVICE_REGISTRY, SPC_PROOF_SIGNATURE_LENGTH, and MAX_PUBLIC_KEY_LEN at the same constants module, with additional short-async bounds layered on top.",
+  "missed_risks": [
+    "A compile-only check should still verify downstream consumers import these constants from the intended crate path."
+  ],
+  "notes": "The constants atom is structural rather than exact because the destination module adds v2.2 async bounds."
+}

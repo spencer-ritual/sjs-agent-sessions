@@ -1,0 +1,70 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "The helper implements the four-case decision tree: no jobs allow, all settled/expired allow, fulfillment allow, otherwise skip locked sender.",
+      "path": "crates/ritual-async-registry/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let job_count = read_sender_job_count(db, contract, sender)?;\nif job_count == 0 {\n    return Ok(false);\n}\nlet all_unlocked = is_sender_all_phase1_settled(db, contract, sender, current_block_number)?;\nif all_unlocked {\n    return Ok(false);\n}\nlet is_fulfillment = job_exists(db, contract, tx_hash)?;\nif is_fulfillment {\n    return Ok(false);\n}\nOk(true)",
+      "symbols": [
+        "should_skip_sender_locked_tx",
+        "read_sender_job_count",
+        "is_sender_all_phase1_settled",
+        "job_exists"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "The inline tests and proptest harness assert the builder helper matches the verifier decision tree across the relevant sender-lock cases.",
+      "path": "crates/ritual-async-registry/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "fn assert_builder_verifier_equivalence(\n    state: &SenderLockState,\n    tx_hash: B256,\n    description: &str,\n) {\n    ...\n    assert_eq!(\n        builder_skip, verifier_reject,\n        \"DIFFERENTIAL FAILURE [{}]: builder_skip={} but verifier_reject={}\",\n        description, builder_skip, verifier_reject\n    );\n}",
+      "symbols": [
+        "diff_eq_no_pending_jobs",
+        "diff_eq_all_jobs_phase1_settled",
+        "diff_eq_locked_but_tx_is_fulfillment",
+        "diff_eq_locked_and_not_fulfillment",
+        "prop_builder_verifier_equivalence"
+      ]
+    }
+  ],
+  "equivalence_argument": "The helper mirrors the verifier decision tree directly: false for no pending jobs, false when all jobs are phase1Settled or expired, false when the tx hash is an existing job fulfillment, and true only for locked non-fulfillment transactions. The tests encode the builder/verifier equivalence property.",
+  "evidence_files": [
+    "crates/ritual-async-registry/src/lib.rs"
+  ],
+  "invariant_id": "cur-9e097149e8-sender-lock-helper-mirrors-verifier-decision-tree",
+  "invariant_index": 431,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The current implementation is expiry-aware in addition to phase1Settled-aware, which is stricter than the historical wording but preserves the stated cases.",
+  "rationale": "should_skip_sender_locked_tx explicitly documents and implements the same four-case decision tree as nonce_lock.rs, using read_sender_job_count, is_sender_all_phase1_settled, and job_exists. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "e0c3fc07c91e6ce0d9693ce9d8b534c946ac5fc4"
+  ],
+  "statement": "The registry sender-lock helper should return false for unlocked senders, false when all sender jobs are phase1Settled, false when the candidate tx hash already has a job executor, and true only when the sender has at least one non-phase1Settled job and the tx is not a fulfillment.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Unit test should_skip_sender_locked_tx with mocked AsyncJobTracker storage for the four cases: no jobs, all jobs phase1Settled, locked sender with existing jobExecutor for tx_hash, and locked sender without jobExecutor for tx_hash; assert only the last case returns true."
+  ],
+  "summary": "Sender-lock helper mirrors verifier behavior.",
+  "test_or_falsification_candidate": "Unit test should_skip_sender_locked_tx with mocked AsyncJobTracker storage for the four cases: no jobs, all jobs phase1Settled, locked sender with existing jobExecutor for tx_hash, and locked sender without jobExecutor for tx_hash; assert only the last case returns true.",
+  "title": "Sender lock helper mirrors verifier decision tree",
+  "total_invariants": 1954
+}

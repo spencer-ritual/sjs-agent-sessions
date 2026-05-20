@@ -1,0 +1,70 @@
+{
+  "cluster_key": "block building:block-build-trace-59450f01",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: the debug schema carries demotions and includedTxCount, but the audited port lacks the recording path that populates those fields per build attempt.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-metrics/src/block.rs",
+    "crates/rpc/rpc-api/src/ritual.rs",
+    "crates/rpc/rpc/src/ritual.rs"
+  ],
+  "invariant_id": "cur-cdf37afeed-block-build-trace-includes-demotions-included-count",
+  "invariant_index": 551,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-metrics/src/block.rs",
+      "crates/rpc/rpc-api/src/ritual.rs",
+      "crates/ethereum/node/src/ritual_async_rpc.rs"
+    ],
+    "checked_queries": [
+      "record_block_build_attempt demotions included_tx_count payload",
+      "BlockBuildDemotionTrace work_class reason elapsed_micros",
+      "includedTxCount demotions ritual_getBlockBuildTrace",
+      "record demotion payload builder"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "record_block_build_attempt",
+      "BlockBuildAttemptTrace",
+      "BlockBuildDemotionTrace",
+      "included_tx_count",
+      "demotions",
+      "ritual_getBlockBuildTrace"
+    ],
+    "missing_behavior": "Block build attempts are not actually recorded with demotion events and included transaction counts by the payload builder; the schema exists but the producer path is absent.",
+    "related_but_insufficient_code": [
+      "crates/ritual-metrics/src/block.rs defines BlockBuildAttemptTrace with demotions and included_tx_count and a record_block_build_attempt API.",
+      "crates/rpc/rpc-api/src/ritual.rs exposes demotions and includedTxCount when trace entries exist.",
+      "Search found no call to record_block_build_attempt outside its definition and no payload-builder code that records demotion events or computes included_tx_count for trace entries."
+    ]
+  },
+  "notes": "The RPC shape is present, which is why invariant 552 can be mapped separately.",
+  "rationale": "The commit title explicitly says policy demotions and included tx count are exposed in block build trace. The diff records demotions when classes demote, snapshots them on exits, stores them in metrics, and maps them into ritual_getBlockBuildTrace RPC output with includedTxCount. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Block Building",
+  "source_commits": [
+    "71ab703021d6db4a1c95ade63efe9bbccafbd426"
+  ],
+  "statement": "When block build tracing is enabled, each recorded build attempt must include policy demotion events with work class, reason, and elapsed microseconds, and must include includedTxCount equal to the number of transactions in the built block or 0 for aborted/cancelled attempts.",
+  "status": "current",
+  "subsystem": "block building",
+  "suggested_falsification_tests": [
+    "Enable block build trace, force a class demotion during payload building, and assert ritual_getBlockBuildTrace returns a demotions entry with the expected workClass/reason/elapsedMicros. Build a successful payload and assert includedTxCount equals payload.block().body().transactions().count(); cancel/abort a build and assert includedTxCount is 0."
+  ],
+  "summary": "Block build trace demotion and included-count recording is not wired.",
+  "test_or_falsification_candidate": "Enable block build trace, build a payload with a policy demotion, and assert ritual_getBlockBuildTrace contains that demotion and includedTxCount; current producer wiring is absent.",
+  "title": "Block build trace includes demotions and included count",
+  "total_invariants": 1954
+}

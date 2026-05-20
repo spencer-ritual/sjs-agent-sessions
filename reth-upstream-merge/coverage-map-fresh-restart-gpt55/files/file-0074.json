@@ -1,0 +1,80 @@
+{
+  "record_type": "file",
+  "file_index": 74,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/ethereum/consensus/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "high-risk",
+    "verifier",
+    "consensus-constant",
+    "negative-path",
+    "reth-port"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0074-atom-0001",
+      "file_index": 74,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ethereum/consensus/src/lib.rs",
+      "source_hunk_hint": "@@ -211,15 +212,15 @@ where",
+      "source_kind": "changed_branch_condition",
+      "source_snippet": "validate_header_extra_data(header, self.chain_spec.max_extra_data_bytes())?;",
+      "semantic_claim": "Ethereum beacon consensus validates header extra_data with the ChainSpec-provided optional maximum instead of the upstream hard-coded default, preserving chain-specific extra_data acceptance/rejection behavior for both post-merge and pre-merge validation paths.",
+      "high_risk": true,
+      "risk_tags": [
+        "consensus-constant",
+        "negative-path",
+        "verifier"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/consensus/src/lib.rs",
+          "symbols": [
+            "EthBeaconConsensus::new",
+            "EthBeaconConsensus::validate_header"
+          ],
+          "snippet": "let max_extra_data_size = chain_spec.max_extra_data_bytes(); ... validate_header_extra_data(header, self.max_extra_data_size)?;",
+          "evidence": "The port captures the ChainSpec max_extra_data_bytes value in EthBeaconConsensus and passes it into validate_header_extra_data during header validation."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/consensus/common/src/validation.rs",
+          "symbols": [
+            "validate_header_extra_data"
+          ],
+          "snippet": "let Some(max_size) = max_size else { return Ok(()) }; if extra_data_len > max_size { Err(ConsensusError::ExtraDataExceedsMax { len: extra_data_len }) } else { Ok(()) }",
+          "evidence": "The called helper enforces Some(limit) and accepts None, matching the source consensus semantics."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Construct EthBeaconConsensus with ChainSpecBuilder::mainnet().max_extra_data_bytes(None) and validate a header with >32 bytes extra_data; it must pass, while the same header with Some(32) must fail with ExtraDataExceedsMax.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Other hunks in this file are rustfmt/semicolon-only noise; the consensus-visible atom is exact in the port."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "Header extra_data validation now consumes ChainSpec max_extra_data_bytes, and the port carries the same consensus behavior.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Destination evidence was spot-checked in ethereum/consensus and consensus/common."
+}

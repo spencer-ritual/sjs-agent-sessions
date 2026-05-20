@@ -1,0 +1,69 @@
+{
+  "cluster_key": "scheduler:pool-accounting:part-01",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/scheduled.rs",
+    "crates/transaction-pool/src/pool/txpool.rs",
+    "crates/transaction-pool/src/metrics.rs",
+    "crates/transaction-pool/src/traits.rs"
+  ],
+  "invariant_id": "cur-54a1846da8-specialized-subpools-remain-visible-pool-accounting",
+  "invariant_index": 71,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/scheduled.rs",
+      "crates/transaction-pool/src/pool/txpool.rs",
+      "crates/transaction-pool/src/metrics.rs",
+      "crates/transaction-pool/src/traits.rs"
+    ],
+    "checked_queries": [
+      "PoolSize|scheduled|awaiting_execution|scheduled metrics",
+      "scheduled pool length|removal metric"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "PoolSize",
+      "scheduled",
+      "awaiting_execution",
+      "scheduled metrics",
+      "remove scheduled"
+    ],
+    "missing_behavior": "Missing specialized subpool visibility in size reporting, metrics, invariant accounting, and scheduled removal metrics.",
+    "related_but_insufficient_code": [
+      "No scheduled subpool exists; pool accounting and metrics cannot report dedicated scheduled or awaiting-execution subpool sizes as required."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "Separate candidates add scheduled removal/accounting, scheduled removal metrics, and later awaiting-execution pool accounting. These are observability and invariant-accounting requirements rather than direct execution policy.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "a4ef6c1670c642ed70b957fc82a0f8ee7adc8950",
+    "d13aef38ba4873f1146803f081d4bfff0911ec19",
+    "25c84c38e6b6cc214cf81c75d564ed7a70016ae1"
+  ],
+  "statement": "Scheduled, async, and awaiting-execution subpools must participate in pool size reporting, metrics, and invariant accounting, and scheduled-pool removals should emit removal metrics for successfully removed transactions.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Insert and remove scheduled transactions, then assert scheduled pool length, PoolSize scheduled fields, and scheduled metrics reflect the updates.",
+    "Remove scheduled transactions by id and by hash in separate fixtures and assert the txpool removal metric is emitted with reason manual only when a matching transaction is removed.",
+    "Insert or mock awaiting-execution transactions and assert TxPool::size, metrics, and assert_invariants include awaiting_execution in the total."
+  ],
+  "summary": "Specialized subpool accounting visibility is absent.",
+  "test_or_falsification_candidate": "Insert scheduled and awaiting-execution transactions and assert PoolSize/metrics include them; current port lacks scheduled subpool accounting.",
+  "title": "Specialized subpools remain visible in pool accounting",
+  "total_invariants": 1954
+}

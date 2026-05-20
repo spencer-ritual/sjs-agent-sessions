@@ -1,0 +1,53 @@
+{
+  "cluster_key": "block building:engine-payload-resolve-d342ce4e",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "Engine-facing PayloadStore::resolve resolves with WaitForPending so an in-progress payload build can complete instead of immediately taking Earliest.",
+      "path": "crates/payload/builder/src/service.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "/// Note: Uses `WaitForPending` to block until at least one payload build completes,\n/// enabling eager payload fetching without fixed delays on the consensus side.\npub async fn resolve(&self, id: PayloadId) -> Option<Result<T::BuiltPayload, PayloadBuilderError>> {\n    self.resolve_kind(id, PayloadKind::WaitForPending).await\n}",
+      "symbols": [
+        "PayloadStore::resolve",
+        "PayloadKind::WaitForPending"
+      ]
+    }
+  ],
+  "equivalence_argument": "The engine/default store resolve entry point is the same method and directly selects WaitForPending; this preserves the eager consensus fetch invariant.",
+  "evidence_files": [
+    "crates/payload/builder/src/service.rs"
+  ],
+  "invariant_id": "cur-931f1e41cd-engine-payload-resolve-waits-pending-build",
+  "invariant_index": 572,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Same implementation surface as invariant 569, with engine-facing semantics.",
+  "rationale": "The primary diff changes PayloadStore::resolve from PayloadKind::Earliest to PayloadKind::WaitForPending and documents the eager-fetch behavior. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Block Building",
+  "source_commits": [
+    "84197b657d78a73b610d93de5b7227a7a7abbd6b"
+  ],
+  "statement": "PayloadStore::resolve should resolve payloads with PayloadKind::WaitForPending so eager consensus-side payload fetching waits for an in-progress payload build instead of immediately taking the earliest available payload.",
+  "status": "current",
+  "subsystem": "block building",
+  "suggested_falsification_tests": [
+    "Start a payload job that has not produced a best payload yet, call PayloadStore::resolve, and assert it waits for the pending job result rather than immediately returning the earliest/empty payload path when the pending job succeeds."
+  ],
+  "summary": "Engine payload resolve waits for pending builds.",
+  "test_or_falsification_candidate": "Start a pending payload job, call engine PayloadStore::resolve, and assert it waits for the pending result rather than resolving Earliest.",
+  "title": "Engine payload resolve waits for pending build",
+  "total_invariants": 1954
+}

@@ -1,0 +1,107 @@
+{
+  "cluster_key": "scheduler:pool-accounting:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "169074f08721705fbb99cc9531ea798b61e9f3cc",
+      "evidence": "Alloy owns the TxScheduled per-execution expiry formula used by the transaction type.",
+      "path": "crates/consensus/src/transaction/scheduled.rs",
+      "repo": "/home/ritual/repos/ritual-alloy-internal",
+      "snippet": "/// This is the TTL deadline: initial_block + (frequency * index) + ttl\npub fn expiry_block(&self) -> u64 {\n    self.initial_block.saturating_add(self.frequency.saturating_mul(self.index)).saturating_add(self.ttl)\n}",
+      "symbols": [
+        "TxScheduled::expiry_block"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Port verifier enforces the same per-execution TTL deadline against Scheduler parent state.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn ttl_deadline(&self, execution_index: u64) -> u64 { self.expected_block(execution_index).saturating_add(self.ttl as u64) }\n...\nif block_number > ttl_deadline { return Err(ScheduledConstraintViolation::ExecutionTooLate { ... }); }",
+      "symbols": [
+        "ScheduledCall::ttl_deadline",
+        "due_index_bounds",
+        "verify_scheduled_transactions_full_with_predicate_evaluator"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "RPC receipt max_block reports the computed per-execution expiry rather than a stored global max_block field.",
+      "path": "crates/rpc/rpc-eth-types/src/receipt.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "receipt.max_block = Some(scheduled.expiry_block());",
+      "symbols": [
+        "receipt_from_tx",
+        "TxScheduled::expiry_block"
+      ]
+    }
+  ],
+  "equivalence_argument": "The current port no longer has the old scheduled subpool expiry path, but the effective expiry semantics are mapped through the Alloy TxScheduled formula, port verifier TTL checks, and RPC receipt reporting.",
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/scheduled.rs",
+    "crates/rpc/rpc-eth-types/src/receipt.rs",
+    "crates/scheduling/src/transaction.rs"
+  ],
+  "invariant_id": "cur-e4ebc4a514-scheduled-expiry-computed-execution",
+  "invariant_index": 46,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-alloy-internal",
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/scheduled.rs",
+      "crates/rpc/rpc-eth-types/src/receipt.rs",
+      "crates/scheduling/src/transaction.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/consensus/src/transaction/scheduled.rs"
+    ],
+    "checked_queries": [
+      "expiry_block|max_block|initial_block|frequency|ttl",
+      "add_to_scheduled_pool|scheduled_pool|remove_scheduled"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "TxScheduled::expiry_block",
+      "ttl_deadline",
+      "due_index_bounds",
+      "max_block",
+      "scheduled pool expiry"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "No scheduled.rs subpool exists in the port transaction-pool; scheduled eligibility is enforced from Scheduler parent state instead."
+    ]
+  },
+  "notes": "Mapped as dependency-owned formula with port consumers.",
+  "rationale": "The later merge preserves the per-execution expiry formula and extends its use to RPC receipt max_block reporting, making this the current effective expiry invariant.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "5259f6ce65d922b226fbed17bee9d2fa50d5d9f4",
+    "c5d10136f32c6c71fd898a08c0ccb81ef25fffed"
+  ],
+  "statement": "At current tip, scheduled transaction expiry is computed per execution as initial_block + frequency * index + ttl through TxScheduled::expiry_block(), and both scheduled pool expiry and RPC receipt max_block reporting must use that computed value rather than a stored global max_block field.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Create scheduled transactions for different execution indices of the same call and assert the pool removes each only after its own expiry_block().",
+    "Assert RPC receipts report the same computed expiry_block value for max_block instead of any removed global max_block value."
+  ],
+  "summary": "Scheduled per-execution expiry is mapped through Alloy transaction type plus port verifier and RPC reporting.",
+  "test_or_falsification_candidate": "Create scheduled indices 0/1/2 with initial_block/frequency/ttl and assert Alloy expiry_block, verifier TTL deadline, and RPC max_block all equal initial_block + frequency*index + ttl.",
+  "title": "Scheduled expiry is computed per execution",
+  "total_invariants": 1954
+}

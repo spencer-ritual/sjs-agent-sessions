@@ -1,0 +1,33 @@
+{
+  "record_type": "file",
+  "file_index": 235,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/payload/builder/src/noop.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "semicolon",
+    "payload-builder",
+    "noop-service"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The noop payload builder service divergence is semicolon-only rustfmt noise in command-channel termination; no service behavior changed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 235: M\tcrates/payload/builder/src/noop.rs.",
+    "The isolated patch only changes `return Poll::Ready(())` to `return Poll::Ready(());`.",
+    "No command handling, new-payload response, or service termination behavior changed."
+  ]
+}

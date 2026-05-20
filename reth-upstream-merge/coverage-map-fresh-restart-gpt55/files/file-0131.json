@@ -1,0 +1,33 @@
+{
+  "record_type": "file",
+  "file_index": 131,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/net/downloaders/src/bodies/bodies.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "semicolon_only",
+    "net",
+    "downloaders"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The bodies downloader divergence is rustfmt-only: downloader predicates and builder ranges are reflowed and early returns gain semicolons without changing request, buffering, or stream behavior.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 131: M\tcrates/net/downloaders/src/bodies/bodies.rs.",
+    "The isolated patch only adds semicolons and reflows boolean predicates, size arithmetic, range syntax, and closure punctuation.",
+    "No header selection predicate, concurrent request limit, termination check, buffering, flush metrics, download-range update, request polling, error propagation, or builder configuration behavior changed."
+  ]
+}

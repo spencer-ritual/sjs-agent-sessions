@@ -1,0 +1,68 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "The registry stores only a capacity and evicts only the oldest inactive executor when capacity is reached; there is no TTL field or time-based cleanup in registration.",
+      "path": "crates/ritual-spc-verification/src/types.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub struct ExecutorRegistry { executors: HashMap<Address, ExecutorInfo>, max_executors: usize }\n\npub fn new(max_executors: usize) -> Self { Self { executors: HashMap::new(), max_executors } }\n\npub fn register_executor(&mut self, address: Address, executor_info: ExecutorInfo) {\n    if self.executors.len() >= self.max_executors { self.remove_oldest_inactive(); }\n    self.executors.insert(address, executor_info);\n}\n\nfn remove_oldest_inactive(&mut self) { ... filter(|(_, info)| !info.is_active).min_by_key(|(_, info)| info.registration_time) ... }",
+      "symbols": [
+        "ExecutorRegistry::new",
+        "ExecutorRegistry::register_executor",
+        "ExecutorRegistry::remove_oldest_inactive"
+      ]
+    }
+  ],
+  "equivalence_argument": "ExecutorRegistry entries are not expired by registration_time; registration_time is used only to choose among inactive entries after capacity has already been reached.",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/types.rs"
+  ],
+  "invariant_id": "cur-4e462d43f0-executor-registry-expiry",
+  "invariant_index": 255,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-spc-verification/src/types.rs"
+    ],
+    "checked_queries": [
+      "ExecutorRegistry TTL expiry",
+      "cleanup_if_needed",
+      "executor_ttl",
+      "last_cleanup"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "ExecutorRegistry",
+      "cleanup_expired",
+      "executor_ttl",
+      "last_cleanup"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in port.",
+  "rationale": "The primary diff removes executor_ttl and last_cleanup fields, removes cleanup_if_needed/cleanup_expired, and stops calling cleanup during register_executor. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "6ce85c6013acf4831b9b8944dd43138c321acc33"
+  ],
+  "statement": "ExecutorRegistry entries must not be removed solely because their registration_time exceeds a TTL; registration should only evict when capacity is reached, using the existing oldest-inactive removal policy.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Register an inactive executor with an old registration_time, simulate time passing well beyond the former TTL, then register another executor while below capacity and assert the old entry remains; separately assert capacity overflow can still remove an old inactive executor."
+  ],
+  "summary": "ExecutorRegistry has no TTL expiry path.",
+  "test_or_falsification_candidate": "Register an inactive executor, let registration_time become old, then register below capacity and assert it remains; fill capacity and assert only inactive capacity eviction can remove an entry.",
+  "title": "Executor registry has no TTL expiry",
+  "total_invariants": 1954
+}

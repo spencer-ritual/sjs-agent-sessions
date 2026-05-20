@@ -1,0 +1,92 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "Nodebuilder seeds async-context tx_hash from TxEnv before both inspect_replay and normal execution and preserves any preexisting tx_hash.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "#[cfg(feature = \"async-context\")]\nif let Some(hash) = tx.tx_hash {\n    if self.inner.data.ctx.async_context().metadata().tx_hash.is_none() {\n        self.inner.data.ctx.async_context_mut().set_tx_hash(hash);\n    }\n}\nif self.inspect { self.inner.set_tx(tx); self.inner.inspect_replay() } else { self.inner.transact(tx) }",
+      "symbols": [
+        "RitualEvm::transact_raw",
+        "inspect_replay"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The TX_HASH precompile reads the metadata seeded by transact_raw, so trace replay and normal execution see the same hash context.",
+      "path": "crates/precompiles/src/tx_hash.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "let tx_hash = async_context\n    .and_then(|ctx| ctx.async_context().metadata().tx_hash)\n    .ok_or_else(|| PrecompileError::Other(\"Transaction hash not available in context\".to_string()))?;\nOk(PrecompileOutput::new(TX_HASH_GAS, Bytes::from(tx_hash.as_slice().to_vec())))",
+      "symbols": [
+        "tx_hash_precompile_with_context"
+      ]
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "f4f4f2c7cbf201bd9f3fb6fe7b9cdd18c6aecdec",
+      "evidence": "Recovered signed transactions carry their intrinsic hash into TxEnv before EVM execution.",
+      "path": "crates/evm/src/tx.rs",
+      "repo": "/home/ritual/repos/ritual-alloy-evm-internal",
+      "snippet": "fn with_tx_hash(mut env: TxEnv, tx_hash: B256) -> TxEnv {\n    env.tx_hash = Some(tx_hash);\n    env\n}\n...\nwith_tx_hash(Self::from_recovered_tx(tx.tx(), sender), *tx.hash())",
+      "symbols": [
+        "with_tx_hash",
+        "FromRecoveredTx"
+      ]
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "c7845a2265d1245116728116e7418f636ef3b8af",
+      "evidence": "The dependency async context stores tx_hash metadata and factory contexts seed it consistently.",
+      "path": "crates/context/src/async_context.rs",
+      "repo": "/home/ritual/repos/ritual-revm-internal",
+      "snippet": "pub fn set_tx_hash(&mut self, tx_hash: B256) {\n    self.metadata.tx_hash = Some(tx_hash);\n}\n...\nlet mut context = AsyncCommitmentutionContext::with_mode(ExecutionMode::Building);\ncontext.set_tx_hash(tx_hash);",
+      "symbols": [
+        "AsyncCommitmentutionContext::set_tx_hash",
+        "AsyncContextFactory::building_context"
+      ]
+    }
+  ],
+  "equivalence_argument": "The invariant moved from a monolithic node executor into dependency checkouts: alloy-evm populates TxEnv.tx_hash, nodebuilder copies it into async context before inspect or transact without overwriting an existing hash, revm stores the metadata, and the TX_HASH precompile reads that metadata.",
+  "evidence_files": [
+    "crates/node/src/executor.rs"
+  ],
+  "invariant_id": "cur-c8e8ea8349-trace-replay-receives-hash-context",
+  "invariant_index": 524,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+    "/home/ritual/repos/ritual-alloy-evm-internal",
+    "/home/ritual/repos/ritual-revm-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The correct owner is the nodebuilder EVM wrapper and supporting alloy/revm context crates, not the port workspace.",
+  "rationale": "The commit body explains debug_traceTransaction was missing async_context.metadata.tx_hash and diverging when TX_HASH precompile executed; the diff seeds tx_hash before inspect or regular execution while preserving any value already set by AsyncContextFactory. The primary merge adds an async-context-gated preamble in transact_raw that copies tx.tx_hash into async_context metadata when absent, matching the commit subject about propagating tx_hash during RitualEvm trace replay. Collapsed 2 closely related historical candidate statements into the latest effective formulation.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "31f5fbcc887c630e0469666dd429908daeab5805",
+    "6167091fbf4142f0dea9846cd8761eece6a84159"
+  ],
+  "statement": "When async-context is enabled and transact_raw receives a TxEnv with tx_hash set, RitualEvm should set that hash in async context metadata before either inspect_replay or normal transaction execution, but only if the context does not already have a tx_hash.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Run a debug_traceTransaction replay of a transaction that calls the TX_HASH precompile through Scheduler and assert the trace succeeds and TX_HASH returns the transaction hash; also test an async context with a preexisting tx_hash is not overwritten.",
+    "Create a RitualEvm with empty async context metadata, call transact_raw in inspect mode with TxEnv.tx_hash set, and assert the async context metadata contains that hash before inspector/precompile logic reads it; repeat with metadata already set and assert it is not overwritten."
+  ],
+  "summary": "Trace replay receives transaction hash context through nodebuilder dependencies.",
+  "test_or_falsification_candidate": "Run debug_traceTransaction for a transaction that invokes TX_HASH and assert it returns the transaction hash; repeat with preseeded async context metadata and assert transact_raw does not overwrite it.",
+  "title": "Trace replay receives transaction hash context",
+  "total_invariants": 1954
+}

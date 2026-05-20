@@ -1,0 +1,128 @@
+{
+  "record_type": "file",
+  "file_index": 412,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/rpc/rpc/src/txpool.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "exact",
+    "non-exact",
+    "rpc",
+    "txpool"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0412-atom-0001",
+      "file_index": 412,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/rpc/rpc/src/txpool.rs",
+      "source_hunk_hint": "@@ -37,6 +43,219 @@; @@ -142,6 +361,24 @@",
+      "source_kind": "rpc_txpool_extensions",
+      "source_snippet": "fn scheduled_content(&self) -> Result<TxpoolScheduled<Eth::Transaction>, Eth::Error> { ... }\nasync fn txpool_scheduled_content(&self) -> RpcResult<TxpoolScheduled<Eth::Transaction>> { ... }\nasync fn txpool_async_content(&self) -> RpcResult<TxpoolAsyncContentDetailed> { ... }",
+      "semantic_claim": "The old txpool RPC implementation exposes Ritual-specific `txpool_scheduledContent` and `txpool_AsyncContent` endpoints for scheduled transactions and async execution metadata.",
+      "high_risk": true,
+      "risk_tags": [
+        "rpc",
+        "txpool",
+        "async-fsm",
+        "scheduled"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc-api/src/txpool.rs",
+          "symbols": [
+            "TxPoolApi"
+          ],
+          "evidence": "Destination txpool RPC API trait now exposes status, inspect, contentFrom, content, scheduledContent, and asyncContent."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc/src/txpool.rs",
+          "symbols": [
+            "TxPoolApi"
+          ],
+          "evidence": "Destination implementation now has `scheduled_content`, `async_content`, `txpool_scheduled_content`, and `txpool_async_content` methods."
+        }
+      ],
+      "equivalence_argument": "Exact: the old txpool RPC extension methods are restored in both the API trait and implementation.",
+      "test_strategy": "txpool RPC namespace compatibility check",
+      "negative_test_candidate": "Call `txpool_scheduledContent` and `txpool_AsyncContent` on the destination RPC server and verify whether clients receive method-not-found.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": "review-file-0412-atom-0001"
+      },
+      "review_required": false,
+      "notes": "Resolved by restoring scheduled/async txpool RPC methods."
+    },
+    {
+      "record_id": "file-0412-atom-0002",
+      "file_index": 412,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/rpc/rpc/src/txpool.rs",
+      "source_hunk_hint": "@@ -37,6 +43,219 @@",
+      "source_kind": "rpc_metadata_conversion",
+      "source_snippet": "async_content iterates pool.get_async_metadata(), converts original Legacy/Eip1559/Scheduled/Passkey/AsyncSettlement transactions, signatures, commitment hashes, precompile input/output/proof, status, commit_block, ttl, and fee fields into `AsyncCommitmentTxDetails`.",
+      "semantic_claim": "The old async txpool RPC metadata endpoint serializes detailed original transaction, signature, async state, commitment, proof, and TTL metadata for pending async work.",
+      "high_risk": true,
+      "risk_tags": [
+        "rpc",
+        "txpool",
+        "async-fsm",
+        "observability"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/traits.rs",
+          "symbols": [
+            "get_async_metadata"
+          ],
+          "evidence": "Destination pool now exposes deterministic bulk async metadata enumeration via `all_async_metadata()`."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/ritual_async_rpc.rs",
+          "symbols": [
+            "get_async_metadata"
+          ],
+          "evidence": "Destination txpool RPC now serializes `all_async_metadata()` into `TxpoolAsyncContentDetailed`, including Legacy, Eip1559, Scheduled, Passkey, and AsyncSettlement originals without WebAuthn signature slicing panics."
+        }
+      ],
+      "equivalence_argument": "Exact: underlying async metadata is exposed through bulk enumeration and serialized into the old detailed async txpool response shape.",
+      "test_strategy": "async txpool metadata RPC regression",
+      "negative_test_candidate": "After creating pending async metadata, query the destination txpool namespace and confirm whether any endpoint returns the old `TxpoolAsyncContentDetailed` payload.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": "review-file-0412-atom-0002"
+      },
+      "review_required": false,
+      "notes": "Resolved by exposing deterministic async metadata enumeration and txpool RPC serialization."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The old txpool scheduled and async metadata RPC extensions are restored, including deterministic async metadata enumeration and detailed serialization.",
+  "review_required": false,
+  "status": "resolved",
+  "notes": [
+    "Queue entry verified as file-0412: M\tcrates/rpc/rpc/src/txpool.rs.",
+    "Old behavior-bearing hunks span diff lines 80756-81020.",
+    "Destination evidence checked in `crates/rpc/rpc-api/src/txpool.rs`, `crates/rpc/rpc/src/txpool.rs`, `crates/transaction-pool/src/traits.rs`, and `crates/transaction-pool/src/pool/async_pool.rs`.",
+    "Verified by `cargo check -p reth-rpc -p reth-transaction-pool` as part of the targeted package check."
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "record_type": "file",
+  "file_index": 345,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-spc-verification/Cargo.lock",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "generated",
+    "cargo-lock",
+    "spc-verification"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The old divergence adds a generated per-crate `Cargo.lock` for `ritual-spc-verification`; the v2.2.0 workspace port intentionally does not carry this generated leaf lockfile.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 345: A\tcrates/ritual-spc-verification/Cargo.lock.",
+    "Source-added generated lockfile starts at diff line 70073 and spans 3279 generated lines.",
+    "Destination `crates/ritual-spc-verification/Cargo.lock` is absent, consistent with the workspace-level Cargo lockfile model.",
+    "No atoms or review entries required for generated lockfile noise."
+  ]
+}

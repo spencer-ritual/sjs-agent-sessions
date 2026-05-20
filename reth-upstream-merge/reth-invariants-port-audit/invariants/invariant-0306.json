@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "",
+  "evidence_files": [
+    "crates/ritual-precompile-codecs/src/executor.rs"
+  ],
+  "invariant_id": "cur-67a93af110-executor-requests-carry-secret-signatures",
+  "invariant_index": 306,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-precompile-codecs/src/executor.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-precompile-codecs/src/http_call.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-precompile-codecs/src/validation.rs"
+    ],
+    "checked_queries": [
+      "ExecutorRequest secret_signature",
+      "decode_base_fields returns secret_signature",
+      "Expected 4 tokens",
+      "InputTooShort expected 128",
+      "user_public_key"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "ExecutorRequest",
+      "ExecutorRequest::decode_base_fields",
+      "secret_signature",
+      "user_public_key",
+      "InputTooShort"
+    ],
+    "missing_behavior": "The base executor request ABI is no longer exactly executor/encrypted_secrets/ttl/secret_signature, and decode_base_fields does not return only the secret_signature bytes as the fourth and final decoded value with a four-field minimum size.",
+    "related_but_insufficient_code": [
+      "The port ExecutorRequest base struct has five fields: executor, encrypted_secrets, ttl, secret_signature, and user_public_key.",
+      "decode_base_fields decodes five ParamTypes and returns (Address, Vec<Bytes>, u64, Vec<Bytes>, Bytes), so four-field ABI inputs are not the base shape."
+    ]
+  },
+  "notes": "Confirmed gap against the four-field invariant; current code is related but not equivalent.",
+  "rationale": "The primary diff adds secret_signature to ExecutorRequest, extends the ABI type list from three to four fields, changes the minimum encoded size, decodes the dynamic bytes payload, and updates tests to assert the signature is returned. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "0596008f451989521f276d7a766885b49b50a892"
+  ],
+  "statement": "The base executor request ABI must consist of executor, encrypted_secrets, ttl, and secret_signature, and decode_base_fields must return the secret_signature bytes as the fourth decoded value.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "ABI-encode executor, encrypted_secrets, ttl, and a non-empty secret_signature; call ExecutorRequest::decode_base_fields and assert all four values are returned, then pass an input shorter than 128 bytes and assert it fails with InputTooShort expected 128."
+  ],
+  "summary": "ExecutorRequest carries secret_signature but the base ABI now requires an additional user_public_key field.",
+  "test_or_falsification_candidate": "ABI-encode exactly executor, encrypted_secrets, ttl, and secret_signature and assert current decode_base_fields rejects it or requires user_public_key, contrary to the invariant.",
+  "title": "Executor requests carry secret signatures",
+  "total_invariants": 1954
+}

@@ -1,0 +1,79 @@
+{
+  "cluster_key": "scheduler:payload-building:part-02",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-scheduled-verification/src/lib.rs",
+    "crates/ritual-scheduled-block-building/src/lib.rs",
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/scheduling/src/singleton.rs",
+    "crates/scheduling/src/types.rs"
+  ],
+  "invariant_id": "cur-d4acaf0d5e-scheduled-obligations-shared-bounded-parent-state-eligibility",
+  "invariant_index": 73,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs",
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/scheduling/src/singleton.rs",
+      "crates/scheduling/src/types.rs"
+    ],
+    "checked_queries": [
+      "RITUAL_FORCE_CONTRACT_SCAN|RETH_MAX_OBLIGATIONS_PER_BLOCK|max obligations",
+      "due_index_bounds|SCHEDULER_MAX_TTL_BLOCKS|compute_obligations"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "compute_obligations",
+      "due_index_bounds",
+      "SCHEDULER_MAX_TTL_BLOCKS",
+      "RITUAL_FORCE_CONTRACT_SCAN",
+      "RETH_MAX_OBLIGATIONS_PER_BLOCK",
+      "filter_obligations_by_predicates"
+    ],
+    "missing_behavior": "Missing full shared bounded eligibility rule: no env-controlled pool-vs-contract scan selection and no explicit max-obligations-per-block cap defaulting to 64.",
+    "related_but_insufficient_code": [
+      "Port compute_obligations derives obligations from parent Scheduler state and uses due_index_bounds with SCHEDULER_MAX_TTL_BLOCKS=500.",
+      "No RITUAL_FORCE_CONTRACT_SCAN/synced scheduler pool fast path or RETH_MAX_OBLIGATIONS_PER_BLOCK default-64 cap was found."
+    ]
+  },
+  "notes": "Confirmed gap for full invariant.",
+  "rationale": "This collapses the shared contract-state constraints, augmentation source-selection changes, synced-pool fast path, default contract scan, per-block cap, due-index optimization, and TTL bound into the effective scheduled-obligation discovery rule.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "ca1be050bec3aba046b5979cfaf344cdbb8bb4d5",
+    "9e0865644a53921162fc0f1848118bd59d75902c",
+    "b444242ee1219178fd80e459a4a8a0b00318e51c",
+    "69c58336e967b889512382ec5ab0943a73a12af8",
+    "a122f757ee118afb5b34f50495885c88aa6ea2bd",
+    "ec79a417dc46ef3e33e8278708f34a035d5430c6",
+    "7ebf3d9ed453cb91cb61b5da357d04115ec61ae9",
+    "8663a6b1a411f398908cc36ad99451e77b4f5aa1",
+    "b5a6cd08554c02306faae51e7e1757b9fbf19c73",
+    "465eb33883dd0065dad09836142410b2454881a9"
+  ],
+  "statement": "Payload building and verification must derive due scheduled obligations from parent Scheduler and wallet state using the shared eligibility constraints, default to contract storage scans unless RITUAL_FORCE_CONTRACT_SCAN=0 and the scheduler pool is synced through the parent block, cap the obligation set with RETH_MAX_OBLIGATIONS_PER_BLOCK defaulting to 64, use due_index_bounds rather than full numCalls scans, and skip calls whose ttl exceeds the Scheduler protocol bound of 500 blocks.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Create parent-state fixtures for each C1-C11 failure mode, more than 64 due obligations, synced and unsynced scheduler pool states, and ttl values 500 and 501; assert builder and verifier derive the same capped eligible set, use contract scan by default, use the pool path only for env=0 plus synced pool, and skip ttl 501.",
+    "Use a pathological call with numCalls=u32::MAX and a single due index; assert obligation computation checks only the due_index_bounds range and still respects executedBitmap and the per-block cap."
+  ],
+  "summary": "Scheduled obligations share some parent-state eligibility, but capped/env-selected discovery is incomplete.",
+  "test_or_falsification_candidate": "Create >64 due obligations plus env-controlled synced pool cases; current port has parent-state due-window logic but no cap/env selection to satisfy the full invariant.",
+  "title": "Scheduled obligations use shared bounded parent-state eligibility",
+  "total_invariants": 1954
+}

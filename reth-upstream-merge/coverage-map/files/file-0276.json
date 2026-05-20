@@ -1,0 +1,236 @@
+{
+  "record_type": "file",
+  "file_index": 276,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-async-fees/src/constants.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "structural_equivalent",
+  "tags": [
+    "high-risk",
+    "needs-review",
+    "non-exact",
+    "structural_equivalent"
+  ],
+  "atoms_total": 4,
+  "atoms": [
+    {
+      "record_id": "file-0276-atom-0001",
+      "file_index": 276,
+      "atom_index": 1,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-async-fees/src/constants.rs",
+      "source_hunk_hint": "@@ -0,0 +1,443 @@",
+      "source_kind": "changed_constant",
+      "source_snippet": "//! Fee calculation constants\n//!\n//! Fee-related numeric parameters here are the source of truth for async pricing.\n//! **Precompile `Address` constants** are defined in `ritual-precompile-addresses` and re-exported\n//! below so existing `ritual_async_fees::*` imports keep working.\n",
+      "semantic_claim": "The downstream diff for crates/ritual-async-fees/src/constants.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "fees"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/constants.rs",
+          "symbols": [
+            "HTTP_EXECUTOR_BASE_FEE_WEI",
+            "HTTP_EXECUTOR_FEE_PER_INPUT_BYTE_WEI",
+            "HTTP_EXECUTOR_FEE_PER_OUTPUT_BYTE_WEI",
+            "ASYNC_COMMITMENT_GAS_PER_INPUT_BYTE"
+          ],
+          "snippet": "pub const HTTP_EXECUTOR_BASE_FEE_WEI: u128 = 2_500_000_000_000; // 0.0000025 ETH\n\n/// Per-byte fee for HTTP request input.\npub const HTTP_EXECUTOR_FEE_PER_INPUT_BYTE_WEI: u128 = 350_000_000; // 0.35 gwei/byte\n",
+          "evidence": "The destination keeps the module at the same relative path with overlapping symbols ['HTTP_EXECUTOR_BASE_FEE_WEI', 'HTTP_EXECUTOR_FEE_PER_INPUT_BYTE_WEI', 'HTTP_EXECUTOR_FEE_PER_OUTPUT_BYTE_WEI', 'ASYNC_COMMITMENT_GAS_PER_INPUT_BYTE']."
+        }
+      ],
+      "equivalence_argument": "The downstream behavior still resides in the same integration surface in the destination workspace, but the implementation was refactored or reshaped; review is required to confirm full semantic parity.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Run the destination behavior owned by crates/ritual-async-fees/src/constants.rs and verify the downstream-observed behavior still holds after the port refactor.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "The destination keeps the module at the same relative path with overlapping symbols ['HTTP_EXECUTOR_BASE_FEE_WEI', 'HTTP_EXECUTOR_FEE_PER_INPUT_BYTE_WEI', 'HTTP_EXECUTOR_FEE_PER_OUTPUT_BYTE_WEI', 'ASYNC_COMMITMENT_GAS_PER_INPUT_BYTE'].",
+      "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor."
+    },
+    {
+      "record_id": "file-0276-atom-0002",
+      "file_index": 276,
+      "atom_index": 2,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-async-fees/src/constants.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 10: Fees, Registries, And Product Economics",
+      "source_kind": "side_effect",
+      "source_snippet": "Feature-preservation claims: Wallet balance and lock-duration requirements.",
+      "semantic_claim": "Wallet balance and lock-duration requirements.",
+      "high_risk": true,
+      "risk_tags": [
+        "fees",
+        "executor-selection"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "calculate_async_fees",
+            "calculate_async_fees_phase2",
+            "verify_wallet_for_commitment"
+          ],
+          "snippet": "shared fee, wallet, registry, and delivery pricing helpers",
+          "evidence": "The v2.2 port keeps fee/wallet logic in ritual-async-fees and consumes it from builder and verifier paths."
+        }
+      ],
+      "equivalence_argument": "Fee, wallet, registry, gas accounting, and delivery-pricing helpers are preserved in ritual-async-fees. Runtime-inactive precompile families remain gated/fail-closed elsewhere.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Wallet balance and lock-duration requirements.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to shared fee crate.",
+      "feature_derived": true,
+      "feature_sections": [
+        10
+      ],
+      "source_feature_ids": [
+        "feature-raw-0112"
+      ],
+      "source_feature_claims": [
+        "Wallet balance and lock-duration requirements."
+      ],
+      "needs_atomization": true
+    },
+    {
+      "record_type": "pr_preservation_derived_atom",
+      "pr_preservation_derived": true,
+      "pr_preservation_grounded": true,
+      "file_index": 276,
+      "source_path": "crates/ritual-async-fees/src/constants.rs",
+      "source_hunk_hint": "crates/ritual-async-fees/src/constants.rs:317-337",
+      "source_kind": "consensus_constant",
+      "source_snippet": "// CONTRACT ADDRESSES (DEFAULTS)\n// ============================================================================\n\n/// Default ModelRegistry contract address. Expected to be set at genesis.\n///\n/// This is the deterministic deployment address in our genesis setup flow.\n/// Once the chain is live this can be refactored for permanent use.\n///\n/// CRITICAL: This MUST match the genesis ModelPricingRegistry address!\n/// If this doesn't match, LLM calls will timeout (100+ blocks to mine).\n/// See IMAGE-IMPLEMENTATION-PLAN.md Section 16.1 for debugging history.\n///\n/// Source of truth: ritual-common-internal/src/ritual_common/contract_addresses.py\n/// MODEL_PRICING_REGISTRY_CONTRACT_ADDRESS = \"0x7A85F48b971ceBb75491b61abe279728F4c4384f\"\npub const DEFAULT_MODEL_REGISTRY_ADDRESS: Address =\n    address!(\"7A85F48b971ceBb75491b61abe279728F4c4384f\");\n\n// ============================================================================\n// ZK TWO-PHASE (0x0806) CONSTANTS\n// ============================================================================\n",
+      "semantic_claim": "PR preservation `#246` `separate-capabilities` keeps live downstream behavior: default model registry address.",
+      "high_risk": true,
+      "risk_tags": [
+        "executor-selection",
+        "fees",
+        "precompile"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "calculate_async_fees",
+            "calculate_async_fees_phase2",
+            "verify_wallet_for_commitment"
+          ],
+          "snippet": "shared fee, wallet, registry, and delivery pricing helpers",
+          "evidence": "The v2.2 port keeps fee/wallet logic in ritual-async-fees and consumes it from builder and verifier paths."
+        }
+      ],
+      "equivalence_argument": "Fee, wallet, registry, gas accounting, and delivery-pricing helpers are preserved in ritual-async-fees. Runtime-inactive precompile families remain gated/fail-closed elsewhere.",
+      "test_strategy": "pr_diff_equivalence_regression",
+      "negative_test_candidate": "Replay or unit-test the smallest downstream scenario introduced by #246 that exercises `default model registry address` and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "source_prs": [
+        {
+          "key": "#246",
+          "slug": "separate-capabilities",
+          "merge_commit": "cd0f30dc2eac1d62d67fc30eadd4a012659daec5"
+        }
+      ],
+      "source_pr_claims": [
+        "default model registry address"
+      ],
+      "source_flow_ids": [
+        "pr-raw-0080"
+      ],
+      "notes": "Mapped to shared fee crate.",
+      "atom_index": 3,
+      "record_id": "file-0276-atom-0003",
+      "atoms_total": 4,
+      "needs_atomization": true
+    },
+    {
+      "record_type": "pr_preservation_derived_atom",
+      "pr_preservation_derived": true,
+      "pr_preservation_grounded": true,
+      "file_index": 276,
+      "source_path": "crates/ritual-async-fees/src/constants.rs",
+      "source_hunk_hint": "crates/ritual-async-fees/src/constants.rs:188-208",
+      "source_kind": "consensus_constant",
+      "source_snippet": "/// Per-iteration fee for Sovereign Agent operations.\n/// Each iteration involves LLM inference in the Sovereign Agent.\n///\n/// **Calibration target:** one sovereign agent at `frequency=1000`, `iter=10`, `tools=10`\n/// should consume ~1 RIT per day on a 300ms-block chain (288 fires per day, ~3,461 \u00b5RIT\n/// per fire including Phase 1 overhead). Holding the historical 2:1 TOOL:ITER ratio:\n///   per fire \u2248 10\u00b7ITER + 10\u00b7TOOL = 30\u00b7ITER \u2248 3.45 mRIT  \u2192  ITER \u2248 115 \u00b5RIT\n/// Previous value (0.00000025 ETH) gave ~200 days/RIT at the same workload.\npub const SOVEREIGN_AGENT_ITERATION_FEE_WEI: u128 = 115_000_000_000_000; // 0.000115 ETH\n\n/// Per-tool-call fee for Sovereign Agent operations.\n/// Each tool call involves file read/write/execute.\n///\n/// Calibrated as 2\u00d7 `SOVEREIGN_AGENT_ITERATION_FEE_WEI` per the historical ratio.\n/// See ITERATION_FEE doc-comment for the per-day-per-RIT derivation.\npub const SOVEREIGN_AGENT_TOOL_CALL_FEE_WEI: u128 = 230_000_000_000_000; // 0.000230 ETH\n\n/// Maximum iterations allowed for Sovereign Agent calls (for escrow calculation)\npub const SOVEREIGN_AGENT_MAX_ITERATIONS: u32 = 50;\n\n/// Maximum tool calls allowed for Sovereign Agent calls (for escrow calculation)",
+      "semantic_claim": "PR preservation `#356` `agent-spawn-fee-cap` keeps live downstream behavior: sovereign-agent iteration/tool fee calibration.",
+      "high_risk": true,
+      "risk_tags": [
+        "fees"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "calculate_async_fees",
+            "calculate_async_fees_phase2",
+            "verify_wallet_for_commitment"
+          ],
+          "snippet": "shared fee, wallet, registry, and delivery pricing helpers",
+          "evidence": "The v2.2 port keeps fee/wallet logic in ritual-async-fees and consumes it from builder and verifier paths."
+        }
+      ],
+      "equivalence_argument": "Fee, wallet, registry, gas accounting, and delivery-pricing helpers are preserved in ritual-async-fees. Runtime-inactive precompile families remain gated/fail-closed elsewhere.",
+      "test_strategy": "pr_diff_equivalence_regression",
+      "negative_test_candidate": "Replay or unit-test the smallest downstream scenario introduced by #356 that exercises `sovereign-agent iteration/tool fee calibration` and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "source_prs": [
+        {
+          "key": "#356",
+          "slug": "agent-spawn-fee-cap",
+          "merge_commit": "674a29368dfcb391b49d07705aadca4e50a11ed9"
+        }
+      ],
+      "source_pr_claims": [
+        "sovereign-agent iteration/tool fee calibration"
+      ],
+      "source_flow_ids": [
+        "pr-raw-0207"
+      ],
+      "notes": "Mapped to shared fee crate.",
+      "atom_index": 4,
+      "record_id": "file-0276-atom-0004",
+      "atoms_total": 4,
+      "needs_atomization": true
+    }
+  ],
+  "high_risk_atoms_total": 4,
+  "non_exact_atoms_total": 4,
+  "adversarial_reviews": [],
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "The destination keeps the module at the same relative path with overlapping symbols ['HTTP_EXECUTOR_BASE_FEE_WEI', 'HTTP_EXECUTOR_FEE_PER_INPUT_BYTE_WEI', 'HTTP_EXECUTOR_FEE_PER_OUTPUT_BYTE_WEI', 'ASYNC_COMMITMENT_GAS_PER_INPUT_BYTE']. Curated feature-preservation insertion appended 1 grouped feature-derived behavior atom(s)."
+}

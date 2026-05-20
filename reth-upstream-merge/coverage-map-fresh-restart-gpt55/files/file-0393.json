@@ -1,0 +1,101 @@
+{
+  "record_type": "file",
+  "file_index": 393,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/rpc/rpc-server-types/src/module.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "rpc-server-types",
+    "ritual-rpc"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0393-atom-0001",
+      "file_index": 393,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/rpc/rpc-server-types/src/module.rs",
+      "source_hunk_hint": "@@ -204,7 +204,7 @@",
+      "source_kind": "rustfmt_noise",
+      "source_snippet": "if s.is_empty() { return Ok(Self::Selection(Default::default())); }",
+      "semantic_claim": "The first old divergence hunk in this file is a rustfmt-only semicolon insertion.",
+      "high_risk": false,
+      "risk_tags": [
+        "rustfmt",
+        "noise"
+      ],
+      "mapping_status": "noise",
+      "destinations": [],
+      "equivalence_argument": "Formatting-only change has no semantic mapping requirement.",
+      "test_strategy": "rustfmt",
+      "negative_test_candidate": "N/A formatting-only.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Noise atom."
+    },
+    {
+      "record_id": "file-0393-atom-0002",
+      "file_index": 393,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/rpc/rpc-server-types/src/module.rs",
+      "source_hunk_hint": "@@ -273,6 +273,8 @@",
+      "source_kind": "rpc_module_enum_variant",
+      "source_snippet": "/// `ritual_` module\nRitual,",
+      "semantic_claim": "The old divergence adds `RethRpcModule::Ritual` so CLI/config module selection can parse and propagate the Ritual JSON-RPC namespace.",
+      "high_risk": true,
+      "risk_tags": [
+        "rpc-module-selection",
+        "public-config",
+        "ritual-rpc",
+        "missing"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc-server-types/src/module.rs",
+          "symbols": [
+            "RethRpcModule"
+          ],
+          "evidence": "Destination `RethRpcModule` enum now has a `Ritual` variant, includes it in `STANDARD_VARIANTS`, maps `AsRef<str>` to `ritual`, and parses `ritual` in `FromStr`."
+        }
+      ],
+      "equivalence_argument": "Exact: the destination can select the Ritual RPC module through standard RPC module configuration.",
+      "test_strategy": "parse `--http.api ritual` / module selection test",
+      "negative_test_candidate": "Parsing module selection containing `ritual` should fail while the variant is missing.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": "review-file-0393-atom-0002"
+      },
+      "review_required": false,
+      "notes": "Resolved by adding `RethRpcModule::Ritual` and parser/validator coverage."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The Ritual RPC module selection enum variant is restored in the destination; the other hunk is formatting-only.",
+  "review_required": false,
+  "status": "resolved",
+  "notes": [
+    "Queue entry verified as file-0393: M\tcrates/rpc/rpc-server-types/src/module.rs.",
+    "Source semantic hunk spans diff lines 78114-78119.",
+    "Resolved in this pass by adding `RethRpcModule::Ritual` and parser/validator tests.",
+    "Verified by focused `reth-rpc-server-types` tests and the targeted package check."
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The pool-backed EVM builder constructs a BlockVerifier with pool, provider, EVM config, and default executor registry configuration, then passes it to RitualBlockExecutorProvider.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "let block_verifier = Arc::new(BlockVerifier::new_with_evm_classification(pool.clone(), ctx.provider().clone(), evm_config.clone(), None));\n...\nlet ritual_executor = RitualBlockExecutorProvider::new(evm_config.clone(), spc_verifier, Some(block_verifier));",
+      "symbols": [
+        "build_evm_with_pool",
+        "BlockVerifier::new_with_evm_classification"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The non-pool build path intentionally does not install a block verifier, matching the invariant distinction.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "let ritual_executor = RitualBlockExecutorProvider::new(evm_config.clone(), spc_verifier, None); // No block verifier in build_evm (no pool access)",
+      "symbols": [
+        "build_evm"
+      ]
+    }
+  ],
+  "equivalence_argument": "In the nodebuilder dependency, only the transaction-pool-aware builder has enough dependencies to construct the full BlockVerifier, and it passes Some(block_verifier) into the Ritual executor provider while the no-pool path passes None.",
+  "evidence_files": [
+    "crates/node/src/executor.rs",
+    "crates/ritual-block-verification/Cargo.toml"
+  ],
+  "invariant_id": "cur-da3cc0c22f-pool-backed-executor-includes-block-verifier",
+  "invariant_index": 374,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in nodebuilder dependency.",
+  "rationale": "The build_evm_with_pool path creates a BlockVerifier with async commitment validation dependencies and passes Some(block_verifier) to RitualBlockExecutorProvider::new. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "3844fe6fdcc411cdda7328b370ec196eb0b43ea4"
+  ],
+  "statement": "When the Ritual node builds an EVM with transaction pool access, it must construct a BlockVerifier with the pool, provider, EVM environment factory, and default executor registry contract configuration, and pass it into RitualBlockExecutorProvider.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Build a node EVM with pool access, feed a block that violates a Ritual block verifier rule, and assert execution fails through the block verifier path; verify build_evm without pool does not install a block verifier."
+  ],
+  "summary": "Pool-backed node EVM construction installs the Ritual block verifier into the executor provider.",
+  "test_or_falsification_candidate": "Build with pool access and execute a block violating a verifier rule to assert rejection through the verifier; build without pool and assert no block verifier is installed.",
+  "title": "Pool-backed executor includes block verifier",
+  "total_invariants": 1954
+}

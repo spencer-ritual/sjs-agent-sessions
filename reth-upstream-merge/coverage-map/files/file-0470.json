@@ -1,0 +1,71 @@
+{
+  "record_type": "file",
+  "file_index": 470,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/storage/codecs/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "structural_equivalent",
+  "tags": [
+    "high-risk",
+    "needs-review",
+    "non-exact",
+    "structural_equivalent"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0470-atom-0001",
+      "file_index": 470,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/storage/codecs/src/lib.rs",
+      "source_hunk_hint": "@@ -239 +239,2 @@ where",
+      "source_kind": "other",
+      "source_snippet": "    /// Returns the number of bytes written to the buffer.\n    /// This is important for Option<Vec<T>> to work correctly.\n        let start_len = buf.as_mut().len();\n        buf.as_mut().len() - start_len\n            return (None, buf);\n            return (None, buf);",
+      "semantic_claim": "The downstream diff for crates/storage/codecs/src/lib.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": true,
+      "risk_tags": [
+        "encoding"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/src/lib.rs",
+          "symbols": [
+            "to_compact",
+            "from_compact",
+            "specialized_to_compact",
+            "specialized_from_compact",
+            "encode_varuint"
+          ],
+          "snippet": "    fn to_compact<B>(&self, buf: &mut B) -> usize\n    where\n        B: bytes::BufMut + AsMut<[u8]>;\n\n    /// Takes a buffer which can be read from. Returns the object and `buf` with its internal cursor",
+          "evidence": "The destination keeps the module at the same relative path with overlapping symbols ['to_compact', 'from_compact', 'specialized_to_compact', 'specialized_from_compact', 'encode_varuint']."
+        }
+      ],
+      "equivalence_argument": "The downstream behavior still resides in the same integration surface in the destination workspace, but the implementation was refactored or reshaped; review is required to confirm full semantic parity.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Run the destination behavior owned by crates/storage/codecs/src/lib.rs and verify the downstream-observed behavior still holds after the port refactor.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "The destination keeps the module at the same relative path with overlapping symbols ['to_compact', 'from_compact', 'specialized_to_compact', 'specialized_from_compact', 'encode_varuint'].",
+      "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "The destination keeps the module at the same relative path with overlapping symbols ['to_compact', 'from_compact', 'specialized_to_compact', 'specialized_from_compact', 'encode_varuint']."
+}

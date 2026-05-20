@@ -1,0 +1,203 @@
+{
+  "record_type": "file",
+  "file_index": 336,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-sequencing-rights/src/bucket.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "sequencing-rights",
+    "buckets",
+    "ordering"
+  ],
+  "atoms_total": 4,
+  "atoms": [
+    {
+      "record_id": "file-0336-atom-0001",
+      "file_index": 336,
+      "atom_index": 1,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-sequencing-rights/src/bucket.rs",
+      "source_hunk_hint": "@@ -0,0 +1,94 @@; ClassifiedTransaction and Bucket sort/verify",
+      "source_kind": "sequencing_bucket_model_and_ordering",
+      "source_snippet": "pub struct ClassifiedTransaction { pub original_index: usize, pub transaction: Recovered<TransactionSigned>, pub selectors: SelectorSet, pub priority: Priority }\npub struct Bucket { pub contract: Address, pub ordering: SequencingOrdering, pub transactions: Vec<ClassifiedTransaction> }\nimpl Bucket { pub fn add_transaction(...) { ... } pub fn sort(&mut self) { ... } pub fn verify(&self) -> Result<(), SequencingRightsError> { ... } }",
+      "semantic_claim": "The old divergence adds bucketed sequencing-rights transaction metadata, priority computation on insertion, stable priority sorting, and bucket order verification that raises `OrderingViolation` when priority decreases.",
+      "high_risk": false,
+      "risk_tags": [
+        "bucket",
+        "priority",
+        "ordering-verification",
+        "sequencing-rights"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-sequencing-rights/src/bucket.rs",
+          "symbols": [
+            "ClassifiedTransaction",
+            "Bucket",
+            "Bucket::add_transaction",
+            "Bucket::sort",
+            "Bucket::verify"
+          ],
+          "evidence": "Destination lines 1-94 exactly match source-added diff lines 66692-66785."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves per-contract bucket ordering semantics and violation reporting.",
+      "test_strategy": "sequencing_bucket_sort_verify_tests",
+      "negative_test_candidate": "A bucket ordered with priority 1 followed by priority 0 should return `OrderingViolation`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0336-atom-0002",
+      "file_index": 336,
+      "atom_index": 2,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-sequencing-rights/src/bucket.rs",
+      "source_hunk_hint": "@@ -0,0 +96,199 @@; Partition sorting, verification, and consensus-critical reassembly",
+      "source_kind": "sequencing_partition_reassembly",
+      "source_snippet": "pub struct Partition { pub buckets: HashMap<Address, Bucket>, pub unbucketed: Vec<(usize, Recovered<TransactionSigned>)> }\nimpl Partition { pub fn sort_all_parallel(mut self) -> Self { ... } pub fn verify_all_parallel(&self) -> Result<(), SequencingRightsError> { ... } pub fn reassemble(self, total_count: usize) -> Vec<Recovered<TransactionSigned>> { ... } }",
+      "semantic_claim": "The old divergence adds partition management for bucketed and unbucketed transactions, parallel bucket sort/verify, and consensus-critical reassembly that preserves original inter-bucket positions and panics if any transaction position is lost.",
+      "high_risk": false,
+      "risk_tags": [
+        "partition",
+        "parallel-sort",
+        "parallel-verify",
+        "consensus-critical",
+        "reassembly"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-sequencing-rights/src/bucket.rs",
+          "symbols": [
+            "Partition",
+            "Partition::sort_all_parallel",
+            "Partition::verify_all_parallel",
+            "Partition::reassemble"
+          ],
+          "evidence": "Destination lines 96-199 exactly match source-added diff lines 66787-66890."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps transaction-loss guards and deterministic reassembly behavior unchanged.",
+      "test_strategy": "sequencing_partition_reassembly_tests",
+      "negative_test_candidate": "A partition reassembly with a missing position should panic instead of silently dropping a transaction.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0336-atom-0003",
+      "file_index": 336,
+      "atom_index": 3,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-sequencing-rights/src/bucket.rs",
+      "source_hunk_hint": "@@ -0,0 +201,276 @@; BucketManager classification-to-partition mapping",
+      "source_kind": "sequencing_bucket_manager_partitioning",
+      "source_snippet": "pub struct BucketManager;\nimpl BucketManager { pub fn create_partition<S: StateProvider>(&mut self, classifications: Vec<(usize, Recovered<TransactionSigned>, Classification)>, reader: &SequencingRightsReader, state: &S) -> Partition { ... } }",
+      "semantic_claim": "The old divergence adds `BucketManager` partitioning from classified transactions, using `SequencingRightsReader` to bucket single sequencing-rights contracts and leaving multi-contract, no-rights, simple-transfer, exempt, or failed classifications unbucketed.",
+      "high_risk": false,
+      "risk_tags": [
+        "bucket-manager",
+        "classification",
+        "partitioning",
+        "reader-cache"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-sequencing-rights/src/bucket.rs",
+          "symbols": [
+            "BucketManager",
+            "BucketManager::create_partition"
+          ],
+          "evidence": "Destination lines 201-276 exactly match source-added diff lines 66892-66967."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the classification-to-bucket dispatch rules used by top-level reorder and verify flows.",
+      "test_strategy": "sequencing_bucket_manager_partition_tests",
+      "negative_test_candidate": "A `MultiContract` classification should remain unbucketed and not be subject to sequencing-rights sorting.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0336-atom-0004",
+      "file_index": 336,
+      "atom_index": 4,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-sequencing-rights/src/bucket.rs",
+      "source_hunk_hint": "@@ -0,0 +278,604 @@; bucket/partition unit tests",
+      "source_kind": "sequencing_bucket_tests",
+      "source_snippet": "#[cfg(test)]\nmod tests { #[test] fn test_empty_bucket_passes_verification() { ... } #[test] fn test_descending_order_fails() { ... } #[test] fn test_bucket_sort_reorders() { ... } #[test] fn test_ordering_violation_error_details() { ... } }",
+      "semantic_claim": "The old divergence adds bucket tests covering empty/single/ascending/same-priority buckets, descending and mixed-order failures, partition basics, large bucket smoke tests, sort reordering, and violation error details.",
+      "high_risk": false,
+      "risk_tags": [
+        "tests",
+        "bucket",
+        "partition",
+        "ordering-violation"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-sequencing-rights/src/bucket.rs",
+          "symbols": [
+            "test_empty_bucket_passes_verification",
+            "test_descending_order_fails",
+            "test_bucket_sort_reorders",
+            "test_ordering_violation_error_details"
+          ],
+          "evidence": "Destination lines 278-604 exactly match source-added diff lines 66969-67295."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the regression coverage for bucket sorting, verification, and partition behavior.",
+      "test_strategy": "cargo test -p ritual-sequencing-rights bucket",
+      "negative_test_candidate": "Sorting a bucket added in descending priority should make subsequent verification pass.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Test atom only."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The sequencing-rights bucket module is exact-port preserved, including bucket priority assignment, parallel partition sorting/verification, consensus-critical reassembly, classification partitioning, and tests.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 336: A\tcrates/ritual-sequencing-rights/src/bucket.rs.",
+    "Source-added hunk spans diff lines 66692-67295 with header `@@ -0,0 +1,604 @@`; the next diff starts at line 67296.",
+    "Destination `crates/ritual-sequencing-rights/src/bucket.rs` has 604 lines and matches the source-added content exactly.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

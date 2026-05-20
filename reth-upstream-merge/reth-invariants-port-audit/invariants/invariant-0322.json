@@ -1,0 +1,70 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/service.rs"
+  ],
+  "invariant_id": "cur-34be1f8359-malformed-executor-event-payloads-rejected",
+  "invariant_index": 322,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-spc-verification/src/service.rs (absent locally)",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-spc-verification/src/types.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-spc-verification/src/verifier.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-tee-registry-reader/src/constants.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-tee-registry-reader/src/reader.rs",
+      "ritual-reth-nodebuilder-internal/crates/node/src/executor.rs",
+      "all audited dependency repos searched for the listed symbols"
+    ],
+    "checked_queries": [
+      "InvalidEventData publicKey offset",
+      "capability outside",
+      "publicKey length would overrun",
+      "ExecutorRegistered"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "InvalidEventData",
+      "publicKey offset",
+      "publicKey length",
+      "capability",
+      "0..=1"
+    ],
+    "missing_behavior": "No local audited repo has an ExecutorRegistry event handler that rejects short event data, a non-128 publicKey offset, publicKey overrun, or capability outside 0..=1 before mutating registry state.",
+    "related_but_insufficient_code": [
+      "ritual-spc-verification/src/types.rs still defines ExecutorRegistry and deactivate_executor, but it is only an in-memory map and has no log-watching service.",
+      "ritual-tee-registry-reader reads TEEServiceRegistry storage via TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS; it does not decode ExecutorRegistry event logs.",
+      "ritual-reth-nodebuilder-internal/crates/node/src/executor.rs syncs registry state from storage before execution but uses TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS and read_all_executors, not ExecutorRegistry event receipts.",
+      "ritual-tee-registry-reader validates storage-derived capability and public key length, but that is not an ExecutorRegistry event decoder and it accepts the broader TEEServiceRegistry capability enum rather than only 0..=1."
+    ]
+  },
+  "notes": "Confirmed by exact event-symbol searches across all audited local repos; the current local architecture reads registry storage instead of consuming ExecutorRegistry event logs.",
+  "rationale": "The primary diff adds explicit bounds checks around the dynamic bytes field and capability validation before constructing ExecutorInfo, directly addressing the stated buffer-overrun issue. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "9f08fcce9941bbbf84ae81140fad5282fd83f58e"
+  ],
+  "statement": "ExecutorRegistered and ExecutorUpdated handling returns InvalidEventData when event data is shorter than the ABI static header, when the publicKey offset is not 128, when the publicKey length would overrun the log data, or when capability is outside the supported 0..=1 range.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Feed the event handlers logs with data length below 128, a publicKey offset other than 128, a publicKey length beyond the buffer, and capability 2, and assert each returns VerificationError::InvalidEventData and does not update the registry."
+  ],
+  "summary": "Malformed ExecutorRegistry event-payload rejection is absent.",
+  "test_or_falsification_candidate": "Submit malformed ExecutorRegistry event payloads; there is no local event handler expected to return InvalidEventData or prevent event-based mutation.",
+  "title": "Malformed executor event payloads are rejected",
+  "total_invariants": 1954
+}

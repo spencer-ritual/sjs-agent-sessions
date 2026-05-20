@@ -1,0 +1,68 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "The port has a helper that can fetch previous header data, but the audited block-execution and block-verification paths do not extract block SPC calls into requests by calling that helper for spc_call.block_number - 1 or fail execution on header lookup failure.",
+  "evidence_files": [
+    "crates/evm/src/execute.rs",
+    "crates/evm/src/spc.rs"
+  ],
+  "invariant_id": "cur-ba3aebc329-requests-real-previous-headers",
+  "invariant_index": 290,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/evm/evm/src/execute.rs",
+      "crates/evm/evm/src/spc.rs",
+      "crates/ritual-spc-verification/src/verifier.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/node/src/executor.rs"
+    ],
+    "checked_queries": [
+      "SPC requests use real previous headers",
+      "get_previous_block_data spc_call.block_number - 1",
+      "extract SPC calls from block previous header lookup",
+      "Previous block header not found abort block execution"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "SpcVerifier::get_previous_block_data",
+      "SpcVerificationRequest",
+      "RitualBlockExecutor::execute_one",
+      "verify_spc_calls",
+      "spc_call.block_number"
+    ],
+    "missing_behavior": "No audited block-execution path converts block SPC calls into verification requests using freshly fetched previous-header hash/timestamp data or fails block execution when that header lookup is missing.",
+    "related_but_insufficient_code": [
+      "crates/ritual-spc-verification/src/verifier.rs implements get_previous_block_data by loading header_by_number(block_number.saturating_sub(1)).",
+      "crates/ritual-block-verification/src/lib.rs verifies SPC signatures using previous_block_hash/number/timestamp stored in AsyncJobTracker job data, not by fetching headers while extracting block SPC calls.",
+      "crates/node/src/executor.rs injects transaction spc_calls into async context but does not build SpcVerificationRequest values from real previous headers."
+    ]
+  },
+  "notes": "Confirmed gap; current v2 verification relies on AsyncJobTracker-stored previous block metadata instead of the Atlas-described extraction-time header fetch.",
+  "rationale": "The primary diff replaces placeholder parent metadata with a two-pass extraction that collects unique previous block numbers, fetches header metadata via get_previous_block_data, and aborts on missing header data. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "a9b9d182adbe19a7bd0a163c22678904f027ba84"
+  ],
+  "statement": "When extracting SPC calls from a block, only HTTP-call SPC entries are converted into verification requests, each must have an executor address extractable from the SPC input, and each request must use real previous-block hash and timestamp data fetched through the SPC verifier for spc_call.block_number - 1; header lookup failure must fail block execution.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create a block with HTTP SPC calls from two different referenced block numbers, mock get_previous_block_data to return known metadata, and assert each request contains the matching previous hash/timestamp; then make one lookup fail and assert block execution errors."
+  ],
+  "summary": "SPC block-call extraction does not fetch real previous headers during execution.",
+  "test_or_falsification_candidate": "Mock SpcVerifier::get_previous_block_data to fail for an SPC call referenced block and execute a block; current code has no extraction path that would call the mock and abort execution for the missing header.",
+  "title": "SPC requests use real previous headers",
+  "total_invariants": 1954
+}

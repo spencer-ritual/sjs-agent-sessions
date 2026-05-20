@@ -1,0 +1,67 @@
+{
+  "cluster_key": "scheduler:payload-building:part-03",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-metrics/src/block.rs",
+    "crates/rpc/rpc-api/src/ritual.rs",
+    "crates/rpc/rpc/src/ritual.rs"
+  ],
+  "invariant_id": "cur-cd37f0ea99-block-build-traces-preserve-first-primary-cause",
+  "invariant_index": 57,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-metrics/src/block.rs",
+      "crates/rpc/rpc-api/src/ritual.rs",
+      "crates/rpc/rpc/src/ritual.rs"
+    ],
+    "checked_queries": [
+      "primary_cause|primaryCause|record_block_build_attempt",
+      "demotion|async simulation deadline|block build trace"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "BlockBuildAttemptTrace",
+      "primary_cause",
+      "record_block_build_attempt",
+      "BlockBuildAttemptDebug",
+      "primaryCause"
+    ],
+    "missing_behavior": "Missing producer path that captures the first primary cause during payload building and records it into block-build traces.",
+    "related_but_insufficient_code": [
+      "ritual-metrics defines BlockBuildAttemptTrace.primary_cause and record_block_build_attempt accepts it.",
+      "RPC debug structs expose primaryCause, but payload builder has no record_block_build_attempt call or first-cause capture logic."
+    ]
+  },
+  "notes": "Confirmed gap; schemas alone are insufficient.",
+  "rationale": "The primary-cause candidate adds first-cause capture and RPC exposure; later telemetry candidates add cap observations but do not supersede first-cause preservation.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "1540ae7199a661315986469c59150b34ccb23d9d"
+  ],
+  "statement": "ritual_getBlockBuildTrace includes optional primaryCause data for a build attempt when the builder captures a first demotion or async simulation deadline breach, and later causes do not overwrite the first captured cause.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Trigger multiple demotions in one payload build with tracing enabled and assert the RPC primaryCause reports only the first cause.",
+    "Trigger scheduled and regular async simulation deadline breaches and assert primaryCause.budgetType is async_sim_deadline with the expected phase or section."
+  ],
+  "summary": "Block-build primary-cause trace preservation is absent as an end-to-end behavior.",
+  "test_or_falsification_candidate": "Trigger multiple demotions/deadline breaches with trace enabled; current port exposes the field type but no payload-builder producer populates it.",
+  "title": "Block build traces preserve the first primary cause",
+  "total_invariants": 1954
+}

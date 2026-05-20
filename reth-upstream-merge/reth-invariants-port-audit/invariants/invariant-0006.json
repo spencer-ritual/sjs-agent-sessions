@@ -1,0 +1,101 @@
+{
+  "cluster_key": "scheduler:async-pool-uses-99cb8dbf",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Maintenance has a lifetime field distinct from queued tx lifetime and passes it to async cleanup.",
+      "path": "crates/transaction-pool/src/maintain.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const MAX_ASYNC_TRANSACTION_LIFETIME: Duration = Duration::from_secs(200);\npub max_async_tx_lifetime: Duration;\nlet expired_async = pool.cleanup_expired_async_by_time(config.max_async_tx_lifetime);",
+      "symbols": [
+        "MAX_ASYNC_TRANSACTION_LIFETIME",
+        "MaintainPoolConfig::max_async_tx_lifetime",
+        "maintain_transaction_pool"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "AsyncPool removes entries whose async lifecycle timestamp exceeds the supplied async-specific lifetime and releases sender locks on removal.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "now.saturating_duration_since(reference) > max_lifetime",
+      "symbols": [
+        "AsyncPool::cleanup_expired_by_time",
+        "AsyncTxMetadata::time_expiry_reference"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Node builder starts maintenance with the async-specific default active.",
+      "path": "crates/node/builder/src/components/pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "MaintainPoolConfig { max_tx_lifetime: pool_config.max_queued_lifetime, no_local_exemptions: ..., ..Default::default() }",
+      "symbols": [
+        "spawn_txpool_maintenance_task",
+        "MaintainPoolConfig"
+      ]
+    }
+  ],
+  "equivalence_argument": "The async expiry mechanism is mapped: async entries expire by MaintainPoolConfig.max_async_tx_lifetime, not the general queued tx lifetime. The numeric default is 200 seconds in this port, which is handled separately by invariant 2.",
+  "evidence_files": [
+    "crates/transaction-pool/src/maintain.rs"
+  ],
+  "invariant_id": "cur-200c4923a6-async-expire-async-specific-lifetime",
+  "invariant_index": 6,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/maintain.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/node/builder/src/components/pool.rs"
+    ],
+    "checked_queries": [
+      "max_async_tx_lifetime|async_tx_lifetime|ASYNC.*LIFETIME",
+      "cleanup_expired_async_by_time|MAX_ASYNC_TRANSACTION_LIFETIME"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "max_async_tx_lifetime",
+      "cleanup_expired_async_by_time",
+      "time_expiry_reference",
+      "maintain_transaction_pool_future"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "No dependency repo owns this behavior; it is implemented in the port transaction pool."
+    ]
+  },
+  "notes": "Mapped mechanism; default-value drift is captured by invariant 2.",
+  "rationale": "The cluster contains one candidate and no bounded predecessor, successor, or conflicting neighbor candidate. The packet states that the merge introduced an async-specific lifetime constant, exposed it in MaintainPoolConfig, and made async expiry cleanup use config.max_async_tx_lifetime with matching logging, so the current effective invariant is the async-specific expiry behavior rather than any broader scheduler lineage relation.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "4161ecfe0e9965c6ac252b927c973dcd3c1ff233"
+  ],
+  "statement": "Transaction-pool maintenance evicts expired async transactions according to the async-specific max_async_tx_lifetime setting, whose default in the bounded evidence is 45 seconds, rather than using the general queued transaction lifetime.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "With default MaintainPoolConfig, insert an async transaction older than 45 seconds but younger than the general queued transaction lifetime, run pool maintenance, and assert that the async transaction is evicted.",
+    "Set max_async_tx_lifetime to a non-default short duration, insert async transactions just below and just above that age, run maintenance, and assert only the older async transaction is removed while queued transaction expiry still follows the queued lifetime."
+  ],
+  "summary": "Async transaction expiry is implemented through an async-specific lifetime path in the port.",
+  "test_or_falsification_candidate": "Configure max_async_tx_lifetime shorter than max_tx_lifetime, insert old and young async entries, run maintenance, and assert only the old async entry is removed.",
+  "title": "Async transactions expire by async-specific lifetime",
+  "total_invariants": 1954
+}

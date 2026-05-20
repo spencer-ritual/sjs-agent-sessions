@@ -1,0 +1,144 @@
+{
+  "record_type": "file",
+  "file_index": 300,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-block-verification/src/constants.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "block-verification",
+    "constants",
+    "precompile-addresses",
+    "spc"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0300-atom-0001",
+      "file_index": 300,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/ritual-block-verification/src/constants.rs",
+      "source_hunk_hint": "@@ -0,0 +1,13 @@; stable verifier precompile constant re-exports",
+      "source_kind": "block_verification_precompile_constant_reexports",
+      "source_snippet": "pub use ritual_precompile_addresses::{\n    AUDIO_CALL_PRECOMPILE, DKMS_KEY_PRECOMPILE, FHE_PRECOMPILE, HTTP_CALL_PRECOMPILE,\n    IMAGE_CALL_PRECOMPILE, LLM_CALL_PRECOMPILE, LONG_RUNNING_HTTP_PRECOMPILE,\n    PERSISTENT_AGENT_PRECOMPILE, SOVEREIGN_AGENT_PRECOMPILE, VIDEO_CALL_PRECOMPILE,\n    ZK_TWO_PHASE_PRECOMPILE,\n};",
+      "semantic_claim": "The old divergence makes block-verification precompile address imports stable by re-exporting canonical async precompile constants from `ritual-precompile-addresses` through `crate::constants::*`.",
+      "high_risk": false,
+      "risk_tags": [
+        "precompile-addresses",
+        "public-api",
+        "stable-import-path"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/constants.rs",
+          "symbols": [
+            "HTTP_CALL_PRECOMPILE",
+            "LLM_CALL_PRECOMPILE",
+            "LONG_RUNNING_HTTP_PRECOMPILE",
+            "ZK_TWO_PHASE_PRECOMPILE",
+            "FHE_PRECOMPILE",
+            "SOVEREIGN_AGENT_PRECOMPILE",
+            "IMAGE_CALL_PRECOMPILE",
+            "AUDIO_CALL_PRECOMPILE",
+            "VIDEO_CALL_PRECOMPILE",
+            "DKMS_KEY_PRECOMPILE",
+            "PERSISTENT_AGENT_PRECOMPILE"
+          ],
+          "evidence": "Destination `constants.rs` preserves the exact precompile constant re-export list from the source-added file."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "crate::constants::*",
+            "is_two_phase_precompile"
+          ],
+          "evidence": "Destination verifier imports and tests use the preserved constants through the block-verification constants module."
+        }
+      ],
+      "equivalence_argument": "The destination keeps the same canonical address re-export surface, so verifier code uses the same precompile address values as the source divergence.",
+      "test_strategy": "compile_import_surface_and_verifier_precompile_tests",
+      "negative_test_candidate": "Removing or changing any re-export should break verifier imports or make two-phase precompile classification tests fail.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping; no review queue entry required."
+    },
+    {
+      "record_id": "file-0300-atom-0002",
+      "file_index": 300,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/ritual-block-verification/src/constants.rs",
+      "source_hunk_hint": "@@ -0,0 +15,28 @@; TEE registry and SPC/public-key verifier limits",
+      "source_kind": "block_verification_registry_and_spc_limits",
+      "source_snippet": "pub const DEFAULT_TEE_SERVICE_REGISTRY: Address =\n    address!(\"9644e8562cE0Fe12b4deeC4163c064A8862Bf47F\");\n\npub const SPC_PROOF_SIGNATURE_LENGTH: usize = 65;\n\npub const MAX_PUBLIC_KEY_LEN: usize = 128;",
+      "semantic_claim": "The old divergence defines verifier-local defaults and limits: default TEEServiceRegistry contract address, SPC proof signature minimum length of 65 bytes, and maximum ExecutorRegistry public key length of 128 bytes.",
+      "high_risk": false,
+      "risk_tags": [
+        "tee-registry",
+        "spc-proof",
+        "public-key-limit",
+        "verifier-limits"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/constants.rs",
+          "symbols": [
+            "DEFAULT_TEE_SERVICE_REGISTRY",
+            "SPC_PROOF_SIGNATURE_LENGTH",
+            "MAX_PUBLIC_KEY_LEN"
+          ],
+          "evidence": "Destination preserves the exact default TEE registry address and numeric SPC/public-key limits from the source-added file."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "DEFAULT_TEE_SERVICE_REGISTRY",
+            "SPC_PROOF_SIGNATURE_LENGTH"
+          ],
+          "evidence": "Destination verifier uses the default TEE registry address in verifier configuration and uses the SPC signature length in proof-length validation and tests."
+        }
+      ],
+      "equivalence_argument": "The destination preserves the verifier constants and bounded uses exactly, keeping registry defaults and SPC/public-key limits aligned with the source divergence.",
+      "test_strategy": "verifier_spc_length_and_registry_default_tests",
+      "negative_test_candidate": "SPC proof length 64 should fail while length 65 should pass the length guard; verifier config with no TEE override should use the default registry address.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping; no review queue entry required."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The block verification constants file is exact-port preserved: canonical async precompile address re-exports, default TEE service registry address, SPC proof signature length, and maximum public-key length all match the source divergence.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 300: A\tcrates/ritual-block-verification/src/constants.rs.",
+    "The source file diff starts at line 48367 with a 28-line new file and ends before the `crates/ritual-block-verification/src/error.rs` diff header at line 48401.",
+    "Destination `crates/ritual-block-verification/src/constants.rs` preserves the same 28-line file body as the source-added file.",
+    "Bounded destination usage evidence confirms verifier imports use precompile constants, TEE default, and SPC proof length.",
+    "No review queue entry was required because the audited constants are preserved exactly."
+  ]
+}

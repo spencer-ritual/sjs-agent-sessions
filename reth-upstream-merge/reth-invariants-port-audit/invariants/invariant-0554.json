@@ -1,0 +1,66 @@
+{
+  "cluster_key": "block building:block-lifecycle-logs-9c929549",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: structured phase helpers exist, but payload lifecycle logging with attempt metadata is absent from the audited execution path.",
+  "evidence_files": [
+    "crates/ritual-metrics/src/block.rs",
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-488e5ba86f-block-lifecycle-logs-carry-structured-phase-fields",
+  "invariant_index": 554,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-metrics/src/block.rs",
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/engine/tree/src/tree/payload_validator.rs"
+    ],
+    "checked_queries": [
+      "block_phase path outcome duration count attempt_id attempt_kind payload",
+      "log_payload_phase_with_attempt payload_id attempt_id",
+      "payload lifecycle logs attempt metadata"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "log_block_phase_with_reason",
+      "log_payload_building_start",
+      "log_payload_building_end",
+      "log_payload_phase_with_attempt",
+      "attempt_id",
+      "attempt_kind"
+    ],
+    "missing_behavior": "Payload lifecycle logs with attempt metadata are not wired into the payload builder; the port only has helper definitions and block-accept phase logging.",
+    "related_but_insufficient_code": [
+      "crates/ritual-metrics/src/block.rs defines structured block_phase/path/outcome/duration/count helpers and payload helpers with attempt_id/attempt_kind.",
+      "crates/engine/tree/src/tree/payload_validator.rs uses structured block_accept phase logs with path/outcome/duration/count.",
+      "Search found no payload builder calls to log_payload_building_start, log_payload_building_end, or log_payload_phase_with_attempt, so payload attempt metadata is not emitted."
+    ]
+  },
+  "notes": "Block-accept lifecycle fields are present, but the invariant also requires payload attempt metadata where available.",
+  "rationale": "The diff adds shared block-phase logging helpers, annotates verification and payload build logs with paths/outcomes, and emits detailed async collection and augmentation phase records with attempt metadata. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Block Building",
+  "source_commits": [
+    "bcf8d605acfe09b846b9a9f51bd572f88f569936"
+  ],
+  "statement": "Block and payload lifecycle logs must include structured `block_phase`, `path`, `outcome`, timing, count, and attempt metadata where available, so build and verification phases can be correlated across logs.",
+  "status": "current",
+  "subsystem": "block building",
+  "suggested_falsification_tests": [
+    "Capture tracing output from a payload build and block verification run. Assert phase logs contain `block_phase=true`, correct `path` values for payload/acceptance phases, outcome strings, duration/count fields, and payload attempt metadata on payload phases."
+  ],
+  "summary": "Payload lifecycle structured phase fields are not wired.",
+  "test_or_falsification_candidate": "Capture payload build tracing and assert payload phases include block_phase, path, outcome, timing/count, payload_id, attempt_id, and attempt_kind; current payload calls are absent.",
+  "title": "Block lifecycle logs carry structured phase fields",
+  "total_invariants": 1954
+}

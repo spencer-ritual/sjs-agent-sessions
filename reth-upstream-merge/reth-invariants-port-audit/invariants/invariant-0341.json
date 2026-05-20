@@ -1,0 +1,67 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "The reader defines the 10,000-service and 128-byte public-key bounds used to prevent unbounded allocation.",
+      "path": "crates/ritual-tee-registry-reader/src/constants.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const MAX_SERVICES: usize = 10_000;\npub const MAX_PUBLIC_KEY_LEN: usize = 128;",
+      "symbols": [
+        "MAX_SERVICES",
+        "MAX_PUBLIC_KEY_LEN"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "The all-executor read rejects excessive service counts before iterating and dynamic public-key reads reject lengths above 128 bytes before allocating/copying data slots.",
+      "path": "crates/ritual-tee-registry-reader/src/reader.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if count > MAX_SERVICES { return Err(RegistryReadError::ExecutorCountExceeded { count, max: MAX_SERVICES }); }\n...\nif len > MAX_PUBLIC_KEY_LEN { return Err(RegistryReadError::PublicKeyLengthExceeded { length: len, max: MAX_PUBLIC_KEY_LEN, executor: tee_address }); }",
+      "symbols": [
+        "read_all_executors",
+        "read_public_key_from_slot"
+      ]
+    }
+  ],
+  "equivalence_argument": "The local reader uses MAX_SERVICES for the same 10,000 executor-count bound and MAX_PUBLIC_KEY_LEN for public-key length, returning explicit registry read errors instead of allocating unbounded memory.",
+  "evidence_files": [
+    "crates/ritual-executor-registry-reader/src/constants.rs",
+    "crates/ritual-executor-registry-reader/src/error.rs",
+    "crates/ritual-executor-registry-reader/src/reader.rs"
+  ],
+  "invariant_id": "cur-86391ed017-registry-reader-bounds-executor-reads",
+  "invariant_index": 341,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to the port TEE registry reader bounds.",
+  "rationale": "The constants explicitly describe MAX_EXECUTORS and MAX_PUBLIC_KEY_LEN as DoS/OOM defenses, and the reader returns specific errors when contract storage exceeds those limits. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "0825778b288e3bee3577beef278ed861794c3d17"
+  ],
+  "statement": "When reading all executors or public keys from ExecutorRegistry storage, the reader must reject executor counts above 10,000 and public keys longer than 128 bytes instead of allocating unbounded memory.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Back a reader with storage slot 6 set to 10,001 and assert read_all_executors returns ExecutorCountExceeded, then store a dynamic public key length of 129 for an executor and assert public-key reads return PublicKeyLengthExceeded without reading arbitrary data slots."
+  ],
+  "summary": "Registry reader storage reads enforce executor-count and public-key length bounds.",
+  "test_or_falsification_candidate": "Set the service array length to 10,001 and a dynamic public key length to 129; assert read_all_executors/read_executor_public_keys return the configured bound errors.",
+  "title": "Registry reader bounds executor and key reads",
+  "total_invariants": 1954
+}

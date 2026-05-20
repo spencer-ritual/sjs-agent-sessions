@@ -1,0 +1,89 @@
+{
+  "record_type": "file",
+  "file_index": 290,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-async-registry/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "async-registry",
+    "manifest",
+    "workspace-wiring",
+    "dependency-graph"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0290-atom-0001",
+      "file_index": 290,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-async-registry/Cargo.toml",
+      "source_hunk_hint": "@@ -0,0 +1,27 @@; async registry crate manifest plus root workspace member/dependency wiring",
+      "source_kind": "async_registry_manifest_workspace_wiring",
+      "source_snippet": "[package]\nname = \"ritual-async-registry\"\nversion = \"0.1.0\"\nedition = \"2021\"\nlicense = \"MIT OR Apache-2.0\"\nrepository = \"https://github.com/ritual-net/ritual-reth-internal\"\ndescription = \"AsyncJobTracker contract state reading for Ritual Network\"\n\n# ARTIFACT 1 VERIFICATION: Dependencies chosen to avoid cycles\n# - NO ritual-* dependencies (prevents cycles)\n# - Minimal external dependencies (matches ritual-async-inspector pattern)\n\n[dependencies]\n# Primitives (from Artifact 3 - needed for Address, Bytes, B256, U256)\nalloy-primitives.workspace = true\n\n# Database trait (from Artifact 2 - Database<DB> generic bound)\nrevm.workspace = true\n\n# Error handling (from Artifact 3)\nthiserror.workspace = true\n\n# Logging (from Artifact 3)\ntracing.workspace = true\n\n[dev-dependencies]\n\n# root Cargo.toml wiring:\n\"crates/ritual-async-registry/\"\nritual-async-registry = { path = \"crates/ritual-async-registry\" }",
+      "semantic_claim": "The old divergence introduces `ritual-async-registry` as a standalone AsyncJobTracker state-reader crate with minimal shared dependencies and no `ritual-*` crate dependencies, preventing dependency cycles. The root workspace must also include the crate as a workspace member and workspace dependency so downstream crates can reference it by workspace path.",
+      "high_risk": false,
+      "risk_tags": [
+        "workspace-member",
+        "workspace-dependency",
+        "dependency-cycle-avoidance",
+        "async-registry"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-registry/Cargo.toml",
+          "symbols": [
+            "package:ritual-async-registry",
+            "alloy-primitives.workspace",
+            "revm.workspace",
+            "thiserror.workspace",
+            "tracing.workspace"
+          ],
+          "evidence": "The source diff adds a 27-line new manifest at diff lines 42565-42597. The destination manifest preserves the same package metadata, dependency comments, four workspace dependencies, empty `[dev-dependencies]` section, and absence of `ritual-*` dependencies."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "Cargo.toml",
+          "symbols": [
+            "workspace.members",
+            "workspace.dependencies.ritual-async-registry"
+          ],
+          "evidence": "The destination root `Cargo.toml` preserves `crates/ritual-async-registry/` in `workspace.members` and `ritual-async-registry = { path = \"crates/ritual-async-registry\" }` in `[workspace.dependencies]`."
+        }
+      ],
+      "equivalence_argument": "The destination keeps the manifest text and root workspace wiring required by the source divergence: same crate identity, same minimal dependency set, same workspace membership, and same workspace dependency path. That preserves the async registry crate's build graph role exactly.",
+      "test_strategy": "source_diff_manifest_to_destination_manifest_text_match_plus_root_workspace_wiring_read",
+      "negative_test_candidate": "Removing the root workspace dependency or adding a `ritual-*` dependency to the registry manifest would either break workspace path resolution for users of the crate or reintroduce the dependency cycle the source manifest explicitly avoids.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers only the async registry manifest and root workspace wiring, not any `crates/ritual-async-registry/src/*` implementation files."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The async registry crate manifest and root workspace wiring are exact-port preserved: package metadata, minimal workspace dependency set, explicit cycle-avoidance dependency shape, workspace member entry, and workspace dependency path all match the source divergence.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 290: A\tcrates/ritual-async-registry/Cargo.toml.",
+    "The source file diff starts at line 42565 and the Cargo.toml hunk ends at line 42597 before the next `crates/ritual-async-registry/src/error.rs` header at line 42598.",
+    "Destination `crates/ritual-async-registry/Cargo.toml` contains the same 27-line manifest body as the source-added file.",
+    "Destination root `Cargo.toml` includes `crates/ritual-async-registry/` in workspace members and `ritual-async-registry = { path = \"crates/ritual-async-registry\" }` in workspace dependencies.",
+    "No review queue entry was required because the audited manifest and workspace wiring are preserved exactly."
+  ]
+}

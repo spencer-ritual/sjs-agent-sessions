@@ -1,0 +1,68 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-async-fees/src/wallet.rs",
+    "crates/rpc/rpc/src/async_tx_validator.rs"
+  ],
+  "invariant_id": "cur-0824aa0984-dkms-uses-http-style-fees-capability",
+  "invariant_index": 472,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-async-fees/src/wallet.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs",
+      "crates/rpc/rpc/src/async_tx_validator.rs"
+    ],
+    "checked_queries": [
+      "DKMS http_executor_fee(input_len, 20)",
+      "calculate_dkms_fees DKMS_EXECUTOR_FEE_WEI",
+      "DKMS_KEY_PRECOMPILE HttpCall validate_executor"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "calculate_dkms_fees",
+      "dkms_executor_fee",
+      "DKMS_EXECUTOR_FEE_WEI",
+      "DKMS_OUTPUT_SIZE_BYTES",
+      "http_executor_fee",
+      "DKMS_KEY_PRECOMPILE",
+      "AsyncPrecompileCapabilityTag::HttpCall"
+    ],
+    "missing_behavior": "DKMS RPC capability validation requires HttpCall, but DKMS wallet/fee pricing uses a fixed DKMS executor fee rather than http_executor_fee(input_len, 20).",
+    "related_but_insufficient_code": [
+      "crates/ritual-precompile-addresses/src/lib.rs maps DKMS_KEY_PRECOMPILE to HttpCall for executor registration.",
+      "crates/ritual-async-fees/src/lib.rs uses DKMS_EXECUTOR_FEE_WEI and DKMS_OUTPUT_SIZE_BYTES in calculate_dkms_fees, not http_executor_fee(input_len, 20).",
+      "crates/ritual-async-fees/src/wallet.rs uses dkms_escrow_lockup for wallet checks."
+    ]
+  },
+  "notes": "Because the invariant requires both pricing and capability behavior, the fixed-fee DKMS implementation is insufficient.",
+  "rationale": "The commit classifies DKMS as a simple async precompile with small fixed output for fee purposes and as an HttpCall-capability workload for executor registration. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "7dfa01a1a08526afad2a775501ccfe555cb0a648"
+  ],
+  "statement": "DKMS key commitments must use HTTP-style wallet executor fee pricing with http_executor_fee(input_len, 20), and RPC executor registration validation must require Capability::HttpCall for DKMS_KEY_PRECOMPILE.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "For DKMS_KEY_PRECOMPILE, assert wallet fee verification calculates executor_fee with http_executor_fee(input_len, 20), and assert executor registration validation accepts an executor with HttpCall capability and rejects one lacking it under this capability rule."
+  ],
+  "summary": "DKMS HTTP-style fee pricing is absent, although the HttpCall capability mapping is present.",
+  "test_or_falsification_candidate": "For DKMS_KEY_PRECOMPILE, assert wallet fee verification calculates executor_fee with http_executor_fee(input_len, 20), and assert executor registration validation accepts an executor with HttpCall capability and rejects one lacking it under this capability rule.",
+  "title": "DKMS uses HTTP-style fees and capability",
+  "total_invariants": 1954
+}

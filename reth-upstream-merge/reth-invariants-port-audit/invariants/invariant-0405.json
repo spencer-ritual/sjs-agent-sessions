@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "RPC admission exits successfully without async validation when simulation yields no detected async precompile call.",
+      "path": "crates/rpc/rpc/src/async_tx_validator.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if let Err(err) = evm.transact(tx_env) { ... return Ok(()); }\nlet Some(async_call) = inspector.async_call_result() else { return Ok(()); };",
+      "symbols": [
+        "validate_rpc_async_admission",
+        "SharedAsyncPrecompileInspector::async_call_result"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "Non-async transactions pass through the admission hook and then continue to normal transaction handling.",
+      "path": "crates/rpc/rpc/src/eth/helpers/transaction.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "async_tx_validator::validate_rpc_async_admission::<N>(...) .await?;\n...\nadd_pool_transaction(origin, pool_transaction).await?",
+      "symbols": [
+        "send_transaction",
+        "validate_rpc_async_admission"
+      ]
+    }
+  ],
+  "equivalence_argument": "The validation hook is installed for all raw submissions, but it is a no-op when the inspector detects no async precompile call, so non-async transactions skip async payload, executor, and wallet checks.",
+  "evidence_files": [
+    "crates/rpc/rpc/src/eth/helpers/transaction.rs"
+  ],
+  "invariant_id": "cur-442e912d0d-async-skip-async-validation",
+  "invariant_index": 405,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in async_tx_validator early returns.",
+  "rationale": "The helper now distinguishes `Ok(None)` for transactions needing no async validation from `Ok(Some(...))` for recognized async calls that require state-based executor checks. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "e4609dc212444f5f07771bf27f226322ecf985f9"
+  ],
+  "statement": "RPC async validation must be applied only to recognized PrecompileConsumer async selectors; contract creation, other destinations, short inputs, and unknown selectors must return `Ok(None)` and bypass executor registry validation.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Submit raw transactions for contract creation, a non-PrecompileConsumer destination, short calldata, and an unknown PrecompileConsumer selector, and assert no TEE registry lookup occurs and async validation does not reject them."
+  ],
+  "summary": "Non-async RPC transactions bypass async validation.",
+  "test_or_falsification_candidate": "Submit a plain ETH transfer or non-async contract call and assert it is admitted without TEE registry or async payload validation errors.",
+  "title": "Non-async RPC transactions skip async validation",
+  "total_invariants": 1954
+}

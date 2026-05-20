@@ -1,0 +1,78 @@
+{
+  "cluster_key": "scheduler:payload-building:part-01",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "169074f08721705fbb99cc9531ea798b61e9f3cc",
+      "evidence": "Scheduled hashing uses the dedicated signing-field encoding and excludes runtime metadata.",
+      "path": "crates/consensus/src/transaction/scheduled.rs",
+      "repo": "/home/ritual/repos/ritual-alloy-internal",
+      "snippet": "fn tx_hash_with_type(...) { buf.put_u8(ty); self.rlp_encode_fields_for_signing(&mut buf); keccak256(&buf) }",
+      "symbols": [
+        "TxScheduled::rlp_encode_fields_for_signing",
+        "TxScheduled::tx_hash_with_type",
+        "TxScheduled::encode_for_signing"
+      ]
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "169074f08721705fbb99cc9531ea798b61e9f3cc",
+      "evidence": "Async commitment has an analogous dedicated signing-payload path.",
+      "path": "crates/consensus/src/transaction/async_commitment.rs",
+      "repo": "/home/ritual/repos/ritual-alloy-internal",
+      "snippet": "out.put_u8(ASYNC_COMMITMENT_TX_TYPE_ID); self.rlp_encode_fields(out);",
+      "symbols": [
+        "TxAsyncCommitment::encode_for_signing"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in alloy dependency.",
+  "evidence_files": [
+    "crates/ethereum/primitives/src/transaction.rs"
+  ],
+  "invariant_id": "cur-19ee706a16-scheduled-hashes-signing-payloads",
+  "invariant_index": 86,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-alloy-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/consensus/src/transaction/scheduled.rs",
+      "crates/consensus/src/transaction/typed.rs",
+      "crates/consensus/src/transaction/async_commitment.rs"
+    ],
+    "checked_queries": [
+      "rlp_encode_fields_for_signing|tx_hash_with_type|encode_for_signing|AsyncCommitment"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-alloy-internal"
+    ],
+    "checked_symbols": [
+      "TxScheduled::tx_hash_with_type",
+      "TxAsyncCommitment::encode_for_signing"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in dependency.",
+  "rationale": "Multiple candidates preserve the scheduled special hash path.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "2a74aeb7fc2148480c772b79472c5ee607b7dd61",
+    "8a8ce56cb874648e7751805db1a842e6e687170c",
+    "ac25b7d77c442a6c2c025ae9fda3d037c7209552"
+  ],
+  "statement": "For scheduled transactions, TransactionSigned hash recalculation must use the TxScheduled signing payload encoding, while non-scheduled transaction variants continue using their normal encoded_2718 hash path; AsyncExec has an analogous dedicated signing-payload hash path.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Hash Scheduled txs before/after runtime metadata; hash should remain signing-payload based."
+  ],
+  "summary": "Scheduled transaction hashing uses signing payloads in the dependency.",
+  "test_or_falsification_candidate": "Scheduled tx hash should exclude runtime metadata fields.",
+  "title": "Scheduled transaction hashes use signing payloads",
+  "total_invariants": 1954
+}

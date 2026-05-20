@@ -1,0 +1,168 @@
+{
+  "record_type": "file",
+  "file_index": 77,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/ethereum/evm/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "missing",
+  "tags": [
+    "missing",
+    "reviewed",
+    "support-gap",
+    "telemetry",
+    "reth-port"
+  ],
+  "atoms_total": 3,
+  "atoms": [
+    {
+      "record_id": "file-0077-atom-0001",
+      "file_index": 77,
+      "atom_index": 1,
+      "atoms_total": 3,
+      "source_path": "crates/ethereum/evm/Cargo.toml",
+      "source_hunk_hint": "@@ -18,6 +18,7 @@",
+      "source_kind": "other",
+      "source_snippet": "revm-context.workspace = true",
+      "semantic_claim": "The reth-evm-ethereum crate declares a direct revm-context dependency for async-context-aware EVM construction surfaces.",
+      "high_risk": true,
+      "risk_tags": [
+        "execution",
+        "async-context"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/evm/Cargo.toml",
+          "symbols": [
+            "dependencies"
+          ],
+          "snippet": "reth-evm.workspace = true; reth-storage-errors.workspace = true",
+          "evidence": "The destination crate manifest has the workspace revm-context package available at the root but does not declare it as a dependency of reth-evm-ethereum."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "Cargo.toml",
+          "symbols": [
+            "workspace.dependencies.revm-context"
+          ],
+          "snippet": "revm-context = { path = \"../ritual-revm-internal/crates/context\" }",
+          "evidence": "The workspace dependency exists, so the missing mapping is the crate-level manifest edge."
+        }
+      ],
+      "equivalence_argument": "The old direct dependency edge is obsolete for this crate because the async-capable TxEnv and EVM context are selected in ritual-alloy-evm-internal and ritual-revm-internal.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Build reth-evm-ethereum with async-context enabled and code paths requiring revm_context types; assert the crate does not rely on undeclared transitive dependencies.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed not a live build/FSM bug. Current reth-evm-ethereum has no direct revm_context imports; async TxEnv/context wiring is provided by Alloy/Revm dependency layers."
+    },
+    {
+      "record_id": "file-0077-atom-0002",
+      "file_index": 77,
+      "atom_index": 2,
+      "atoms_total": 3,
+      "source_path": "crates/ethereum/evm/Cargo.toml",
+      "source_hunk_hint": "@@ -26,6 +27,9 @@",
+      "source_kind": "other",
+      "source_snippet": "# Tracing\ntracing.workspace = true",
+      "semantic_claim": "The reth-evm-ethereum crate declares tracing so EVM block assembly can emit debug diagnostics for dynamic or oversized extra_data handling.",
+      "high_risk": false,
+      "risk_tags": [
+        "telemetry"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/evm/Cargo.toml",
+          "symbols": [
+            "dependencies"
+          ],
+          "snippet": "alloy-rpc-types-engine.workspace = true",
+          "evidence": "The destination crate manifest does not declare tracing."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/evm/src/build.rs",
+          "symbols": [
+            "EthBlockAssembler"
+          ],
+          "snippet": "extra_data: ctx.extra_data",
+          "evidence": "The destination build path consumes context extra_data but does not import tracing or emit the source large-extra_data debug diagnostic."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Build the EVM crate with the dynamic extra_data diagnostic path enabled and assert tracing is declared directly rather than leaking through another dependency.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed missing telemetry only. No tracing dependency or oversized-extra_data debug diagnostic exists in reth-evm-ethereum."
+    },
+    {
+      "record_id": "file-0077-atom-0003",
+      "file_index": 77,
+      "atom_index": 3,
+      "atoms_total": 3,
+      "source_path": "crates/ethereum/evm/Cargo.toml",
+      "source_hunk_hint": "@@ -50,3 +54,4 @@",
+      "source_kind": "other",
+      "source_snippet": "async-context = [\"reth-evm/async-context\"]",
+      "semantic_claim": "The reth-evm-ethereum crate exposes an async-context feature that forwards to reth-evm/async-context.",
+      "high_risk": true,
+      "risk_tags": [
+        "execution",
+        "async-context"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/evm/Cargo.toml",
+          "symbols": [
+            "features.async-context"
+          ],
+          "snippet": "async-context = [\"reth-evm/async-context\"]",
+          "evidence": "The destination manifest contains the same feature forwarding."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Run cargo metadata for reth-evm-ethereum with async-context enabled and assert reth-evm/async-context is activated.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact manifest feature mapping."
+    }
+  ],
+  "high_risk_atoms_total": 2,
+  "non_exact_atoms_total": 2,
+  "adversarial_reviews": [
+    {
+      "review_record_id": "review-files-0077-0089-mechanical",
+      "required": false,
+      "status": "completed",
+      "reason": "Mechanical review completed; remaining non-exact atoms are now confirmed covered, confirmed missing, intentionally absent, or support/test/telemetry only."
+    }
+  ],
+  "summary": "Mechanical review complete. The direct revm-context edge is not needed by current reth-evm-ethereum code because async TxEnv wiring lives in Alloy/Revm dependencies; the oversized-extra_data tracing dependency/diagnostic remains a confirmed telemetry-only omission.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Queue entry 77 was verified as M\\tcrates/ethereum/evm/Cargo.toml; only diff lines 16045-16071 were analyzed for this record. Mechanical review review-files-0077-0089-mechanical completed; all prior needs-review atoms have definitive verdicts."
+}

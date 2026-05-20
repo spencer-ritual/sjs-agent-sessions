@@ -1,0 +1,67 @@
+{
+  "cluster_key": "precompile pricing:active-async-jobs-22a1a27d",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Scheduled censorship verification reconstructs the scheduled origin transaction hash and calls ritual_async_registry::job_exists_and_active with the reconstructed origin_tx_hash and block number; verification continues without censorship failure when obligation_has_active_async_job returns true.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if obligation_has_active_async_job(parent_state, &obligation, block_number)? {\n    continue;\n}\n...\nif gas_remaining >= obligation.gas_limit { return Err(BlockVerificationError::ScheduledTransactionCensored(...)); }",
+      "symbols": [
+        "obligation_has_active_async_job",
+        "verify_scheduled_censorship",
+        "build_scheduled_origin_tx_hash"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port verifier: active AsyncJobTracker jobs satisfy otherwise-unfulfilled scheduled obligations before gas-remaining censorship checks can report ScheduledTransactionCensored.",
+  "evidence_files": [
+    "crates/ritual-block-verification/src/verifier.rs",
+    "Cargo.lock"
+  ],
+  "invariant_id": "cur-6eeeb40bb1-active-async-jobs-satisfy-scheduled-obligations",
+  "invariant_index": 138,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "obligation_has_active_async_job|verify_scheduled_censorship|build_scheduled_origin_tx_hash|job_exists_and_active|ScheduledTransactionCensored"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "obligation_has_active_async_job",
+      "verify_scheduled_censorship",
+      "build_scheduled_origin_tx_hash",
+      "ritual_async_registry::job_exists_and_active"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The only in-cluster candidate states the current effective behavior: scheduled censorship verification can treat an unfulfilled scheduled obligation as satisfied when the verifier reconstructs the scheduled origin transaction hash and finds an active async job for that obligation at the current block. With no predecessor candidates in the cluster, there is no justified lineage edge to emit.",
+  "record_type": "invariant_mapping",
+  "section": "Precompile Pricing",
+  "source_commits": [
+    "c563c9a7f6944a4302b8c10d5c82438f81a74f80"
+  ],
+  "statement": "During scheduled censorship verification, an unfulfilled scheduled obligation with enough gas remaining must not be classified as a censorship failure when the verifier can reconstruct the obligation's scheduled origin transaction hash and AsyncJobTracker reports an active job for that hash at the current block.",
+  "status": "current",
+  "subsystem": "precompile pricing",
+  "suggested_falsification_tests": [
+    "Create a scheduled obligation that is absent from the block while enough gas remains, and assert verification reports censorship when no active async job exists for the reconstructed scheduled origin hash.",
+    "For the same absent scheduled obligation and gas conditions, populate AsyncJobTracker with an active job keyed by the reconstructed scheduled origin hash and assert verification does not report the capacity/censorship failure."
+  ],
+  "summary": "Active async jobs satisfy scheduled obligations before censorship failure checks.",
+  "test_or_falsification_candidate": "Scheduled censorship verifier fixture with and without active AsyncJobTracker state.",
+  "title": "Active async jobs satisfy scheduled obligations",
+  "total_invariants": 1954
+}

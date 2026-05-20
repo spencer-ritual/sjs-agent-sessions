@@ -1,0 +1,64 @@
+{
+  "record_type": "file",
+  "file_index": 54,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/engine/local/src/payload.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "exact",
+  "tags": [
+    "exact",
+    "high-risk"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0054-atom-0001",
+      "file_index": 54,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/engine/local/src/payload.rs",
+      "source_hunk_hint": "@@ -39,6 +39,7 @@",
+      "source_kind": "new_field",
+      "source_snippet": "extra_data: None,",
+      "semantic_claim": "The local Ethereum payload attributes builder must explicitly set `EthPayloadAttributes.extra_data` to `None` when constructing payload attributes.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/engine/local/src/payload.rs",
+          "symbols": [
+            "LocalPayloadAttributesBuilder::build"
+          ],
+          "snippet": "parent_beacon_block_root: self.chain_spec.is_cancun_active_at_timestamp(timestamp).then(B256::random),\nextra_data: None,\nslot_number: self.chain_spec.is_amsterdam_active_at_timestamp(timestamp).then_some(0),",
+          "evidence": "The destination builder contains the same field assignment in the `EthPayloadAttributes` literal, preserving the downstream behavior exactly."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Add a regression test that builds local payload attributes and asserts `extra_data.is_none()`. The test should fail if the field is omitted or becomes `Some(...)`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Upstream target commit `88505c7fcbfdebfd3b56d88c86b62e950043c6c4` lacks this field in `crates/engine/local/src/payload.rs`, but the current port branch already carries the downstream atom exactly."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Mapping is complete for this file; the only downstream change is an exact `extra_data: None` carryover in the destination repo."
+}

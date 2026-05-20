@@ -1,0 +1,33 @@
+{
+  "record_type": "file",
+  "file_index": 270,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/ress/provider/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "semicolon",
+    "ress",
+    "provider"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The Ress provider divergence is semicolon-only rustfmt noise in witness-cache and error early returns.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 270: M\tcrates/ress/provider/src/lib.rs.",
+    "The isolated patch only adds semicolons to existing witness-cache, max-window, and missing-ancestor-state returns.",
+    "No witness generation, cache lookup, ancestor execution walk, or provider error behavior changed."
+  ]
+}

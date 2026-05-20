@@ -1,0 +1,165 @@
+{
+  "record_type": "file",
+  "file_index": 250,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/primitives-traits/src/transaction/signed.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "partial",
+  "tags": [
+    "partial",
+    "non-exact",
+    "confirmed-gap",
+    "primitives-traits",
+    "signed-transaction",
+    "scheduled",
+    "async-transactions",
+    "passkey",
+    "optimism"
+  ],
+  "atoms_total": 3,
+  "atoms": [
+    {
+      "record_id": "file-0250-atom-0001",
+      "file_index": 250,
+      "atom_index": 1,
+      "atoms_total": 3,
+      "source_path": "crates/primitives-traits/src/transaction/signed.rs",
+      "source_hunk_hint": "@@ -132,6 +135,34 @@ and @@ -337,6 +356,34 @@",
+      "source_kind": "public_api",
+      "source_snippet": "fn as_scheduled(&self) -> Option<&TxScheduled> { None }\nfn as_async_commitment(&self) -> Option<&TxAsyncCommitment> { None }\nfn as_async_settlement(&self) -> Option<&TxAsyncSettlement> { None }\nfn signature(&self) -> Signature;\n\nfn as_scheduled(&self) -> Option<&TxScheduled> {\n    match self {\n        Self::Scheduled(tx) => Some(tx.tx()),\n        _ => None,\n    }\n}",
+      "semantic_claim": "The old SignedTransaction trait exposes helper accessors for scheduled, async commitment, and async settlement transactions plus a raw `Signature` accessor; the Ethereum envelope implementation returns the scheduled transaction details and implements signature extraction for all custom envelope variants.",
+      "high_risk": false,
+      "risk_tags": [
+        "transaction-primitives",
+        "receipt-generation",
+        "signature-api"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "Cargo.toml / Cargo.lock",
+          "evidence": "`reth-primitives-traits` is external crates.io 0.3.1 and its trait lacks custom accessors/signature methods."
+        },
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/envelope.rs",
+          "symbols": [
+            "EthereumTxEnvelope::as_scheduled",
+            "EthereumTxEnvelope::as_async_commitment",
+            "EthereumTxEnvelope::as_async_settlement",
+            "EthereumTxEnvelope::signature"
+          ],
+          "evidence": "Active concrete Ethereum/custom envelope exposes the scheduled/async accessors and raw signature helper used by the port."
+        }
+      ],
+      "equivalence_argument": "Structurally equivalent for active concrete transaction use: the old trait-level helpers are not present on external `reth-primitives-traits`, but the port uses local Alloy concrete envelope helpers for scheduled/async/signature access.",
+      "test_strategy": "api_regression",
+      "negative_test_candidate": "Compile a receipt-generation helper that calls `SignedTransaction::as_scheduled` and `SignedTransaction::signature` through the trait on scheduled/custom transaction envelopes.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reclassified from exact to structural_equivalent because the API moved from the old trait boundary to local Alloy concrete transaction types."
+    },
+    {
+      "record_id": "file-0250-atom-0002",
+      "file_index": 250,
+      "atom_index": 2,
+      "atoms_total": 3,
+      "source_path": "crates/primitives-traits/src/transaction/signed.rs",
+      "source_hunk_hint": "@@ -146,10 +177,80 @@ and @@ -158,16 +259,128 @@",
+      "source_kind": "signer_recovery",
+      "source_snippet": "if let Self::Scheduled(_) = self { return Ok(SYSTEM_SENDER); }\nif let Self::AsyncCommitment(_) = self { return Ok(ASYNC_COMMITMENT_SYSTEM_SENDER); }\nif let Self::AsyncSettlement(_) = self { return Ok(ASYNC_SETTLEMENT_SYSTEM_SENDER); }\n\nif let Self::Passkey(tx) = self {\n    match tx.signature() {\n        PasskeySignature::Secp256k1(sig) => { ... }\n        PasskeySignature::P256(p256_sig) => { verify_p256_signature(...)?; return Ok(p256_sig.recover_address()); }\n        PasskeySignature::WebAuthn(webauthn_sig) => { verify_webauthn_signature(...)?; return Ok(webauthn_sig.recover_address()); }\n    }\n}",
+      "semantic_claim": "The old Ethereum transaction envelope signer recovery handles scheduled and async custom transactions with fixed system sender addresses, verifies passkey P256/WebAuthn signatures before returning their derived addresses, and includes the custom variants in unchecked signing-buffer recovery.",
+      "high_risk": false,
+      "risk_tags": [
+        "signer-recovery",
+        "system-sender",
+        "passkey",
+        "async-transactions"
+      ],
+      "mapping_status": "moved_to_dependency",
+      "destinations": [
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/envelope.rs",
+          "symbols": [
+            "EthereumTxEnvelope::recover_signer",
+            "EthereumTxEnvelope::recover_signer_unchecked",
+            "recover_passkey_signer"
+          ],
+          "evidence": "Local Alloy returns system senders for Scheduled, AsyncCommitment, and AsyncSettlement, and verifies P256/WebAuthn passkey signatures before returning derived addresses."
+        }
+      ],
+      "equivalence_argument": "The active signer-recovery FSM moved to local Alloy and is preserved for scheduled, async commitment, async settlement, and passkey transaction variants.",
+      "test_strategy": "unit_regression",
+      "negative_test_candidate": "Assert scheduled, async commitment, and async settlement envelopes recover their system senders, and invalid P256/WebAuthn passkey signatures fail recovery before returning an address.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reclassified from exact to moved_to_dependency; behavior is active in local Alloy rather than local reth-primitives-traits."
+    },
+    {
+      "record_id": "file-0250-atom-0003",
+      "file_index": 250,
+      "atom_index": 3,
+      "atoms_total": 3,
+      "source_path": "crates/primitives-traits/src/transaction/signed.rs",
+      "source_hunk_hint": "@@ -202,6 +415,19 @@ and @@ -276,6 +502,21 @@",
+      "source_kind": "optimism_signature_api",
+      "source_snippet": "impl SignedTransaction for OpPooledTransaction {\n    fn signature(&self) -> Signature { ... }\n}\n\nimpl SignedTransaction for OpTxEnvelope {\n    fn signature(&self) -> Signature {\n        match self {\n            Self::Deposit(_) => Signature::new(U256::ZERO, U256::ZERO, false),\n            ...\n        }\n    }\n}",
+      "semantic_claim": "The old Optimism signed transaction implementations add the required `signature()` trait method, returning real signatures for signed OP variants and a zero dummy signature for deposit transactions that have no signature.",
+      "high_risk": false,
+      "risk_tags": [
+        "optimism",
+        "signature-api",
+        "api-compatibility"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/optimism/primitives/src/transaction/signed.rs",
+          "evidence": "No OP signed transaction primitive exists in the port."
+        },
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/envelope.rs",
+          "evidence": "Local Alloy has active Ethereum/custom transaction signature helpers, but no OP `OpTxEnvelope`/deposit signature implementation."
+        }
+      ],
+      "equivalence_argument": "Confirmed OP API gap: the old OP `signature()` implementations are not present because OP transaction primitives are absent. This is not active Ritual FSM behavior unless OP transaction support is a required surface.",
+      "test_strategy": "api_regression",
+      "negative_test_candidate": "If OP support is required, add compile/API coverage for `signature()` on OP pooled/envelope transactions and zero dummy signature behavior for deposits.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reclassified from exact to confirmed OP API/support gap."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 3,
+  "adversarial_reviews": [],
+  "summary": "The signed transaction primitive record was stale: active scheduled/async/signature and signer-recovery behavior moved to local Alloy, but the old trait-boundary helpers and OP signature implementations are not exact-preserved. The residual OP/API gap is non-FSM for the current Ritual port.",
+  "review_required": false,
+  "status": "confirmed_gap",
+  "notes": [
+    "Current port does not carry local `crates/primitives-traits/src/transaction/signed.rs`; `reth-primitives-traits` is crates.io 0.3.1 and lacks the old helper/signature trait additions.",
+    "Local Alloy provides active concrete helpers for scheduled/async/signature access and signer recovery, including passkey verification and system sender recovery.",
+    "OP transaction primitive signature implementations are absent; classify as non-FSM OP API gap unless OP transaction support is required."
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "record_type": "file",
+  "file_index": 541,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/transaction-pool/src/validate/constants.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "missing",
+    "reviewed",
+    "txpool",
+    "validation"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0541-atom-0001",
+      "file_index": 541,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/transaction-pool/src/validate/constants.rs",
+      "source_hunk_hint": "@@ -7,9 +7,10 @@ pub const TX_SLOT_BYTE_SIZE: usize = 32 * 1024;",
+      "source_kind": "changed_constant",
+      "source_snippet": "pub const DEFAULT_MAX_TX_INPUT_BYTES: usize = 2 * TX_SLOT_BYTE_SIZE; // 64KB",
+      "semantic_claim": "The old diff lowers `DEFAULT_MAX_TX_INPUT_BYTES` from four tx slots/128KB to two tx slots/64KB and documents `RETH_MAX_TX_INPUT_BYTES` override.",
+      "high_risk": true,
+      "risk_tags": [
+        "txpool",
+        "dos-limit",
+        "validation",
+        "missing"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/validate/constants.rs",
+          "symbols": [
+            "DEFAULT_MAX_TX_INPUT_BYTES"
+          ],
+          "evidence": "Destination keeps `DEFAULT_MAX_TX_INPUT_BYTES = 4 * TX_SLOT_BYTE_SIZE` (128KB) and has no env override in this constant file."
+        }
+      ],
+      "equivalence_argument": "Reviewed confirmed missing: the old stricter 64KB default transaction input cap is not preserved. Destination keeps the upstream 128KB default, though the node config still allows an operator-provided max tx input bytes override.",
+      "test_strategy": "stateless validation oversized-data boundary test",
+      "negative_test_candidate": "A non-blob transaction between 64KB and 128KB should still pass the destination default size limit.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed: definitive config/DoS-limit divergence. This is not covered elsewhere unless deployments set the txpool max input bytes override to 64KB."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Reviewed confirmed missing: old 64KB default tx input cap is not preserved; destination keeps 128KB by default, with only explicit config override support.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0541: M\tcrates/transaction-pool/src/validate/constants.rs.",
+    "Source diff lines 96550-96567; first hunk `@@ -7,9 +7,10 @@ pub const TX_SLOT_BYTE_SIZE: usize = 32 * 1024;`.",
+    "Fresh destination evidence was checked against /home/ritual/repos/ritual-reth-internal-v2.2.0-port.",
+    "Review conclusion: definitive default-limit gap, not pending review."
+  ]
+}

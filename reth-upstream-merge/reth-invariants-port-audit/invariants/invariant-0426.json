@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "Capability byte 6 is parsed as DKMS, but DKMS is deliberately omitted from the executor-capability predicate.",
+      "path": "crates/ritual-tee-registry-reader/src/types.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub enum Capability {\n    HttpCall = 0,\n    Llm = 1,\n    WormholeQuery = 2,\n    Streaming = 3,\n    VllmProxy = 4,\n    ZkCall = 5,\n    Dkms = 6,\n    ImageCall = 7,\n    AudioCall = 8,\n    VideoCall = 9,\n    Fhe = 10,\n    AutonomousAgent = 11,\n    Telemetry = 12,\n}\n...\n6 => Ok(Capability::Dkms),\n...\npub fn is_executor_capability(&self) -> bool {\n    matches!(self, Capability::HttpCall | Capability::Llm | Capability::WormholeQuery | Capability::ZkCall | Capability::ImageCall | Capability::AudioCall | Capability::VideoCall | Capability::Fhe)\n}",
+      "symbols": [
+        "Capability",
+        "Capability::try_from",
+        "Capability::is_executor_capability"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "Registry enumeration only returns services whose parsed capability is an executor capability, so DKMS services are excluded from executor candidate sets.",
+      "path": "crates/ritual-tee-registry-reader/src/reader.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if info.capability.is_executor_capability() {\n    tracing::debug!(\n        target: \"ritual::registry\",\n        payment_address = ?info.payment_address,\n        tee_address = ?info.tee_address,\n        tee_type = info.tee_type,\n        capability = ?info.capability,\n        \"Found executor in TEE registry\"\n    );\n    executors.push(info);\n}",
+      "symbols": [
+        "read_all_executors"
+      ]
+    }
+  ],
+  "equivalence_argument": "Capability byte 6 is accepted as Capability::Dkms and byte 13 is the next invalid value in the current enum. DKMS is then excluded by is_executor_capability, so recognition does not make it an executor service.",
+  "evidence_files": [
+    "crates/ritual-tee-registry-reader/src/types.rs",
+    "crates/ritual-tee-registry-reader/src/reader.rs"
+  ],
+  "invariant_id": "cur-666db00e9d-dkms-capability-recognized-executor",
+  "invariant_index": 426,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The port has more capability values than the historical invariant, but DKMS retains the required byte and non-executor behavior.",
+  "rationale": "The primary diff adds Capability::Dkms = 6, maps TryFrom(6) to Dkms, shifts invalid capability testing to 7, and asserts Dkms is not an executor capability. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "d8a5356880404f8ccbbd7832ded90ae74d64a798"
+  ],
+  "statement": "The TEE registry reader should parse capability byte 6 as Capability::Dkms and should not classify DKMS as an executor capability.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call Capability::try_from(6) and assert it returns Capability::Dkms, call Capability::try_from(7) and assert it errors, and assert Capability::Dkms.is_executor_capability() is false while HTTP_CALL, LLM, WORMHOLE_QUERY, and ZK_CALL remain true."
+  ],
+  "summary": "DKMS capability byte is recognized as non-executor.",
+  "test_or_falsification_candidate": "Call Capability::try_from(6) and assert it returns Capability::Dkms, call Capability::try_from(7) and assert it errors, and assert Capability::Dkms.is_executor_capability() is false while HTTP_CALL, LLM, WORMHOLE_QUERY, and ZK_CALL remain true.",
+  "title": "DKMS capability is recognized as non-executor",
+  "total_invariants": 1954
+}

@@ -1,0 +1,76 @@
+{
+  "record_type": "file",
+  "file_index": 273,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-async-commitment-validator/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "cargo-manifest",
+    "workspace",
+    "async-commitment-validator",
+    "block-verification"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0273-atom-0001",
+      "file_index": 273,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-async-commitment-validator/Cargo.toml",
+      "source_hunk_hint": "@@ -0,0 +1,25 @@",
+      "source_kind": "crate_manifest",
+      "source_snippet": "[package]\nname = \"ritual-async-commitment-validator\"\nversion = \"0.1.0\"\nedition = \"2021\"\ndescription = \"Validation logic for async commitment transactions during block verification\"\n\n[dependencies]\nrevm = { workspace = true }\nrevm-context = { workspace = true }\nreth-primitives = { workspace = true }\nreth-primitives-traits = { workspace = true }\nalloy-evm = { workspace = true }\nalloy-primitives = { workspace = true }\nalloy-consensus = { workspace = true }\nritual-async-inspector = { workspace = true }\nthiserror = { workspace = true }\ntracing = { workspace = true }",
+      "semantic_claim": "The old divergence adds a new `ritual-async-commitment-validator` crate manifest for async commitment transaction validation during block verification, with all validator, primitive, Alloy, inspector, error, and tracing dependencies sourced from the workspace.",
+      "high_risk": false,
+      "risk_tags": [
+        "crate-manifest",
+        "workspace-members",
+        "workspace-dependencies",
+        "async-commitment-validation"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-commitment-validator/Cargo.toml",
+          "evidence": "Destination manifest preserves the same package name, version, edition, description, dependency set, and workspace dependency declarations."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "Cargo.toml",
+          "evidence": "Destination workspace root includes `crates/ritual-async-commitment-validator/` as a member and declares `ritual-async-commitment-validator = { path = \"crates/ritual-async-commitment-validator\" }` in workspace dependencies."
+        }
+      ],
+      "equivalence_argument": "The destination preserves the new crate's package/dependency surface and workspace wiring exactly, so the manifest addition remains available to dependent crates without dependency drift.",
+      "test_strategy": "cargo_metadata_regression",
+      "negative_test_candidate": "Run cargo metadata or a package check for `ritual-async-commitment-validator` and assert all manifest dependencies resolve through the workspace root.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This record covers only the manifest and workspace-dependency surface; the new validator implementation is the next queue entry."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The async commitment validator crate manifest and workspace wiring are exact-port preserved in the destination.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 273: A\tcrates/ritual-async-commitment-validator/Cargo.toml.",
+    "Source diff adds a new 25-line Cargo.toml manifest with workspace dependencies for revm, reth primitives, Alloy, ritual-async-inspector, thiserror, and tracing.",
+    "Destination manifest and workspace member/dependency declarations preserve the source addition exactly."
+  ]
+}

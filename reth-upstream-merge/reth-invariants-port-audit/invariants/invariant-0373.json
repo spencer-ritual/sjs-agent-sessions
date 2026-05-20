@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "Ritual node EVM construction declares the RitualBlockExecutorProvider as its executor provider type, not the basic Ethereum provider.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "type EVM = EthEvmConfig<RitualEvmFactory>;\ntype Executor = RitualBlockExecutorProvider<Self::EVM>;",
+      "symbols": [
+        "RitualEvmConfig",
+        "RitualBlockExecutorProvider"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "Both build_evm and build_evm_with_pool construct RitualBlockExecutorProvider with SPC verifier wiring preserved.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "let ritual_executor = RitualBlockExecutorProvider::new(evm_config.clone(), spc_verifier, None);\n...\nlet ritual_executor = RitualBlockExecutorProvider::new(evm_config.clone(), spc_verifier, Some(block_verifier));",
+      "symbols": [
+        "build_evm",
+        "build_evm_with_pool",
+        "RitualBlockExecutorProvider::new"
+      ]
+    }
+  ],
+  "equivalence_argument": "The nodebuilder EVM config associated type and both construction paths return RitualBlockExecutorProvider, preserving SPC verifier wiring whether or not pool-backed block verification is available.",
+  "evidence_files": [
+    "crates/node/src/executor.rs"
+  ],
+  "invariant_id": "cur-e0c02f065d-executor-uses-ritualblockexecutorprovider",
+  "invariant_index": 373,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in nodebuilder dependency.",
+  "rationale": "The merge changes the executor associated type from BasicBlockExecutorProvider to RitualBlockExecutorProvider and wraps the shared SPC verifier in the trait object expected by the ritual executor provider. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "3844fe6fdcc411cdda7328b370ec196eb0b43ea4"
+  ],
+  "statement": "Ritual node EVM construction must return RitualBlockExecutorProvider rather than the basic Ethereum executor provider, preserving SPC verifier wiring in both build_evm and build_evm_with_pool paths.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Construct a Ritual node EVM through build_evm and assert the executor provider is RitualBlockExecutorProvider with an SPC verifier installed, then execute a transaction requiring SPC verification and assert the verifier path is used."
+  ],
+  "summary": "Ritual node EVM construction uses RitualBlockExecutorProvider with SPC verifier wiring.",
+  "test_or_falsification_candidate": "Construct EVMs through build_evm and build_evm_with_pool and assert the executor provider type is RitualBlockExecutorProvider with an installed SPC verifier.",
+  "title": "Node executor uses RitualBlockExecutorProvider",
+  "total_invariants": 1954
+}

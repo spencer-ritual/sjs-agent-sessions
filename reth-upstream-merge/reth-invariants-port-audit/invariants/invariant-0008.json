@@ -1,0 +1,112 @@
+{
+  "cluster_key": "scheduler:executed-bitmap-suppresses-71235c57",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Due Scheduler indices whose execution bitmap bit is set are suppressed before obligation emission.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "match is_executed(db, Some(scheduler), call_id, i) { Ok(true) => continue, Ok(false) => {}, Err(_) => continue }\nobligations.push(ScheduledObligation { call_id, index: i, gas, num_calls, caller });",
+      "symbols": [
+        "compute_obligations",
+        "is_executed"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Bitmap helpers read the intended Scheduler execution state.",
+      "path": "crates/ritual-scheduled-verification/src/slots.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const SCHEDULER_EXECUTED_BITMAP_SLOT ...\npub const SCHEDULER_EXECUTED_OVERFLOW_SLOT ...",
+      "symbols": [
+        "executed_bitmap_slot",
+        "executed_bitmap_overflow_slot"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Verifier consumes the already bitmap-filtered obligation set.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let obligations = compute_obligations(...)?;",
+      "symbols": [
+        "verify_scheduled_censorship"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Builder-side helper uses the same suppression.",
+      "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if matches!(is_executed(db, None, call.call_id, index), Ok(true)) { continue; }",
+      "symbols": [
+        "compute_buildable_obligations",
+        "compute_obligations_from_calls"
+      ]
+    }
+  ],
+  "equivalence_argument": "Exact behavior is mapped: obligation enumeration filters every due (call_id,index) through on-chain executed bitmap state before builder/verifier consumers see it.",
+  "evidence_files": [
+    "crates/ritual-scheduled-verification/src/lib.rs"
+  ],
+  "invariant_id": "cur-938ca55f01-executed-scheduler-call-indices-suppressed-obligations",
+  "invariant_index": 8,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-verification/src/slots.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs"
+    ],
+    "checked_queries": [
+      "compute_obligations|is_executed|executedBitmap|ScheduledObligation"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "compute_obligations",
+      "is_executed",
+      "executed_bitmap_slot",
+      "executed_bitmap_overflow_slot",
+      "verify_scheduled_censorship"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "Alloy and node repos contain related types/tests but not the obligation suppression owner."
+    ]
+  },
+  "notes": "Mapped directly in scheduled verification and consumed by builder/verifier paths.",
+  "rationale": "The primary candidate directly states that compute_obligations checks Scheduler executedBitmap through is_executed for each eligible call index and skips already fulfilled obligations. Its falsification condition also distinguishes the current behavior from a plain TTL-window or exact-block eligibility check.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "645e3d220caba9c53449be272be5d4af5f00a265"
+  ],
+  "statement": "At current tip, compute_obligations must evaluate each eligible Scheduler callId/index in its TTL window against Scheduler executedBitmap and must not emit an obligation for an index that is already marked executed; clearing that executed bit should allow the otherwise eligible obligation to be emitted.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Set executedBitmap for a callId/index before calling compute_obligations inside that index's TTL window and assert no obligation is emitted; clear the bit and assert the obligation appears.",
+    "Create two eligible indices for the same callId inside the TTL window, mark only one executed in Scheduler storage, and assert compute_obligations emits only the unexecuted index."
+  ],
+  "summary": "Executed Scheduler call indices are suppressed from obligation emission in the port.",
+  "test_or_falsification_candidate": "Set executedBitmap for an otherwise due (callId,index) and assert compute_obligations omits it; clear the bit and assert it is emitted.",
+  "title": "Executed scheduler call indices are suppressed from obligations",
+  "total_invariants": 1954
+}

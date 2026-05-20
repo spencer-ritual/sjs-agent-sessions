@@ -1,0 +1,81 @@
+{
+  "cluster_key": "executor delivery:audio-video-phase-101c2814",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "files": [
+        "crates/ritual-async-fees/src/lib.rs",
+        "crates/ritual-async-fees/src/constants.rs",
+        "crates/ritual-async-fees/src/registry.rs",
+        "crates/ethereum/payload/src/ritual_async.rs",
+        "crates/ritual-block-verification/src/lib.rs"
+      ],
+      "evidence": "The port now has shared audio and video Phase 2 delivery-result decoders, model-specific video Phase 2 fee calculation, ModelRegistry reads for video pricing fields, and dedicated VIDEO_CALL_PRECOMPILE branches in both payload settlement construction and block verification."
+    }
+  ],
+  "equivalence_argument": "Mapped in the port: builder and verifier no longer price media Phase 2 settlements through generic delivery_result length for audio/video. Audio extracts delivery duration and prices via the audio helper; video extracts width, height, duration_ms plus model/UX pricing metadata and prices via the video helper. Malformed media delivery or input metadata fails settlement construction or block verification instead of falling back to another media path.",
+  "evidence_files": [
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-cf5c53b085-audio-video-phase-pricing-decode-separately",
+  "invariant_index": 165,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs",
+      "crates/precompile/src/audio_call.rs",
+      "crates/precompile/src/video_call.rs"
+    ],
+    "checked_queries": [
+      "calculate_audio_fees_phase2|extract_audio_duration|AudioResponse|outputDurationSeconds|outputDurationMs|extract_video_dimensions|VideoResponse|calculate_video",
+      "AUDIO_CALL_PRECOMPILE|VIDEO_CALL_PRECOMPILE|calculate_async_fees_phase2|delivery_result_len"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "extract_delivery_result_from_calldata",
+      "prepare_delivery_settlement_transaction",
+      "calculate_async_fees_phase2",
+      "calculate_audio_fees_phase2",
+      "extract_audio_duration",
+      "extract_video_dimensions"
+    ],
+    "missing_behavior": "",
+    "related_but_insufficient_code": [
+      "The original audit observed generic delivery_result length pricing for both media types. Local port code now routes audio and video through shared media-specific fee helpers in both builder and verifier."
+    ]
+  },
+  "notes": "Resolved locally by adding the missing video side of the media-specific Phase 2 pricing path; the audio side was already resolved by invariant-0163/0164 work.",
+  "rationale": "The primary commit restores an explicit audio Phase 2 branch that extracts duration and calls calculate_audio_fees_phase2, removes audio decoding artifacts from the video branch, and adds a dedicated extract_audio_duration helper separate from extract_video_dimensions. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: The diff is explicitly a merge-artifact repair and delimiter fix, so the stable invariant is the media-specific pricing behavior rather than the exact helper names or local structure.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "0a83004f5018d03aa340123f1b2ca8f4f442fa3f",
+    "c0f40d9bad9895158f4c7911be1d42d6e9c6cb42",
+    "8aa848f34c3f6d6543a3731eb6a436cf361e287d"
+  ],
+  "statement": "For Phase 2 settlements, audio precompile jobs must extract outputDurationMs from the AudioResponse delivery result, round nonzero duration up to whole seconds, and price via calculate_audio_fees_phase2; video precompile jobs must extract output width, output height, and outputDurationMs from the VideoResponse delivery result, extract model/UX pricing metadata from the original precompile input, and price through the model-specific video path. Malformed extraction for either media type must reject block verification rather than falling back to another media pricing path.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Build Phase 2 settlement inputs containing valid AudioResponse and VideoResponse payloads, then assert the verifier computes audio fees from rounded duration seconds and video fees from width/height/duration_ms plus model/UX pricing metadata; also pass truncated or cross-typed delivery results and assert verification fails instead of using a fallback or the wrong media decoder."
+  ],
+  "summary": "Audio/video Phase 2 media-specific pricing is mapped in the port builder and verifier paths.",
+  "test_or_falsification_candidate": "Feed verifier audio and video Phase 2 delivery settlements with valid media responses and truncated/cross-typed results; the mapped port path should use media-specific pricing and reject malformed inputs.",
+  "title": "Audio and video Phase 2 pricing decode separately",
+  "total_invariants": 1954
+}

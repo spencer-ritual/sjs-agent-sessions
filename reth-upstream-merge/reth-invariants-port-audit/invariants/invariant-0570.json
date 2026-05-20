@@ -1,0 +1,69 @@
+{
+  "cluster_key": "block building:earliest-fallback-waits-807cec11",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: Earliest/RaceEmptyPayload fallback exists, but the audited port has no empty_payload_grace setting and spawns the empty payload immediately.",
+  "evidence_files": [
+    "crates/payload/basic/src/lib.rs",
+    "crates/node/core/src/args/payload_builder.rs",
+    "crates/node/core/src/cli/config.rs",
+    "crates/node/builder/src/components/payload.rs"
+  ],
+  "invariant_id": "cur-bb97305ba1-earliest-fallback-waits-before-empty-payload",
+  "invariant_index": 570,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/payload/basic/src/lib.rs",
+      "crates/node/core/src/args/payload_builder.rs",
+      "crates/node/core/src/cli/config.rs",
+      "crates/node/builder/src/components/payload.rs"
+    ],
+    "checked_queries": [
+      "empty_payload_grace RaceEmptyPayload sleep build_empty_payload",
+      "builder.empty-payload-grace",
+      "PayloadBuilderArgs empty payload grace",
+      "RaceEmptyPayload WaitForPending grace"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "empty_payload_grace",
+      "RaceEmptyPayload",
+      "build_empty_payload",
+      "PayloadBuilderArgs",
+      "PayloadBuilderConfig"
+    ],
+    "missing_behavior": "Earliest empty-payload fallback does not wait a configured grace duration before building an empty payload.",
+    "related_but_insufficient_code": [
+      "crates/payload/basic/src/lib.rs spawns build_empty_payload immediately in the RaceEmptyPayload branch.",
+      "crates/node/core/src/args/payload_builder.rs exposes interval, deadline, max tasks, blobs, and max block size, but no empty_payload_grace.",
+      "Search found no empty_payload_grace or builder.empty-payload-grace symbol in the audited port."
+    ]
+  },
+  "notes": "The current fallback behavior is immediate once RaceEmptyPayload is selected.",
+  "rationale": "The diff adds empty_payload_grace to CLI/config/generator state with a 200ms default and sleeps for that grace period before invoking build_empty_payload in the RaceEmptyPayload path. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Block Building",
+  "source_commits": [
+    "7c549b788c0dd857942471c8341c48931555708c"
+  ],
+  "statement": "When the payload builder races an empty payload fallback for an Earliest-style missing-payload resolution, the fallback waits the configured empty_payload_grace duration before building the empty payload.",
+  "status": "current",
+  "subsystem": "block building",
+  "suggested_falsification_tests": [
+    "Configure empty_payload_grace to 200ms, trigger MissingPayloadBehaviour::RaceEmptyPayload for an Earliest request, and assert build_empty_payload is not called before the grace elapses; set grace to zero and assert it starts immediately."
+  ],
+  "summary": "Earliest empty-payload fallback has no grace wait.",
+  "test_or_falsification_candidate": "Trigger RaceEmptyPayload with no best payload and assert build_empty_payload can start immediately; there is no grace timer to configure or observe.",
+  "title": "Earliest fallback waits before empty payload",
+  "total_invariants": 1954
+}

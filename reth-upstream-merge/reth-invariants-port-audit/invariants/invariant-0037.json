@@ -1,0 +1,122 @@
+{
+  "cluster_key": "scheduler:locks-observability",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Scheduled obligation windows are TTL bounded and computed by the shared helper before obligation emission.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const SCHEDULER_MAX_TTL_BLOCKS: u64 = 500; due_index_bounds rejects ttl > cap and returns inclusive first/last due indices; compute_obligations emits each unexecuted due obligation.",
+      "symbols": [
+        "SCHEDULER_MAX_TTL_BLOCKS",
+        "due_index_bounds",
+        "compute_obligations"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Builder augmentation uses the same due-window helper and active-job handling.",
+      "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "Ok(true) => SkipActiveJob; Ok(false) | Err(_) => Proceed; compute_obligations_from_calls reuses due_index_bounds",
+      "symbols": [
+        "decide_active_job_augmentation",
+        "compute_obligations_from_calls"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Payload builder consumes bounded scheduled obligations.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "compute_obligations(...); filter_obligations_by_predicates(...); payload_candidates.push(PayloadCandidate::Scheduled { ... })",
+      "symbols": [
+        "compute_obligations",
+        "filter_obligations_by_predicates",
+        "PayloadCandidate::Scheduled"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Verifier uses the same bounded obligation source for censorship checks.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let obligations = compute_obligations(...)?; for obligation in &obligations { ... }",
+      "symbols": [
+        "verify_scheduled_censorship",
+        "obligation_has_active_async_job"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in-port: due_index_bounds defines exact TTL-bounded windows and invalid/no-due cases, while builder and verifier consume the same bounded obligation set and active-job handling.",
+  "evidence_files": [
+    "crates/ritual-scheduled-verification/src/lib.rs",
+    "crates/ritual-scheduled-block-building/src/lib.rs"
+  ],
+  "invariant_id": "cur-1e1c7630c1-scheduled-obligations-span-bounded-windows",
+  "invariant_index": 37,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs",
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "SCHEDULER_MAX_TTL_BLOCKS|job_exists_and_active|expected_block|ttl|num_calls",
+      "Scheduled obligations span bounded TTL windows|due_index_bounds|compute_obligations_from_calls"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "SCHEDULER_MAX_TTL_BLOCKS",
+      "due_index_bounds",
+      "compute_obligations",
+      "compute_obligations_from_calls",
+      "decide_active_job_augmentation",
+      "job_exists_and_active"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "Dependency repos did not contain the scheduler obligation owner symbols."
+    ]
+  },
+  "notes": "Mapped directly in scheduled verification/block-building with active payload/verifier consumers.",
+  "rationale": "The obligation-generation candidates define the current block-building side of scheduled validity: obligations remain due over TTL windows, pathological TTL/arithmetic is bounded, and active async jobs suppress augmentation only on a confirmed active result.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "645e3d220caba9c53449be272be5d4af5f00a265",
+    "a986aed819d21569fd496db3584debb662100b32",
+    "301c46155f5726465ca35e08b7f4fb5ed63fe990",
+    "c3093cf3df81c6b0dae56f28e087b6934bccf017"
+  ],
+  "statement": "Scheduled obligation computation must emit obligations for every block from expected_block through expected_block + ttl inclusive, skip calls whose ttl exceeds SCHEDULER_MAX_TTL_BLOCKS of 500, use saturating arithmetic for expected/deadline/expiry calculations with zero num_calls expiring at 0, and during augmentation skip synthesis only when the async active-job check returns Ok(true), proceeding on Ok(false) or storage/read errors so the consensus post-filter can decide.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "For start_block 100, frequency 10, ttl 3, and index 1, assert obligations appear at blocks 110 through 113 inclusive and not at 109 or 114.",
+    "Assert calls with ttl 501 are skipped by contract-state and pool-state obligation paths, and near-limit arithmetic saturates rather than wraps or panics.",
+    "Mock job_exists_and_active to return Ok(true), Ok(false), and Err; assert augmentation skips only for Ok(true) and synthesizes for Ok(false) and Err."
+  ],
+  "summary": "Scheduled obligations span bounded TTL windows in the port.",
+  "test_or_falsification_candidate": "Assert due_index_bounds includes indices within expected_block..expected_block+ttl, rejects ttl 501, zero calls/frequency, and that active-job decision skips only Ok(true).",
+  "title": "Scheduled obligations span bounded TTL windows",
+  "total_invariants": 1954
+}

@@ -1,0 +1,80 @@
+{
+  "cluster_key": "scheduler:overflow-bitmap-protects-4155392f",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "is_executed reads indices below 256 from the primary executed bitmap and routes indices >= 256 through adjusted_index = index - 256, bucket = adjusted_index / 256, bit_position = adjusted_index % 256, and executed_bitmap_overflow_slot(call_id, bucket).",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if index < 256 { ... } else { let adjusted_index = index - 256; let bucket = adjusted_index / 256; let bit_position = adjusted_index % 256; let slot = executed_bitmap_overflow_slot(call_id, bucket); ... }",
+      "symbols": [
+        "is_executed"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "executed_bitmap_overflow_slot derives the overflow mapping key with a 64-byte Solidity-compatible uint256(callId), uint256(bucket) preimage and then hashes key || slot 4 for executedBitmapOverflow.",
+      "path": "crates/ritual-scheduled-verification/src/slots.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn is_executed<DB: Database>(db: &mut DB, contract: Option<Address>, call_id: u64, index: u64) -> Result<bool, SchedulerError> {\n    ...\n    if index < 256 {\n        let slot = executed_bitmap_slot(call_id);\n        let bitmap = db.storage(contract, slot)?;\n        Ok((bitmap & (U256::from(1) << index)) != U256::ZERO)\n    } else {\n        let adjusted_index = index - 256;\n        let bucket = adjusted_index / 256;\n        let bit_position = adjusted_index % 256;\n        let slot = executed_bitmap_overflow_slot(call_id, bucket);\n        let bitmap = db.storage(contract, slot)?;\n        Ok((bitmap & (U256::from(1) << bit_position)) != U256::ZERO)\n    }\n}\n\npub fn executed_bitmap_overflow_slot(call_id: u64, bucket: u64) -> U256 {\n    let mut key_data = [0u8; 64];\n    key_data[24..32].copy_from_slice(&call_id.to_be_bytes());\n    key_data[56..64].copy_from_slice(&bucket.to_be_bytes());\n    let key = keccak256(&key_data);\n    let mut slot_data = [0u8; 64];\n    slot_data[0..32].copy_from_slice(key.as_slice());\n    slot_data[32..64].copy_from_slice(&SCHEDULER_EXECUTED_OVERFLOW_SLOT.to_be_bytes::<32>());\n    U256::from_be_slice(keccak256(&slot_data).as_slice())\n}",
+      "symbols": [
+        "executed_bitmap_overflow_slot",
+        "SCHEDULER_EXECUTED_OVERFLOW_SLOT"
+      ]
+    }
+  ],
+  "equivalence_argument": "This is an exact in-port mapping: the primary/overflow split, adjusted index arithmetic, bucket selection, bit position, and Solidity-compatible overflow storage derivation all appear in the audited scheduled verification crate.",
+  "evidence_files": [
+    "crates/ritual-scheduled-verification/src/lib.rs",
+    "crates/ritual-scheduled-verification/src/slots.rs"
+  ],
+  "invariant_id": "cur-fed39041e2-scheduled-replay-checks-overflow-bitmap-after-index",
+  "invariant_index": 15,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-verification/src/slots.rs"
+    ],
+    "checked_queries": [
+      "fn is_executed|executedBitmapOverflow|executed_bitmap_overflow|overflow.*bitmap|adjusted_index"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "is_executed",
+      "executed_bitmap_overflow_slot",
+      "SCHEDULER_EXECUTED_OVERFLOW_SLOT"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped directly in the port evidence files, including both branch logic and slot derivation.",
+  "rationale": "The candidate is test-focused, but it documents and guards a replay-protection behavior that callers observe: primary executed bitmap handling must stop at index 255, while higher indices must use the overflow bitmap and Solidity-compatible slot derivation.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "cde06fff2a21021b6c7a3c5bf9183d401c154218"
+  ],
+  "statement": "For scheduled execution replay protection, is_executed must read indices 0 through 255 from the primary executed bitmap, and indices greater than or equal to 256 from executedBitmapOverflow using adjusted_index = index - 256, bucket = adjusted_index / 256, bit_position = adjusted_index % 256, and the Solidity-compatible overflow slot for the call_id and bucket.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Seed only overflow bucket 0 for indices 256, 257, and 511, then assert is_executed returns true for those indices and false for unset overflow index 258.",
+    "Seed only overflow bucket 1 for index 512, then assert is_executed returns true for 512 and false for unset overflow index 513.",
+    "With overflow storage populated but the primary bitmap unset, assert primary-range indices 0 and 255 are still reported as not executed."
+  ],
+  "summary": "Scheduled replay protection in the port uses the overflow bitmap after index 255 with adjusted bucket arithmetic.",
+  "test_or_falsification_candidate": "Seed executedBitmapOverflow bucket 0 for indices 256, 257, and 511 and bucket 1 for 512, then assert is_executed reads those as true while unset primary-range indices still read false.",
+  "title": "Scheduled replay checks use overflow bitmap after index 255",
+  "total_invariants": 1954
+}

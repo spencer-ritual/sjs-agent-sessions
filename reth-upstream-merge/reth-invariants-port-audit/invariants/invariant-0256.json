@@ -1,0 +1,81 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "The constructor takes one capacity argument, and registry config reads only contract address and max size, not any TTL setting.",
+      "path": "crates/ritual-spc-verification/src/types.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn new(max_executors: usize) -> Self { Self { executors: HashMap::new(), max_executors } }\n\npub struct ExecutorRegistryConfig { pub contract_address: Address, pub max_executors: usize }\n\nmax_executors: std::env::var(\"TEE_SERVICE_REGISTRY_MAX_SIZE\").unwrap_or(\"1000\".to_string()).parse().unwrap_or(1000)",
+      "symbols": [
+        "ExecutorRegistry::new",
+        "ExecutorRegistryConfig::from_env"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "A live registry reconstruction call site passes only max_capacity to ExecutorRegistry::new.",
+      "path": "crates/ritual-spc-verification/src/verifier.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let mut new_registry = ExecutorRegistry::new(self.executor_registry.read().unwrap().stats().max_capacity);",
+      "symbols": [
+        "SpcVerifier::update_registry_from_data"
+      ]
+    }
+  ],
+  "equivalence_argument": "All observed construction sites use the one-argument capacity constructor; searches found no EXECUTOR_REGISTRY_TTL or Duration argument for ExecutorRegistry::new.",
+  "evidence_files": [
+    "crates/node/builder/src/builder/mod.rs",
+    "crates/ritual-spc-verification/src/verifier.rs",
+    "crates/rpc/rpc/src/ritual.rs",
+    "crates/ritual-spc-verification/src/types.rs"
+  ],
+  "invariant_id": "cur-ce41eb0d0c-executorregistry-constructor-takes-only-capacity",
+  "invariant_index": 256,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-spc-verification/src/types.rs",
+      "crates/ritual-spc-verification/src/verifier.rs",
+      "crates/ritual-spc-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "ExecutorRegistry::new Duration",
+      "EXECUTOR_REGISTRY_TTL",
+      "executor_ttl_seconds"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "ExecutorRegistry::new",
+      "ExecutorRegistryConfig::from_env",
+      "EXECUTOR_REGISTRY_TTL"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in port.",
+  "rationale": "The primary diff changes ExecutorRegistry::new signatures and call sites from (max_executors, Duration) to max_executors only and removes executor_ttl_seconds config/env parsing. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "6ce85c6013acf4831b9b8944dd43138c321acc33"
+  ],
+  "statement": "All ExecutorRegistry construction sites must provide only max_executors, with no TTL duration or EXECUTOR_REGISTRY_TTL configuration involved.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Compile all ExecutorRegistry construction sites and assert no code path reads EXECUTOR_REGISTRY_TTL or passes a Duration to ExecutorRegistry::new."
+  ],
+  "summary": "ExecutorRegistry construction is capacity-only.",
+  "test_or_falsification_candidate": "Compile call sites and grep the port for EXECUTOR_REGISTRY_TTL, executor_ttl_seconds, and any two-argument ExecutorRegistry::new call.",
+  "title": "ExecutorRegistry constructor takes only capacity",
+  "total_invariants": 1954
+}

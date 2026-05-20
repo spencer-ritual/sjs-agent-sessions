@@ -1,0 +1,72 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-async-fees/src/constants.rs",
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-6d434e854a-autonomous-agent-fees-fixed-plus-payload",
+  "invariant_index": 484,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/constants.rs",
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-async-fees/src/wallet.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs"
+    ],
+    "checked_queries": [
+      "Autonomous Agent fees fixed plus payload",
+      "AUTONOMOUS_AGENT_SPAWN_FEE_WEI",
+      "calculate_autonomous_agent_fees_phase2",
+      "spawn fee plus payload delivery result length"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "AUTONOMOUS_AGENT_SPAWN_FEE_WEI",
+      "calculate_autonomous_agent_fees",
+      "calculate_autonomous_agent_fees_phase2",
+      "SOVEREIGN_AGENT_PRECOMPILE",
+      "agent_escrow_lockup",
+      "calculate_agent_fees_phase2_work"
+    ],
+    "missing_behavior": "No autonomous-agent fixed Phase 1 fee helper or Phase 2 AUTONOMOUS_AGENT_SPAWN_FEE_WEI plus payload-length fee calculation exists in the audited repo set.",
+    "related_but_insufficient_code": [
+      "crates/ritual-async-fees/src/lib.rs has sovereign-agent escrow based on max iterations/tool calls and Phase 2 work metrics, not autonomous spawn fee plus payload length.",
+      "crates/ethereum/payload/src/ritual_async.rs and crates/ritual-block-verification/src/lib.rs calculate sovereign-agent Phase 2 fees from iterations/tool_calls.",
+      "crates/ritual-precompile-addresses/src/lib.rs has an AutonomousAgent capability tag reserved but maps sovereign and persistent precompiles to HttpCall capability."
+    ]
+  },
+  "notes": "The present sovereign-agent fee model is related but uses work metrics, not the invariant's spawn-fee-plus-payload formula.",
+  "rationale": "The commit introduces autonomous agent fee constants, Phase 1 fee/escrow helpers, Phase 2 fee calculation, and uses that Phase 2 calculation in both the payload builder and verifier. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "03acca5a98b24e03b7af76fc184def68a805c299"
+  ],
+  "statement": "Autonomous Agent Phase 1 fees use a fixed executor fee plus standard commitment and inclusion fees, and Phase 2 fees use AUTONOMOUS_AGENT_SPAWN_FEE_WEI plus payload fee based on delivery result length with zero validator fees.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "For an autonomous agent request of known input length and a settlement delivery result of known byte length, assert wallet validation uses calculate_autonomous_agent_fees for Phase 1 and builder/verifier both use calculate_autonomous_agent_fees_phase2 with identical totals. Mutate delivery result length and assert the payload component changes consistently."
+  ],
+  "summary": "Autonomous Agent fixed-plus-payload fee helpers are not ported.",
+  "test_or_falsification_candidate": "For an autonomous agent request of known input length and a settlement delivery result of known byte length, assert wallet validation uses calculate_autonomous_agent_fees for Phase 1 and builder/verifier both use calculate_autonomous_agent_fees_phase2 with identical totals. Mutate delivery result length and assert the payload component changes consistently.",
+  "title": "Autonomous Agent fees are fixed plus payload",
+  "total_invariants": 1954
+}

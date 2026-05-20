@@ -1,0 +1,54 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The pool-aware EVM builder clones the shared BuilderContext SPC verifier, wraps it in SpcVerifierImpl, and stores it on the executor provider together with the block verifier.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "let concrete_spc_verifier = ctx.spc_verifier().clone();\nlet spc_verifier: Arc<dyn SpcVerifierTrait<Error = reth_evm::spc::SpcVerificationError>> =\n    Arc::new(SpcVerifierImpl::<Node>::new(concrete_spc_verifier));\nlet ritual_executor = RitualBlockExecutorProvider::new(evm_config.clone(), Some(spc_verifier), Some(block_verifier));",
+      "symbols": [
+        "RitualExecutorBuilder::build_evm_with_pool",
+        "BuilderContext::spc_verifier",
+        "SpcVerifierImpl"
+      ]
+    }
+  ],
+  "equivalence_argument": "The shared verifier is not recreated independently; it is cloned from BuilderContext and converted to the trait-object form used by RitualBlockExecutorProvider, preserving builder/executor SPC verifier identity for the verification path.",
+  "evidence_files": [
+    "crates/node/src/executor.rs"
+  ],
+  "invariant_id": "cur-c77cb2b748-pool-aware-executor-keeps-shared-verifier",
+  "invariant_index": 278,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in nodebuilder through the pool-aware RitualExecutorBuilder implementation.",
+  "rationale": "The new method clones `ctx.spc_verifier()`, wraps it in `SpcVerifierImpl`, and passes it as `Some(spc_verifier)` together with the new block verifier. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "72db6a8e401243f89fda8bf00ef0c5ca718000e0"
+  ],
+  "statement": "`build_evm_with_pool` uses the `BuilderContext` shared SPC verifier when constructing the executor provider, rather than creating an unrelated verifier instance.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Configure a `BuilderContext` with a test SPC verifier, call `build_evm_with_pool`, and assert SPC verification during block execution uses that same configured verifier while also having block verification enabled."
+  ],
+  "summary": "The pool-aware executor keeps the BuilderContext SPC verifier when adding block verification.",
+  "test_or_falsification_candidate": "Configure BuilderContext with a distinctive SPC verifier, call build_evm_with_pool, and assert registry/SPC calls go through the cloned context verifier.",
+  "title": "Pool-aware executor keeps shared SPC verifier",
+  "total_invariants": 1954
+}

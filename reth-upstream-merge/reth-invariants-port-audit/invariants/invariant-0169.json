@@ -1,0 +1,95 @@
+{
+  "cluster_key": "executor delivery:builder-sender-lock-a0e353cd",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The regular transaction execution path consults parent-state AsyncJobTracker-backed sender-lock logic and skips both true results and registry read errors.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "match ritual_async_registry::should_skip_sender_locked_tx(\n    builder.evm_mut().db_mut(),\n    None,\n    pool_tx.sender(),\n    tx_hash,\n    current_block,\n) {\n    Ok(true) => { ... continue; }\n    Ok(false) => {}\n    Err(err) => { ... continue; }\n}",
+      "symbols": [
+        "PayloadCandidate::Regular",
+        "ritual_async_registry::should_skip_sender_locked_tx"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The helper implements the same allow/skip cases as the invariant: no jobs allow, settled or expired jobs allow, existing-job fulfillment allows, otherwise sender-locked transactions skip.",
+      "path": "crates/ritual-async-registry/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let job_count = read_sender_job_count(db, contract, sender)?;\nif job_count == 0 { return Ok(false); }\nlet all_unlocked = is_sender_all_phase1_settled(db, contract, sender, current_block_number)?;\nif all_unlocked { return Ok(false); }\nlet is_fulfillment = job_exists(db, contract, tx_hash)?;\nif is_fulfillment { return Ok(false); }\nOk(true)",
+      "symbols": [
+        "should_skip_sender_locked_tx",
+        "read_sender_job_count",
+        "is_sender_all_phase1_settled",
+        "job_exists"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The verifier uses the same contract-backed sender job and existing-job fulfillment semantics, which anchors builder/verifier parity.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let unlocked_senders = ritual_async_registry::batch_senders_all_phase1_settled(...)?;\n...\nlet existing_jobs = ritual_async_registry::batch_jobs_exist(&mut db, None, &locked_tx_hashes)?;\n...\nreturn Err(BlockVerificationError::InvalidNonceLock(...));",
+      "symbols": [
+        "verify_nonce_locks",
+        "batch_senders_all_phase1_settled",
+        "batch_jobs_exist"
+      ]
+    }
+  ],
+  "equivalence_argument": "The payload builder and verifier both use AsyncJobTracker parent/contract state via ritual-async-registry. The builder skips only when the helper says the sender is locked and the tx is not an existing-job fulfillment, and it skips on read errors to avoid producing blocks the verifier would reject.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-async-registry/src/lib.rs"
+  ],
+  "invariant_id": "cur-6712af38f7-builder-sender-lock-uses-contract-state",
+  "invariant_index": 169,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-async-registry/src/lib.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "should_skip_sender_locked_tx|senderJobs|phase1Settled|job_exists|InvalidNonceLock"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "should_skip_sender_locked_tx",
+      "read_sender_job_count",
+      "is_sender_all_phase1_settled",
+      "job_exists",
+      "verify_nonce_locks"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The builder creates a StateProviderDatabase from the same state provider used for payload construction, calls should_skip_sender_locked_tx, and uses unwrap_or(true) so database or registry read failures skip inclusion rather than producing a block the verifier rejects. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: The helper placement in ritual-async-registry is local organization; the durable behavior is builder/verifier agreement on sender lock source of truth.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "c1a84815fed70d73eb023e4cd3a8433a8bfb3eb9"
+  ],
+  "statement": "Before including a transaction, the payload builder must check the sender lock against AsyncJobTracker contract state, not local pool state; if the contract-state check errors, the transaction must be skipped.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create parent state where AsyncJobTracker.senderJobs for a sender contains an unsettled job while the local pool sender index is stale or empty. Assert payload building skips a new non-fulfillment transaction from that sender, and assert a forced storage-read error also skips the transaction."
+  ],
+  "summary": "Builder sender-lock checks use contract state and skip on read errors.",
+  "test_or_falsification_candidate": "Create parent state where AsyncJobTracker.senderJobs for a sender contains an unsettled job while the local pool sender index is stale or empty. Assert payload building skips a new non-fulfillment transaction from that sender, and assert a forced storage-read error also skips the transaction.",
+  "title": "Builder sender lock uses contract state",
+  "total_invariants": 1954
+}

@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "LLM has_error responses are turned into a prefixed decode error that compute_llm_executor_fee recognizes as a settlement-preserving constant-fee path.",
+      "path": "crates/ritual-async-fees/src/llm.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if has_error { ... return Err(format!(\"{LLM_HAS_ERROR_PREFIX}: {error_message}\")); }\n...\nErr(err) if err.starts_with(LLM_HAS_ERROR_PREFIX) => { return Ok(U256::from(LLM_ERROR_EXECUTOR_FEE_WEI)); }",
+      "symbols": [
+        "decode_llm_response",
+        "compute_llm_executor_fee",
+        "LLM_HAS_ERROR_PREFIX"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "The constant executor fee is exactly 500,000,000,000 wei and is bounded at compile time against the HTTP escrow floor.",
+      "path": "crates/ritual-async-fees/src/constants.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const LLM_ERROR_EXECUTOR_FEE_WEI: u128 = 500_000_000_000;\nconst _: () = assert!(LLM_ERROR_EXECUTOR_FEE_WEI <= HTTP_EXECUTOR_BASE_FEE_WEI, ...);",
+      "symbols": [
+        "LLM_ERROR_EXECUTOR_FEE_WEI"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port preserves the has_error settlement path: decode emits the dedicated prefix and fee computation returns the fixed executor fee instead of failing settlement.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/constants.rs",
+    "crates/ritual-async-fees/src/llm.rs"
+  ],
+  "invariant_id": "cur-648fa486fd-error-responses-settle-constant-executor",
+  "invariant_index": 535,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This maps the executor-error fee path; zero token metrics are implicit because fee computation returns before normal metric pricing.",
+  "rationale": "The diff adds the constant error fee and a dedicated decode-error branch for `LLM response flagged error`, returning the fee and empty pricing metrics so the on-chain settlement can expose the error response. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "184ba50dca1b2f2570fd088bae3dfeba939f1f23"
+  ],
+  "statement": "When LLM response decoding detects an executor response with `has_error=true`, fee calculation should return `LLM_ERROR_EXECUTOR_FEE_WEI` of 500,000,000,000 wei with zero token metrics instead of treating the response as an undecodable pricing failure that drops settlement.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Construct an LLM response ABI with `has_error=true` and an error message, run LLM fee calculation, and assert it returns `500_000_000_000` wei, zero prompt/completion metrics, and no hard decode failure."
+  ],
+  "summary": "LLM has_error responses settle with the constant executor fee.",
+  "test_or_falsification_candidate": "ABI-encode an LLM response with has_error=true and assert compute_llm_executor_fee returns 500_000_000_000 wei.",
+  "title": "LLM error responses settle with constant executor fee",
+  "total_invariants": 1954
+}

@@ -1,0 +1,53 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "Nodebuilder reads the TEE service registry env var and falls back to the required 0x9644... address before loading executor records.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "let contract = std::env::var(\"TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS\")\n    .ok()\n    .and_then(|s| s.parse().ok())\n    .unwrap_or_else(|| address!(\"9644e8562cE0Fe12b4deeC4163c064A8862Bf47F\"));\nlet executors = read_all_executors(&mut self.db, contract)?;",
+      "symbols": [
+        "update_executor_registry_from_block",
+        "read_all_executors"
+      ]
+    }
+  ],
+  "equivalence_argument": "The executor registry read path is owned by the nodebuilder dependency in this architecture; its local block-execution path uses TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS and the required fallback address.",
+  "evidence_files": [
+    "crates/node/src/executor.rs"
+  ],
+  "invariant_id": "cur-1c22799332-registry-default-address-updated",
+  "invariant_index": 378,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in nodebuilder dependency.",
+  "rationale": "The primary diff replaces the fallback address used before reading executors from the contract, which determines which registry nodebuilder queries when no valid environment override is available. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "9a204aee41d97579e716bc2ffc44aba0c600b995"
+  ],
+  "statement": "When the executor registry contract address environment override is absent or cannot be parsed, nodebuilder executor registry reads must default to 0x9644e8562cE0Fe12b4deeC4163c064A8862Bf47F.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Run the executor registry read path with the relevant registry address environment variable unset and then set to an invalid address string, and assert the code uses 0x9644e8562cE0Fe12b4deeC4163c064A8862Bf47F as the registry address in both cases."
+  ],
+  "summary": "Nodebuilder executor discovery defaults to the updated TEE registry address.",
+  "test_or_falsification_candidate": "Run block execution with TEE_SERVICE_REGISTRY_CONTRACT_ADDRESS unset or invalid and assert read_all_executors is invoked against 0x9644e8562cE0Fe12b4deeC4163c064A8862Bf47F.",
+  "title": "TEE registry default address updated",
+  "total_invariants": 1954
+}

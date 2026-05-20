@@ -1,0 +1,56 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The Nitro precompile enforces the fixed 100000 gas budget, decodes ABI attestation/input data, runs ritual-nsm verification inline using the 20-byte zero nonce, and returns ABI bool false for verification failures rather than trapping.",
+      "path": "crates/precompiles/src/sigver.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "const NITRO_VERIFICATION_GAS: u64 = 100_000;\nif gas_limit < gas_cost {\n    return Ok(PrecompileOutput::new(gas_limit, Bytes::new(), 0));\n}\nlet verification_result = verify_nitro_attestation_raw(\n    &attestation_hex,\n    \"0000000000000000000000000000000000000000\",\n    &input_data_bytes,\n    None,\n);\nmatch verification_result {\n    Ok(success) => Ok(encode(&[Token::Bool(success)])),\n    Err(_) => Ok(encode(&[Token::Bool(false)])),\n}",
+      "symbols": [
+        "sigver_precompile_nitro",
+        "verify_nitro_attestation_inline",
+        "verify_nitro_attestation_raw",
+        "NITRO_VERIFICATION_GAS"
+      ]
+    }
+  ],
+  "equivalence_argument": "The precompile implementation is housed in nodebuilder/precompiles for this architecture, and it performs the inline NSM path rather than delegating Nitro validation to a sidecar.",
+  "evidence_files": [
+    "crates/precompiles/src/sigver.rs",
+    "crates/ritual-nsm/src/verifier.rs"
+  ],
+  "invariant_id": "cur-49e311df61-nitro-verification-precompile-performs-inline-attestation-checks",
+  "invariant_index": 298,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in nodebuilder sigver precompile implementation.",
+  "rationale": "The primary merge adds the ritual-nsm crate and rewrites the Nitro precompile to run verify_nitro_attestation_raw inline, encode false on verification errors, and return empty output only for insufficient gas. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "b980f435150f3bf3969520599954124af15e50db"
+  ],
+  "statement": "The Nitro verification precompile must require its fixed Nitro gas budget, decode ABI input as attestation string and input data bytes, run ritual-nsm verification inline using the executor-compatible zero nonce, and return ABI bool true or false rather than trapping on verification failure.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call the Nitro precompile with gas below 100000 and assert empty output with gas_limit charged; call it with malformed attestation and enough gas and assert ABI false; call it with a known valid attestation/input pair and assert ABI true."
+  ],
+  "summary": "Nitro verification precompile performs inline NSM attestation checks and returns ABI booleans.",
+  "test_or_falsification_candidate": "Call Nitro sigver below 100000 gas and assert empty output; call with malformed attestation and enough gas and assert ABI false; call with valid attestation/input and assert ABI true.",
+  "title": "Nitro verification precompile performs inline NSM attestation checks",
+  "total_invariants": 1954
+}

@@ -1,0 +1,64 @@
+{
+  "cluster_key": "scheduler:type-hash-codec:part-01",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "ritual-reth-internal/crates/ritual-metrics/src/tx.rs",
+    "ritual-reth-internal/crates/transaction-pool/src/blocking_handlers.rs",
+    "ritual-reth-internal/crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-4b6d786787-assorted-current-scheduler-adjacent-guards-remain-distinct",
+  "invariant_index": 136,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-metrics/src/tx.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/transaction-pool/src/blocking_handlers.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs"
+    ],
+    "checked_queries": [
+      "log_tx_finalized_chain_update|validate_heartbeat_scheduled_tx_structure|blocking_handlers|add_scheduled_transaction|scheduled async_pool dedup|derived scheduled"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+    ],
+    "checked_symbols": [
+      "log_tx_finalized_chain_update",
+      "validate_heartbeat_scheduled_tx_structure",
+      "blocking_handlers.rs",
+      "add_scheduled_transaction",
+      "async_pool"
+    ],
+    "missing_behavior": "Missing blocking scheduler async-pool dedup. Finalized scheduled logs and heartbeat shape validation exist, but no crates/transaction-pool/src/blocking_handlers.rs path and no add_scheduled_transaction/derived scheduled async_pool dedup behavior were found.",
+    "related_but_insufficient_code": [
+      "crates/ritual-metrics/src/tx.rs log_tx_finalized_chain_update logs origin_tx, scheduled_id, index, expiry_block, initial_block, and frequency.",
+      "crates/ritual-block-verification/src/lib.rs validate_heartbeat_scheduled_tx_structure checks zero call_id, index, value, origin hash, and reviveAgent calldata.",
+      "Those positive surfaces do not implement the missing blocking scheduler async-pool duplicate suppression."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "These candidates are load-bearing but do not collapse cleanly into the type-codec or canonical-firing groups; keeping them distinct avoids over-generalizing.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "d1489cf567f9e06ef10b6d2ca86931c978685b08",
+    "64773e5b4bab64e3d5342aa261922d03106c5cbb",
+    "396438683921f506765f6fab3da8d512bb4bd1d9"
+  ],
+  "statement": "Finalized scheduled transaction logs include scheduler metadata, blocking scheduling skips submission when the derived scheduled transaction already exists in the async pool, and scheduled heartbeat transactions must satisfy the dedicated heartbeat shape constraints.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Finalize a block with a scheduled transaction and assert the tx_finalized event contains origin, call_id, index, initial/start block, frequency, and block number.",
+    "Preload the async pool with a derived scheduled transaction hash and assert the blocking scheduler handler skips add_scheduled_transaction for that hash.",
+    "Build heartbeat scheduled transactions violating dummy signature, zero value, selector/length, caller, and duplicate checkAndRevive constraints and assert verifier rejection."
+  ],
+  "summary": "Finalized scheduled logs and heartbeat shape checks exist, but blocking scheduler async-pool dedup is absent.",
+  "test_or_falsification_candidate": "Scheduled finalization metrics, heartbeat verifier, and async-pool duplicate suppression tests.",
+  "title": "Assorted current scheduler-adjacent guards remain distinct",
+  "total_invariants": 1954
+}

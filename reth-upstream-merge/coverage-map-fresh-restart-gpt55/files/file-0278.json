@@ -1,0 +1,197 @@
+{
+  "record_type": "file",
+  "file_index": 278,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-async-fees/src/gas.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "async-fees",
+    "gas-accounting",
+    "system-transactions",
+    "block-gas-limit",
+    "tests"
+  ],
+  "atoms_total": 3,
+  "atoms": [
+    {
+      "record_id": "file-0278-atom-0001",
+      "file_index": 278,
+      "atom_index": 1,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-async-fees/src/gas.rs",
+      "source_hunk_hint": "@@ -0,0 +1,33 @@",
+      "source_kind": "system_transaction_type_surface",
+      "source_snippet": "pub const TX_TYPE_SCHEDULED: u8 = 0x10;\npub const TX_TYPE_ASYNC_COMMITMENT: u8 = 0x11;\npub const TX_TYPE_ASYNC_SETTLEMENT: u8 = 0x12;\n\n#[inline]\npub fn is_system_transaction(tx_type: u8) -> bool {\n    matches!(tx_type, TX_TYPE_SCHEDULED | TX_TYPE_ASYNC_COMMITMENT | TX_TYPE_ASYNC_SETTLEMENT)\n}",
+      "semantic_claim": "The old divergence adds a single async-fees source of truth for system transaction type bytes and classification. Scheduled transactions are 0x10, async commitment transactions are 0x11, async settlement transactions are 0x12, and only those three types are classified as system transactions for downstream gas accounting.",
+      "high_risk": false,
+      "risk_tags": [
+        "transaction-type-constants",
+        "system-transaction-classification",
+        "block-builder-gas-policy"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/gas.rs",
+          "symbols": [
+            "TX_TYPE_SCHEDULED",
+            "TX_TYPE_ASYNC_COMMITMENT",
+            "TX_TYPE_ASYNC_SETTLEMENT",
+            "is_system_transaction"
+          ],
+          "evidence": "Destination `gas.rs` preserves the same transaction type constants, `matches!` classifier, inline annotation, and documentation describing scheduled, async commitment, and async settlement system transaction types."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "is_system_transaction"
+          ],
+          "evidence": "Destination crate root re-exports `is_system_transaction` with the other gas helpers."
+        }
+      ],
+      "equivalence_argument": "The destination classifier has identical constants and match arms, so every transaction type byte maps to the same system/non-system classification as the source addition.",
+      "test_strategy": "unit_regression",
+      "negative_test_candidate": "Assert that 0x00, 0x01, and 0x02 remain non-system while 0x10, 0x11, and 0x12 are system transaction types.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers only the transaction-type constants and classifier introduced in `crates/ritual-async-fees/src/gas.rs`."
+    },
+    {
+      "record_id": "file-0278-atom-0002",
+      "file_index": 278,
+      "atom_index": 2,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-async-fees/src/gas.rs",
+      "source_hunk_hint": "@@ -0,0 +35,60 @@",
+      "source_kind": "calldata_gas_calculation",
+      "source_snippet": "const TX_BASE_COST: u64 = 21_000;\nconst ZERO_BYTE_COST: u64 = 4;\nconst NON_ZERO_BYTE_COST: u64 = 16;\n\n#[inline]\npub fn calculate_calldata_gas(input: &[u8]) -> Result<u64, &'static str> {\n    let calldata_cost: u64 = input\n        .iter()\n        .map(|&byte| if byte == 0 { ZERO_BYTE_COST } else { NON_ZERO_BYTE_COST })\n        .fold(0u64, |acc, cost| acc.saturating_add(cost));\n\n    TX_BASE_COST.checked_add(calldata_cost).ok_or(\"Calldata gas calculation overflow\")\n}",
+      "semantic_claim": "The old divergence adds EIP-2028 calldata gas pricing for async system transaction block accounting: every transaction includes a 21,000 gas base cost, zero calldata bytes cost 4 gas, non-zero calldata bytes cost 16 gas, per-byte accumulation saturates, and the final base-cost addition returns an explicit overflow error instead of wrapping.",
+      "high_risk": false,
+      "risk_tags": [
+        "calldata-gas-pricing",
+        "eip-2028",
+        "overflow-handling",
+        "block-gas-limit"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/gas.rs",
+          "symbols": [
+            "calculate_calldata_gas",
+            "TX_BASE_COST",
+            "ZERO_BYTE_COST",
+            "NON_ZERO_BYTE_COST"
+          ],
+          "evidence": "Destination preserves the exact gas constants, byte-cost mapping, saturating fold, checked final addition, error string, and unit tests for empty, zero, non-zero, mixed, and large calldata inputs."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/bundle.rs",
+          "symbols": [
+            "TxBundle::estimated_gas"
+          ],
+          "evidence": "Destination usage calls `calculate_calldata_gas(settlement_tx.input())` for fulfilled async-pair and delivery-settlement bundle estimates, falling back only if the helper returns an error."
+        }
+      ],
+      "equivalence_argument": "The destination calculation is textually identical to the source addition, so all calldata byte patterns, successful totals, and overflow/error behavior are preserved.",
+      "test_strategy": "unit_and_usage_regression",
+      "negative_test_candidate": "Exercise a settlement transaction with mixed zero/non-zero calldata and assert block/bundle gas accounting uses 21,000 plus EIP-2028 byte costs rather than the transaction's unlimited execution gas.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Usage evidence is limited to the destination call sites that consume this gas helper; no source content from later queue entries was audited."
+    },
+    {
+      "record_id": "file-0278-atom-0003",
+      "file_index": 278,
+      "atom_index": 3,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-async-fees/src/gas.rs",
+      "source_hunk_hint": "@@ -0,0 +62,198 @@",
+      "source_kind": "effective_block_gas_accounting",
+      "source_snippet": "pub fn effective_gas_limit_for_block(\n    tx_type: u8,\n    input: &[u8],\n    gas_limit: u64,\n) -> Result<u64, &'static str> {\n    if tx_type == TX_TYPE_ASYNC_COMMITMENT {\n        Ok(0)\n    } else if is_system_transaction(tx_type) {\n        calculate_calldata_gas(input)\n    } else {\n        Ok(gas_limit)\n    }\n}\n\n#[test] fn test_effective_gas_limit_for_block_commitment_tx() { ... }\n#[test] fn test_effective_gas_limit_for_block_settlement_tx() { ... }\n#[test] fn test_effective_gas_limit_for_block_scheduled_tx() { ... }\n#[test] fn test_effective_gas_limit_for_block_regular_tx() { ... }",
+      "semantic_claim": "The old divergence adds the effective block gas accounting rule for transaction inclusion: async commitments contribute zero gas to the block limit, scheduled and async settlement system transactions contribute calldata-based gas, and ordinary transactions retain their declared gas limit. The module includes tests for commitment, settlement, scheduled, and regular transaction behavior.",
+      "high_risk": false,
+      "risk_tags": [
+        "effective-gas-limit",
+        "async-commitment-zero-gas",
+        "scheduled-calldata-gas",
+        "settlement-calldata-gas",
+        "regular-transaction-gas-limit",
+        "payload-builder-usage"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/gas.rs",
+          "symbols": [
+            "effective_gas_limit_for_block",
+            "tests"
+          ],
+          "evidence": "Destination preserves the same branch order, zero-gas commitment special case, system-transaction calldata-gas branch, regular-transaction fallback, and unit tests for all exposed cases."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "effective_gas_limit_for_block"
+          ],
+          "evidence": "Destination payload builder imports and calls `effective_gas_limit_for_block` during scheduled transaction and augmented transaction capacity checks, skipping transactions whose calldata gas calculation errors."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/lib.rs",
+          "symbols": [
+            "effective_gas_limit_for_block",
+            "calculate_calldata_gas",
+            "is_system_transaction"
+          ],
+          "evidence": "Destination crate root re-exports the full gas helper surface so builder/verifier consumers use the shared implementation."
+        }
+      ],
+      "equivalence_argument": "The destination block-gas helper and tests are textually equivalent to the source addition, and observed destination payload uses consume the same exported helper for inclusion-capacity checks, preserving the source policy for commitment, settlement, scheduled, and regular transactions.",
+      "test_strategy": "unit_and_payload_builder_regression",
+      "negative_test_candidate": "Submit an async commitment with `u64::MAX` execution gas and assert effective block gas is zero, then submit scheduled and settlement system transactions with the same declared gas and assert block accounting uses calldata gas.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "The payload usage references are supporting evidence only; this coverage record audits queue entry `file-0278` and excludes `crates/ritual-async-fees/src/http.rs`."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The async fees gas helper module is exact-port preserved in the destination.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 278: A\tcrates/ritual-async-fees/src/gas.rs.",
+    "Source diff for file-0278 starts at the `gas.rs` diff header and ends before the `src/http.rs` diff header.",
+    "Destination `crates/ritual-async-fees/src/gas.rs` preserves the added 198-line module exactly, including transaction type constants, system transaction classification, calldata gas calculation, effective block gas accounting, and tests.",
+    "Relevant destination usage was checked for the exported gas helper surface in the async fees crate root and payload/bundle gas accounting sites.",
+    "No content from `crates/ritual-async-fees/src/http.rs` was audited or persisted in this record."
+  ]
+}

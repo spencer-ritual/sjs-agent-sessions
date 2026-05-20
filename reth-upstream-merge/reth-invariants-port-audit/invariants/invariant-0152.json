@@ -1,0 +1,89 @@
+{
+  "cluster_key": "executor delivery:async-pool-owns-e02774c2",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Canonical async commitments are decoded into the dedicated async pool and the represented original hashes are pruned from the normal pool.",
+      "path": "crates/transaction-pool/src/pool/mod.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "self.async_pool.add_committed_async_tx(..., async_commitment.precompile_address, async_commitment.precompile_input.clone(), commit_block, contract_expiry_block)\n...\nlet removed_count = self.pool.write().prune_transactions_by_hash(original_hashes_to_remove).len();",
+      "symbols": [
+        "Pool::process_async_commitment_transactions"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Result submission, querying, and removal are routed through the async_pool field rather than normal pool storage.",
+      "path": "crates/transaction-pool/src/pool/mod.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "self.async_pool.submit_result_with_context(submission)\n...\nself.async_pool.fulfilled_entries(current_block)\n...\nself.async_pool.remove_by_hash(original_tx_hash)",
+      "symbols": [
+        "Pool::submit_async_result",
+        "Pool::fulfilled_async_entries",
+        "Pool::remove_async_by_hash"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Canonical settlement cleanup advances two-phase entries or removes short/delivery-complete entries from the dedicated async pool.",
+      "path": "crates/transaction-pool/src/pool/mod.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if metadata.requires_phase2_delivery() { self.async_pool.mark_awaiting_delivery(&origin_tx_hash, new_tip.number()) } else if self.async_pool.remove_by_hash(&origin_tx_hash).is_some() { ... }\n...\nif metadata.state == AsyncState::DeliveryReady && metadata.requires_phase2_delivery() { self.async_pool.remove_by_hash(&origin_tx_hash); }",
+      "symbols": [
+        "Pool::process_async_settlement_transactions"
+      ]
+    }
+  ],
+  "equivalence_argument": "The v2.2 port owns async commitment lifecycle in the dedicated AsyncPool embedded in Pool. Commitment finalization stores metadata there and prunes the normal transaction pool; fulfillment, reads, expiry, settlement advancement, and cleanup all go through async_pool methods.",
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/mod.rs",
+    "crates/scheduling/src/types.rs"
+  ],
+  "invariant_id": "cur-92d0a2b0e8-async-pool-owns-async-commitment-lifecycle",
+  "invariant_index": 152,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/mod.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs"
+    ],
+    "checked_queries": [
+      "async_pool.add_committed_async_tx|prune_transactions_by_hash|submit_async_result|remove_by_hash|cleanup_expired"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "Pool::process_async_commitment_transactions",
+      "Pool::process_async_settlement_transactions",
+      "Pool::submit_async_result",
+      "AsyncPool::cleanup_expired"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The merge adds a dedicated `AsyncCommitmentPool` field, routes async metadata/result operations to it, removes fulfilled or expired async entries during canonical updates, and batch-prunes original transaction hashes from the normal pool after processing async commitments. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: Much of the diff is concurrency and storage refactoring, so the dedicated-pool structure itself may be less important than the observable lifecycle separation and pruning behavior.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "ed503ac7d3761f20ca4ef30a97cfba8201a80c6f"
+  ],
+  "statement": "Async commitment transactions must be stored, fulfilled, queried, expired, and cleaned up through the dedicated async pool, while original transactions represented by async commitments are pruned from the normal transaction pool when those commitments are processed.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Process a block containing an async commitment transaction with a decodable original transaction, assert the original hash is removed from normal pools, the async pool contains the commitment metadata, fulfillment updates go through the async pool, and canonicalization or TTL expiry removes the async entry."
+  ],
+  "summary": "Async commitment lifecycle is owned by the dedicated async pool and originals are pruned from the normal pool.",
+  "test_or_falsification_candidate": "Process a block containing an async commitment transaction with a decodable original transaction, assert the original hash is removed from normal pools, the async pool contains the commitment metadata, fulfillment updates go through the async pool, and canonicalization or TTL expiry removes the async entry.",
+  "title": "Async pool owns async commitment lifecycle",
+  "total_invariants": 1954
+}

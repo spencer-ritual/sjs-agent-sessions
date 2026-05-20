@@ -1,0 +1,76 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The RPC module constructor accepts an externally-created Arc<SpcVerifier> and stores it in the RPC context instead of constructing an unrelated verifier per request.",
+      "path": "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub(crate) fn module<Pool, Provider>(\n    pool: Pool,\n    provider: Provider,\n    spc_verifier: Arc<SpcVerifier<Provider>>,\n) -> eyre::Result<RpcModule<RitualAsyncRpcContext<Pool, Provider>>> {\n    let mut module = RpcModule::new(RitualAsyncRpcContext::new(pool, provider, spc_verifier));\n    ...\n}",
+      "symbols": [
+        "module",
+        "RitualAsyncRpcContext::new"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The accepted verifier is the one used to gate async result submission.",
+      "path": "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "match context.spc_verifier.verify_single(&spc_request).await {\n    Ok(result) if result.is_valid => {}\n    Ok(_) => return failed_async_response(...),\n    Err(err) => return failed_async_response(...),\n}",
+      "symbols": [
+        "submit_async_result"
+      ]
+    }
+  ],
+  "equivalence_argument": "The current module-level Ritual async RPC API is the port equivalent of a RitualApi constructor accepting a shared verifier; the verifier is dependency-injected and reused by registered methods.",
+  "evidence_files": [
+    "crates/rpc/rpc/src/ritual.rs"
+  ],
+  "invariant_id": "cur-321e037926-ritualapi-accepts-shared-verifier",
+  "invariant_index": 245,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/node/src/ritual_async_rpc.rs"
+    ],
+    "checked_queries": [
+      "module spc_verifier: Arc<SpcVerifier",
+      "RitualApi new_with_spc_verifier",
+      "verify_single"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "module",
+      "RitualAsyncRpcContext",
+      "submit_async_result"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to the current module constructor rather than the older RitualApi symbol.",
+  "rationale": "The new constructor accepts provider, pool, and Arc<SpcVerifier>, then assigns that verifier directly to the struct field. The comments state this enables sharing a pre-configured verifier across components. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "ba586020142d4aa4329cabed105a739b6f1e9420"
+  ],
+  "statement": "RitualApi::new_with_spc_verifier must store and use the exact Arc<SpcVerifier> provided by the caller, allowing RPC and executor components to share the same verifier instance.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create an Arc<SpcVerifier>, construct RitualApi with new_with_spc_verifier, and assert the stored verifier is Arc::ptr_eq to the supplied instance and is used for verify_result."
+  ],
+  "summary": "The Ritual async RPC module accepts and uses a shared SPC verifier.",
+  "test_or_falsification_candidate": "Create an Arc<SpcVerifier>, construct RitualApi with new_with_spc_verifier, and assert the stored verifier is Arc::ptr_eq to the supplied instance and is used for verify_result.",
+  "title": "RitualApi accepts shared SPC verifier",
+  "total_invariants": 1954
+}

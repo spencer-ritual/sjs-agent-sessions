@@ -1,0 +1,68 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The expected total is defined as the sum of calculated executor, commitment, and inclusion fee components.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "impl AsyncFees { pub fn new(executor_fee: U256, commitment_fee: U256, inclusion_fee: U256) -> Self {\n    let total = executor_fee + commitment_fee + inclusion_fee;\n    Self { executor_fee, commitment_fee, inclusion_fee, total }\n} }",
+      "symbols": [
+        "AsyncFees::new",
+        "calculate_async_fees"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Block verification recomputes expected fees from actual job/input/output parameters and rejects any component or total mismatch.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let fees = calculate_async_fees(&mut db, get_model_registry_address(), job.precompile_address, &precompile_input, Some(&spc_output), &mut model_cache)?;\nif settlement.executor_fee != fees.executor_fee || settlement.commitment_fee != fees.commitment_fee || settlement.inclusion_fee != fees.inclusion_fee || settlement.total_amount != fees.total {\n    return Err(BlockVerificationError::InvalidAsyncSettlement(format!(\"settlement fees mismatch ...\")));\n}",
+      "symbols": [
+        "verify_settlements",
+        "calculate_async_fees"
+      ]
+    }
+  ],
+  "equivalence_argument": "The verifier no longer accepts fixed placeholder fee amounts. It derives expected components from the shared formula using the settlement job and fulfilled SPC output, then compares executor, commitment, inclusion, and total against the settlement fields.",
+  "evidence_files": [
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ritual-async-fees/src/http.rs",
+    "crates/ritual-async-fees/src/validators.rs"
+  ],
+  "invariant_id": "cur-e5b77aa664-settlement-fees-match-calculated-components",
+  "invariant_index": 332,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to verifier fee recomputation and shared AsyncFees total semantics.",
+  "rationale": "The verifier removes hard-coded 0.01 ETH expected amounts and instead assigns expected fees from calculate_async_fees, whose AsyncFees total is the sum of executor, commitment, and inclusion components. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "04a5905e27ef72657de48ca2d5af008eda2350b3"
+  ],
+  "statement": "For a verifiable async settlement, expected executor_fee, commitment_fee, and inclusion_fee must be calculated from the actual async transaction parameters and compared against the settlement fields, not fixed placeholder amounts.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create a block where an async settlement's fee fields differ from calculate_async_fees for the corresponding commitment input/output, and assert block verification rejects it; create the matching-fee case and assert this check passes."
+  ],
+  "summary": "Settlement fee fields are checked against calculated async fee components and total.",
+  "test_or_falsification_candidate": "Mutate one settlement fee component or total after constructing a valid async settlement and assert verify_settlements rejects the block with InvalidAsyncSettlement.",
+  "title": "Settlement fees match calculated components",
+  "total_invariants": 1954
+}

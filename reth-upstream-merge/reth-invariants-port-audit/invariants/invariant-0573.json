@@ -1,0 +1,65 @@
+{
+  "cluster_key": "block building:error-chain-capture-44da9127",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: scheduled incident trace types carry an error_chain vector, but payload code has no bounded collect_error_chain_messages helper, depth cap, or truncation marker.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-3e1d856ec4-error-chain-capture-bounded",
+  "invariant_index": 573,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-metrics/src/scheduling.rs",
+      "crates/rpc/rpc-api/src/ritual.rs"
+    ],
+    "checked_queries": [
+      "collect_error_chain_messages MAX_ERROR_CHAIN_DEPTH",
+      "error chain truncated after 32 entries",
+      "source() payload builder error chain",
+      "error_chain scheduled incident trace"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "collect_error_chain_messages",
+      "MAX_ERROR_CHAIN_DEPTH",
+      "error chain truncated after 32 entries",
+      "source()",
+      "error_chain"
+    ],
+    "missing_behavior": "Payload-builder error chain capture is not bounded to 32 entries and does not append the required truncation marker because the collector is absent.",
+    "related_but_insufficient_code": [
+      "crates/ritual-metrics/src/scheduling.rs stores an error_chain vector in scheduled incident traces.",
+      "crates/rpc/rpc-api/src/ritual.rs exposes errorChain in RPC debug types.",
+      "Search found no collect_error_chain_messages helper, MAX_ERROR_CHAIN_DEPTH constant, source() traversal in payload builder, or truncation marker."
+    ]
+  },
+  "notes": "Existing error_chain fields are storage/exposure only; they do not prove bounded source traversal.",
+  "rationale": "The primary diff introduces MAX_ERROR_CHAIN_DEPTH = 32, decrements a remaining counter during source traversal, and adds '<error chain truncated after 32 entries>' when the cap is hit. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Block Building",
+  "source_commits": [
+    "f3084852a85954ee3bb88f8597a16dbf9c279dc4"
+  ],
+  "statement": "collect_error_chain_messages must walk at most 32 error/source entries and append a truncation marker when the cap is reached, preventing malformed or cyclic error chains from consuming unbounded payload-builder time.",
+  "status": "current",
+  "subsystem": "block building",
+  "suggested_falsification_tests": [
+    "Build an error chain longer than 32 sources, call collect_error_chain_messages, and assert the result contains 32 error messages plus the truncation marker and terminates even if the chain would otherwise continue."
+  ],
+  "summary": "Bounded error-chain capture is absent.",
+  "test_or_falsification_candidate": "Create an execution error with more than 32 sources and call the expected collector; no bounded collector/truncation marker exists locally.",
+  "title": "Error-chain capture is bounded",
+  "total_invariants": 1954
+}

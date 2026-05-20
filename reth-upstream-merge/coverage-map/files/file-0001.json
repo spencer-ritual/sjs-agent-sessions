@@ -1,0 +1,25 @@
+{
+  "record_type": "file",
+  "file_index": 1,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": ".cursorrules",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "Cursor-only agent behavior rules are non-runtime repository guidance and require no ported Reth behavior.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "The file changes editor/agent instructions only; no Reth code, CI execution path, test fixture, serialization rule, consensus rule, or runtime side effect is introduced."
+}

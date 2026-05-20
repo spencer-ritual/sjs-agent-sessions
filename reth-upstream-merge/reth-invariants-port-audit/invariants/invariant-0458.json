@@ -1,0 +1,63 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-1eb9f518c9-verifier-mirrors-multimodal-phase-pricing",
+  "invariant_index": 458,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs"
+    ],
+    "checked_queries": [
+      "verifier mirrors multimodal Phase 2 pricing",
+      "is_supported_two_phase_precompile IMAGE_CALL_PRECOMPILE VIDEO_CALL_PRECOMPILE",
+      "calculate_image_fees_phase2 calculate_video_fees_phase2"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "is_supported_two_phase_precompile",
+      "calculate_audio_fees_phase2_from_delivery",
+      "calculate_async_fees_phase2",
+      "IMAGE_CALL_PRECOMPILE",
+      "VIDEO_CALL_PRECOMPILE"
+    ],
+    "missing_behavior": "Block verification does not support image/video Phase 2 settlement fee extraction and therefore cannot mirror multimodal Phase 2 pricing for all three media precompiles.",
+    "related_but_insufficient_code": [
+      "crates/ritual-block-verification/src/lib.rs includes AUDIO_CALL_PRECOMPILE in the supported two-phase helper and fee branch, but not IMAGE_CALL_PRECOMPILE or VIDEO_CALL_PRECOMPILE.",
+      "crates/ritual-async-fees/src/lib.rs lacks image/video Phase 2 calculators."
+    ]
+  },
+  "notes": "The verifier rejects unsupported image/video two-phase commitments before any delivered-attribute pricing can be checked.",
+  "rationale": "The verifier imports the multimodal constants, extraction helpers, and fee calculators, includes those addresses in long-running checks, and maps extraction failures for dimensions/duration into verification errors rather than fallbacks. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "7bb0f4d3a6ebf5fa929fa7045228eccdf63dea61"
+  ],
+  "statement": "Block verification must recognize image, audio, and video precompiles as long-running Phase 2 settlements and reject the block if it cannot extract the required output attributes for their dedicated fee calculations.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Construct Phase 2 settlement verification cases for image/audio/video where delivery results are valid and malformed; assert valid cases compute the same fees as the payload builder and malformed cases reject verification."
+  ],
+  "summary": "Verifier media Phase 2 pricing is only partial.",
+  "test_or_falsification_candidate": "Construct Phase 2 settlement verification cases for image/audio/video where delivery results are valid and malformed; assert valid cases compute the same fees as the payload builder and malformed cases reject verification.",
+  "title": "Verifier mirrors multimodal Phase 2 pricing",
+  "total_invariants": 1954
+}

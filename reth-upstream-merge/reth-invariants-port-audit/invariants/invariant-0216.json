@@ -1,0 +1,93 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The TransactionPool trait exposes async result submission as a pool operation.",
+      "path": "crates/transaction-pool/src/traits.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "fn submit_async_result(&self, submission: crate::pool::AsyncResultSubmission) -> Result<(), crate::pool::AsyncPoolError> {\n    let _ = submission;\n    Err(crate::pool::AsyncPoolError::TransactionNotFound)\n}",
+      "symbols": [
+        "TransactionPool::submit_async_result"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The concrete pool forwards the submission into the async pool state machine.",
+      "path": "crates/transaction-pool/src/pool/mod.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn submit_async_result(&self, submission: AsyncResultSubmission) -> Result<(), AsyncPoolError> {\n    self.async_pool.submit_result_with_context(submission)\n}",
+      "symbols": [
+        "Pool::submit_async_result",
+        "AsyncPool::submit_result_with_context"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The async pool updates only the matching AwaitingExecution entry and stores the submitted result and proof, while returning typed errors for unknown or invalid entries.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if metadata.state != AsyncState::AwaitingExecution {\n    return Err(AsyncPoolError::InvalidState(metadata.state.clone()));\n}\n...\nSelf::fulfill_result(metadata, submission.execution_result, submission.execution_proof);",
+      "symbols": [
+        "AsyncPool::submit_result_with_context",
+        "AsyncPool::fulfill_result"
+      ]
+    }
+  ],
+  "equivalence_argument": "The current port packages the hash, output, proof, executor, block, precompile address, and input in AsyncResultSubmission and forwards it through TransactionPool to AsyncPool; proof is now required and validated non-empty, which is stricter than the older optional-proof wording but preserves the result-submission update boundary.",
+  "evidence_files": [
+    "crates/transaction-pool/src/traits.rs",
+    "crates/transaction-pool/src/lib.rs",
+    "crates/transaction-pool/src/pool/mod.rs",
+    "crates/transaction-pool/src/pool/txpool.rs"
+  ],
+  "invariant_id": "cur-93d50f41cc-pool-accepts-async-execution-results",
+  "invariant_index": 216,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/traits.rs",
+      "crates/transaction-pool/src/lib.rs",
+      "crates/transaction-pool/src/pool/mod.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs"
+    ],
+    "checked_queries": [
+      "submit_async_result|AsyncResultSubmission|submit_result_with_context|fulfill_result"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "TransactionPool::submit_async_result",
+      "Pool::submit_async_result",
+      "AsyncPool::submit_result_with_context",
+      "AsyncResultSubmission"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped; current proof handling is stricter than the old optional-proof text.",
+  "rationale": "The commit subject explicitly extends TransactionPool with async result submission methods, and the primary diff wires submit_async_result from the trait through the public pool layers to async_exec_pool.fulfill_transaction. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "1ed3f777ce1233901fd71bac32e34acd23272c2c"
+  ],
+  "statement": "Submitting an async execution result through TransactionPool::submit_async_result forwards the original transaction hash, output, optional proof, and executor address into the async execution pool and updates the matching async transaction or returns an AsyncUpdateError if it cannot be updated.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Add an awaiting async transaction to a real pool, call submit_async_result with known output, proof, and executor, and assert the stored async metadata is fulfilled with those values; call it for an unknown hash and assert an AsyncUpdateError is returned."
+  ],
+  "summary": "The port forwards async result submissions through TransactionPool into the async pool state machine.",
+  "test_or_falsification_candidate": "Add an AwaitingExecution async entry, call submit_async_result with matching context, and assert state changes to Fulfilled with the submitted output/proof; unknown hashes should return TransactionNotFound.",
+  "title": "Pool accepts async execution results",
+  "total_invariants": 1954
+}

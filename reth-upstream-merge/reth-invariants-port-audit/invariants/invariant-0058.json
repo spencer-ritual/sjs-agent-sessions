@@ -1,0 +1,73 @@
+{
+  "cluster_key": "scheduler:payload-building:part-03",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-metrics/src/block.rs",
+    "crates/rpc/rpc-api/src/ritual.rs",
+    "crates/rpc/rpc/src/ritual.rs"
+  ],
+  "invariant_id": "cur-08a616bb00-async-collection-traces-combined-phases-observations",
+  "invariant_index": 58,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-metrics/src/block.rs",
+      "crates/rpc/rpc-api/src/ritual.rs",
+      "crates/rpc/rpc/src/ritual.rs"
+    ],
+    "checked_queries": [
+      "combined_parallel_simulation|combined_post_filter|capObservations|cap_observations",
+      "scheduledTxCount|regularTxCount|AsyncSims|cap saturation"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "combined_parallel_simulation",
+      "combined_post_filter",
+      "cap_observations",
+      "capObservations",
+      "record_block_build_attempt",
+      "BlockBuildPhaseTrace"
+    ],
+    "missing_behavior": "Missing combined async collection telemetry producer: no combined_parallel_simulation/combined_post_filter phases, scheduled/regular counts, aggregate async stats, or capObservations are emitted by payload building.",
+    "related_but_insufficient_code": [
+      "Metrics/RPC structs include cap_observations on BlockBuildAttemptTrace and BlockBuildAttemptDebug.",
+      "No payload-builder combined async simulation phases, cap observation construction, or record_block_build_attempt call was found."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The current telemetry state is the later combined-phase and cap-observation model: earlier subsection and legacy per-lane phase candidates are folded into one combined simulation/post-filter trace with category counts, aggregate async stats, and cap observations.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "55a38957c7140b9d5570114381654c2a4396c845",
+    "5ad70164dfa1653ebe9691fa762e7aaf4e4e9572",
+    "922e15abbce6f9df93c3f5ed64c7fb8d61cefea1",
+    "230b5c21c0ce3566a07228bcc8974e7703d7b382",
+    "a0b4dae3ce1905ab08aa3eb64a3841b304634a23",
+    "8af5317430a438f8ad136cf28348a882c613daac"
+  ],
+  "statement": "Async collection telemetry reports aggregate stats, deadline and outcome fields, one combined_parallel_simulation phase, one combined_post_filter phase, scheduled and regular category counts on combined phases, and block-build capObservations for every observed cap saturation including non-demotable AsyncSims caps.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Build a payload with both scheduled and regular async candidates and assert the trace has exactly one combined_parallel_simulation and one combined_post_filter phase with tx_count equal to scheduledTxCount plus regularTxCount.",
+    "Force scheduled and total async simulation cap saturation and assert ritual_getBlockBuildTrace exposes capObservations with observed, limit, elapsedMicros, and causedDemotion=false for AsyncSims."
+  ],
+  "summary": "Async collection combined-phase trace behavior is absent end-to-end.",
+  "test_or_falsification_candidate": "Build with scheduled and regular async candidates and query ritual_getBlockBuildTrace; current port has schema fields but no producer path to populate combined phases/cap observations.",
+  "title": "Async collection traces use combined phases and cap observations",
+  "total_invariants": 1954
+}

@@ -1,0 +1,73 @@
+{
+  "record_type": "file",
+  "file_index": 212,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/optimism/consensus/src/proof.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "intentionally_absent",
+  "tags": [
+    "intentionally_absent",
+    "non-exact"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0212-atom-0001",
+      "file_index": 212,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/optimism/consensus/src/proof.rs",
+      "source_hunk_hint": "@@ -22,2 +22,2 @@ pub(crate) fn calculate_receipt_root_optimism<R: DepositReceipt>(",
+      "source_kind": "other",
+      "source_snippet": "    if chain_spec.is_regolith_active_at_timestamp(timestamp)\n        && !chain_spec.is_canyon_active_at_timestamp(timestamp)\n        return ordered_trie_root_with_encoder(receipts.as_slice(), |r, buf| r.encode_2718(buf));\n    if chain_spec.is_regolith_active_at_timestamp(timestamp)\n        && !chain_spec.is_canyon_active_at_timestamp(timestamp)\n        });",
+      "semantic_claim": "The downstream diff for crates/optimism/consensus/src/proof.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "intentionally_absent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "MERGE_NOTES.md",
+          "symbols": [],
+          "snippet": "Preserved the upstream Reth `v2.2.0` workspace member list. No old\n`crates/optimism/*`, `alloy-op-evm`, or `op-revm` paths were reintroduced.",
+          "evidence": "The v2 port explicitly scoped OP execution and old optimism crates out of the fresh upstream skeleton."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "Cargo.toml",
+          "symbols": [
+            "workspace.members"
+          ],
+          "snippet": "reth-evm = { path = \"crates/evm/evm\", default-features = false }\nreth-evm-ethereum = { path = \"crates/ethereum/evm\", default-features = false }",
+          "evidence": "The v2 workspace has Ethereum/Summit execution crates but no `crates/optimism/*` member for OP receipt-root behavior."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "human_question": null,
+      "notes": "Reclassified from missing to intentionally absent because the current v2 port explicitly omits old `crates/optimism/*` workspace members. Guideline remediation: accepted as intentionally absent because The current v2.2/Summit port explicitly scopes old `crates/optimism/*` members out via `MERGE_NOTES.md`, so OP receipt-root behavior is outside the active merge target rather than missing Ethereum/Summit behavior.",
+      "required_change": null,
+      "intentional_absence_basis": "documented_scope_exclusion",
+      "intentional_absence_rationale": "The current v2.2/Summit port explicitly scopes old `crates/optimism/*` members out via `MERGE_NOTES.md`, so OP receipt-root behavior is outside the active merge target rather than missing Ethereum/Summit behavior."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Atoms in this file are intentionally absent or mapped to active v2.2 behavior where applicable.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "This is not fixed by reintroducing a helper into the Summit/Ethereum port; it remains a human scope confirmation for future OP work."
+}

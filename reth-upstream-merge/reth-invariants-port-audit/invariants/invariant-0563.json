@@ -1,0 +1,55 @@
+{
+  "cluster_key": "block building:builder-uses-standard-28e405bd",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "eef290f7d48063897d142b936ebbb269a4066482",
+      "evidence": "RPC handlers store the standard EthPubSub directly and construct it with EthPubSub::new; searches found no UniversalEthPubSub, OptimizedEthPubSub, RETH_OPTIMIZED_PUBSUB, or new_optimized path in the local port.",
+      "path": "crates/rpc/rpc-builder/src/eth.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "use reth_rpc::{EthFilter, EthPubSub};\n...\npub struct EthHandlers<EthApi> {\n    pub api: EthApi,\n    pub filter: EthFilter<EthApi>,\n    pub pubsub: EthPubSub<EthApi>,\n}\n...\nlet pubsub = EthPubSub::new(eth_api.clone(), executor);",
+      "symbols": [
+        "EthHandlers",
+        "EthPubSub::new"
+      ]
+    }
+  ],
+  "equivalence_argument": "Because the handler type is EthPubSub<EthApi> and construction is direct, no optimized pubsub environment selection can alter the implementation.",
+  "evidence_files": [
+    "crates/rpc/rpc-builder/src/eth.rs",
+    "crates/rpc/rpc-builder/src/lib.rs",
+    "crates/rpc/rpc/src/eth/pubsub_optimized.rs"
+  ],
+  "invariant_id": "cur-e1bc7e9fd3-builder-uses-standard-pubsub",
+  "invariant_index": 563,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The optimized pubsub symbols are absent from the audited port.",
+  "rationale": "The merge deletes the UniversalEthPubSub enum and optimized pubsub bootstrap paths, changes EthHandlers.pubsub to EthPubSub<EthApi>, constructs EthPubSub::with_spawner directly, and switches registry construction from new_optimized to new. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Block Building",
+  "source_commits": [
+    "b25c0dc716fc286e2cd2444d1f07b5fcf445200e"
+  ],
+  "statement": "EthHandlers must hold and bootstrap the standard EthPubSub handler directly; RETH_OPTIMIZED_PUBSUB and UniversalEthPubSub/OptimizedEthPubSub selection must not change the pubsub implementation.",
+  "status": "current",
+  "subsystem": "block building",
+  "suggested_falsification_tests": [
+    "Set RETH_OPTIMIZED_PUBSUB=true and bootstrap RPC handlers; assert the resulting pubsub handler is the standard EthPubSub and no optimized routing implementation is instantiated."
+  ],
+  "summary": "RPC builder uses the standard EthPubSub handler.",
+  "test_or_falsification_candidate": "Set RETH_OPTIMIZED_PUBSUB=true and bootstrap RPC handlers; assert EthHandlers.pubsub is still the standard EthPubSub path.",
+  "title": "RPC builder uses standard pubsub",
+  "total_invariants": 1954
+}

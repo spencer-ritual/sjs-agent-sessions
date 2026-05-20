@@ -1,0 +1,89 @@
+{
+  "record_type": "file",
+  "file_index": 249,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/primitives-traits/src/transaction/error.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "partial",
+  "tags": [
+    "partial",
+    "non-exact",
+    "structural-equivalent",
+    "transaction-error",
+    "precompile",
+    "pool-eviction",
+    "non-fsm"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0249-atom-0001",
+      "file_index": 249,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/primitives-traits/src/transaction/error.rs",
+      "source_hunk_hint": "@@ -42,6 +42,10 @@",
+      "source_kind": "public_api",
+      "source_snippet": "/// The transaction contains a permanently invalid precompile request (e.g., malformed\n/// ONNX model ID) and should be evicted from the pool.\n#[error(\"precompile request permanently invalid\")]\nPrecompileRequestPermanentlyInvalid,",
+      "semantic_claim": "The old transaction validation error enum adds a permanent precompile-request invalidity variant, allowing malformed precompile requests to be represented as invalid transactions that should be evicted rather than retried.",
+      "high_risk": false,
+      "risk_tags": [
+        "transaction-validation",
+        "txpool",
+        "precompile"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "Cargo.toml / Cargo.lock",
+          "evidence": "The port uses crates.io `reth-primitives-traits` 0.3.1; its `InvalidTransactionError` does not include `PrecompileRequestPermanentlyInvalid`."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "is_permanently_invalid_precompile_request",
+            "best_txs.mark_invalid"
+          ],
+          "evidence": "Payload building classifies `BlockValidationError::OnnxRequestPermanentlyInvalid` as permanent and marks the pool transaction invalid using `InvalidTransactionError::TxTypeNotSupported`."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc-eth-api/src/helpers/pending_block.rs",
+          "symbols": [
+            "is_permanently_invalid_precompile_request",
+            "best_txs.mark_invalid"
+          ],
+          "evidence": "Pending-block construction applies the same permanent-precompile invalidity handling and pool invalidation."
+        }
+      ],
+      "equivalence_argument": "The exact public enum variant is absent, but the active behavior is structurally preserved: permanently invalid ONNX/precompile requests are recognized and evicted/marked invalid rather than retried. The remaining difference is error taxonomy/API shape.",
+      "test_strategy": "validation_regression",
+      "negative_test_candidate": "Submit a permanently invalid ONNX/precompile request and assert payload/pending-block processing marks the transaction invalid and evicts descendants, even though the public error variant is `TxTypeNotSupported`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reclassified from exact to structural_equivalent after current-code recheck; behavior preserved, taxonomy differs."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The exact `PrecompileRequestPermanentlyInvalid` enum variant is absent from external `reth-primitives-traits`, but permanent precompile invalidity is structurally preserved by payload and pending-block invalidation paths.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Current external `reth-primitives-traits` has no `PrecompileRequestPermanentlyInvalid` variant.",
+    "Payload and pending-block code detect `BlockValidationError::OnnxRequestPermanentlyInvalid` and call `best_txs.mark_invalid` with `TxTypeNotSupported`.",
+    "FSM status: eviction behavior is covered; only public error taxonomy differs."
+  ]
+}

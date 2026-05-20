@@ -1,0 +1,61 @@
+{
+  "cluster_key": "scheduler:payload-building:part-03",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-24eb469c36-payload-builder-enforces-block-count",
+  "invariant_index": 55,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs"
+    ],
+    "checked_queries": [
+      "RETH_MAX_TRANSACTIONS_PER_BLOCK|max_transactions|max transaction count",
+      "executed_payload_candidate_count|included_tx_count|pair"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "RETH_MAX_TRANSACTIONS_PER_BLOCK",
+      "max_transactions",
+      "executed_payload_candidate_count",
+      "FulfilledAsync",
+      "Delivery",
+      "Scheduled",
+      "Regular"
+    ],
+    "missing_behavior": "Missing RETH_MAX_TRANSACTIONS_PER_BLOCK cap across heartbeat, scheduled, async commitment, settlement pair, delivery, and regular inclusion paths.",
+    "related_but_insufficient_code": [
+      "The builder increments executed_payload_candidate_count for several inclusion paths and enforces gas/block-size limits, but no transaction-count cap environment variable or pair-slot accounting was found."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The transaction-count cap candidate covers all named inclusion paths and the bounded packet has no later contradiction.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "55a38957c7140b9d5570114381654c2a4396c845"
+  ],
+  "statement": "When RETH_MAX_TRANSACTIONS_PER_BLOCK is set to a valid number, payload building stops adding transactions once the included transaction count reaches the cap across heartbeat, async commitment, scheduled, unified, and regular inclusion paths; async commitment plus settlement pairs are skipped unless both transactions fit.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Set RETH_MAX_TRANSACTIONS_PER_BLOCK to a small value, offer heartbeat, scheduled, regular, async commitment, and async settlement pair candidates, and assert the payload never exceeds the cap and never includes only one half of a pair when one slot remains."
+  ],
+  "summary": "Payload builder transaction-count cap is absent.",
+  "test_or_falsification_candidate": "Set RETH_MAX_TRANSACTIONS_PER_BLOCK=1 and offer a two-transaction async settlement pair; current builder has no count cap to prevent overrun or partial-pair admission.",
+  "title": "Payload builder enforces a block transaction-count cap",
+  "total_invariants": 1954
+}

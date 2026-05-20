@@ -1,0 +1,96 @@
+{
+  "cluster_key": "scheduler:generation-service",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "During payload construction for a parent header, the port sets current_block to parent_header.number + 1, computes Scheduler obligations for that block from parent state, and iterates every returned obligation to synthesize and enqueue a scheduler-routed PayloadCandidate::Scheduled.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let current_block = parent_header.number.saturating_add(1);\n...\nlet obligations = compute_obligations(&mut scheduled_db, current_block, base_fee, None)?;\n...\nfor obligation in scheduled_obligations {\n    let scheduled_tx = create_scheduled_execution_transaction_from_state(builder.evm_mut().db_mut(), &obligation)?;\n    payload_candidates.push(PayloadCandidate::Scheduled { tx: scheduled_tx, call_id, index, is_scheduler_routed: true, ... });\n}",
+      "symbols": [
+        "build_payload_inner",
+        "compute_obligations",
+        "PayloadCandidate::Scheduled"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Each obligation is converted into a protocol TxScheduled calling Scheduler.execute(callId,index), preserving the one-obligation-to-one-scheduled-transaction behavior required by the invariant.",
+      "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn create_scheduled_execution_transaction_from_state<DB: Database>(db: &mut DB, obligation: &ScheduledObligation) -> Result<Recovered<TransactionSigned>, SchedulerError> {\n    let call = read_scheduled_call(db, None, obligation.call_id)?.ok_or(SchedulerError::CallNotFound { call_id: obligation.call_id })?;\n    let origin_hash = read_origin_hash(db, obligation.call_id);\n    create_scheduled_execution_transaction(&call, obligation, origin_hash)\n}\n...\nlet input = executeCall { callId: U256::from(obligation.call_id), executionIndex: U256::from(obligation.index) }.abi_encode().into();\nlet tx = TxScheduled::new_with_options(... Some(get_scheduler_address()), ..., input, origin_hash, obligation.call_id, obligation.index, ...);",
+      "symbols": [
+        "create_scheduled_execution_transaction_from_state",
+        "create_scheduled_execution_transaction",
+        "TxScheduled::new_with_options"
+      ]
+    }
+  ],
+  "equivalence_argument": "The old invariant names the synchronous scheduler/canonical callback shape, but the v2.2 port intentionally removed the old crates/scheduling service surface. The effective behavior is preserved in the payload builder: when building block N+1 from parent N, it computes obligations for N+1 from Scheduler parent state, filters them, creates one TxScheduled per obligation, and submits those transactions into the same payload candidate path that later executes scheduler-routed candidates. This preserves due-block selection and per-call scheduled transaction submission, with the callback boundary refactored into payload candidate construction.",
+  "evidence_files": [
+    "crates/scheduling/src/singleton.rs",
+    "crates/scheduling/src/contract.rs",
+    "crates/scheduling/src/canonical.rs",
+    "crates/scheduling/src/lib.rs"
+  ],
+  "invariant_id": "cur-4ef2525863-canonical-scheduler-submits-next-block-calls",
+  "invariant_index": 16,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/scheduling/src/singleton.rs",
+      "crates/scheduling/src/contract.rs",
+      "crates/scheduling/src/canonical.rs",
+      "crates/scheduling/src/lib.rs",
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs"
+    ],
+    "checked_queries": [
+      "SynchronousScheduler|process.*canonical|canonical.*scheduler|due.*N\\+1|next_block|scheduling callback|Scheduled",
+      "compute_obligations\\(|scheduled.*obligation|canonical.*scheduled|create.*scheduled",
+      "PayloadCandidate|scheduled_obligations|included_scheduled_indices"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "SynchronousScheduler",
+      "compute_obligations",
+      "create_scheduled_execution_transaction_from_state",
+      "PayloadCandidate::Scheduled"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "The old crates/scheduling evidence paths are absent in the port workspace; they are replaced by parent-state obligation synthesis in payload building."
+    ]
+  },
+  "notes": "Mapped structurally in the port; the old synchronous scheduler callback surface is absent but its effective submission behavior is implemented in payload construction.",
+  "rationale": "The low-confidence async CallDue event candidates are superseded by the synchronous scheduler/canonical processing path. The current effective behavior in the bounded packet is that canonical block processing obtains due calls from SynchronousScheduler and converts each due call into a scheduled transaction submission.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "93233e2e868f753256338663a9a63ff770270687",
+    "e27693b16c75e2ece002b14146e0cc031eb7fe74",
+    "9dc2b288d16f5256138aeaca414456b5aa14372f",
+    "348fd08163c7f0a2fcbfd9f8f834d74bb982f92a"
+  ],
+  "statement": "When processing canonical block N, the scheduler must compute calls due for block N+1, return those due calls through the synchronous scheduler path, create one scheduled transaction for each returned call, and submit each transaction through the canonical scheduling callback.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Set scheduler state with calls due at N, N+1, and N+2, process canonical block N, and assert only the N+1 call is returned and converted into a scheduled transaction.",
+    "Process a canonical block with two calls due for N+1 and assert the callback receives exactly two scheduled transactions with the expected call IDs and execution blocks."
+  ],
+  "summary": "The port preserves next-block scheduled transaction synthesis through payload-builder obligation scanning and scheduled candidate insertion.",
+  "test_or_falsification_candidate": "Build a payload with Scheduler parent state containing two obligations due at parent+1 and one due at parent+2; assert only the parent+1 obligations become scheduler-routed PayloadCandidate::Scheduled transactions that call Scheduler.execute with the expected call IDs and indices.",
+  "title": "Canonical scheduler submits next-block due calls",
+  "total_invariants": 1954
+}

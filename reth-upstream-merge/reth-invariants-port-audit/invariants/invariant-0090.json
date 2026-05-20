@@ -1,0 +1,69 @@
+{
+  "cluster_key": "scheduler:payload-building:part-01",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Reconstructed fulfilled async originals support Scheduled and attach provided SPC calls.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let spc_calls = vec![spc_call]; ... TransactionSigned::Scheduled(signed) => { tx.spc_calls = Some(spc_calls.clone()); ... }",
+      "symbols": [
+        "annotate_fulfilled_original_transaction",
+        "TransactionSigned::Scheduled"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port fulfilled-async reconstruction path.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-a64bd29797-scheduled-preserve-reconstructed-calls",
+  "invariant_index": 90,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/ritual_async.rs"
+    ],
+    "checked_queries": [
+      "annotate_fulfilled_original_transaction|TransactionSigned::Scheduled|spc_calls"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "annotate_fulfilled_original_transaction",
+      "TransactionSigned::Scheduled",
+      "spc_calls"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped exactly.",
+  "rationale": "The scheduled SPC candidate is a narrow current payload-building invariant.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "9af9a068c4fe7b4e09acad391bac6592e913cf08"
+  ],
+  "statement": "When payload building reconstructs transactions with SPC calls, Scheduled transactions must be accepted as supported and must carry the provided SPC calls in the scheduled payload; bounded later context extends the same injection rule to Passkey transactions.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Fulfilled async reconstruction for Scheduled original should preserve SPC calls."
+  ],
+  "summary": "Scheduled SPC call reconstruction is mapped.",
+  "test_or_falsification_candidate": "Fulfilled scheduled async reconstruction should retain TxScheduled.spc_calls.",
+  "title": "Scheduled transactions preserve reconstructed SPC calls",
+  "total_invariants": 1954
+}

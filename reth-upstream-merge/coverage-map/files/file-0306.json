@@ -1,0 +1,62 @@
+{
+  "record_type": "file",
+  "file_index": 306,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-blocking-pubsub/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "exact",
+  "tags": [
+    "exact"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0306-atom-0001",
+      "file_index": 306,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-blocking-pubsub/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,38 @@",
+      "source_kind": "other",
+      "source_snippet": "use reth_execution_types::Chain;\nuse reth_primitives_traits::NodePrimitives;\nuse std::sync::{Arc, Mutex};\n\npub type BlockingHandler<N> = Arc<dyn Fn(&Chain<N>) + Send + Sync>;\n",
+      "semantic_claim": "The downstream diff for crates/ritual-blocking-pubsub/src/lib.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-blocking-pubsub/src/lib.rs",
+          "symbols": [
+            "BlockingHandler",
+            "BlockingCanonStateSubscriptions"
+          ],
+          "snippet": "blocking canonical-state handler type and subscription plumbing",
+          "evidence": "The crate exists in the v2.2 workspace and is consumed by chain-state/provider subscription code."
+        }
+      ],
+      "equivalence_argument": "Blocking pubsub crate files are present in the v2.2 workspace and connected to canonical-state subscriptions.",
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Restored in the core-async pass; crate checks cover downstream consumers."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "No same-path or uniquely named destination evidence was found in the configured search scope."
+}

@@ -1,0 +1,67 @@
+{
+  "cluster_key": "executor delivery:delivery-config-uses-45c42a0f",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping was found: the port has a raw FHE offset branch in decode_delivery_config, but the v2 delivery path rejects FHE as unsupported and no DeliveryConfig::from_fhe_abi implementation exists in the audited repo set.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-6a98ac759a-delivery-config-uses-decoder",
+  "invariant_index": 193,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/ritual-precompile-codecs/src/validation.rs"
+    ],
+    "checked_queries": [
+      "DeliveryConfig::from_fhe_abi|from_fhe_abi|FHE_PRECOMPILE|decode_delivery_config_at\\(input, 11\\)|create_delivery_settlement_transaction",
+      "fn is_supported_two_phase_precompile|FHE_PRECOMPILE|rejects_unported_fee_families"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "DeliveryConfig::from_fhe_abi",
+      "from_fhe_abi",
+      "FHE_PRECOMPILE",
+      "decode_delivery_config_at",
+      "ensure_supported_two_phase_metadata",
+      "is_supported_two_phase_precompile"
+    ],
+    "missing_behavior": "Missing reachable FHE Phase 2 delivery settlement decoding via DeliveryConfig::from_fhe_abi; the local builder/verifier reject FHE before delivery settlement construction/verification.",
+    "related_but_insufficient_code": [
+      "crates/ethereum/payload/src/ritual_async.rs contains FHE_PRECOMPILE => decode_delivery_config_at(input, 11), but prepare_delivery_settlement_transaction first calls ensure_supported_two_phase_metadata.",
+      "ensure_supported_two_phase_metadata allows only long-running HTTP, ZK, sovereign-agent, and persistent-agent; FHE is excluded.",
+      "crates/ritual-block-verification/src/lib.rs has the same supported two-phase set and a test asserting FHE is rejected as an unported fee family.",
+      "crates/transaction-pool/src/pool/async_pool.rs can read an FHE phase2 deadline offset, but that pool helper does not create or verify FHE delivery settlement config.",
+      "Searches across audited repos found no DeliveryConfig::from_fhe_abi or equivalent named FHE ABI decoder."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The commit adds a precompile-address branch for 0x0807 in create_delivery_settlement_transaction and maps decode failures to an explicit FHE delivery config error. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "39c59783553a19556aa54e4758f716fc34b390f9"
+  ],
+  "statement": "When creating a Phase 2 delivery settlement for a contract job whose precompile address is 0x0807, the payload builder must decode target, selector, gas limit, fee, priority fee, and value with DeliveryConfig::from_fhe_abi rather than the long-running HTTP or ZK decoders.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Pass FHE precompile input using the FHE field layout to create_delivery_settlement_transaction and assert the decoded delivery target/selector/gas match the FHE ABI offsets; pass the same input through the generic decoder path and assert it would fail or produce different values."
+  ],
+  "summary": "FHE delivery config decoding is not ported into the reachable builder/verifier delivery path.",
+  "test_or_falsification_candidate": "Submit an FHE delivery-ready job with FHE-layout callback fields; current local prepare_delivery_settlement_transaction should reject the precompile as unsupported before a DeliveryConfig::from_fhe_abi-style decode can occur.",
+  "title": "FHE delivery config uses FHE ABI decoder",
+  "total_invariants": 1954
+}

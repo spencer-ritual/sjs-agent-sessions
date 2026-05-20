@@ -1,0 +1,538 @@
+{
+  "record_type": "file",
+  "file_index": 537,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/transaction-pool/src/pool/txpool.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "exact",
+    "high-risk",
+    "needs-review",
+    "non-exact",
+    "structural_equivalent"
+  ],
+  "atoms_total": 10,
+  "atoms": [
+    {
+      "record_id": "file-0537-atom-0001",
+      "file_index": 537,
+      "atom_index": 1,
+      "atoms_total": 10,
+      "source_path": "crates/transaction-pool/src/pool/txpool.rs",
+      "source_hunk_hint": "@@ -12,0 +13 @@ use crate::{",
+      "source_kind": "other",
+      "source_snippet": "        scheduled::ScheduledPool,\n    EthPooledTransaction, PoolConfig, PoolResult, PoolTransaction, PoolUpdateKind, PriceBumpConfig,\n    TransactionOrdering, ValidPoolTransaction, U256,\nuse alloy_consensus::{\n    constants::{\n        EIP1559_TX_TYPE_ID, EIP2930_TX_TYPE_ID, EIP4844_TX_TYPE_ID, EIP7702_TX_TYPE_ID,",
+      "semantic_claim": "The downstream diff for crates/transaction-pool/src/pool/txpool.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": true,
+      "risk_tags": [
+        "txpool"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/txpool.rs",
+          "symbols": [
+            "new"
+          ],
+          "snippet": "///   new([New Block])\n///   A[Incoming Tx] --> B[Validation] -->|ins\n///   pool --> |if ready + blobfee too low| B4\n///   pool --> |if ready| B1\n///   pool --> |if ready + basfee too low| B2",
+          "evidence": "The destination keeps the module at the same relative path with overlapping symbols ['new']."
+        }
+      ],
+      "equivalence_argument": "The downstream behavior still resides in the same integration surface in the destination workspace, but the implementation was refactored or reshaped; review is required to confirm full semantic parity.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Run the destination behavior owned by crates/transaction-pool/src/pool/txpool.rs and verify the downstream-observed behavior still holds after the port refactor.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "The destination keeps the module at the same relative path with overlapping symbols ['new'].",
+      "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor."
+    },
+    {
+      "record_id": "file-0537-atom-0002",
+      "file_index": 537,
+      "atom_index": 2,
+      "atoms_total": 10,
+      "source_path": "crates/transaction-pool/src/pool/txpool.rs",
+      "source_hunk_hint": "@@ -2326,6 +2719,22 @@ mod tests {",
+      "source_kind": "test_fixture",
+      "source_snippet": "        }\n    }\n\n    #[test]\n    fn test_add_async_commitment_transaction() {\n        let mut pool = TxPool::new(MockOrdering::default(), Default::default());\n        let mut f = MockTransactionFactory::default();\n        let tx = MockTransaction::eip1559().with_tx_type(TxType::AsyncCommitment);\n\n        let validated = f.validated(tx);\n        pool.add_transaction(validated, U256::MAX, 0).unwrap();\n\n        assert_eq!(pool.size().async_commitment, 1);\n        assert_eq!(pool.size().pending, 0);\n        assert!(pool.pending_pool.is_empty());\n        assert!(pool.queued_pool.is_empty());\n        assert!(pool.basefee_pool.is_empty());\n    }\n\n    #[test]\n    fn test_insert_pending() {\n        l\n---\n        assert!(pool.basefee_pool.is_empty());\n    }\n\n    #[test]\n    fn test_insert_pending() {\n        let on_chain_balance = U256::MAX;",
+      "semantic_claim": "fee preserves the fee/gas/accounting behavior covered by downstream tests: test_add_async_commitment_transaction, test_insert_pending.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "txpool",
+        "negative-path"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/txpool.rs",
+          "symbols": [
+            "test_add_async_commitment_transaction",
+            "test_insert_pending"
+          ],
+          "snippet": "fn test_insert_pending(...) / matching test or fixture name",
+          "evidence": "Exact destination evidence exists at the same relative source path for at least one grouped downstream test."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "same_test_both_repos",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_add_async_commitment_transaction, test_insert_pending.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Curated from supplemental test-atom audit by grouping sibling tests and dropping helper/no-assert/default-only noise.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_add_async_commitment_transaction",
+        "test_insert_pending"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0537-atom-0001",
+        "test-file-0537-atom-0002"
+      ],
+      "required_change": "Split this broad derived claim into indivisible branch, guard, transition, side-effect, or error-path atoms before using it as actionable coverage."
+    },
+    {
+      "record_id": "file-0537-atom-0003",
+      "file_index": 537,
+      "atom_index": 3,
+      "atoms_total": 10,
+      "source_path": "crates/transaction-pool/src/pool/txpool.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 1: Transaction Formats And Codecs",
+      "source_kind": "encoding_rule",
+      "source_snippet": "Feature-preservation claims: Do not reintroduce removed fields: `target_block` and `commit_block` were intentionally removed from async flow/codecs/RPC/txpool/verifier in favor of parent-block simulation (`#261`), except for explicit old-data decode compatibility",
+      "semantic_claim": "Do not reintroduce removed fields: `target_block` and `commit_block` were intentionally removed from async flow/codecs/RPC/txpool/verifier in favor of parent-block simulation (`#261`), except for explicit old-data decode compatibility.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "verifier",
+        "txpool",
+        "rpc",
+        "encoding",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/async_pool.rs",
+          "symbols": [
+            "AsyncPool",
+            "AsyncTxMetadata"
+          ],
+          "snippet": "async tx lifecycle metadata, result submission, delivery readiness, and cleanup",
+          "evidence": "Transaction-pool async behavior is preserved in the current async_pool module and Pool wrappers."
+        }
+      ],
+      "equivalence_argument": "Transaction-pool behavior is preserved in v2.2 async pool structures/tests.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Do not reintroduce removed fields: `target_block` and `commit_block` were intentionally removed from async flow/codecs/RPC/txpool/verifier in favor of parent-block simulation (`#261`), except for explicit old-data decode compatibility.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to transaction-pool async_pool.",
+      "feature_derived": true,
+      "feature_sections": [
+        1
+      ],
+      "source_feature_ids": [
+        "feature-raw-0010"
+      ],
+      "source_feature_claims": [
+        "Do not reintroduce removed fields: `target_block` and `commit_block` were intentionally removed from async flow/codecs/RPC/txpool/verifier in favor of parent-block simulation (`#261`), except for explicit old-data decode compatibility"
+      ],
+      "human_question": "Verify whether this absence/negative-preservation invariant is upheld in the v2.2 port and record evidence."
+    },
+    {
+      "record_id": "file-0537-atom-0004",
+      "file_index": 537,
+      "atom_index": 4,
+      "atoms_total": 10,
+      "source_path": "crates/transaction-pool/src/pool/txpool.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 2: Async Precompile Detection And Validation",
+      "source_kind": "error_path",
+      "source_snippet": "Feature-preservation claims: Preserve validation hardening: PrecompileConsumer decoding, executor registration/capability checks, and pool removal on failed validation (`#204`)",
+      "semantic_claim": "Preserve validation hardening: PrecompileConsumer decoding, executor registration/capability checks, and pool removal on failed validation (`#204`).",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "txpool",
+        "precompile",
+        "executor-selection",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/async_pool.rs",
+          "symbols": [
+            "AsyncPool",
+            "AsyncTxMetadata"
+          ],
+          "snippet": "async tx lifecycle metadata, result submission, delivery readiness, and cleanup",
+          "evidence": "Transaction-pool async behavior is preserved in the current async_pool module and Pool wrappers."
+        }
+      ],
+      "equivalence_argument": "Transaction-pool behavior is preserved in v2.2 async pool structures/tests.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Preserve validation hardening: PrecompileConsumer decoding, executor registration/capability checks, and pool removal on failed validation (`#204`).",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to transaction-pool async_pool.",
+      "feature_derived": true,
+      "feature_sections": [
+        2
+      ],
+      "source_feature_ids": [
+        "feature-raw-0018"
+      ],
+      "source_feature_claims": [
+        "Preserve validation hardening: PrecompileConsumer decoding, executor registration/capability checks, and pool removal on failed validation (`#204`)"
+      ],
+      "needs_atomization": true
+    },
+    {
+      "record_id": "file-0537-atom-0005",
+      "file_index": 537,
+      "atom_index": 5,
+      "atoms_total": 10,
+      "source_path": "crates/transaction-pool/src/pool/txpool.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 3: EVM Context, Precompiles, And SPC",
+      "source_kind": "error_path",
+      "source_snippet": "Feature-preservation claims: Preserve: it was intentionally removed from detection, validation, pool, verifier, fee, and registry paths (`#319`)",
+      "semantic_claim": "Preserve: it was intentionally removed from detection, validation, pool, verifier, fee, and registry paths (`#319`).",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "verifier",
+        "txpool",
+        "precompile",
+        "fees",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/async_pool.rs",
+          "symbols": [
+            "AsyncPool",
+            "AsyncTxMetadata"
+          ],
+          "snippet": "async tx lifecycle metadata, result submission, delivery readiness, and cleanup",
+          "evidence": "Transaction-pool async behavior is preserved in the current async_pool module and Pool wrappers."
+        }
+      ],
+      "equivalence_argument": "Transaction-pool behavior is preserved in v2.2 async pool structures/tests.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Preserve: it was intentionally removed from detection, validation, pool, verifier, fee, and registry paths (`#319`).",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to transaction-pool async_pool.",
+      "feature_derived": true,
+      "feature_sections": [
+        3
+      ],
+      "source_feature_ids": [
+        "feature-raw-0036"
+      ],
+      "source_feature_claims": [
+        "Preserve: it was intentionally removed from detection, validation, pool, verifier, fee, and registry paths (`#319`)"
+      ],
+      "needs_atomization": true
+    },
+    {
+      "record_id": "file-0537-atom-0006",
+      "file_index": 537,
+      "atom_index": 6,
+      "atoms_total": 10,
+      "source_path": "crates/transaction-pool/src/pool/txpool.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 4: Txpool Async And Scheduled Lifecycle",
+      "source_kind": "error_path",
+      "source_snippet": "Feature-preservation claims: Preserve duplicate/nonce behavior: optimized nonce-lock verification, pre-recovered senders, same-block duplicate commitment rejection, and pool hooks (`#207`)",
+      "semantic_claim": "Preserve duplicate/nonce behavior: optimized nonce-lock verification, pre-recovered senders, same-block duplicate commitment rejection, and pool hooks (`#207`).",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "scheduled",
+        "verifier",
+        "txpool",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/async_pool.rs",
+          "symbols": [
+            "AsyncPool",
+            "AsyncTxMetadata"
+          ],
+          "snippet": "async tx lifecycle metadata, result submission, delivery readiness, and cleanup",
+          "evidence": "Transaction-pool async behavior is preserved in the current async_pool module and Pool wrappers."
+        }
+      ],
+      "equivalence_argument": "Transaction-pool behavior is preserved in v2.2 async pool structures/tests.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Preserve duplicate/nonce behavior: optimized nonce-lock verification, pre-recovered senders, same-block duplicate commitment rejection, and pool hooks (`#207`).",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to transaction-pool async_pool.",
+      "feature_derived": true,
+      "feature_sections": [
+        4
+      ],
+      "source_feature_ids": [
+        "feature-raw-0047"
+      ],
+      "source_feature_claims": [
+        "Preserve duplicate/nonce behavior: optimized nonce-lock verification, pre-recovered senders, same-block duplicate commitment rejection, and pool hooks (`#207`)"
+      ],
+      "needs_atomization": true
+    },
+    {
+      "record_id": "file-0537-atom-0007",
+      "file_index": 537,
+      "atom_index": 7,
+      "atoms_total": 10,
+      "source_path": "crates/transaction-pool/src/pool/txpool.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 4: Txpool Async And Scheduled Lifecycle",
+      "source_kind": "encoding_rule",
+      "source_snippet": "Feature-preservation claims: Async commitment pool keyed by original tx hash.",
+      "semantic_claim": "Async commitment pool keyed by original tx hash.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "scheduled",
+        "txpool",
+        "encoding"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/async_pool.rs",
+          "symbols": [
+            "AsyncPool",
+            "AsyncTxMetadata"
+          ],
+          "snippet": "async tx lifecycle metadata, result submission, delivery readiness, and cleanup",
+          "evidence": "Transaction-pool async behavior is preserved in the current async_pool module and Pool wrappers."
+        }
+      ],
+      "equivalence_argument": "Transaction-pool behavior is preserved in v2.2 async pool structures/tests.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Async commitment pool keyed by original tx hash.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to transaction-pool async_pool.",
+      "feature_derived": true,
+      "feature_sections": [
+        4
+      ],
+      "source_feature_ids": [
+        "feature-raw-0039"
+      ],
+      "source_feature_claims": [
+        "Async commitment pool keyed by original tx hash."
+      ],
+      "needs_atomization": true
+    },
+    {
+      "record_id": "file-0537-atom-0008",
+      "file_index": 537,
+      "atom_index": 8,
+      "atoms_total": 10,
+      "source_path": "crates/transaction-pool/src/pool/txpool.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 4: Txpool Async And Scheduled Lifecycle",
+      "source_kind": "state_transition",
+      "source_snippet": "Feature-preservation claims: Preserve Phase 2 and lifetime behavior: Phase 2 deadline offset semantics (`#232`), async pool metadata refresh after canonical SPC context fixes (`#273`), sovereign-agent Phase 1 async tx pool lifetime of `200` seconds (`#308`)",
+      "semantic_claim": "Preserve Phase 2 and lifetime behavior: Phase 2 deadline offset semantics (`#232`), async pool metadata refresh after canonical SPC context fixes (`#273`), sovereign-agent Phase 1 async tx pool lifetime of `200` seconds (`#308`).",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "scheduled",
+        "txpool"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/async_pool.rs",
+          "symbols": [
+            "AsyncPool",
+            "AsyncTxMetadata"
+          ],
+          "snippet": "async tx lifecycle metadata, result submission, delivery readiness, and cleanup",
+          "evidence": "Transaction-pool async behavior is preserved in the current async_pool module and Pool wrappers."
+        }
+      ],
+      "equivalence_argument": "Transaction-pool behavior is preserved in v2.2 async pool structures/tests.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Preserve Phase 2 and lifetime behavior: Phase 2 deadline offset semantics (`#232`), async pool metadata refresh after canonical SPC context fixes (`#273`), sovereign-agent Phase 1 async tx pool lifetime of `200` seconds (`#308`).",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to transaction-pool async_pool.",
+      "feature_derived": true,
+      "feature_sections": [
+        4
+      ],
+      "source_feature_ids": [
+        "feature-raw-0049"
+      ],
+      "source_feature_claims": [
+        "Preserve Phase 2 and lifetime behavior: Phase 2 deadline offset semantics (`#232`), async pool metadata refresh after canonical SPC context fixes (`#273`), sovereign-agent Phase 1 async tx pool lifetime of `200` seconds (`#308`)"
+      ],
+      "needs_atomization": true
+    },
+    {
+      "record_id": "file-0537-atom-0009",
+      "file_index": 537,
+      "atom_index": 9,
+      "atoms_total": 10,
+      "source_path": "crates/transaction-pool/src/pool/txpool.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 7: Block Verification And Consensus Gates",
+      "source_kind": "encoding_rule",
+      "source_snippet": "Feature-preservation claims: Preserve deferred-bytes and canonical context checks: hash/size from AsyncJobTracker, full bytes from calldata (`#208`), canonical tracker-derived SPC context and pool/contract consistency (`#273`)",
+      "semantic_claim": "Preserve deferred-bytes and canonical context checks: hash/size from AsyncJobTracker, full bytes from calldata (`#208`), canonical tracker-derived SPC context and pool/contract consistency (`#273`).",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "verifier",
+        "txpool",
+        "encoding"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/async_pool.rs",
+          "symbols": [
+            "AsyncPool",
+            "AsyncTxMetadata"
+          ],
+          "snippet": "async tx lifecycle metadata, result submission, delivery readiness, and cleanup",
+          "evidence": "Transaction-pool async behavior is preserved in the current async_pool module and Pool wrappers."
+        }
+      ],
+      "equivalence_argument": "Transaction-pool behavior is preserved in v2.2 async pool structures/tests.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Preserve deferred-bytes and canonical context checks: hash/size from AsyncJobTracker, full bytes from calldata (`#208`), canonical tracker-derived SPC context and pool/contract consistency (`#273`).",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to transaction-pool async_pool.",
+      "feature_derived": true,
+      "feature_sections": [
+        7
+      ],
+      "source_feature_ids": [
+        "feature-raw-0087"
+      ],
+      "source_feature_claims": [
+        "Preserve deferred-bytes and canonical context checks: hash/size from AsyncJobTracker, full bytes from calldata (`#208`), canonical tracker-derived SPC context and pool/contract consistency (`#273`)"
+      ],
+      "needs_atomization": true
+    },
+    {
+      "record_id": "file-0537-atom-0010",
+      "file_index": 537,
+      "atom_index": 10,
+      "atoms_total": 10,
+      "source_path": "crates/transaction-pool/src/pool/txpool.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 8: RPC And Operator Surfaces",
+      "source_kind": "other",
+      "source_snippet": "Feature-preservation claims: Preserve: Preserve async txpool metadata RPC coverage (`#32`, `#85`), not just submission endpoints",
+      "semantic_claim": "Preserve: Preserve async txpool metadata RPC coverage (`#32`, `#85`), not just submission endpoints.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "txpool",
+        "rpc"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/async_pool.rs",
+          "symbols": [
+            "AsyncPool",
+            "AsyncTxMetadata"
+          ],
+          "snippet": "async tx lifecycle metadata, result submission, delivery readiness, and cleanup",
+          "evidence": "Transaction-pool async behavior is preserved in the current async_pool module and Pool wrappers."
+        }
+      ],
+      "equivalence_argument": "Transaction-pool behavior is preserved in v2.2 async pool structures/tests.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Preserve: Preserve async txpool metadata RPC coverage (`#32`, `#85`), not just submission endpoints.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to transaction-pool async_pool.",
+      "feature_derived": true,
+      "feature_sections": [
+        8
+      ],
+      "source_feature_ids": [
+        "feature-raw-0095"
+      ],
+      "source_feature_claims": [
+        "Preserve: Preserve async txpool metadata RPC coverage (`#32`, `#85`), not just submission endpoints"
+      ],
+      "needs_atomization": true
+    }
+  ],
+  "high_risk_atoms_total": 10,
+  "non_exact_atoms_total": 9,
+  "adversarial_reviews": [],
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "The destination keeps the module at the same relative path with overlapping symbols ['new']. Curated test-atom insertion appended 1 grouped behavior atom(s) from coverage-map/test-atom-audit; raw helper/no-assert/default-only cases were not canonicalized. Curated feature-preservation insertion appended 8 grouped feature-derived behavior atom(s)."
+}

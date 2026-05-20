@@ -1,0 +1,26 @@
+{
+  "record_type": "file",
+  "file_index": 96,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/ethereum/primitives/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "manifest-only",
+    "noise"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The downstream patch only adds an unconditional `tracing` dependency to the crate manifest, but the crate contains no `tracing` imports, macros, or attributes, so this is a non-behavioral manifest-only change.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Searched `crates/ethereum/primitives/src` in both downstream and port repos for `tracing::`, tracing macros, and `instrument(` and found no usages. The destination manifest also omits this dependency. Because the added dependency is unused by the crate, there is no behavioral atom to map."
+}

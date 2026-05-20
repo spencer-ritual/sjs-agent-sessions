@@ -1,0 +1,63 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-precompile-codecs/src/dkms_key.rs",
+    "crates/ritual-precompile-codecs/src/lib.rs"
+  ],
+  "invariant_id": "cur-fa7cb34831-dkms-request-five-fields-secrets",
+  "invariant_index": 469,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-precompile-codecs/src/dkms_key.rs",
+      "crates/ritual-precompile-codecs/src/validation.rs"
+    ],
+    "checked_queries": [
+      "DkmsKeyRequest five fields no secrets",
+      "DkmsKeyRequest encrypted_secrets secret_signature user_public_key eight fields",
+      "Expected 5 tokens DKMS"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "DkmsKeyRequest::from_abi",
+      "encrypted_secrets",
+      "secret_signature",
+      "user_public_key",
+      "key_format"
+    ],
+    "missing_behavior": "DkmsKeyRequest no longer has the five-field no-secrets ABI; the local codec requires eight fields including encrypted_secrets, secret_signature, and user_public_key.",
+    "related_but_insufficient_code": [
+      "crates/ritual-precompile-codecs/src/dkms_key.rs decodes eight ABI tokens and exposes base ExecutorRequest fields plus owner/key fields.",
+      "No audited repo contains a five-token DKMS codec for the current port."
+    ]
+  },
+  "notes": "This Atlas record conflicts with the newer eight-field DKMS invariant in this same batch.",
+  "rationale": "The new codec documents that DKMS does not use encrypted_secrets, secret_signature, or user_public_key and provides dedicated ABI encode/decode logic for its simpler key derivation request. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "7dfa01a1a08526afad2a775501ccfe555cb0a648"
+  ],
+  "statement": "DkmsKeyRequest must encode and decode ABI fields [executor address, owner address, key_index uint256 as u64, key_format uint8, ttl uint256 as u64], and must fail decoding when the field count or token types are wrong or key_format does not fit in u8.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Round-trip a DkmsKeyRequest through to_abi/from_abi and assert every field is preserved; then feed malformed ABI data, wrong token types, and a key_format uint256 above 255 and assert from_abi returns CodecError."
+  ],
+  "summary": "The five-field DKMS ABI is absent.",
+  "test_or_falsification_candidate": "Round-trip a DkmsKeyRequest through to_abi/from_abi and assert every field is preserved; then feed malformed ABI data, wrong token types, and a key_format uint256 above 255 and assert from_abi returns CodecError.",
+  "title": "DKMS request ABI has five fields and no secrets",
+  "total_invariants": 1954
+}

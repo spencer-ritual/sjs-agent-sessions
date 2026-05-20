@@ -1,0 +1,81 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The shared fee constants match the reduced HTTP base, per-byte fees, and one-gas byte accounting required by the invariant.",
+      "path": "crates/ritual-async-fees/src/constants.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const HTTP_EXECUTOR_BASE_FEE_WEI: u128 = 2_500_000_000_000;\npub const HTTP_EXECUTOR_FEE_PER_INPUT_BYTE_WEI: u128 = 350_000_000;\npub const HTTP_EXECUTOR_FEE_PER_OUTPUT_BYTE_WEI: u128 = 350_000_000;\npub const ASYNC_COMMITMENT_GAS_PER_INPUT_BYTE: u128 = 1;\npub const ASYNC_INCLUSION_GAS_PER_BYTE: u128 = 1;",
+      "symbols": [
+        "HTTP_EXECUTOR_BASE_FEE_WEI",
+        "HTTP_EXECUTOR_FEE_PER_INPUT_BYTE_WEI",
+        "HTTP_EXECUTOR_FEE_PER_OUTPUT_BYTE_WEI",
+        "ASYNC_COMMITMENT_GAS_PER_INPUT_BYTE",
+        "ASYNC_INCLUSION_GAS_PER_BYTE"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "HTTP executor fees are calculated directly from the reduced constants.",
+      "path": "crates/ritual-async-fees/src/http.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn http_executor_fee(input_len: usize, output_len: usize) -> U256 {\n    let input_component = U256::from(HTTP_EXECUTOR_FEE_PER_INPUT_BYTE_WEI) * U256::from(input_len as u64);\n    let output_component = U256::from(HTTP_EXECUTOR_FEE_PER_OUTPUT_BYTE_WEI) * U256::from(output_len as u64);\n    U256::from(HTTP_EXECUTOR_BASE_FEE_WEI) + input_component + output_component\n}",
+      "symbols": [
+        "http_executor_fee"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Commitment byte accounting uses the shared one-gas-per-byte constant; inclusion fees are currently intentionally zeroed by the old ZK two-phase update, so HTTP executor pricing uses the reduced constants while validator fees use shared byte constants.",
+      "path": "crates/ritual-async-fees/src/validators.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn async_commitment_fee(input_len: usize) -> U256 {\n    let gas_units = U256::from(ASYNC_COMMITMENT_GAS_PER_INPUT_BYTE) * U256::from(input_len as u64);\n    gas_units * U256::from(ASYNC_VALIDATION_GAS_PRICE_WEI)\n}\npub fn async_inclusion_fee(_input_len: usize, _output_len: usize) -> U256 { U256::ZERO }",
+      "symbols": [
+        "async_commitment_fee",
+        "async_inclusion_fee"
+      ]
+    }
+  ],
+  "equivalence_argument": "The old payload-local HTTP fee constants have been moved into ritual-async-fees. Payload construction and verification call the shared fee helpers, so the reduced HTTP constants are enforced through the common fee surface rather than duplicated in payload code.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-d6be95c0ea-async-http-fees-reduced-constants",
+  "invariant_index": 315,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to the shared fee crate used by the port payload and verifier paths.",
+  "rationale": "The primary diff reduces the HTTP executor base and byte fees by 10x and changes both async byte gas constants from 16 to 1, directly affecting payload fee calculation behavior. The primary diff changes the HTTP executor base and per-byte fee constants from the previous 100x AWS values to lower 10x AWS values and reduces async gas-per-byte constants from 16 to 1. Collapsed 2 closely related historical candidate statements into the latest effective formulation.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "644559599c9bfcaa052e3a13aba01bc239f04ce2",
+    "047c442a21fa31b25ba9d75aa17b2951b152731c"
+  ],
+  "statement": "Payload-builder async HTTP fee calculations should use a 2,500,000,000,000 wei base executor fee, 350,000,000 wei per input byte, 350,000,000 wei per output byte, and 1 gas per byte for async commitment and inclusion byte accounting.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Run the payload pricing calculation for an HTTP async call with known input and output byte lengths and assert the executor fees and validation gas components are computed from the reduced constants, not the prior 25,000,000,000,000 wei, 3,500,000,000 wei, and 16 gas-per-byte values.",
+    "Run the payload-builder async HTTP fee calculation for fixed input/output byte lengths and assert it uses the reduced base/per-byte constants and 1 gas per byte for commitment/inclusion accounting."
+  ],
+  "summary": "HTTP async executor fees use the reduced base and per-byte constants from ritual-async-fees.",
+  "test_or_falsification_candidate": "Calculate HTTP async fees for fixed input/output byte lengths and assert the executor fee equals 2,500,000,000,000 + 350,000,000 * input_len + 350,000,000 * output_len, with commitment byte gas using 1 gas per byte.",
+  "title": "Async HTTP fees use reduced constants",
+  "total_invariants": 1954
+}

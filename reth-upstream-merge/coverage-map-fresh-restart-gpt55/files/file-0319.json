@@ -1,0 +1,73 @@
+{
+  "record_type": "file",
+  "file_index": 319,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-precompile-codecs/src/error.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "precompile-codecs",
+    "errors"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0319-atom-0001",
+      "file_index": 319,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-precompile-codecs/src/error.rs",
+      "source_hunk_hint": "@@ -0,0 +1,22 @@; codec error enum",
+      "source_kind": "codec_error_surface",
+      "source_snippet": "pub enum CodecError {\n    AbiDecodingFailed(#[from] alloy_sol_types::Error),\n    InputTooShort { expected: usize, actual: usize },\n    InvalidFieldValue { field: String, value: String },\n    HeaderLengthMismatch { keys_len: usize, values_len: usize },\n    FieldExtractionFailed(String),\n}",
+      "semantic_claim": "The old divergence adds the shared `CodecError` enum for ABI decode failures, short input data, invalid fields, mismatched header arrays, and generic field extraction failures with stable display messages.",
+      "high_risk": false,
+      "risk_tags": [
+        "errors",
+        "abi-decoding",
+        "codec-error",
+        "thiserror"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/error.rs",
+          "symbols": [
+            "CodecError"
+          ],
+          "evidence": "Destination lines 1-22 exactly match source-added diff lines 57096-57117."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps all codec error variants and display payloads unchanged for downstream decoder callers.",
+      "test_strategy": "codec_error_variant_tests",
+      "negative_test_candidate": "A decoder receiving too-short or wrongly typed ABI input should return the specific preserved `CodecError` variant rather than panic.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The shared precompile codec error surface is exact-port preserved.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 319: A\tcrates/ritual-precompile-codecs/src/error.rs.",
+    "Source-added hunk spans diff lines 57096-57117 with header `@@ -0,0 +1,22 @@`.",
+    "Destination `crates/ritual-precompile-codecs/src/error.rs` has 22 lines and matches the source-added file exactly.",
+    "No review queue entry required because the atom is exact."
+  ]
+}

@@ -1,0 +1,687 @@
+{
+  "record_type": "file",
+  "file_index": 344,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-spc-signature/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "exact",
+    "high-risk",
+    "needs-review",
+    "non-exact",
+    "structural_equivalent"
+  ],
+  "atoms_total": 13,
+  "atoms": [
+    {
+      "record_id": "file-0344-atom-0001",
+      "file_index": 344,
+      "atom_index": 1,
+      "atoms_total": 13,
+      "source_path": "crates/ritual-spc-signature/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,724 @@",
+      "source_kind": "other",
+      "source_snippet": "//! Pure cryptographic signature verification for SPC calls\n//!\n//! This crate does not depend on reth-provider or reth-evm. Precompile addresses for\n//! [`is_spc_block_verified_precompile`] come from `ritual-precompile-addresses` so they stay\n//! aligned with fees/builder constants.\n",
+      "semantic_claim": "The downstream diff for crates/ritual-spc-signature/src/lib.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-signature/src/lib.rs",
+          "symbols": [
+            "is_spc_block_verified_precompile",
+            "verify_signature_core",
+            "normalize_recovery_id",
+            "construct_signature_payload",
+            "test_recovery_id_raw_zero"
+          ],
+          "snippet": "//! [`is_spc_block_verified_precompile`] come from `ritual-precompile-addresses` so they stay\n//! aligned with fees/builder constants.\n\nuse alloy_primitives::{hex, keccak256, Address, Bytes, B256};\nuse ritual_precompile_addresses::{",
+          "evidence": "The destination keeps the module at the same relative path with overlapping symbols ['is_spc_block_verified_precompile', 'verify_signature_core', 'normalize_recovery_id', 'construct_signature_payload', 'test_recovery_id_raw_zero']."
+        }
+      ],
+      "equivalence_argument": "The downstream behavior still resides in the same integration surface in the destination workspace, but the implementation was refactored or reshaped; review is required to confirm full semantic parity.",
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "The destination keeps the module at the same relative path with overlapping symbols ['is_spc_block_verified_precompile', 'verify_signature_core', 'normalize_recovery_id', 'construct_signature_payload', 'test_recovery_id_raw_zero'].",
+      "human_question": "Confirm that the destination module at the same path still preserves the downstream behavior after the v2.2 refactor."
+    },
+    {
+      "record_id": "file-0344-atom-0002",
+      "file_index": 344,
+      "atom_index": 2,
+      "atoms_total": 13,
+      "source_path": "crates/ritual-spc-signature/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,724 @@",
+      "source_kind": "encoding_rule",
+      "source_snippet": "        assert!(payload_str.contains(&u64::MAX.to_string()));\n    }\n\n    #[test]\n    fn test_all_zeros() {\n        let payload = construct_signature_payload(\n            0,\n            B256::ZERO,\n            Address::ZERO,\n            &Bytes::new(),\n            &Bytes::new(),\n            B256::ZERO,\n            0,\n            0,\n            \"\",\n        );\n\n        assert!(payload.is_ok());\n    }\n\n    // ============================================================\n    // Determinism Tests",
+      "semantic_claim": "all zeros preserves the production behavior asserted by downstream tests: test_all_zeros.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "encoding",
+        "negative-path"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-signature/src/lib.rs",
+          "symbols": [
+            "test_all_zeros"
+          ],
+          "snippet": "fn test_all_zeros(...) / matching test or fixture name",
+          "evidence": "Exact destination evidence exists at the same relative source path for at least one grouped downstream test."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "same_test_both_repos",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_all_zeros.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Curated from supplemental test-atom audit by grouping sibling tests and dropping helper/no-assert/default-only noise.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_all_zeros"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0344-atom-0025"
+      ],
+      "required_change": "Split this broad derived claim into indivisible branch, guard, transition, side-effect, or error-path atoms before using it as actionable coverage."
+    },
+    {
+      "record_id": "file-0344-atom-0003",
+      "file_index": 344,
+      "atom_index": 3,
+      "atoms_total": 13,
+      "source_path": "crates/ritual-spc-signature/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,724 @@",
+      "source_kind": "encoding_rule",
+      "source_snippet": "        }\n    }\n\n    #[test]\n    fn test_json_format_compact_no_spaces() {\n        let payload = construct_signature_payload(\n            100,\n            B256::ZERO,\n            address!(\"0000000000000000000000000000000000000801\"),\n            &Bytes::from(vec![0x01]),\n            &Bytes::from(vec![0x02]),\n            B256::ZERO,\n            99,\n            1234567890,\n            \"\",\n        )\n        .unwrap();\n\n        // Compact JSON should have no spaces after colons or commas\n        assert!(!payload.contains(\": \"), \"Should not have space after colon\");\n        assert!(!payload.contains(\", \"), \"Should not have space after comma\");\n    }\n---\n        assert!(!payload.contains(\", \"), \"Should not have space after comma\");\n    }\n\n    #[test]\n    fn test_json_format_hex_no_0x_prefix() {\n        let payload = construct_signature_payload(\n            100,\n            B256::from([0xAB; 32]),\n            address!(\"0000000000000000000000000000000000000801\"),\n            &Bytes::from(vec![0xDE, 0xAD]),\n            &Bytes::from(vec![0xBE, 0xEF]),\n            B256::from([0xCD; 32]),\n            99,\n            1234567890,\n            \"\",\n        )\n        .unwrap();\n\n        // Should not contain \"0x\" prefix anywhere\n        assert!(!payload.contains(\"\\\"0x\"), \"Hex values should not have 0x prefix\");\n        // But should contain the hex valu\n---\n        assert!(payload.contains(\"beef\"), \"Output hex should be present\");\n    }\n\n    #[test]\n    fn test_json_format_empty_error_string() {\n        let payload = construct_signature_payload(\n            100,\n            B256::ZERO,\n            address!(\"0000000000000000000000000000000000000801\"),\n            &Bytes::new(),\n            &Bytes::new(),\n            B256::ZERO,\n            99,\n            1234567890,\n            \"\",\n        )\n        .unwrap();\n\n        assert!(payload.contains(\"\\\"error\\\":\\\"\\\"\"), \"Error should be empty string\");\n    }\n\n    #[test]",
+      "semantic_claim": "json format preserves the production behavior asserted by downstream tests: test_json_format_compact_no_spaces, test_json_format_hex_no_0x_prefix, test_json_format_empty_error_string, test_json_format_with_error_message.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "encoding",
+        "negative-path"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-signature/src/lib.rs",
+          "symbols": [
+            "test_json_format_compact_no_spaces",
+            "test_json_format_empty_error_string",
+            "test_json_format_hex_no_0x_prefix",
+            "test_json_format_with_error_message"
+          ],
+          "snippet": "fn test_json_format_compact_no_spaces(...) / matching test or fixture name",
+          "evidence": "Exact destination evidence exists at the same relative source path for at least one grouped downstream test."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "same_test_both_repos",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_json_format_compact_no_spaces, test_json_format_hex_no_0x_prefix, test_json_format_empty_error_string, test_json_format_with_error_message.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Curated from supplemental test-atom audit by grouping sibling tests and dropping helper/no-assert/default-only noise.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_json_format_compact_no_spaces",
+        "test_json_format_hex_no_0x_prefix",
+        "test_json_format_empty_error_string",
+        "test_json_format_with_error_message"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0344-atom-0013",
+        "test-file-0344-atom-0014",
+        "test-file-0344-atom-0015",
+        "test-file-0344-atom-0016"
+      ],
+      "required_change": "Split this broad derived claim into indivisible branch, guard, transition, side-effect, or error-path atoms before using it as actionable coverage."
+    },
+    {
+      "record_id": "file-0344-atom-0004",
+      "file_index": 344,
+      "atom_index": 4,
+      "atoms_total": 13,
+      "source_path": "crates/ritual-spc-signature/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,724 @@",
+      "source_kind": "encoding_rule",
+      "source_snippet": "    // Edge Case Tests\n    // ============================================================\n\n    #[test]\n    fn test_large_input_output() {\n        // Test with larger input/output data (5KB each)\n        let large_input = Bytes::from(vec![0xABu8; 5000]);\n        let large_output = Bytes::from(vec![0xCDu8; 5000]);\n\n        let payload = construct_signature_payload(\n            100,\n            B256::ZERO,\n            address!(\"0000000000000000000000000000000000000801\"),\n            &large_input,\n            &large_output,\n            B256::ZERO,\n            99,\n            1234567890,\n            \"\",\n        );\n\n        assert!(payload.is_ok());",
+      "semantic_claim": "large input preserves the production behavior asserted by downstream tests: test_large_input_output.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "encoding"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-signature/src/lib.rs",
+          "symbols": [
+            "test_large_input_output"
+          ],
+          "snippet": "fn test_large_input_output(...) / matching test or fixture name",
+          "evidence": "Exact destination evidence exists at the same relative source path for at least one grouped downstream test."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "same_test_both_repos",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_large_input_output.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Curated from supplemental test-atom audit by grouping sibling tests and dropping helper/no-assert/default-only noise.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_large_input_output"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0344-atom-0023"
+      ],
+      "required_change": "Split this broad derived claim into indivisible branch, guard, transition, side-effect, or error-path atoms before using it as actionable coverage."
+    },
+    {
+      "record_id": "file-0344-atom-0005",
+      "file_index": 344,
+      "atom_index": 5,
+      "atoms_total": 13,
+      "source_path": "crates/ritual-spc-signature/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,724 @@",
+      "source_kind": "encoding_rule",
+      "source_snippet": "        assert!(payload_str.len() > 20000, \"Payload should contain hex-encoded data\");\n    }\n\n    #[test]\n    fn test_max_block_numbers() {\n        let payload = construct_signature_payload(\n            u64::MAX,\n            B256::ZERO,\n            address!(\"0000000000000000000000000000000000000801\"),\n            &Bytes::new(),\n            &Bytes::new(),\n            B256::ZERO,\n            u64::MAX - 1,\n            u64::MAX,\n            \"\",\n        );\n\n        assert!(payload.is_ok());\n        let payload_str = payload.unwrap();\n        assert!(payload_str.contains(&u64::MAX.to_string()));\n    }\n",
+      "semantic_claim": "max block preserves the production behavior asserted by downstream tests: test_max_block_numbers.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "encoding"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-signature/src/lib.rs",
+          "symbols": [
+            "test_max_block_numbers"
+          ],
+          "snippet": "fn test_max_block_numbers(...) / matching test or fixture name",
+          "evidence": "Exact destination evidence exists at the same relative source path for at least one grouped downstream test."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "same_test_both_repos",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_max_block_numbers.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Curated from supplemental test-atom audit by grouping sibling tests and dropping helper/no-assert/default-only noise.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_max_block_numbers"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0344-atom-0024"
+      ],
+      "required_change": "Split this broad derived claim into indivisible branch, guard, transition, side-effect, or error-path atoms before using it as actionable coverage."
+    },
+    {
+      "record_id": "file-0344-atom-0006",
+      "file_index": 344,
+      "atom_index": 6,
+      "atoms_total": 13,
+      "source_path": "crates/ritual-spc-signature/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,724 @@",
+      "source_kind": "encoding_rule",
+      "source_snippet": "        assert_eq!(payload1, payload2, \"Same inputs should produce identical payloads\");\n    }\n\n    #[test]\n    fn test_message_hash_deterministic() {\n        let payload = construct_signature_payload(\n            100,\n            B256::from([0x11; 32]),\n            address!(\"0000000000000000000000000000000000000801\"),\n            &Bytes::from(vec![0x01, 0x02]),\n            &Bytes::from(vec![0x03, 0x04]),\n            B256::from([0x22; 32]),\n            99,\n            1234567890,\n            \"\",\n        )\n        .unwrap();\n\n        let hash1 = keccak256(payload.as_bytes());\n        let hash2 = keccak256(payload.as_bytes());\n\n        assert_eq!(hash1, hash2, \"Same payload should produce iden",
+      "semantic_claim": "message hash preserves the encoding, decoding, storage, or proof boundary covered by downstream tests: test_message_hash_deterministic.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "encoding"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-signature/src/lib.rs",
+          "symbols": [
+            "test_message_hash_deterministic"
+          ],
+          "snippet": "fn test_message_hash_deterministic(...) / matching test or fixture name",
+          "evidence": "Exact destination evidence exists at the same relative source path for at least one grouped downstream test."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "same_test_both_repos",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_message_hash_deterministic.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Curated from supplemental test-atom audit by grouping sibling tests and dropping helper/no-assert/default-only noise.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_message_hash_deterministic"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0344-atom-0027"
+      ],
+      "required_change": "Split this broad derived claim into indivisible branch, guard, transition, side-effect, or error-path atoms before using it as actionable coverage."
+    },
+    {
+      "record_id": "file-0344-atom-0007",
+      "file_index": 344,
+      "atom_index": 7,
+      "atoms_total": 13,
+      "source_path": "crates/ritual-spc-signature/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,724 @@",
+      "source_kind": "encoding_rule",
+      "source_snippet": "        assert!(result.unwrap_err().contains(\"Invalid recovery ID byte: 2\"));\n    }\n\n    #[test]\n    fn test_recovery_id_invalid_26() {\n        let result = normalize_recovery_id(26);\n        assert!(result.is_err());\n    }\n\n    #[test]\n    fn test_recovery_id_invalid_29() {\n        let result = normalize_recovery_id(29);\n        assert!(result.is_err());\n    }\n\n    #[test]\n    fn is_spc_block_verified_precompile_includes_fhe_sovereign_persistent() {\n        use ritual_precompile_addresses::{\n            FHE_PRECOMPILE, PERSISTENT_AGENT_PRECOMPILE, SOVEREIGN_AGENT_PRECOMPILE,\n        };\n        assert!(is_spc_block_verified_precompile(FHE_PRECOMPILE));\n        assert!(is_spc_block_verified_p\n---\n        assert!(result.is_err());\n    }\n\n    #[test]\n    fn test_recovery_id_invalid_29() {\n        let result = normalize_recovery_id(29);\n        assert!(result.is_err());\n    }\n\n    #[test]\n    fn is_spc_block_verified_precompile_includes_fhe_sovereign_persistent() {\n        use ritual_precompile_addresses::{\n            FHE_PRECOMPILE, PERSISTENT_AGENT_PRECOMPILE, SOVEREIGN_AGENT_PRECOMPILE,\n        };\n        assert!(is_spc_block_verified_precompile(FHE_PRECOMPILE));\n        assert!(is_spc_block_verified_precompile(SOVEREIGN_AGENT_PRECOMPILE));\n        assert!(is_spc_block_verified_precompile(PERSISTENT_AGENT_PRECOMPILE));\n        assert!(!is_spc_block_verified_precompile(Address::ZERO)",
+      "semantic_claim": "precompile address preserves the production behavior asserted by downstream tests: test_recovery_id_invalid_26, test_recovery_id_invalid_29.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "encoding",
+        "negative-path"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-signature/src/lib.rs",
+          "symbols": [
+            "test_recovery_id_invalid_26",
+            "test_recovery_id_invalid_29"
+          ],
+          "snippet": "fn test_recovery_id_invalid_26(...) / matching test or fixture name",
+          "evidence": "Exact destination evidence exists at the same relative source path for at least one grouped downstream test."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "same_test_both_repos",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_recovery_id_invalid_26, test_recovery_id_invalid_29.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Curated from supplemental test-atom audit by grouping sibling tests and dropping helper/no-assert/default-only noise.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_recovery_id_invalid_26",
+        "test_recovery_id_invalid_29"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0344-atom-0006",
+        "test-file-0344-atom-0007"
+      ],
+      "required_change": "Split this broad derived claim into indivisible branch, guard, transition, side-effect, or error-path atoms before using it as actionable coverage."
+    },
+    {
+      "record_id": "file-0344-atom-0008",
+      "file_index": 344,
+      "atom_index": 8,
+      "atoms_total": 13,
+      "source_path": "crates/ritual-spc-signature/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,724 @@",
+      "source_kind": "encoding_rule",
+      "source_snippet": "        assert!(result.is_err());\n    }\n\n    #[test]\n    fn is_spc_block_verified_precompile_includes_fhe_sovereign_persistent() {\n        use ritual_precompile_addresses::{\n            FHE_PRECOMPILE, PERSISTENT_AGENT_PRECOMPILE, SOVEREIGN_AGENT_PRECOMPILE,\n        };\n        assert!(is_spc_block_verified_precompile(FHE_PRECOMPILE));\n        assert!(is_spc_block_verified_precompile(SOVEREIGN_AGENT_PRECOMPILE));\n        assert!(is_spc_block_verified_precompile(PERSISTENT_AGENT_PRECOMPILE));\n        assert!(!is_spc_block_verified_precompile(Address::ZERO));\n    }\n\n    #[test]\n    fn is_spc_block_verified_precompile_covers_all_canonical_addresses() {\n        assert_eq!(ALL_SPC_BLOCK_VERIFIED_P\n---\n        assert!(!is_spc_block_verified_precompile(Address::ZERO));\n    }\n\n    #[test]\n    fn is_spc_block_verified_precompile_covers_all_canonical_addresses() {\n        assert_eq!(ALL_SPC_BLOCK_VERIFIED_PRECOMPILE_ADDRESSES.len(), 12);\n        for addr in ALL_SPC_BLOCK_VERIFIED_PRECOMPILE_ADDRESSES {\n            assert!(is_spc_block_verified_precompile(addr), \"predicate must include {addr}\");\n        }\n    }\n\n    #[test]\n    fn test_recovery_id_invalid_30() {\n        // This was the specific case that could bypass validation before the fix\n        let result = normalize_recovery_id(30);\n        assert!(result.is_err());\n        assert!(result.unwrap_err().contains(\"Invalid recovery ID byte: ",
+      "semantic_claim": "Scheduled predicate handling preserves shouldExecute calldata/result handling, default-predicate behavior, and predicate failure/revert/halt rejection semantics.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "encoding",
+        "negative-path",
+        "scheduled",
+        "consensus-constant"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-signature/src/lib.rs",
+          "symbols": [
+            "is_spc_block_verified_precompile_covers_all_canonical_addresses",
+            "is_spc_block_verified_precompile_includes_fhe_sovereign_persistent"
+          ],
+          "snippet": "fn is_spc_block_verified_precompile_includes_fhe_sovereign_persistent(...) / matching test or fixture name",
+          "evidence": "Exact destination evidence exists at the same relative source path for at least one grouped downstream test."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "same_test_both_repos",
+      "negative_test_candidate": "Run or port the grouped downstream tests: is_spc_block_verified_precompile_includes_fhe_sovereign_persistent, is_spc_block_verified_precompile_covers_all_canonical_addresses.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Curated from supplemental test-atom audit by grouping sibling tests and dropping helper/no-assert/default-only noise.",
+      "test_derived": true,
+      "source_test_names": [
+        "is_spc_block_verified_precompile_includes_fhe_sovereign_persistent",
+        "is_spc_block_verified_precompile_covers_all_canonical_addresses"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0344-atom-0008",
+        "test-file-0344-atom-0009"
+      ],
+      "required_change": "Split this broad derived claim into indivisible branch, guard, transition, side-effect, or error-path atoms before using it as actionable coverage."
+    },
+    {
+      "record_id": "file-0344-atom-0009",
+      "file_index": 344,
+      "atom_index": 9,
+      "atoms_total": 13,
+      "source_path": "crates/ritual-spc-signature/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,724 @@",
+      "source_kind": "encoding_rule",
+      "source_snippet": "    // Proof Length Validation Tests\n    // ============================================================\n\n    #[test]\n    fn test_proof_too_short_empty() {\n        let result = verify_signature_core(\n            &[0u8; 64],\n            100,\n            B256::ZERO,\n            address!(\"0000000000000000000000000000000000000801\"),\n            &Bytes::new(),\n            &Bytes::new(),\n            B256::ZERO,\n            99,\n            1234567890,\n            \"\",\n            &Bytes::new(), // Empty proof\n        );\n\n        assert!(result.is_err());\n        assert!(result.unwrap_err().contains(\"Proof too short\"));\n    }\n---\n        assert!(result.unwrap_err().contains(\"Proof too short\"));\n    }\n\n    #[test]\n    fn test_proof_too_short_64_bytes() {\n        let result = verify_signature_core(\n            &[0u8; 64],\n            100,\n            B256::ZERO,\n            address!(\"0000000000000000000000000000000000000801\"),\n            &Bytes::new(),\n            &Bytes::new(),\n            B256::ZERO,\n            99,\n            1234567890,\n            \"\",\n            &Bytes::from(vec![0u8; 64]), // 64 bytes, need 65\n        );\n\n        assert!(result.is_err());\n        assert!(result.unwrap_err().contains(\"Proof too short\"));\n    }\n---\n        assert!(result.unwrap_err().contains(\"Proof too short\"));\n    }\n\n    #[test]\n    fn test_proof_exactly_65_bytes_invalid_recovery_id() {\n        // 65 bytes but with invalid recovery ID (value 30)\n        let mut proof = vec![0u8; 65];\n        proof[64] = 30; // Invalid recovery ID\n\n        let result = verify_signature_core(\n            &[0u8; 64],\n            100,\n            B256::ZERO,\n            address!(\"0000000000000000000000000000000000000801\"),\n            &Bytes::new(),\n            &Bytes::new(),\n            B256::ZERO,\n            99,\n            1234567890,\n            \"\",\n            &Bytes::from(proof),\n        );",
+      "semantic_claim": "proof preserves the encoding, decoding, storage, or proof boundary covered by downstream tests: test_proof_too_short_empty, test_proof_too_short_64_bytes, test_proof_exactly_65_bytes_invalid_recovery_id, test_proof_longer_than_65_uses_last_65.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "encoding",
+        "negative-path"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-signature/src/lib.rs",
+          "symbols": [
+            "test_proof_exactly_65_bytes_invalid_recovery_id",
+            "test_proof_longer_than_65_uses_last_65",
+            "test_proof_too_short_64_bytes",
+            "test_proof_too_short_empty",
+            "test_public_key_65_bytes_with_04_prefix"
+          ],
+          "snippet": "fn test_proof_too_short_empty(...) / matching test or fixture name",
+          "evidence": "Exact destination evidence exists at the same relative source path for at least one grouped downstream test."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "same_test_both_repos",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_proof_too_short_empty, test_proof_too_short_64_bytes, test_proof_exactly_65_bytes_invalid_recovery_id, test_proof_longer_than_65_uses_last_65, test_public_key_65_bytes_with_04_prefix.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Curated from supplemental test-atom audit by grouping sibling tests and dropping helper/no-assert/default-only noise.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_proof_too_short_empty",
+        "test_proof_too_short_64_bytes",
+        "test_proof_exactly_65_bytes_invalid_recovery_id",
+        "test_proof_longer_than_65_uses_last_65",
+        "test_public_key_65_bytes_with_04_prefix"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0344-atom-0017",
+        "test-file-0344-atom-0018",
+        "test-file-0344-atom-0019",
+        "test-file-0344-atom-0020",
+        "test-file-0344-atom-0022"
+      ],
+      "required_change": "Split this broad derived claim into indivisible branch, guard, transition, side-effect, or error-path atoms before using it as actionable coverage."
+    },
+    {
+      "record_id": "file-0344-atom-0010",
+      "file_index": 344,
+      "atom_index": 10,
+      "atoms_total": 13,
+      "source_path": "crates/ritual-spc-signature/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,724 @@",
+      "source_kind": "encoding_rule",
+      "source_snippet": "    // Recovery ID Validation Tests\n    // ============================================================\n\n    #[test]\n    fn test_recovery_id_raw_zero() {\n        assert_eq!(normalize_recovery_id(0), Ok(0));\n    }\n\n    #[test]\n    fn test_recovery_id_raw_one() {\n        assert_eq!(normalize_recovery_id(1), Ok(1));\n    }\n\n    #[test]\n    fn test_recovery_id_ethereum_27() {\n        assert_eq!(normalize_recovery_id(27), Ok(0));\n    }\n\n    #[test]\n    fn test_recovery_id_ethereum_28() {\n        assert_eq!(normalize_recovery_id(28), Ok(1));\n    }\n---\n        assert_eq!(normalize_recovery_id(0), Ok(0));\n    }\n\n    #[test]\n    fn test_recovery_id_raw_one() {\n        assert_eq!(normalize_recovery_id(1), Ok(1));\n    }\n\n    #[test]\n    fn test_recovery_id_ethereum_27() {\n        assert_eq!(normalize_recovery_id(27), Ok(0));\n    }\n\n    #[test]\n    fn test_recovery_id_ethereum_28() {\n        assert_eq!(normalize_recovery_id(28), Ok(1));\n    }\n\n    #[test]\n    fn test_recovery_id_invalid_2() {\n        let result = normalize_recovery_id(2);\n        assert!(result.is_err());\n---\n        assert_eq!(normalize_recovery_id(1), Ok(1));\n    }\n\n    #[test]\n    fn test_recovery_id_ethereum_27() {\n        assert_eq!(normalize_recovery_id(27), Ok(0));\n    }\n\n    #[test]\n    fn test_recovery_id_ethereum_28() {\n        assert_eq!(normalize_recovery_id(28), Ok(1));\n    }\n\n    #[test]\n    fn test_recovery_id_invalid_2() {\n        let result = normalize_recovery_id(2);\n        assert!(result.is_err());\n        assert!(result.unwrap_err().contains(\"Invalid recovery ID byte: 2\"));\n    }\n\n    #[test]\n    fn test_recovery_id_invalid_26() {",
+      "semantic_claim": "recovery id preserves the production behavior asserted by downstream tests: test_recovery_id_raw_zero, test_recovery_id_raw_one, test_recovery_id_ethereum_27, test_recovery_id_ethereum_28, test_recovery_id_invalid_2.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "encoding",
+        "negative-path"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-signature/src/lib.rs",
+          "symbols": [
+            "test_recovery_id_ethereum_27",
+            "test_recovery_id_ethereum_28",
+            "test_recovery_id_invalid_2",
+            "test_recovery_id_invalid_255",
+            "test_recovery_id_invalid_30",
+            "test_recovery_id_raw_one",
+            "test_recovery_id_raw_zero"
+          ],
+          "snippet": "fn test_recovery_id_raw_zero(...) / matching test or fixture name",
+          "evidence": "Exact destination evidence exists at the same relative source path for at least one grouped downstream test."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "same_test_both_repos",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_recovery_id_raw_zero, test_recovery_id_raw_one, test_recovery_id_ethereum_27, test_recovery_id_ethereum_28, test_recovery_id_invalid_2, test_recovery_id_invalid_30, test_recovery_id_invalid_255.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Curated from supplemental test-atom audit by grouping sibling tests and dropping helper/no-assert/default-only noise.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_recovery_id_raw_zero",
+        "test_recovery_id_raw_one",
+        "test_recovery_id_ethereum_27",
+        "test_recovery_id_ethereum_28",
+        "test_recovery_id_invalid_2",
+        "test_recovery_id_invalid_30",
+        "test_recovery_id_invalid_255"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0344-atom-0001",
+        "test-file-0344-atom-0002",
+        "test-file-0344-atom-0003",
+        "test-file-0344-atom-0004",
+        "test-file-0344-atom-0005",
+        "test-file-0344-atom-0010",
+        "test-file-0344-atom-0011"
+      ],
+      "required_change": "Split this broad derived claim into indivisible branch, guard, transition, side-effect, or error-path atoms before using it as actionable coverage."
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 344,
+      "source_path": "crates/ritual-spc-signature/src/lib.rs",
+      "source_hunk_hint": "crates/ritual-spc-signature/src/lib.rs:15-36",
+      "source_kind": "consensus_constant",
+      "source_snippet": "/// Membership is defined by [`ritual_precompile_addresses::ALL_SPC_BLOCK_VERIFIED_PRECOMPILE_ADDRESSES`]\n/// so the allowlist cannot drift from the canonical address constants.\n#[inline]\npub fn is_spc_block_verified_precompile(addr: Address) -> bool {\n    ALL_SPC_BLOCK_VERIFIED_PRECOMPILE_ADDRESSES.contains(&addr)\n}\n\n/// Core signature verification logic (pure cryptographic function)\n///\n/// This function performs the actual cryptographic signature verification without\n/// any dependencies on HeaderProvider or contract state. It only requires the\n/// cryptographic inputs (public key, signature, payload data).\n///\n/// # Arguments\n/// * `public_key` - Executor's public key (64 bytes, uncompressed)\n/// * `block_number` - Block number (from Job.commitBlock)\n/// * `tx_hash` - Transaction hash (from Job.id)\n/// * `precompile_address` - Precompile address\n/// * `precompile_input` - Precompile input bytes\n/// * `output` - Execution output bytes\n/// * `previous_block_hash` - Previous block hash (from Job.prevHash)\n/// * `previous_block_number` - Previous block number (from Job.prevNumber)",
+      "semantic_claim": "SPC verification membership delegates to the canonical address allowlist so RPC, builder, and verifier cannot drift on which async precompiles require SPC proof checking.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "verifier",
+        "precompile",
+        "consensus-constant"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-signature/src/lib.rs",
+          "symbols": [
+            "is_spc_block_verified_precompile",
+            "ALL_SPC_BLOCK_VERIFIED_PRECOMPILE_ADDRESSES"
+          ],
+          "snippet": "is_spc_block_verified_precompile delegates to ritual_precompile_addresses::is_spc_block_verified_precompile",
+          "evidence": "SPC membership is delegated to the canonical address crate so RPC/builder/verifier allowlists cannot drift."
+        }
+      ],
+      "equivalence_argument": "SPC allowlist behavior is preserved through ritual-spc-signature delegating membership to ritual-precompile-addresses.",
+      "test_strategy": "flow_equivalence_regression",
+      "negative_test_candidate": "Replay the smallest Short-Running Async SPC Trace, Long-Running Two-Phase Trace scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "Short-Running Async SPC Trace",
+        "Long-Running Two-Phase Trace"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0031"
+      ],
+      "notes": "Mapped to current ritual-spc-signature implementation.",
+      "atom_index": 11,
+      "record_id": "file-0344-atom-0011",
+      "atoms_total": 13
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 344,
+      "source_path": "crates/ritual-spc-signature/src/lib.rs",
+      "source_hunk_hint": "crates/ritual-spc-signature/src/lib.rs:199-220",
+      "source_kind": "encoding_rule",
+      "source_snippet": "/// - Keys sorted lexicographically (using BTreeMap)\n/// - Compact serialization (no spaces)\n/// - Hex values without 0x prefix\npub fn construct_signature_payload(\n    block_number: u64,\n    tx_hash: B256,\n    precompile_address: Address,\n    precompile_input: &Bytes,\n    output: &Bytes,\n    previous_block_hash: B256,\n    previous_block_number: u64,\n    previous_block_timestamp: u64,\n    error: &str,\n) -> Result<String, String> {\n    let mut ordered_map = BTreeMap::new();\n\n    ordered_map\n        .insert(\"block_number\", serde_json::Value::Number(serde_json::Number::from(block_number)));\n    ordered_map.insert(\"error\", serde_json::Value::String(error.to_string()));\n    ordered_map.insert(\"input\", serde_json::Value::String(hex::encode(precompile_input)));\n    ordered_map.insert(\"output\", serde_json::Value::String(hex::encode(output)));\n    ordered_map",
+      "semantic_claim": "SPC signature payload construction uses sorted compact JSON with hex strings without 0x prefixes for block number, tx hash, precompile address, input, output, previous block context, and error.",
+      "high_risk": true,
+      "risk_tags": [
+        "encoding",
+        "verifier",
+        "async-fsm"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-signature/src/lib.rs",
+          "symbols": [
+            "verify_signature_core",
+            "construct_signature_payload"
+          ],
+          "snippet": "BTreeMap + serde_json::to_string produce compact sorted JSON with hex strings without 0x prefixes",
+          "evidence": "SPC signature payload construction retains the executor-compatible canonical JSON format."
+        }
+      ],
+      "equivalence_argument": "SPC signature payload canonicalization is preserved in ritual-spc-signature.",
+      "test_strategy": "flow_equivalence_regression",
+      "negative_test_candidate": "Replay the smallest Short-Running Async SPC Trace, Executor And Operator Surface Compatibility scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "Short-Running Async SPC Trace",
+        "Executor And Operator Surface Compatibility"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0032"
+      ],
+      "notes": "Mapped to current ritual-spc-signature implementation.",
+      "atom_index": 12,
+      "record_id": "file-0344-atom-0012",
+      "atoms_total": 13
+    },
+    {
+      "record_type": "flow_derived_atom",
+      "functionality_flow_derived": true,
+      "functionality_flow_grounded": true,
+      "file_index": 344,
+      "source_path": "crates/ritual-spc-signature/src/lib.rs",
+      "source_hunk_hint": "crates/ritual-spc-signature/src/lib.rs:181-202",
+      "source_kind": "error_path",
+      "source_snippet": "///\n/// Accepts: 0, 1 (raw) or 27, 28 (Ethereum-style)\n/// Returns error for any other value\npub fn normalize_recovery_id(recovery_id_byte: u8) -> Result<u8, String> {\n    match recovery_id_byte {\n        0 | 1 => Ok(recovery_id_byte),\n        27 | 28 => Ok(recovery_id_byte - 27),\n        _ => Err(format!(\n            \"Invalid recovery ID byte: {} (expected 0, 1, 27, or 28)\",\n            recovery_id_byte\n        )),\n    }\n}\n\n/// Construct the JSON message payload that the executor signs\n///\n/// This function is exposed for testing and debugging purposes.\n/// The JSON format must exactly match the Python executor's format:\n/// - Keys sorted lexicographically (using BTreeMap)\n/// - Compact serialization (no spaces)\n/// - Hex values without 0x prefix\npub fn construct_signature_payload(",
+      "semantic_claim": "SPC signature verification accepts recovery ids 0/1 and Ethereum-style 27/28 only, rejecting malformed recovery IDs instead of normalizing arbitrary values.",
+      "high_risk": true,
+      "risk_tags": [
+        "verifier",
+        "negative-path",
+        "encoding"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-signature/src/lib.rs",
+          "symbols": [
+            "normalize_recovery_id",
+            "verify_signature_core"
+          ],
+          "snippet": "recovery ids 0/1 and 27/28 are accepted; all other bytes return Invalid recovery ID",
+          "evidence": "Recovery ID validation is explicit and strict in the current signature verifier."
+        }
+      ],
+      "equivalence_argument": "SPC recovery-id validation is preserved in ritual-spc-signature.",
+      "test_strategy": "flow_equivalence_regression",
+      "negative_test_candidate": "Replay the smallest Short-Running Async SPC Trace scenario that exercises this source-owned behavior and fail if the v2.2 port omits or changes it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "flow_titles": [
+        "Short-Running Async SPC Trace"
+      ],
+      "source_flow_ids": [
+        "flow-raw-grounded-0033"
+      ],
+      "notes": "Mapped to current ritual-spc-signature tests and implementation.",
+      "atom_index": 13,
+      "record_id": "file-0344-atom-0013",
+      "atoms_total": 13
+    }
+  ],
+  "high_risk_atoms_total": 12,
+  "non_exact_atoms_total": 4,
+  "adversarial_reviews": [],
+  "summary": "Atoms in this file have destination evidence or intentional scope classification after the feature-ordered pass.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "The destination keeps the module at the same relative path with overlapping symbols ['is_spc_block_verified_precompile', 'verify_signature_core', 'normalize_recovery_id', 'construct_signature_payload', 'test_recovery_id_raw_zero']. Curated test-atom insertion appended 9 grouped behavior atom(s) from coverage-map/test-atom-audit; raw helper/no-assert/default-only cases were not canonicalized."
+}

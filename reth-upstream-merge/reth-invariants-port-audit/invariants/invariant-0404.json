@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "Canonical metadata assigns expected registry capability tags by precompile address.",
+      "path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "(HTTP_CALL_PRECOMPILE, AsyncPrecompileCapabilityTag::HttpCall),\n(LLM_CALL_PRECOMPILE, AsyncPrecompileCapabilityTag::Llm),\n(ZK_TWO_PHASE_PRECOMPILE, AsyncPrecompileCapabilityTag::ZkCall),\n(FHE_PRECOMPILE, AsyncPrecompileCapabilityTag::Fhe), ...",
+      "symbols": [
+        "expected_capability_tag",
+        "ALL_ASYNC_PRECOMPILE_METADATA"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "RPC executor validation compares the executor registry capability to the precompile-specific expected capability.",
+      "path": "crates/rpc/rpc/src/async_tx_validator.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let expected = Capability::try_from(metadata.expected_capability_tag().as_u8())?;\n...\nif executor.capability != expected { return Err(...); }",
+      "symbols": [
+        "validate_executor"
+      ]
+    }
+  ],
+  "equivalence_argument": "Capability enforcement is centralized in precompile metadata and applied during RPC admission; mismatched registry capabilities are rejected for recognized async precompiles.",
+  "evidence_files": [
+    "crates/rpc/rpc/src/async_tx_validator.rs",
+    "crates/rpc/rpc/src/eth/helpers/transaction.rs"
+  ],
+  "invariant_id": "cur-a279a9b0ad-enforces-executor-capability-precompile",
+  "invariant_index": 404,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in metadata plus RPC admission validation.",
+  "rationale": "The primary diff maps precompile addresses to required TEE registry capabilities and returns `ExecutorWrongCapability` when the registered executor capability does not match. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "e4609dc212444f5f07771bf27f226322ecf985f9"
+  ],
+  "statement": "RPC preflight for async PrecompileConsumer calls must require executor capability `HttpCall` for HTTP and long-running HTTP precompiles, `Llm` for LLM and agent-call precompiles, and `ZkCall` for the ZK two-phase precompile; registered executors with a different capability must be rejected.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Register an executor in mocked latest state with `Llm` capability and submit an HTTP PrecompileConsumer transaction using that executor; assert RPC returns `InvalidParams` with `has capability Llm, required HttpCall`; repeat with matching capability and assert the transaction proceeds past validation."
+  ],
+  "summary": "RPC validates executor capability against precompile metadata.",
+  "test_or_falsification_candidate": "Register executors with mismatched capabilities for HTTP, LLM, ZK, and FHE calls and assert RPC admission rejects each mismatch.",
+  "title": "RPC enforces executor capability by precompile",
+  "total_invariants": 1954
+}

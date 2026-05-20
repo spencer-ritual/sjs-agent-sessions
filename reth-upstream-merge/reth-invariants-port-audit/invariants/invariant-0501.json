@@ -1,0 +1,69 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: exposure and cryptographic verification are present, but one required rejection path is absent.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ethereum/primitives/src/transaction.rs",
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/rpc/rpc-eth-types/src/receipt.rs",
+    "crates/storage/codecs/src/alloy/transaction/async_settlement.rs"
+  ],
+  "invariant_id": "cur-222623b8ac-delivery-proofs-verified",
+  "invariant_index": 501,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/rpc/rpc-eth-types/src/receipt.rs",
+      "crates/storage/codecs/src/alloy/transaction/async_settlement.rs"
+    ],
+    "checked_queries": [
+      "delivery_spc_calls receipt storage verifier at most one",
+      "delivery SPC proofs verified allow at most one",
+      "delivery_spc_calls len"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "delivery_spc_calls",
+      "SpcCall::new",
+      "verify_signature_core",
+      "to_compact",
+      "from_compact"
+    ],
+    "missing_behavior": "Delivery SPC calls are exposed through transaction, receipt, and storage paths and are verified, but the verifier does not enforce the required at-most-one delivery_spc_call rule.",
+    "related_but_insufficient_code": [
+      "crates/ethereum/payload/src/ritual_async.rs sets settlement_tx.delivery_spc_calls = Some(vec![delivery_spc_call]).",
+      "crates/rpc/rpc-eth-types/src/receipt.rs exposes delivery_spc_calls and storage codecs compact/decompact them.",
+      "crates/ritual-block-verification/src/lib.rs verifies a matching delivery SPC proof but does not reject extra delivery_spc_calls."
+    ]
+  },
+  "notes": "This gap is distinct from missing exposure; the missing behavior is the verifier cardinality rule.",
+  "rationale": "The merge populates delivery_spc_calls from pool delivery proof metadata when creating delivery settlements, adds transaction accessors and compact storage support, includes delivery_spc_calls in receipts, and extends verification to validate proof shape and feed delivery proofs into the shared SPC signature pipeline keyed by origin_tx_hash. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "dd9b6b73b3cfd06f3b1c0eb24aef88624780081a"
+  ],
+  "statement": "Every Phase 2 delivery settlement that includes delivery_spc_calls must expose them through transaction/receipt/storage paths and block verification must treat them like normal SPC calls: require origin_tx_hash, allow at most one delivery SPC call, reject too-short proofs or missing executor addresses, and verify the signature using origin_tx_hash as the AsyncJobTracker job key rather than the settlement transaction hash.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Build a delivery settlement with a valid delivery proof and assert the receipt exposes delivery_spc_calls and block verification accepts it; then test missing origin_tx_hash, two delivery_spc_calls, a short proof, a zero/missing executor address, and a proof signed for the settlement hash instead of origin_tx_hash, all of which must reject the block."
+  ],
+  "summary": "Delivery SPC proof paths lack the at-most-one rejection guard.",
+  "test_or_falsification_candidate": "Persist and verify a delivery settlement containing two delivery_spc_calls and assert verification fails even if one proof is valid.",
+  "title": "Delivery SPC proofs are verified",
+  "total_invariants": 1954
+}

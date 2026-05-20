@@ -1,0 +1,824 @@
+{
+  "record_type": "file",
+  "file_index": 94,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ethereum/payload/src/unified_execution.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "missing",
+  "tags": [
+    "missing",
+    "high-risk",
+    "non-exact",
+    "payload",
+    "reviewed"
+  ],
+  "atoms_total": 16,
+  "atoms": [
+    {
+      "record_id": "file-0094-atom-0001",
+      "file_index": 94,
+      "atom_index": 1,
+      "atoms_total": 16,
+      "source_path": "crates/ethereum/payload/src/unified_execution.rs",
+      "source_hunk_hint": "@@ -0,0 +1,537 @@ lines 1-31",
+      "source_kind": "other",
+      "source_snippet": "//! Unified transaction collection, sorting, and execution for block building.\n//!\n//! This module replaces the separate Phase 3b, 4, 4.5, and 5 execution loops\n//! with a unified flow that:\n//! 1. Collects all transactions from multiple sources\n//! 2. Sorts by effective tip (tip-maximizing)\n//! 3. Applies sequencing rights reordering\n//! 4. Executes in the final sorted order",
+      "semantic_claim": "The added file defines a single payload execution model in which scheduled, fulfilled async, delivery settlement, and regular transactions are collected, tip-sorted, sequencing-rights reordered, and then executed in one final order.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload_execution",
+        "transaction_ordering",
+        "scheduled_transactions",
+        "async_fsm",
+        "verifier_builder_parity"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "PayloadCandidate",
+            "sort_candidates_by_effective_tip",
+            "reorder_payload_candidates"
+          ],
+          "snippet": "enum PayloadCandidate { FulfilledAsync { effective_tip, original_index, .. }, Delivery { effective_tip, original_index, .. }, Regular { candidate, effective_tip } } ... sort_candidates_by_effective_tip(...); reorder_payload_candidates(..., |candidate| candidate.primary_tx())",
+          "evidence": "The current port collects fulfilled async, delivery, regular, and pooled scheduled candidates into one PayloadCandidate list, sorts it by descending effective tip with original-index tie-breaking, then applies sequencing-rights reordering over each candidate's primary transaction."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "scheduled_obligations"
+          ],
+          "snippet": "for obligation in scheduled_obligations { ... } ... let mut payload_candidates = Vec::new();",
+          "evidence": "Scheduler-state obligations synthesized from contract state still execute before the PayloadCandidate list is built; only pooled scheduled transactions flow through the unified candidate sort."
+        }
+      ],
+      "equivalence_argument": "",
+      "test_strategy": "integration_traffic",
+      "negative_test_candidate": "Construct a payload candidate set where a high-tip regular transaction competes with lower-tip scheduled, fulfilled async, and delivery settlement work, then assert whether the destination globally orders all sources or preserves staged execution.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Confirmed covered by current PayloadCandidate/ritual_async.rs behavior for fulfilled async, delivery, regular, and pooled scheduled candidates; scheduler-state obligations remain staged ahead of the candidate list and per-source counters/log metrics are support-only."
+    },
+    {
+      "record_id": "file-0094-atom-0002",
+      "file_index": 94,
+      "atom_index": 2,
+      "atoms_total": 16,
+      "source_path": "crates/ethereum/payload/src/unified_execution.rs",
+      "source_hunk_hint": "@@ -0,0 +1,537 @@ lines 50-103",
+      "source_kind": "new_field",
+      "source_snippet": "pub enum PreparedBundle<PoolTx: Clone + PoolTransaction> {\n    Single { pool_tx, tx, tx_size, effective_gas, source },\n    FulfilledAsyncPair { tx_hash, tx_for_execution, tx_size, effective_gas, settlement_tx, settlement_size, precompile_address, input, commit_block, execution_result, execution_proof },\n    DeliverySettlement { origin_tx_hash, settlement_tx, effective_tip },\n}",
+      "semantic_claim": "The file adds a common prepared-bundle enum that preserves transaction identity, size, effective gas, source classification, async metadata, and settlement transactions for all payload source types.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload_execution",
+        "tx_identity",
+        "async_fsm",
+        "scheduled_transactions",
+        "gas_accounting"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "PayloadCandidate",
+            "sort_candidates_by_effective_tip",
+            "reorder_payload_candidates"
+          ],
+          "snippet": "enum PayloadCandidate { FulfilledAsync { effective_tip, original_index, .. }, Delivery { effective_tip, original_index, .. }, Regular { candidate, effective_tip } } ... sort_candidates_by_effective_tip(...); reorder_payload_candidates(..., |candidate| candidate.primary_tx())",
+          "evidence": "The current port collects fulfilled async, delivery, regular, and pooled scheduled candidates into one PayloadCandidate list, sorts it by descending effective tip with original-index tie-breaking, then applies sequencing-rights reordering over each candidate's primary transaction."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "scheduled_obligations"
+          ],
+          "snippet": "for obligation in scheduled_obligations { ... } ... let mut payload_candidates = Vec::new();",
+          "evidence": "Scheduler-state obligations synthesized from contract state still execute before the PayloadCandidate list is built; only pooled scheduled transactions flow through the unified candidate sort."
+        }
+      ],
+      "equivalence_argument": "Destination preserves the key per-source data needed for execution, settlement, and regular ordering, but distributes it across staged payload structs and omits a single cross-source bundle abstraction.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Create one regular transaction, one fulfilled async pair, and one delivery settlement with distinct hashes and sizes, then verify destination preparation preserves the original hash, settlement hash, RLP lengths, and source identity through execution.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Confirmed covered by current PayloadCandidate/ritual_async.rs behavior for fulfilled async, delivery, regular, and pooled scheduled candidates; scheduler-state obligations remain staged ahead of the candidate list and per-source counters/log metrics are support-only."
+    },
+    {
+      "record_id": "file-0094-atom-0003",
+      "file_index": 94,
+      "atom_index": 3,
+      "atoms_total": 16,
+      "source_path": "crates/ethereum/payload/src/unified_execution.rs",
+      "source_hunk_hint": "@@ -0,0 +1,537 @@ lines 92-121,184-238",
+      "source_kind": "other",
+      "source_snippet": "Self::Single { tx, .. } => tx\nSelf::FulfilledAsyncPair { tx_for_execution, .. } => tx_for_execution\nSelf::DeliverySettlement { settlement_tx, .. } => settlement_tx\n...\npub fn add_scheduled(...) { source: TxSource::Scheduled, ... }\npub fn add_regular(...) { source: TxSource::Regular, ... }",
+      "semantic_claim": "Single bundles distinguish scheduled and regular transactions using `TxSource`, while `primary_tx` chooses the transaction that sequencing-rights classification should see for each bundle variant.",
+      "high_risk": true,
+      "risk_tags": [
+        "transaction_ordering",
+        "scheduled_transactions",
+        "tx_identity",
+        "sequencing_rights"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "PayloadCandidate",
+            "sort_candidates_by_effective_tip",
+            "reorder_payload_candidates"
+          ],
+          "snippet": "enum PayloadCandidate { FulfilledAsync { effective_tip, original_index, .. }, Delivery { effective_tip, original_index, .. }, Regular { candidate, effective_tip } } ... sort_candidates_by_effective_tip(...); reorder_payload_candidates(..., |candidate| candidate.primary_tx())",
+          "evidence": "The current port collects fulfilled async, delivery, regular, and pooled scheduled candidates into one PayloadCandidate list, sorts it by descending effective tip with original-index tie-breaking, then applies sequencing-rights reordering over each candidate's primary transaction."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "scheduled_obligations"
+          ],
+          "snippet": "for obligation in scheduled_obligations { ... } ... let mut payload_candidates = Vec::new();",
+          "evidence": "Scheduler-state obligations synthesized from contract state still execute before the PayloadCandidate list is built; only pooled scheduled transactions flow through the unified candidate sort."
+        }
+      ],
+      "equivalence_argument": "The source classification intent is preserved by explicit scheduled branches plus regular candidate construction, but not as a reusable `TxSource` field nor across async settlement variants.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Submit a pooled scheduled transaction that was already synthesized from Scheduler state and verify destination skips the duplicate while ordinary regular transactions still enter sequencing-rights ordering.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Confirmed covered by current PayloadCandidate/ritual_async.rs behavior for fulfilled async, delivery, regular, and pooled scheduled candidates; scheduler-state obligations remain staged ahead of the candidate list and per-source counters/log metrics are support-only."
+    },
+    {
+      "record_id": "file-0094-atom-0004",
+      "file_index": 94,
+      "atom_index": 4,
+      "atoms_total": 16,
+      "source_path": "crates/ethereum/payload/src/unified_execution.rs",
+      "source_hunk_hint": "@@ -0,0 +1,537 @@ lines 240-278",
+      "source_kind": "other",
+      "source_snippet": "pub fn add_fulfilled_async(&mut self, tx_hash, tx_for_execution, tx_size, effective_gas, settlement_tx, settlement_size, precompile_address, input, commit_block, execution_result, execution_proof, base_fee) { ... self.fulfilled_count += 1; }",
+      "semantic_claim": "Fulfilled async entries are prepared as an atomic original-plus-settlement bundle carrying precompile input, commit block, execution result, and proof before tip sorting and execution.",
+      "high_risk": true,
+      "risk_tags": [
+        "async_fsm",
+        "settlement_atomicity",
+        "payload_execution",
+        "tx_identity",
+        "verifier_builder_parity"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "prepare_fulfilled_async_settlement",
+            "annotate_fulfilled_original_transaction"
+          ],
+          "snippet": "let execution_result = metadata.execution_result.as_ref().ok_or_else(|| \"fulfilled async entry missing execution_result\".to_string())?;\nlet execution_proof = metadata.execution_proof.as_ref().filter(|proof| !proof.is_empty()).ok_or_else(|| \"fulfilled async entry missing execution proof\".to_string())?;\nlet original_tx = annotate_fulfilled_original_transaction(original_tx, commitment_hash, settlement_hash, spc_call)?;",
+          "evidence": "Destination prepares fulfilled async settlement state, validates proof/result, constructs the settlement transaction, and annotates the original transaction outside a unified enum."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "execute_async_settlement"
+          ],
+          "snippet": "Err(reason) => { ... \"skipping fulfilled async settlement entry\" ... }\n\"atomicity violation prevented: settlement skipped after fulfilled original execution\"",
+          "evidence": "Destination executes the prepared original and settlement sequentially and treats a skipped settlement after original execution as fatal."
+        }
+      ],
+      "equivalence_argument": "Destination covers the fulfilled async preparation and atomic settlement requirement with stricter validation and explicit fatal atomicity handling, but it does not place the pair in a global tip-sorted prepared bundle.",
+      "test_strategy": "integration_traffic",
+      "negative_test_candidate": "Force a fulfilled async original to execute while its settlement would exceed gas, and assert destination aborts the payload attempt with the atomicity violation instead of committing only the original.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Confirmed covered: fulfilled async preparation keeps original transaction, settlement transaction, proof/result metadata, RLP lengths, and atomic execution semantics."
+    },
+    {
+      "record_id": "file-0094-atom-0005",
+      "file_index": 94,
+      "atom_index": 5,
+      "atoms_total": 16,
+      "source_path": "crates/ethereum/payload/src/unified_execution.rs",
+      "source_hunk_hint": "@@ -0,0 +1,537 @@ lines 280-296",
+      "source_kind": "other",
+      "source_snippet": "pub fn add_delivery(&mut self, origin_tx_hash: B256, settlement_tx: Recovered<TransactionSigned>, effective_tip: u128) { let bundle = PreparedBundle::DeliverySettlement { origin_tx_hash, settlement_tx, effective_tip }; ... self.delivery_count += 1; }",
+      "semantic_claim": "Delivery-ready async work is represented as a settlement-only bundle keyed by origin transaction hash and carrying an explicit effective tip for ordering.",
+      "high_risk": true,
+      "risk_tags": [
+        "async_fsm",
+        "delivery_settlement",
+        "transaction_ordering",
+        "tx_identity",
+        "fee_accounting"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "prepare_delivery_settlement_transaction",
+            "effective_delivery_fee_per_gas"
+          ],
+          "snippet": "let origin_tx_hash = *original_tx.tx_hash();\nlet effective_fee_per_gas = effective_delivery_fee_per_gas(base_fee, delivery_config.max_fee_per_gas, delivery_config.max_priority_fee_per_gas);\nlet mut settlement_tx = TxAsyncSettlement::new(... origin_tx_hash, commitment_hash, user_address, fees.executor_fee, ...);",
+          "evidence": "Destination constructs delivery settlements from the original transaction hash and delivery fee settings, but executes them in the delivery-ready stage rather than adding them to a global effective-tip bundle."
+        }
+      ],
+      "equivalence_argument": "Destination preserves delivery settlement identity and fee derivation, but the source's explicit `effective_tip` ordering field is not used for cross-source ordering.",
+      "test_strategy": "integration_traffic",
+      "negative_test_candidate": "Submit two delivery-ready jobs with different delivery fee settings alongside regular transactions and verify whether settlement inclusion/order follows staged processing rather than effective-tip priority.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Confirmed covered by current PayloadCandidate/ritual_async.rs behavior for fulfilled async, delivery, regular, and pooled scheduled candidates; scheduler-state obligations remain staged ahead of the candidate list and per-source counters/log metrics are support-only."
+    },
+    {
+      "record_id": "file-0094-atom-0006",
+      "file_index": 94,
+      "atom_index": 6,
+      "atoms_total": 16,
+      "source_path": "crates/ethereum/payload/src/unified_execution.rs",
+      "source_hunk_hint": "@@ -0,0 +1,537 @@ lines 105-115",
+      "source_kind": "call_ordering",
+      "source_snippet": "pub fn effective_tip_per_gas(&self, base_fee: u64) -> u128 {\n    match self {\n        Self::Single { tx, .. } => tx.effective_tip_per_gas(base_fee).unwrap_or(0),\n        Self::FulfilledAsyncPair { tx_for_execution, .. } => Transaction::effective_tip_per_gas(tx_for_execution.tx(), base_fee).unwrap_or(0),\n        Self::DeliverySettlement { effective_tip, .. } => *effective_tip,\n    }\n}",
+      "semantic_claim": "Every prepared bundle exposes one comparable effective tip per gas, using the execution transaction for fulfilled async pairs and a precomputed effective tip for delivery settlements.",
+      "high_risk": true,
+      "risk_tags": [
+        "fee_accounting",
+        "transaction_ordering",
+        "async_fsm",
+        "payload_execution"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "PayloadCandidate",
+            "sort_candidates_by_effective_tip",
+            "reorder_payload_candidates"
+          ],
+          "snippet": "enum PayloadCandidate { FulfilledAsync { effective_tip, original_index, .. }, Delivery { effective_tip, original_index, .. }, Regular { candidate, effective_tip } } ... sort_candidates_by_effective_tip(...); reorder_payload_candidates(..., |candidate| candidate.primary_tx())",
+          "evidence": "The current port collects fulfilled async, delivery, regular, and pooled scheduled candidates into one PayloadCandidate list, sorts it by descending effective tip with original-index tie-breaking, then applies sequencing-rights reordering over each candidate's primary transaction."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "scheduled_obligations"
+          ],
+          "snippet": "for obligation in scheduled_obligations { ... } ... let mut payload_candidates = Vec::new();",
+          "evidence": "Scheduler-state obligations synthesized from contract state still execute before the PayloadCandidate list is built; only pooled scheduled transactions flow through the unified candidate sort."
+        }
+      ],
+      "equivalence_argument": "",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Set a delivery settlement effective fee above all regular candidates and verify that the destination builder does not rely on a global bundle effective-tip comparator.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Confirmed covered by current PayloadCandidate/ritual_async.rs behavior for fulfilled async, delivery, regular, and pooled scheduled candidates; scheduler-state obligations remain staged ahead of the candidate list and per-source counters/log metrics are support-only."
+    },
+    {
+      "record_id": "file-0094-atom-0007",
+      "file_index": 94,
+      "atom_index": 7,
+      "atoms_total": 16,
+      "source_path": "crates/ethereum/payload/src/unified_execution.rs",
+      "source_hunk_hint": "@@ -0,0 +1,537 @@ lines 126-149",
+      "source_kind": "changed_constant",
+      "source_snippet": "Self::FulfilledAsyncPair { effective_gas, settlement_tx, .. } => {\n    let settlement_gas = ritual_async_fees::calculate_calldata_gas(settlement_tx.input()).unwrap_or(500_000);\n    effective_gas.saturating_add(settlement_gas)\n}\nSelf::DeliverySettlement { settlement_tx, .. } => ritual_async_fees::calculate_calldata_gas(settlement_tx.input()).unwrap_or(500_000)",
+      "semantic_claim": "System settlement gas accounting uses calldata-based gas instead of raw `u64::MAX` gas limits, with a 500,000 gas fallback estimate on calculation failure.",
+      "high_risk": true,
+      "risk_tags": [
+        "gas_accounting",
+        "fee_accounting",
+        "async_fsm",
+        "rejection_paths"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "execute_async_settlement",
+            "prepare_fulfilled_async_settlement"
+          ],
+          "snippet": "let settlement_calldata_gas = calculate_calldata_gas(settlement_tx.input()).map_err(|err| format!(\"settlement calldata gas calculation failed: {err}\"))?;\nlet calldata_gas = match calculate_calldata_gas(settlement_tx.input()) { Ok(gas) => gas, Err(err) => return Err(BlockExecutionError::msg(format!(\"Gas calculation overflow: {err}\"))) };",
+          "evidence": "Destination payload code uses calldata gas for async settlements and fails on overflow rather than falling back to 500,000."
+        },
+        {
+          "repo": "ritual-alloy-evm-internal",
+          "path": "crates/evm/src/eth/block.rs",
+          "symbols": [
+            "calculate_calldata_gas",
+            "block_gas_override"
+          ],
+          "snippet": "if tx.tx().is_type(ASYNC_SETTLEMENT_TX_TYPE_ID) { Some(calculate_calldata_gas(tx.tx().input()).map_err(BlockExecutionError::msg)?) } else { None }",
+          "evidence": "The EVM dependency applies a calldata-gas block override for async settlement transaction results."
+        },
+        {
+          "repo": "ritual-node-internal",
+          "path": "e2e/tests/test_gas_contribution.py",
+          "symbols": [
+            "test_gas_contribution"
+          ],
+          "snippet": "phase1_expected_gas = calculate_calldata_gas(phase1_input)\nverify_tx_gas_complete(... expected_gas=phase1_expected_gas, expected_gas_type=\"calldata\", ...)",
+          "evidence": "E2E tests assert calldata-based gas for settlement transactions."
+        }
+      ],
+      "equivalence_argument": "The consensus-relevant calldata-based settlement gas rule moved into destination payload and Alloy EVM code; the old 500,000 fallback is intentionally not preserved because destination treats gas calculation overflow as an error/skip path.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Create an async settlement with very large calldata that overflows gas calculation and assert destination rejects or skips it rather than using a silent 500,000 fallback.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Confirmed covered with current stronger fail-closed accounting: settlement calldata gas is computed and post-original settlement skips are fatal for fulfilled async atomicity."
+    },
+    {
+      "record_id": "file-0094-atom-0008",
+      "file_index": 94,
+      "atom_index": 8,
+      "atoms_total": 16,
+      "source_path": "crates/ethereum/payload/src/unified_execution.rs",
+      "source_hunk_hint": "@@ -0,0 +1,537 @@ lines 151-172",
+      "source_kind": "new_field",
+      "source_snippet": "pub struct SortedEntry<PoolTx: Clone + PoolTransaction> {\n    pub bundle: PreparedBundle<PoolTx>,\n    pub effective_tip: u128,\n    pub original_index: usize,\n}\n\npub struct UnifiedTxCollection<PoolTx: Clone + PoolTransaction> {\n    pub entries: Vec<SortedEntry<PoolTx>>,\n    pub scheduled_count: usize,\n    pub fulfilled_count: usize,\n    pub delivery_count: usize,\n    pub regular_count: usize,\n}",
+      "semantic_claim": "The file introduces a collection-level data structure that records sorted entries plus per-source counts for scheduled, fulfilled async, delivery, and regular candidates.",
+      "high_risk": true,
+      "risk_tags": [
+        "transaction_ordering",
+        "payload_execution",
+        "scheduled_transactions",
+        "async_fsm"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "PayloadCandidate",
+            "sort_candidates_by_effective_tip",
+            "reorder_payload_candidates"
+          ],
+          "snippet": "enum PayloadCandidate { FulfilledAsync { effective_tip, original_index, .. }, Delivery { effective_tip, original_index, .. }, Regular { candidate, effective_tip } } ... sort_candidates_by_effective_tip(...); reorder_payload_candidates(..., |candidate| candidate.primary_tx())",
+          "evidence": "The current port collects fulfilled async, delivery, regular, and pooled scheduled candidates into one PayloadCandidate list, sorts it by descending effective tip with original-index tie-breaking, then applies sequencing-rights reordering over each candidate's primary transaction."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "scheduled_obligations"
+          ],
+          "snippet": "for obligation in scheduled_obligations { ... } ... let mut payload_candidates = Vec::new();",
+          "evidence": "Scheduler-state obligations synthesized from contract state still execute before the PayloadCandidate list is built; only pooled scheduled transactions flow through the unified candidate sort."
+        }
+      ],
+      "equivalence_argument": "",
+      "test_strategy": "integration_traffic",
+      "negative_test_candidate": "Instrument or inspect a mixed-source payload build and verify there is no single collection preserving all four source counts before execution.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Confirmed covered by current PayloadCandidate/ritual_async.rs behavior for fulfilled async, delivery, regular, and pooled scheduled candidates; scheduler-state obligations remain staged ahead of the candidate list and per-source counters/log metrics are support-only."
+    },
+    {
+      "record_id": "file-0094-atom-0009",
+      "file_index": 94,
+      "atom_index": 9,
+      "atoms_total": 16,
+      "source_path": "crates/ethereum/payload/src/unified_execution.rs",
+      "source_hunk_hint": "@@ -0,0 +1,537 @@ lines 182-296",
+      "source_kind": "state_transition",
+      "source_snippet": "self.entries.push(SortedEntry { bundle, effective_tip, original_index: self.entries.len() });\nself.scheduled_count += 1;\n...\nself.fulfilled_count += 1;\n...\nself.delivery_count += 1;\n...\nself.regular_count += 1;",
+      "semantic_claim": "Each add method appends the prepared bundle with the current insertion index, stores its effective tip, and increments exactly one source-specific count.",
+      "high_risk": true,
+      "risk_tags": [
+        "transaction_ordering",
+        "tx_identity",
+        "payload_execution"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "PayloadCandidate",
+            "sort_candidates_by_effective_tip",
+            "reorder_payload_candidates"
+          ],
+          "snippet": "enum PayloadCandidate { FulfilledAsync { effective_tip, original_index, .. }, Delivery { effective_tip, original_index, .. }, Regular { candidate, effective_tip } } ... sort_candidates_by_effective_tip(...); reorder_payload_candidates(..., |candidate| candidate.primary_tx())",
+          "evidence": "The current port collects fulfilled async, delivery, regular, and pooled scheduled candidates into one PayloadCandidate list, sorts it by descending effective tip with original-index tie-breaking, then applies sequencing-rights reordering over each candidate's primary transaction."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "scheduled_obligations"
+          ],
+          "snippet": "for obligation in scheduled_obligations { ... } ... let mut payload_candidates = Vec::new();",
+          "evidence": "Scheduler-state obligations synthesized from contract state still execute before the PayloadCandidate list is built; only pooled scheduled transactions flow through the unified candidate sort."
+        }
+      ],
+      "equivalence_argument": "The insertion-index invariant survives for regular sequencing candidates; per-source count updates are not preserved because destination uses direct staged loops.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use equal-priority regular transactions and assert destination sequencing preserves original pool iteration order after reordering; separately verify scheduled duplicate suppression does not perturb regular indices.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Confirmed covered by current PayloadCandidate/ritual_async.rs behavior for fulfilled async, delivery, regular, and pooled scheduled candidates; scheduler-state obligations remain staged ahead of the candidate list and per-source counters/log metrics are support-only."
+    },
+    {
+      "record_id": "file-0094-atom-0010",
+      "file_index": 94,
+      "atom_index": 10,
+      "atoms_total": 16,
+      "source_path": "crates/ethereum/payload/src/unified_execution.rs",
+      "source_hunk_hint": "@@ -0,0 +1,537 @@ lines 298-319",
+      "source_kind": "call_ordering",
+      "source_snippet": "pub fn sort_by_tip(&mut self) {\n    self.entries.sort_by(|a, b| b.effective_tip.cmp(&a.effective_tip).then(a.original_index.cmp(&b.original_index)));\n    debug!(target: \"ritual::unified_execution\", count = self.entries.len(), scheduled = self.scheduled_count, fulfilled = self.fulfilled_count, delivery = self.delivery_count, regular = self.regular_count, \"Sorted unified transaction collection by tip\");\n}",
+      "semantic_claim": "The unified collection sorts every source by descending effective tip and uses original index as a stable tie-breaker, then logs source counts under `ritual::unified_execution`.",
+      "high_risk": true,
+      "risk_tags": [
+        "transaction_ordering",
+        "fee_accounting",
+        "scheduled_transactions",
+        "async_fsm",
+        "metrics_logging"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "PayloadCandidate",
+            "sort_candidates_by_effective_tip",
+            "reorder_payload_candidates"
+          ],
+          "snippet": "enum PayloadCandidate { FulfilledAsync { effective_tip, original_index, .. }, Delivery { effective_tip, original_index, .. }, Regular { candidate, effective_tip } } ... sort_candidates_by_effective_tip(...); reorder_payload_candidates(..., |candidate| candidate.primary_tx())",
+          "evidence": "The current port collects fulfilled async, delivery, regular, and pooled scheduled candidates into one PayloadCandidate list, sorts it by descending effective tip with original-index tie-breaking, then applies sequencing-rights reordering over each candidate's primary transaction."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "scheduled_obligations"
+          ],
+          "snippet": "for obligation in scheduled_obligations { ... } ... let mut payload_candidates = Vec::new();",
+          "evidence": "Scheduler-state obligations synthesized from contract state still execute before the PayloadCandidate list is built; only pooled scheduled transactions flow through the unified candidate sort."
+        }
+      ],
+      "equivalence_argument": "",
+      "test_strategy": "integration_traffic",
+      "negative_test_candidate": "Submit equal-tip mixed-source transactions and verify whether original insertion order is preserved globally; destination is expected to reveal staged rather than unified stable sorting.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Confirmed covered by current PayloadCandidate/ritual_async.rs behavior for fulfilled async, delivery, regular, and pooled scheduled candidates; scheduler-state obligations remain staged ahead of the candidate list and per-source counters/log metrics are support-only."
+    },
+    {
+      "record_id": "file-0094-atom-0011",
+      "file_index": 94,
+      "atom_index": 11,
+      "atoms_total": 16,
+      "source_path": "crates/ethereum/payload/src/unified_execution.rs",
+      "source_hunk_hint": "@@ -0,0 +1,537 @@ lines 321-425",
+      "source_kind": "call_ordering",
+      "source_snippet": "let state = match state_provider.state_by_block_hash(parent_header.hash_slow()) { Ok(s) => s, Err(e) => { warn!(... \"Failed to get state for sequencing rights, using original order\"); return; } };\nlet reader = SequencingRightsReader::new();\nlet use_full_call_graph = sequencing_rights_full_call_graph_enabled();\nlet classified_txs: Vec<_> = self.entries.par_iter().map(|entry| { let tx = entry.bundle.primary_tx(); if let Some(classification) = try_classify_static(tx) { return (tx.clone(), classification); } if !use_full_call_graph { return (tx.clone(), classify_top_level_with_sr(tx, &reader, &state)); } ... }).collect();",
+      "semantic_claim": "Sequencing-rights classification runs over the primary transaction from every prepared bundle, fails open to original order if parent state is unavailable, and defaults to static/top-level classification before optional full-call-graph simulation.",
+      "high_risk": true,
+      "risk_tags": [
+        "sequencing_rights",
+        "transaction_ordering",
+        "payload_execution",
+        "rejection_paths"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "PayloadCandidate",
+            "sort_candidates_by_effective_tip",
+            "reorder_payload_candidates"
+          ],
+          "snippet": "enum PayloadCandidate { FulfilledAsync { effective_tip, original_index, .. }, Delivery { effective_tip, original_index, .. }, Regular { candidate, effective_tip } } ... sort_candidates_by_effective_tip(...); reorder_payload_candidates(..., |candidate| candidate.primary_tx())",
+          "evidence": "The current port collects fulfilled async, delivery, regular, and pooled scheduled candidates into one PayloadCandidate list, sorts it by descending effective tip with original-index tie-breaking, then applies sequencing-rights reordering over each candidate's primary transaction."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "scheduled_obligations"
+          ],
+          "snippet": "for obligation in scheduled_obligations { ... } ... let mut payload_candidates = Vec::new();",
+          "evidence": "Scheduler-state obligations synthesized from contract state still execute before the PayloadCandidate list is built; only pooled scheduled transactions flow through the unified candidate sort."
+        }
+      ],
+      "equivalence_argument": "Destination preserves fail-open and static/top-level classification for the regular-pool subset; it does not classify scheduled, fulfilled async, or delivery bundles through the same path.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Make parent state lookup fail during payload candidate sequencing and assert destination preserves the original regular candidate order without applying a partial reorder.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Confirmed covered by current PayloadCandidate/ritual_async.rs behavior for fulfilled async, delivery, regular, and pooled scheduled candidates; scheduler-state obligations remain staged ahead of the candidate list and per-source counters/log metrics are support-only."
+    },
+    {
+      "record_id": "file-0094-atom-0012",
+      "file_index": 94,
+      "atom_index": 12,
+      "atoms_total": 16,
+      "source_path": "crates/ethereum/payload/src/unified_execution.rs",
+      "source_hunk_hint": "@@ -0,0 +1,537 @@ lines 389-425,427-439",
+      "source_kind": "changed_branch_condition",
+      "source_snippet": "if !use_full_call_graph { return (tx.clone(), classify_top_level_with_sr(tx, &reader, &state)); }\nlet mut inspector = ContractCallInspector::new();\nlet result = evm.transact(tx.clone());\n...\nif let Some(dl) = deadline { if std::time::Instant::now() > dl { warn!(... \"build deadline exceeded during classification, skipping reordering\"); return; } }",
+      "semantic_claim": "When enabled, payload sequencing-rights classification simulates transactions with `ContractCallInspector`; if simulation fails the transaction is classified as no sequencing rights, and if the build deadline is exceeded after classification the entire reorder is skipped.",
+      "high_risk": true,
+      "risk_tags": [
+        "sequencing_rights",
+        "transaction_ordering",
+        "async_fsm",
+        "rejection_paths",
+        "payload_execution"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/sequencing_rights.rs",
+          "symbols": [
+            "reorder_regular_pool_candidates"
+          ],
+          "snippet": "let classification = try_classify_static(&candidate.tx).unwrap_or_else(|| { classify_top_level_with_sr(&candidate.tx, &reader, state.as_ref()) });",
+          "evidence": "Payload-local sequencing-rights code uses top-level classification only and has no deadline parameter or EVM simulation branch."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-sequencing-rights/src/classifier.rs",
+          "symbols": [
+            "ContractCallInspector",
+            "sequencing_rights_full_call_graph_enabled"
+          ],
+          "snippet": "pub struct ContractCallInspector { ... }\npub fn sequencing_rights_full_call_graph_enabled() -> bool { std::env::var(SR_FULL_CALL_GRAPH_ENABLED_ENV).map(|v| v == \"true\" || v == \"1\").unwrap_or(false) }",
+          "evidence": "The dependency still contains the inspector and environment gate, but the destination payload path does not wire them into candidate ordering."
+        }
+      ],
+      "equivalence_argument": "",
+      "test_strategy": "integration_traffic",
+      "negative_test_candidate": "Enable `RITUAL_SEQUENCING_RIGHTS_FULL_CALL_GRAPH_ENABLED=true` and use a transaction whose sequencing-rights contract call is only visible through an internal call; verify destination payload ordering does not change via full-call-graph classification.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Confirmed missing: full-call-graph sequencing classification through ContractCallInspector is not wired; current deadline handling can skip reorder, but only after static/top-level classification support."
+    },
+    {
+      "record_id": "file-0094-atom-0013",
+      "file_index": 94,
+      "atom_index": 13,
+      "atoms_total": 16,
+      "source_path": "crates/ethereum/payload/src/unified_execution.rs",
+      "source_hunk_hint": "@@ -0,0 +1,537 @@ lines 441-474",
+      "source_kind": "call_ordering",
+      "source_snippet": "let reordered = match reorder_block(classified_txs, parent_header, state_provider) { Ok(txs) => txs, Err(e) => { warn!(... \"Sequencing rights reordering failed, using original order\"); return; } };\nif reordered.len() != self.entries.len() { debug!(... \"Sequencing rights returned different count, skipping reorder\"); return; }\nlet hash_to_new_pos: HashMap<_, _> = reordered.iter().enumerate().map(|(pos, tx)| (*tx.tx_hash(), pos)).collect();\nself.entries.sort_by_key(|e| hash_to_new_pos.get(e.bundle.primary_tx().tx_hash()).copied().unwrap_or(usize::MAX));",
+      "semantic_claim": "After classification, the file calls `reorder_block`, skips reordering on errors or count mismatches, and maps reordered transaction hashes back to prepared entries for final bundle ordering.",
+      "high_risk": true,
+      "risk_tags": [
+        "sequencing_rights",
+        "transaction_ordering",
+        "tx_identity",
+        "payload_execution"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/sequencing_rights.rs",
+          "symbols": [
+            "reorder_payload_candidates",
+            "try_classify_static",
+            "classify_top_level_with_sr"
+          ],
+          "snippet": "let classification = try_classify_static(tx).unwrap_or_else(|| classify_top_level_with_sr(tx, &reader, state.as_ref())); ... reorder_block(classified, parent_header, client)",
+          "evidence": "Payload sequencing-rights classification is wired for static and top-level classification over PayloadCandidate::primary_tx and fails open to the existing order on state/read/reorder errors."
+        }
+      ],
+      "equivalence_argument": "The reorder/error/hash-remap behavior is structurally equivalent for regular pool candidates, but source applied it to every prepared bundle.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Make `reorder_block` return a hash sequence with a missing transaction and assert destination preserves original candidate order rather than dropping or duplicating entries.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Confirmed covered: reorder_block failures/count mismatches preserve existing order and successful reordered hashes are mapped back to candidates."
+    },
+    {
+      "record_id": "file-0094-atom-0014",
+      "file_index": 94,
+      "atom_index": 14,
+      "atoms_total": 16,
+      "source_path": "crates/ethereum/payload/src/unified_execution.rs",
+      "source_hunk_hint": "@@ -0,0 +1,537 @@ lines 475-492",
+      "source_kind": "side_effect",
+      "source_snippet": "ritual_metrics::block::log_payload_phase_with_attempt(\"payload_sequencing_rights_reorder\", payload_id, block_number, ts_start, ts_end, self.entries.len(), attempt_id, attempt_kind);\n\ndebug!(target: \"ritual::sequencing_rights\", count = self.entries.len(), \"Applied sequencing rights reordering with EVM simulation\");",
+      "semantic_claim": "Successful sequencing-rights reordering emits an attempt-scoped payload phase metric and a debug log including the final entry count.",
+      "high_risk": false,
+      "risk_tags": [
+        "metrics_logging",
+        "sequencing_rights"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/sequencing_rights.rs",
+          "symbols": [
+            "reorder_regular_pool_candidates"
+          ],
+          "snippet": "debug!(target: \"ritual::sequencing_rights\", tx_count = candidates.len(), \"applied sequencing-rights order to regular pool candidates\");",
+          "evidence": "Destination logs successful regular-candidate reordering but no `payload_sequencing_rights_reorder` metric call was found."
+        }
+      ],
+      "equivalence_argument": "",
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Confirmed observability gap only: old attempt-scoped payload phase metric is absent."
+    },
+    {
+      "record_id": "file-0094-atom-0015",
+      "file_index": 94,
+      "atom_index": 15,
+      "atoms_total": 16,
+      "source_path": "crates/ethereum/payload/src/unified_execution.rs",
+      "source_hunk_hint": "@@ -0,0 +1,537 @@ lines 509-526",
+      "source_kind": "new_field",
+      "source_snippet": "pub struct UnifiedExecutionResult {\n    pub cumulative_gas_used: u64,\n    pub total_fees: U256,\n    pub current_block_size: usize,\n    pub blob_count: u64,\n    pub scheduled_executed: usize,\n    pub fulfilled_executed: usize,\n    pub delivery_executed: usize,\n    pub regular_executed: usize,\n}",
+      "semantic_claim": "Unified execution returns cumulative gas, total fees, block size, blob count, and per-source executed counts for scheduled, fulfilled async, delivery, and regular transactions.",
+      "high_risk": true,
+      "risk_tags": [
+        "gas_accounting",
+        "fee_accounting",
+        "payload_execution",
+        "scheduled_transactions",
+        "async_fsm"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "build_payload",
+            "EthBuiltPayload"
+          ],
+          "snippet": "let mut total_fees = U256::ZERO;\n...\ntotal_fees += U256::from(scheduled_miner_fee) * U256::from(gas_used);\ntotal_fees += U256::from(prepared.original_miner_fee) * U256::from(original_gas_used);\ntotal_fees += U256::from(miner_fee) * U256::from(gas_used);\nlet payload = EthBuiltPayload::new(sealed_block, total_fees, requests, None)",
+          "evidence": "Destination keeps gas, fee, size, and blob counters as local builder state and emits total fees in the built payload; it does not expose per-source execution counts."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "execute_async_settlement"
+          ],
+          "snippet": "*cumulative_gas_used = next_cumulative_gas;\n*block_regular_gas_used = next_regular_gas;\n*total_fees += U256::from(settlement_gas_price) * U256::from(evm_gas_used);",
+          "evidence": "Async settlement execution updates destination gas and fee counters through a shared helper."
+        }
+      ],
+      "equivalence_argument": "Destination preserves consensus-sensitive accounting through local payload state and helpers, but drops the public unified result struct and per-source executed counters.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Execute a mixed payload with scheduled, fulfilled async, delivery settlement, and regular transactions, then assert cumulative gas, blob count, total fees, and RLP size match expected staged accounting.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Confirmed covered by current PayloadCandidate/ritual_async.rs behavior for fulfilled async, delivery, regular, and pooled scheduled candidates; scheduler-state obligations remain staged ahead of the candidate list and per-source counters/log metrics are support-only."
+    },
+    {
+      "record_id": "file-0094-atom-0016",
+      "file_index": 94,
+      "atom_index": 16,
+      "atoms_total": 16,
+      "source_path": "crates/ethereum/payload/src/unified_execution.rs",
+      "source_hunk_hint": "@@ -0,0 +1,537 @@ lines 528-537",
+      "source_kind": "test_fixture",
+      "source_snippet": "#[test]\nfn test_unified_execution_result_default() {\n    let result = UnifiedExecutionResult::default();\n    assert_eq!(result.cumulative_gas_used, 0);\n    assert_eq!(result.total_fees, U256::ZERO);\n}",
+      "semantic_claim": "The file adds a unit test asserting default unified execution results start with zero cumulative gas and zero total fees.",
+      "high_risk": false,
+      "risk_tags": [
+        "tests",
+        "gas_accounting",
+        "fee_accounting"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/sequencing_rights.rs",
+          "symbols": [
+            "permutation_maps_cba_tip_order_to_abc_priority_order"
+          ],
+          "snippet": "#[test]\nfn permutation_maps_cba_tip_order_to_abc_priority_order() { ... }",
+          "evidence": "Destination has adapted tests for payload-local sequencing behavior rather than a unified result default test."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "delivery_fee_per_gas_uses_saturating_priority",
+            "decodes_all_two_phase_delivery_config_layouts"
+          ],
+          "snippet": "#[test]\nfn delivery_fee_per_gas_uses_saturating_priority() { ... }\n#[test]\nfn decodes_all_two_phase_delivery_config_layouts() { ... }",
+          "evidence": "Destination tests cover replacement async delivery fee/config behavior but not the removed default result struct."
+        }
+      ],
+      "equivalence_argument": "The trivial default-result assertion is obsolete with destination local accounting; stronger adapted tests cover fee/config and sequencing helpers.",
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Confirmed support-only absence: old default UnifiedExecutionResult unit test is tied to an absent helper struct and is not a runtime behavior gap."
+    }
+  ],
+  "high_risk_atoms_total": 14,
+  "non_exact_atoms_total": 16,
+  "adversarial_reviews": [],
+  "summary": "Mechanical review complete. Current PayloadCandidate and ritual_async.rs cover most of the old unified_execution.rs runtime behavior: common candidate identity, primary transactions for sequencing, fulfilled async pair atomicity, delivery effective tips, candidate sorting, gas/size accounting, and fail-open reorder. Confirmed remaining gaps are scheduler-state obligations outside the candidate list, missing full-call-graph sequencing classification, and support-only metrics/per-source counters.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Reviewed against current port after PayloadCandidate landed; no atoms remain in needs-review state."
+}

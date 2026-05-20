@@ -1,0 +1,86 @@
+{
+  "cluster_key": "executor delivery:audio-duration-pricing-ae6924de",
+  "confidence": "high",
+  "destinations": [
+    {
+      "evidence": "The port now provides extract_audio_duration_from_delivery, which reads AudioResponse slot 6 as outputDurationMs and converts milliseconds to rounded-up seconds.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let duration_ms = u32::from_be_bytes([...]); Some(if duration_ms == 0 { 0 } else { (u64::from(duration_ms) + 999) / 1000 })",
+      "symbols": [
+        "extract_audio_duration_from_delivery",
+        "AUDIO_RESPONSE_DURATION_OFFSET"
+      ]
+    },
+    {
+      "evidence": "Focused unit tests cover the source invariant's boundary cases: 0, 1, 999, 1000, 1001, and 61000 ms, plus absent and short delivery results.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "audio_duration_extractor_rounds_milliseconds_up_to_seconds",
+      "symbols": [
+        "audio_duration_extractor_rounds_milliseconds_up_to_seconds",
+        "audio_duration_extractor_rejects_missing_or_short_delivery_result"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port for the extractor behavior: AudioResponse slot 6 is interpreted as outputDurationMs and converted to pricing seconds with nonzero partial seconds rounded up. The broader audio Phase 2 fee-path wiring remains tracked by later audio invariants.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/lib.rs"
+  ],
+  "invariant_id": "cur-b879e92af6-audio-duration-pricing-uses-seconds",
+  "invariant_index": 161,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-async-fees/src/wallet.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs"
+    ],
+    "checked_queries": [
+      "calculate_audio_fees_phase2|extract_audio_duration_from_delivery|audio_escrow_lockup|AUDIO_TIER3_FEE_WEI|outputDurationMs",
+      "AUDIO_CALL_PRECOMPILE|calculate_async_fees_phase2|delivery_result|extract_delivery_result_from_calldata",
+      "supports_wallet_check|verify_wallet_for_commitment|audio"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "extract_audio_duration_from_delivery",
+      "calculate_async_fees_phase2",
+      "AUDIO_CALL_PRECOMPILE"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "calculate_async_fees_phase2 still returns unsupported for AUDIO_CALL_PRECOMPILE instead of using a dedicated seconds-based audio pricing path.",
+      "The broader payload-builder and block-verifier audio Phase 2 fee paths remain tracked by subsequent audio invariants."
+    ]
+  },
+  "notes": "Mapped after local parity fix for the shared extractor. The port still lacks the larger audio escrow and Phase 2 builder/verifier pricing paths, which remain represented by subsequent audio invariants.",
+  "rationale": "The primary diff renames the decoded field from duration to duration_ms, documents that the ABI stores milliseconds, and changes the return value to ((duration_ms + 999) / 1000) for nonzero durations to avoid the prior 1000x overcharge. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: The helper is one internal pricing decoder, and the exact ABI slot layout could change with a future AudioResponse version.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "cf054db8d52e8aa30b18aebbabbc4e50cff2d5b7"
+  ],
+  "statement": "extract_audio_duration_from_delivery must interpret AudioResponse slot 6 as outputDurationMs in milliseconds and return seconds for pricing, rounding any nonzero partial second up to the next full second.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Encode AudioResponse delivery results with outputDurationMs values 0, 1, 999, 1000, 1001, and 61000; assert extract_audio_duration_from_delivery returns 0, 1, 1, 1, 2, and 61 respectively."
+  ],
+  "summary": "Audio duration decoding now maps outputDurationMs to rounded pricing seconds.",
+  "test_or_falsification_candidate": "Local ritual-async-fees unit tests encode outputDurationMs values 0, 1, 999, 1000, 1001, and 61000 and assert extract_audio_duration_from_delivery returns 0, 1, 1, 1, 2, and 61 seconds.",
+  "title": "Audio duration pricing uses seconds",
+  "total_invariants": 1954
+}

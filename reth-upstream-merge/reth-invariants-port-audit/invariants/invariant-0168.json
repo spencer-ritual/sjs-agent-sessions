@@ -1,0 +1,95 @@
+{
+  "cluster_key": "executor delivery:builder-sender-lock-2cf054eb",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The regular transaction execution path consults parent-state AsyncJobTracker-backed sender-lock logic and skips both true results and registry read errors.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "match ritual_async_registry::should_skip_sender_locked_tx(\n    builder.evm_mut().db_mut(),\n    None,\n    pool_tx.sender(),\n    tx_hash,\n    current_block,\n) {\n    Ok(true) => { ... continue; }\n    Ok(false) => {}\n    Err(err) => { ... continue; }\n}",
+      "symbols": [
+        "PayloadCandidate::Regular",
+        "ritual_async_registry::should_skip_sender_locked_tx"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The helper implements the same allow/skip cases as the invariant: no jobs allow, settled or expired jobs allow, existing-job fulfillment allows, otherwise sender-locked transactions skip.",
+      "path": "crates/ritual-async-registry/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let job_count = read_sender_job_count(db, contract, sender)?;\nif job_count == 0 { return Ok(false); }\nlet all_unlocked = is_sender_all_phase1_settled(db, contract, sender, current_block_number)?;\nif all_unlocked { return Ok(false); }\nlet is_fulfillment = job_exists(db, contract, tx_hash)?;\nif is_fulfillment { return Ok(false); }\nOk(true)",
+      "symbols": [
+        "should_skip_sender_locked_tx",
+        "read_sender_job_count",
+        "is_sender_all_phase1_settled",
+        "job_exists"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The verifier uses the same contract-backed sender job and existing-job fulfillment semantics, which anchors builder/verifier parity.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let unlocked_senders = ritual_async_registry::batch_senders_all_phase1_settled(...)?;\n...\nlet existing_jobs = ritual_async_registry::batch_jobs_exist(&mut db, None, &locked_tx_hashes)?;\n...\nreturn Err(BlockVerificationError::InvalidNonceLock(...));",
+      "symbols": [
+        "verify_nonce_locks",
+        "batch_senders_all_phase1_settled",
+        "batch_jobs_exist"
+      ]
+    }
+  ],
+  "equivalence_argument": "The payload builder and verifier both use AsyncJobTracker parent/contract state via ritual-async-registry. The builder skips only when the helper says the sender is locked and the tx is not an existing-job fulfillment, and it skips on read errors to avoid producing blocks the verifier would reject.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-async-registry/src/lib.rs"
+  ],
+  "invariant_id": "cur-1eea02ae92-builder-sender-lock-mirrors-verifier",
+  "invariant_index": 168,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-async-registry/src/lib.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "should_skip_sender_locked_tx|senderJobs|phase1Settled|job_exists|InvalidNonceLock"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "should_skip_sender_locked_tx",
+      "read_sender_job_count",
+      "is_sender_all_phase1_settled",
+      "job_exists",
+      "verify_nonce_locks"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The builder now calls should_skip_sender_locked_tx against parent AsyncJobTracker state, and the registry module documents/tests differential equivalence with the verifier's nonce-lock logic. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: This is a builder prefilter; consensus enforcement still depends on the verifier, but divergence would hurt block production reliability.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "6706374cca0350567678f0a8fd73be0f6dfae9f5"
+  ],
+  "statement": "Payload building must skip a regular transaction when AsyncJobTracker shows the sender has at least one pending job that is not phase1Settled and the transaction hash is not an existing job fulfillment; it must allow transactions when the sender has no jobs, all jobs are phase1Settled, or the transaction is a fulfillment.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Mock AsyncJobTracker senderJobs and jobExecutor state for no jobs, all phase1Settled, unsettled non-fulfillment, and unsettled fulfillment cases; assert should_skip_sender_locked_tx matches the verifier predicate and the payload loop skips only the unsettled non-fulfillment case."
+  ],
+  "summary": "Builder sender-lock prefilter mirrors the verifier nonce-lock predicate.",
+  "test_or_falsification_candidate": "Mock AsyncJobTracker senderJobs and jobExecutor state for no jobs, all phase1Settled, unsettled non-fulfillment, and unsettled fulfillment cases; assert should_skip_sender_locked_tx matches the verifier predicate and the payload loop skips only the unsettled non-fulfillment case.",
+  "title": "Builder sender lock mirrors verifier",
+  "total_invariants": 1954
+}

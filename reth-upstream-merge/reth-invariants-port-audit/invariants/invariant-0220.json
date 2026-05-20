@@ -1,0 +1,63 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping was found: current verification request types carry previous-block context, precompile address, error, and success, but no maxTimeUntilTimeoutMs field or equivalent serialized timeout field.",
+  "evidence_files": [
+    "crates/rpc/rpc-api/src/ritual.rs",
+    "crates/rpc/rpc/src/ritual.rs"
+  ],
+  "invariant_id": "cur-dbd3c02b99-verification-request-includes-execution-context",
+  "invariant_index": 220,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/rpc/rpc-api/src/ritual.rs",
+      "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "crates/ritual-spc-verification/src/types.rs",
+      "crates/ritual-spc-verification/src/client.rs"
+    ],
+    "checked_queries": [
+      "maxTimeUntilTimeoutMs|max_time|timeout_ms|callback_gas|previousBlockHash|previousBlockNumber|previousBlockTimestamp|VerificationRequest"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "VerificationRequest",
+      "SpcVerificationRequest",
+      "SubmitAsyncResultRequest",
+      "maxTimeUntilTimeoutMs"
+    ],
+    "missing_behavior": "Missing serialized maxTimeUntilTimeoutMs in the verification request context.",
+    "related_but_insufficient_code": [
+      "rpc-api VerificationRequest includes precompile_address, previous_block_hash, previous_block_number, previous_block_timestamp, error, and success, but lacks maxTimeUntilTimeoutMs.",
+      "ritual-spc-verification SpcVerificationRequest includes previous block context, proposer_signature, error, and success, but no maxTimeUntilTimeoutMs.",
+      "submit_async_result builds SpcVerificationRequest from AsyncJobTracker context without any timeout-ms field."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The request struct gains seven fields with serde names for camelCase context fields, and the RPC caller populates those fields before sending to the verification service. The commit message says this extends VerificationRequest to 11 fields to eliminate hash mismatch. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "e56f68bbd06d487ac0e6e1011a684cabd651260b"
+  ],
+  "statement": "RPC VerificationRequest serialization must include maxTimeUntilTimeoutMs, precompileAddress, previousBlockHash, previousBlockNumber, previousBlockTimestamp, error, and success in addition to the existing block, transaction, and executor fields.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Serialize a VerificationRequest and assert the JSON includes maxTimeUntilTimeoutMs, precompileAddress, previousBlockHash, previousBlockNumber, previousBlockTimestamp, error, and success with the expected names and values."
+  ],
+  "summary": "Verification request context is missing maxTimeUntilTimeoutMs.",
+  "test_or_falsification_candidate": "Serialize the current rpc-api VerificationRequest and SpcVerificationRequest and assert maxTimeUntilTimeoutMs is absent.",
+  "title": "Verification request includes execution context",
+  "total_invariants": 1954
+}

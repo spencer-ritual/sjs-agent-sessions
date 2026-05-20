@@ -1,0 +1,295 @@
+{
+  "record_type": "file",
+  "file_index": 81,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/ethereum/node/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "missing",
+  "tags": [
+    "missing",
+    "reviewed",
+    "manifest",
+    "spc-verification",
+    "async-context",
+    "reth-port",
+    "nodebuilder"
+  ],
+  "atoms_total": 6,
+  "atoms": [
+    {
+      "record_id": "file-0081-atom-0001",
+      "file_index": 81,
+      "atom_index": 1,
+      "atoms_total": 6,
+      "source_path": "crates/ethereum/node/Cargo.toml",
+      "source_hunk_hint": "@@ -36,14 +36,21 @@ reth-trie-db.workspace = true",
+      "source_kind": "other",
+      "source_snippet": "reth-db.workspace = true",
+      "semantic_claim": "The reth-node-ethereum crate declares reth-db as a normal library dependency, allowing non-test node code in this crate to link directly against reth-db APIs.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/Cargo.toml",
+          "symbols": [
+            "dev-dependencies.reth-db"
+          ],
+          "snippet": "[dev-dependencies] reth-db.workspace = true",
+          "evidence": "The destination has reth-db only as a dev-dependency; no normal dependency or non-test reth_db use was found in crates/ethereum/node."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Build non-test reth-node-ethereum code that imports reth_db; the current port manifest should fail because reth-db is only a dev-dependency.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed missing manifest surface only. reth-db remains a dev-dependency and no non-test reth_db use was found in reth-node-ethereum."
+    },
+    {
+      "record_id": "file-0081-atom-0002",
+      "file_index": 81,
+      "atom_index": 2,
+      "atoms_total": 6,
+      "source_path": "crates/ethereum/node/Cargo.toml",
+      "source_hunk_hint": "@@ -36,14 +36,21 @@ reth-trie-db.workspace = true",
+      "source_kind": "other",
+      "source_snippet": "alloy-primitives.workspace = true",
+      "semantic_claim": "The reth-node-ethereum crate declares alloy-primitives as a normal dependency so node library code can use Address, Bytes, B256, and related primitive types.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/Cargo.toml",
+          "symbols": [
+            "dependencies.alloy-primitives"
+          ],
+          "snippet": "alloy-primitives = { workspace = true, features = [\"serde\"] }",
+          "evidence": "The destination has alloy-primitives in normal dependencies, with serde enabled as a compatible superset."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/src/ritual_async_rpc.rs",
+          "symbols": [
+            "RitualSubmitAsyncResultRequest"
+          ],
+          "snippet": "use alloy_primitives::{Address, Bytes, B256};",
+          "evidence": "Destination node library code actively uses alloy-primitives types."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Run cargo check for reth-node-ethereum; removing the normal alloy-primitives dependency should break ritual_async_rpc primitive imports.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "The destination dependency is a compatible superset because it enables serde."
+    },
+    {
+      "record_id": "file-0081-atom-0003",
+      "file_index": 81,
+      "atom_index": 3,
+      "atoms_total": 6,
+      "source_path": "crates/ethereum/node/Cargo.toml",
+      "source_hunk_hint": "@@ -36,14 +36,21 @@ reth-trie-db.workspace = true",
+      "source_kind": "other",
+      "source_snippet": "ritual-async.workspace = true",
+      "semantic_claim": "The reth-node-ethereum crate depends on the legacy ritual-async workspace crate for downstream async transaction detection and async-result plumbing reachable from node-facing code.",
+      "high_risk": false,
+      "risk_tags": [
+        "async-plumbing"
+      ],
+      "mapping_status": "moved_to_dependency",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "Cargo.toml",
+          "symbols": [
+            "workspace.members",
+            "workspace.dependencies"
+          ],
+          "snippet": "crates/ritual-async-inspector, crates/ritual-async-fees, crates/ritual-async-registry",
+          "evidence": "The destination port does not contain a legacy ritual-async package; active async helpers are split across inspector, fees, and registry crates."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/Cargo.toml",
+          "symbols": [
+            "dependencies.ritual-async-inspector",
+            "dependencies.ritual-async-fees",
+            "dependencies.ritual-async-registry"
+          ],
+          "snippet": "ritual-async-inspector.workspace = true; ritual-async-fees.workspace = true; ritual-async-registry.workspace = true",
+          "evidence": "The active payload async path depends on the decomposed async crates instead of the legacy ritual-async crate."
+        }
+      ],
+      "equivalence_argument": "The direct manifest dependency is not preserved. Live async behavior appears decomposed into narrower crates and transaction-pool APIs, but that is not an exact crate-surface match for consumers expecting reth-node-ethereum to link the legacy ritual-async dependency.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Check whether destination consumers still import ritual_async through reth-node-ethereum or expect legacy ritual-async detector APIs from this crate.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed covered by decomposition. The legacy ritual-async crate edge is absent, but active async behavior is split across payload, txpool, async-inspector, async-fees, and async-registry crates."
+    },
+    {
+      "record_id": "file-0081-atom-0004",
+      "file_index": 81,
+      "atom_index": 4,
+      "atoms_total": 6,
+      "source_path": "crates/ethereum/node/Cargo.toml",
+      "source_hunk_hint": "@@ -36,14 +36,21 @@ reth-trie-db.workspace = true",
+      "source_kind": "other",
+      "source_snippet": "ritual-scheduling.workspace = true",
+      "semantic_claim": "The reth-node-ethereum crate declares the legacy ritual-scheduling dependency, enabling node-facing scheduling integration code to link scheduler types and helpers.",
+      "high_risk": false,
+      "risk_tags": [
+        "scheduling"
+      ],
+      "mapping_status": "moved_to_dependency",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "Cargo.toml",
+          "symbols": [
+            "workspace.dependencies.ritual-scheduled-verification"
+          ],
+          "snippet": "ritual-scheduled-verification = { path = \"crates/ritual-scheduled-verification\" }",
+          "evidence": "The v2.2 port does not carry legacy ritual-scheduling; scheduled verification is represented by ritual-scheduled-verification and related scheduled block-building crates."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+          "path": "crates/node/Cargo.toml",
+          "symbols": [
+            "dependencies.ritual-scheduling"
+          ],
+          "snippet": "ritual-scheduling.workspace = true",
+          "evidence": "Nodebuilder still declares ritual-scheduling outside the destination reth-node-ethereum manifest."
+        }
+      ],
+      "equivalence_argument": "The direct reth-node-ethereum dependency is absent. The active v2.2 scheduled FSM appears to live in ritual-scheduled-verification / scheduled block-building, while a legacy ritual-scheduling dependency remains only in nodebuilder.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Build scheduling-related nodebuilder code with the v2.2 port as the only Reth source and verify all scheduling call sites resolve without requiring reth-node-ethereum to depend on ritual-scheduling.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Reviewed: confirmed covered by decomposition for active scheduled behavior. The legacy ritual-scheduling edge is absent from reth-node-ethereum; scheduled behavior lives in scheduled block-building/verification and nodebuilder surfaces."
+    },
+    {
+      "record_id": "file-0081-atom-0005",
+      "file_index": 81,
+      "atom_index": 5,
+      "atoms_total": 6,
+      "source_path": "crates/ethereum/node/Cargo.toml",
+      "source_hunk_hint": "@@ -36,14 +36,21 @@ reth-trie-db.workspace = true",
+      "source_kind": "other",
+      "source_snippet": "ritual-spc-verification.workspace = true",
+      "semantic_claim": "The reth-node-ethereum crate depends on ritual-spc-verification so its SpcVerifierImpl bridge can adapt the concrete Ritual SPC verifier to the reth_evm::spc::SpcVerifier trait.",
+      "high_risk": true,
+      "risk_tags": [
+        "spc-verification",
+        "verifier",
+        "nodebuilder-integration",
+        "consensus"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/Cargo.toml",
+          "symbols": [
+            "dependencies.ritual-spc-verification",
+            "features.async-context"
+          ],
+          "snippet": "ritual-spc-verification.workspace = true\nasync-context = [\"reth-evm-ethereum/async-context\"]",
+          "evidence": "The latest port commit adds the concrete SPC verification dependency and restores the node crate async-context feature forwarding."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Run cargo check for ritual-reth-nodebuilder-internal's ritual-node crate against the current v2.2 port; the import of reth_node_ethereum::SpcVerifierImpl should fail unless the bridge/export is restored or nodebuilder is migrated.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Resolved by 7f8a668d24: reth-node-ethereum now depends on ritual-spc-verification for the SpcVerifierImpl bridge."
+    },
+    {
+      "record_id": "file-0081-atom-0006",
+      "file_index": 81,
+      "atom_index": 6,
+      "atoms_total": 6,
+      "source_path": "crates/ethereum/node/Cargo.toml",
+      "source_hunk_hint": "@@ -75,6 +82,7 @@ rand.workspace = true",
+      "source_kind": "other",
+      "source_snippet": "async-context = [\"reth-evm-ethereum/async-context\"]",
+      "semantic_claim": "The reth-node-ethereum crate exposes an async-context Cargo feature forwarding to reth-evm-ethereum/async-context, preserving feature-gated async EVM context support for consumers enabling it through the node crate.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-context",
+        "feature-gating",
+        "evm",
+        "nodebuilder-integration"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/node/Cargo.toml",
+          "symbols": [
+            "dependencies.ritual-spc-verification",
+            "features.async-context"
+          ],
+          "snippet": "ritual-spc-verification.workspace = true\nasync-context = [\"reth-evm-ethereum/async-context\"]",
+          "evidence": "The latest port commit adds the concrete SPC verification dependency and restores the node crate async-context feature forwarding."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Run cargo check -p reth-node-ethereum --features async-context in the v2.2 port; the current destination manifest should reject the unknown feature.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": "review-files-0077-0089-mechanical"
+      },
+      "review_required": false,
+      "notes": "Resolved by 7f8a668d24: the node crate now exposes async-context = [\"reth-evm-ethereum/async-context\"]."
+    }
+  ],
+  "high_risk_atoms_total": 2,
+  "non_exact_atoms_total": 5,
+  "adversarial_reviews": [
+    {
+      "review_record_id": "review-files-0077-0089-mechanical",
+      "required": false,
+      "status": "completed",
+      "reason": "Mechanical review completed; remaining non-exact atoms are now confirmed covered, confirmed missing, intentionally absent, or support/test/telemetry only."
+    }
+  ],
+  "summary": "Mechanical re-review complete after 7f8a668d24. The SPC verifier dependency and async-context feature are now restored; legacy async/scheduling dependencies remain decomposed, and only the reth-db normal-dependency surface remains support-only absent.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Latest commit closed the prior SPC/async-context manifest concerns. No FSM/runtime gap remains in this manifest row."
+}

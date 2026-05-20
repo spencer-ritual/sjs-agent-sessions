@@ -1,0 +1,101 @@
+{
+  "cluster_key": "scheduler:scheduled-async-sender-72360ed7",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "For synthesized scheduled async transactions, the payload builder sets scheduled_sender from obligation.caller and passes that address into build_short_async_commitment_transaction, so async job metadata uses the original Scheduler caller rather than the recovered system sender.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let scheduled_sender = obligation.caller;\n...\nmatch build_short_async_commitment_transaction(\n    &scheduled_tx,\n    scheduled_sender,\n    async_call,\n    async_call_count,\n    async_parent_hash,\n    async_parent_number,\n    async_parent_timestamp,\n    attributes.suggested_fee_recipient,\n) { ... }",
+      "symbols": [
+        "build_payload_inner",
+        "build_short_async_commitment_transaction",
+        "TxScheduled::caller"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "For regular pool candidates that execute async calls, the builder uses scheduled.tx().caller when the transaction is scheduled and falls back to pool_tx.sender() for non-scheduled transactions. pool_tx.sender() is the already recovered sender from transaction-pool admission, so malformed unrecoverable non-scheduled transactions are not promoted through this async path.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let original_async_sender = tx\n    .inner()\n    .as_scheduled()\n    .map(|scheduled| scheduled.tx().caller)\n    .unwrap_or_else(|| pool_tx.sender());\n...\nbuild_short_async_commitment_transaction(&tx, original_async_sender, async_call, ...)",
+      "symbols": [
+        "build_payload_inner",
+        "pool_tx.sender",
+        "TxScheduled::caller"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "The sender address passed by the payload builder is encoded into the async commitment submitJob call as sender, which is the downstream async job tracking identity.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub(crate) fn build_short_async_commitment_transaction(original_tx: &Recovered<TransactionSigned>, original_sender: Address, async_call: BasicAsyncCallResult, ...) {\n    ...\n    create_commitment_tx(..., original_sender, ... )\n}\n...\nlet call = submitJobCall { ... sender: sender_address, ... };",
+      "symbols": [
+        "build_short_async_commitment_transaction",
+        "create_commitment_tx"
+      ]
+    }
+  ],
+  "equivalence_argument": "The old detector file is absent, but the v2 payload builder performs detection after execution/inspection. The same sender rule is preserved at the new boundary: scheduled transactions use the scheduled caller field, while non-scheduled transactions use the recovered pool sender. Because non-scheduled candidates enter this path as ValidPoolTransaction instances, signer recovery failure prevents pool admission rather than being treated as async metadata.",
+  "evidence_files": [
+    "crates/ritual-async/src/detector.rs"
+  ],
+  "invariant_id": "cur-ba621aff7e-scheduled-async-sender-address-original-caller",
+  "invariant_index": 21,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async/src/detector.rs",
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs"
+    ],
+    "checked_queries": [
+      "sender_address|recover_signer|as_scheduled|scheduled.*caller|detect.*async|AsyncTxMeta",
+      "scheduled_tx.caller|sender_address|recover_signer\\(\\)|is_async|AsyncTxMeta|sender.*original",
+      "build_short_async_commitment_transaction\\(|original_sender|scheduled\\.tx\\(\\)\\.caller|as_scheduled|recover_signer"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "scheduled.tx().caller",
+      "pool_tx.sender",
+      "recover_signer",
+      "build_short_async_commitment_transaction",
+      "sender_address"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "crates/ritual-async/src/detector.rs is absent in the v2 port; sender selection moved into payload async commitment construction."
+    ]
+  },
+  "notes": "Mapped structurally in the port because async detection moved from the old detector file into payload execution/inspection.",
+  "rationale": "The packet contains one high-confidence candidate and the bounded neighbors only establish surrounding scheduled transaction generation, typing, pool, and validation behavior. None supersede the async detector requirement that scheduled transactions carry the original scheduler caller into async job metadata rather than the recovered system signer.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "5892b63983180612b150e0b7f5d5aaf59f213919"
+  ],
+  "statement": "Async detection for scheduled transactions must record scheduled_tx.caller as sender_address for downstream async job tracking, while non-scheduled transactions must still use recover_signer(); if signer recovery fails for a non-scheduled transaction, it must not be treated as async.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Create a scheduled transaction whose caller is A but whose recovered signer would be the system sender, run async detection, and assert the resulting AsyncTxMeta or job-add input records A as sender_address.",
+    "Run async detection on a regular transaction signed by B and on a regular transaction with unrecoverable signature; assert the first records B and the second is ignored as non-async."
+  ],
+  "summary": "Scheduled async job sender identity is preserved through payload-builder commitment construction using TxScheduled.caller.",
+  "test_or_falsification_candidate": "Execute a scheduled async transaction whose TxScheduled.caller differs from SCHEDULED_SYSTEM_SENDER and assert the resulting submitJob sender is the caller; execute a regular async transaction and assert sender is the recovered pool sender; malformed non-scheduled signatures should fail before this path.",
+  "title": "Scheduled async sender address is the original caller",
+  "total_invariants": 1954
+}

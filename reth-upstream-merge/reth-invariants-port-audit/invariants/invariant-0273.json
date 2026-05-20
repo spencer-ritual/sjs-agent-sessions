@@ -1,0 +1,97 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Receipt construction extracts the async settlement fields and uses try_into().ok() so amount overflow becomes None.",
+      "path": "crates/rpc/rpc-eth-types/src/receipt.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if let Some(async_settlement) = transaction.as_async_settlement().map(|tx| tx.tx()) {\n    receipt.origin_tx = Some(async_settlement.origin_tx);\n    receipt.user_address = Some(async_settlement.user_address);\n    receipt.total_amount = async_settlement.total_amount.try_into().ok();\n    receipt.executor_address = Some(async_settlement.executor_address);\n    receipt.executor_fee = async_settlement.executor_fee.try_into().ok();\n    receipt.commitment_validator = Some(async_settlement.commitment_validator);\n    receipt.commitment_fee = async_settlement.commitment_fee.try_into().ok();\n    receipt.inclusion_validator = Some(async_settlement.inclusion_validator);\n    receipt.inclusion_fee = async_settlement.inclusion_fee.try_into().ok();\n    receipt.settlement_block = Some(async_settlement.settlement_block);\n}",
+      "symbols": [
+        "TransactionCompat::from_recovered_with_block_context",
+        "as_async_settlement"
+      ]
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "169074f08721705fbb99cc9531ea798b61e9f3cc",
+      "evidence": "The dependency envelope exposes the async settlement variant used by the port receipt extractor.",
+      "path": "crates/consensus/src/transaction/envelope.rs",
+      "repo": "/home/ritual/repos/ritual-alloy-internal",
+      "snippet": "AsyncSettlement(Signed<TxAsyncSettlement>)\n\npub const fn as_async_settlement(&self) -> Option<&Signed<TxAsyncSettlement>> { match self { Self::AsyncSettlement(tx) => Some(tx), _ => None } }",
+      "symbols": [
+        "EthereumTxEnvelope::AsyncSettlement",
+        "EthereumTxEnvelope::as_async_settlement"
+      ]
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "f4f4f2c7cbf201bd9f3fb6fe7b9cdd18c6aecdec",
+      "evidence": "The EVM receipt builder wraps async settlement transactions in the AsyncSettlement receipt envelope variant.",
+      "path": "crates/evm/src/eth/receipt_builder.rs",
+      "repo": "/home/ritual/repos/ritual-alloy-evm-internal",
+      "snippet": "TxType::AsyncSettlement => ReceiptEnvelope::AsyncSettlement(receipt),",
+      "symbols": [
+        "ReceiptBuilder::receipt"
+      ]
+    }
+  ],
+  "equivalence_argument": "Async settlement transaction variant support is owned by alloy dependencies, while the port RPC receipt layer populates the user-facing fields. Together they preserve variant identity and field exposure with overflow-to-None amount handling.",
+  "evidence_files": [
+    "crates/ethereum/primitives/src/transaction.rs",
+    "crates/primitives-traits/src/transaction/signed.rs",
+    "crates/rpc/rpc-eth-types/src/receipt.rs",
+    "crates/rpc/rpc/src/otterscan.rs"
+  ],
+  "invariant_id": "cur-41e8f2f3c0-asyncsettlement-receipt-fields-exposed",
+  "invariant_index": 273,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+    "/home/ritual/repos/ritual-alloy-internal",
+    "/home/ritual/repos/ritual-alloy-evm-internal"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/rpc/rpc-eth-types/src/receipt.rs",
+      "crates/consensus/src/transaction/envelope.rs",
+      "crates/evm/src/eth/receipt_builder.rs"
+    ],
+    "checked_queries": [
+      "AsyncSettlement receipt fields",
+      "total_amount try_into ok",
+      "ReceiptEnvelope AsyncSettlement"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal"
+    ],
+    "checked_symbols": [
+      "as_async_settlement",
+      "ReceiptEnvelope::AsyncSettlement",
+      "TxAsyncSettlement"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in port with alloy dependency support.",
+  "rationale": "The diff adds as_async_settlement to the signed transaction trait and TransactionSigned implementation, extracts settlement fields into receipt metadata, and maps TxType::AsyncSettlement to ReceiptEnvelope::AsyncSettlement. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "dfc4a17d71c3cb3c8632f986c8ffecd848fbb06f"
+  ],
+  "statement": "For AsyncSettlement transactions, receipt construction extracts async_tx_hash, user address, total amount, executor address, executor fee, commitment validator, commitment fee, inclusion validator, inclusion fee, and settlement block into receipt fields, using None for amounts that overflow u128.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create an AsyncSettlement transaction with distinctive settlement fields, build a receipt, and assert each field is populated. Use a fee value exceeding u128 and assert the corresponding optional receipt amount is None. Assert the receipt envelope variant is AsyncSettlement."
+  ],
+  "summary": "AsyncSettlement receipts expose settlement fields and preserve the envelope variant.",
+  "test_or_falsification_candidate": "Create an AsyncSettlement transaction with distinctive fields and oversized fee values, build a receipt, and assert fields are present and overflowing amounts are None with an AsyncSettlement envelope.",
+  "title": "AsyncSettlement receipt fields are exposed",
+  "total_invariants": 1954
+}

@@ -1,0 +1,80 @@
+{
+  "record_type": "file",
+  "file_index": 300,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-block-verification/src/constants.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "structural_equivalent",
+  "tags": [
+    "high-risk",
+    "non-exact",
+    "structural_equivalent"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0300-atom-0001",
+      "file_index": 300,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-block-verification/src/constants.rs",
+      "source_hunk_hint": "@@ -0,0 +1,28 @@",
+      "source_kind": "changed_constant",
+      "source_snippet": "//! Constants for block verification\n//!\n//! Precompile addresses are re-exported from the `ritual-precompile-addresses` crate (stable\n//! `crate::constants::*` import paths). Other contract addresses and limits are defined here.\n\nuse alloy_primitives::{address, Address};",
+      "semantic_claim": "The downstream diff for crates/ritual-block-verification/src/constants.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": true,
+      "risk_tags": [
+        "verifier"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/constants.rs",
+          "symbols": [
+            "DEFAULT_TEE_SERVICE_REGISTRY",
+            "SPC_PROOF_SIGNATURE_LENGTH",
+            "MAX_PUBLIC_KEY_LEN"
+          ],
+          "snippet": "pub const SPC_PROOF_SIGNATURE_LENGTH: usize = 65;\npub const MAX_PUBLIC_KEY_LEN: usize = 128;",
+          "evidence": "The v2.2 port keeps the old block-verification address/signature/public-key constants at the same crate boundary."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/constants.rs",
+          "symbols": [
+            "MAX_SHORT_ASYNC_INPUT_SIZE",
+            "MAX_SHORT_ASYNC_TTL_BLOCKS"
+          ],
+          "snippet": "pub const MAX_SHORT_ASYNC_INPUT_SIZE: usize = MAX_ASYNC_INPUT_SIZE;\npub const MAX_SHORT_ASYNC_TTL_BLOCKS: u64 = 500;",
+          "evidence": "The v2.2 verifier constants module extends the old surface with shared async input/TTL bounds used by builder/verifier checks."
+        }
+      ],
+      "equivalence_argument": "The downstream constants module is preserved at the same crate path in the v2.2 port. The destination adds short-async bounds, but the original precompile address re-exports, TEE registry default, SPC proof length, and public-key cap remain available through the same `ritual_block_verification::constants` boundary.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Compile a destination consumer importing `SPC_PROOF_SIGNATURE_LENGTH`, `MAX_PUBLIC_KEY_LEN`, and the Ritual precompile address re-exports from `ritual_block_verification::constants`.",
+      "adversarial_review": {
+        "required": true,
+        "status": "pass",
+        "review_record_id": "review-file-0300-atom-0001"
+      },
+      "review_required": true,
+      "notes": "First-pass review found the constants in the v2.2 block-verification crate, with additional async bounds rather than a missing port.",
+      "required_change": null
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [
+    "coverage-map/reviews/review-file-0300-atom-0001.json"
+  ],
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "Reclassified from missing after locating the same constants surface in the destination crate."
+}

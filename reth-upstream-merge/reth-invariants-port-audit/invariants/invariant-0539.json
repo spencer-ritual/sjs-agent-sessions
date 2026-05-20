@@ -1,0 +1,67 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: the v2 port computes callback cost for some two-phase precompiles but not all registered two-phase precompile families.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/wallet.rs"
+  ],
+  "invariant_id": "cur-32d210c6b1-phase-precompiles-escrow-callback-cost",
+  "invariant_index": 539,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/wallet.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs",
+      "crates/rpc/rpc/src/async_tx_validator.rs",
+      "crates/ritual-precompile-codecs/src/long_running.rs"
+    ],
+    "checked_queries": [
+      "delivery_callback_cost decode_delivery_callback_cost_at IMAGE_CALL_PRECOMPILE VIDEO_CALL_PRECOMPILE FHE_PRECOMPILE",
+      "verify_wallet_for_commitment delivery_gas_limit delivery_max_fee_per_gas",
+      "Phase 2 callback cost Image Audio Video FHE"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "verify_wallet_for_commitment",
+      "delivery_callback_cost",
+      "decode_delivery_callback_cost_at",
+      "IMAGE_CALL_PRECOMPILE",
+      "VIDEO_CALL_PRECOMPILE",
+      "FHE_PRECOMPILE",
+      "ALL_TWO_PHASE_PRECOMPILE_ADDRESSES"
+    ],
+    "missing_behavior": "verify_wallet_for_commitment does not include Phase 2 callback cost for every registered two-phase precompile; image, video, and FHE are not covered by the v2 port wallet callback-cost path.",
+    "related_but_insufficient_code": [
+      "crates/ritual-async-fees/src/wallet.rs includes callback cost for long-running HTTP, audio, ZK, sovereign agent, and persistent agent, but omits image, video, and FHE.",
+      "crates/ritual-precompile-addresses/src/lib.rs registers image, video, and FHE as two-phase async precompiles.",
+      "The non-audited older /home/ritual/repos/ritual-reth-internal checkout contains broader callback-cost branches, but it is outside the audited repo set."
+    ]
+  },
+  "notes": "The present code is correct for covered families but does not satisfy the invariant claim across all supported two-phase precompiles.",
+  "rationale": "The diff expands callback-cost handling from a subset of precompiles to HTTP-family, ZK, Sovereign Agent, FHE, and Persistent Agent with the correct DeliveryConfig decoder for each ABI layout. The commit message says Image, Audio, Video, ZK, and Sovereign Agent previously fell through to zero callback cost. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "b52c9d9c88f7d71fa1dd6ddaf1101adcef417970"
+  ],
+  "statement": "verify_wallet_for_commitment must include Phase 2 callback cost equal to delivery_gas_limit * delivery_max_fee_per_gas + delivery_value for every supported two-phase precompile, using the ABI decoder specific to that precompile family.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "For each supported two-phase precompile, encode a DeliveryConfig with nonzero gas limit, max fee, and value, then assert wallet verification includes the computed callback cost in total_required_fees."
+  ],
+  "summary": "Wallet callback-cost escrow is incomplete for registered two-phase precompiles.",
+  "test_or_falsification_candidate": "Encode image, video, and FHE two-phase inputs with nonzero delivery gas/max fee/value and assert wallet verification includes that callback cost; current port lacks those branches.",
+  "title": "All two-phase precompiles escrow callback cost",
+  "total_invariants": 1954
+}

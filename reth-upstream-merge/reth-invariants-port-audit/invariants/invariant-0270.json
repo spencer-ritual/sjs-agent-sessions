@@ -1,0 +1,78 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "The builder validates and decodes the precompile input, then uses the decoded ttl from that input when creating the async commitment transaction.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let decoded = validate_async_commitment_call(&async_call)?;\nlet commitment_tx = create_short_async_commitment_tx(..., decoded.executor, decoded.ttl, ...);\n\nTxAsyncCommitment::new(..., precompile_input, ttl, executor_address, commitment_validator)",
+      "symbols": [
+        "build_short_async_commitment_transaction",
+        "validate_async_commitment_call",
+        "create_short_async_commitment_tx"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "The decoder extracts executor and ttl from the precompile payload, including HTTP-specific decoding.",
+      "path": "crates/ritual-precompile-codecs/src/validation.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let (executor, ttl) = match metadata.address { HTTP_CALL_PRECOMPILE => { let request = HTTPCallRequest::from_abi(input)?; (request.executor, request.ttl) }, _ => { let (executor, _, ttl, _, _) = ExecutorRequest::decode_base_fields(input)?; (executor, ttl) } };",
+      "symbols": [
+        "try_decode_precompile_data"
+      ]
+    }
+  ],
+  "equivalence_argument": "The old TxAsyncExec artifact is represented in the v2 port by TxAsyncCommitment and AsyncJobTracker state. The preserved invariant is that async TTL is decoded from precompile input and written into the system commitment, not derived from block number.",
+  "evidence_files": [
+    "crates/ritual-async/src/detector.rs"
+  ],
+  "invariant_id": "cur-d58b88c1b3-async-comes-precompile-input",
+  "invariant_index": 270,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-precompile-codecs/src/validation.rs"
+    ],
+    "checked_queries": [
+      "ttl from precompile input",
+      "decoded.ttl",
+      "TxAsyncExec::new"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "build_short_async_commitment_transaction",
+      "try_decode_precompile_data",
+      "TxAsyncCommitment::new"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in port with the v2 TxAsyncCommitment representation.",
+  "rationale": "The primary diff replaces manual executor-only extraction with ExecutorRequest::decode_base_fields, adds ttl_blocks to AsyncCallResult, and passes ttl_blocks into TxAsyncExec::new instead of using block_number for both commit and timeout values. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "c9600cd244439ccdadff8c3643edc5cd88885d1a"
+  ],
+  "statement": "When detecting an async precompile call, the detector must decode both executor address and ttl_blocks from the base ExecutorRequest fields and use ttl_blocks in the created TxAsyncExec.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Simulate an async precompile input with executor E and TTL T, then assert detect_async_transaction returns executor E and a system TxAsyncExec whose commit_block is the simulation block and ttl_blocks equals T rather than the block number."
+  ],
+  "summary": "Async commitment TTL comes from decoded precompile input.",
+  "test_or_falsification_candidate": "Encode a request with TTL T, build a short async commitment, and assert the resulting TxAsyncCommitment ttl equals T rather than the block number.",
+  "title": "Async TTL comes from precompile input",
+  "total_invariants": 1954
+}

@@ -1,0 +1,76 @@
+{
+  "cluster_key": "precompile pricing:agent-runtime-values-207bd12a",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The codec accepts exactly runtime u16 values 0, 1, and 2 and rejects every other value with InvalidFieldValue for agent_runtime.",
+      "path": "crates/ritual-precompile-codecs/src/persistent_agent.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "match value {\n    0 => Ok(Self::ZeroClaw),\n    1 => Ok(Self::OpenClaw),\n    2 => Ok(Self::Hermes),\n    _ => Err(CodecError::InvalidFieldValue { field: \"agent_runtime\".to_string(), value: value.to_string() }),\n}",
+      "symbols": [
+        "AgentRuntime::try_from"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "PersistentAgentRequest decodes field 25 as a uint16 and immediately applies AgentRuntime::try_from, so invalid runtime values fail request decoding rather than defaulting.",
+      "path": "crates/ritual-precompile-codecs/src/persistent_agent.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "ParamType::Uint(16),\n...\nagent_runtime: u16_token(&tokens[25], \"agent_runtime\")?.try_into()?,",
+      "symbols": [
+        "PersistentAgentRequest::from_abi"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port preserves the codec boundary exactly: field 25 is decoded as agent_runtime, valid values map to the three represented runtimes, and all other u16 values return InvalidFieldValue.",
+  "evidence_files": [
+    "crates/ritual-precompile-codecs/src/persistent_agent.rs"
+  ],
+  "invariant_id": "cur-284b59e715-agent-runtime-values-validated",
+  "invariant_index": 175,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-precompile-codecs/src/persistent_agent.rs"
+    ],
+    "checked_queries": [
+      "AgentRuntime|InvalidFieldValue|agent_runtime|PersistentAgentRequest"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "AgentRuntime",
+      "AgentRuntime::try_from",
+      "PersistentAgentRequest::from_abi",
+      "u16_token",
+      "InvalidFieldValue"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The candidate directly identifies the current codec boundary for agent_runtime: only the three represented u16 values are accepted, and invalid values must fail rather than silently choosing a default. There are no in-cluster predecessor or successor candidates to collapse.",
+  "record_type": "invariant_mapping",
+  "section": "Precompile Pricing",
+  "source_commits": [
+    "153236ea311a8abfee1c845eb140180680e2f596"
+  ],
+  "statement": "Persistent agent precompile codec decoding must accept agent_runtime uint16 values 0, 1, and 2 as ZeroClaw, OpenClaw, and Hermes respectively, and must reject any other value with InvalidFieldValue for agent_runtime.",
+  "status": "current",
+  "subsystem": "precompile pricing",
+  "suggested_falsification_tests": [
+    "Call AgentRuntime::try_from with 0, 1, and 2 and assert the values map to ZeroClaw, OpenClaw, and Hermes.",
+    "Call AgentRuntime::try_from with 3 and through PersistentAgentRequest::from_abi field 25 with an invalid u16, and assert decoding returns InvalidFieldValue for agent_runtime."
+  ],
+  "summary": "Persistent agent runtime values are validated in the port codec.",
+  "test_or_falsification_candidate": "Decode persistent-agent ABI inputs with agent_runtime values 0, 1, 2, and 3; only 0-2 should decode and 3 should return InvalidFieldValue for agent_runtime.",
+  "title": "Agent runtime values are validated",
+  "total_invariants": 1954
+}

@@ -1,0 +1,102 @@
+{
+  "cluster_key": "scheduler:payload-building:part-03",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Builder constructs reviveAgent(address,bytes) calldata and uses the failed agent owner as the TxScheduled caller.",
+      "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let owner = revival_data.owner;\n...\nlet calldata = reviveAgentCall { agentAddr: agent_addr, precompileInput: Bytes::from(precompile_input) }.abi_encode();\nOk(create_heartbeat_system_transaction(Bytes::from(calldata), owner, current_block))",
+      "symbols": [
+        "create_heartbeat_revival_transaction"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Heartbeat revival candidates are synthesized from FAILED agents and their parent-state revival data.",
+      "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "for agent_addr in failed_agents {\n    let revival_data = read_heartbeat_agent_revival_data(...)?;\n    ... create_heartbeat_revival_transaction(agent_addr, revival_data, executor, current_block)\n}",
+      "symbols": [
+        "try_synthesize_heartbeat_revival_transactions",
+        "read_heartbeat_agent_revival_data"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Verifier accepts only reviveAgent selector/ABI for heartbeat scheduled transactions and then checks the included hash set against parent-state synthesis.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if scheduled.input.len() < 4 || scheduled.input.as_ref()[..4] != reviveAgentCall::SELECTOR { ... }\nlet call = reviveAgentCall::abi_decode(&scheduled.input)?;",
+      "symbols": [
+        "validate_heartbeat_scheduled_tx_structure",
+        "verify_heartbeat_scheduled_transactions"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in port heartbeat scheduled builder and verifier: the old reviveAgentPrepared selector is absent, reviveAgent(address,bytes) is encoded, and caller is the failed agent owner used in deterministic synthesized transaction hashing.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/scheduling/src/canonical.rs",
+    "crates/scheduling/src/transaction.rs"
+  ],
+  "invariant_id": "cur-11517afdf4-heartbeat-revival-uses-owner-called-reviveagent",
+  "invariant_index": 59,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs"
+    ],
+    "checked_queries": [
+      "reviveAgentPrepared|reviveAgentCall|owner|FAILED agents"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "reviveAgentCall",
+      "create_heartbeat_revival_transaction",
+      "validate_heartbeat_scheduled_tx_structure",
+      "create_heartbeat_system_transaction"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "No reviveAgentPrepared symbol was found in the active port path."
+    ]
+  },
+  "notes": "Mapped exactly/structurally.",
+  "rationale": "The old reviveAgentPrepared selector is superseded by reviveAgent, and the later owner-caller fix supersedes the system-account caller portion of the reviveAgent candidate.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "cbe3de0a8581f4cb61ad19bb34136c9dad606b1d",
+    "082a6dce20ae15a963b00d13b9881e152282cea3"
+  ],
+  "statement": "Heartbeat revival scheduling uses reviveAgent(address,bytes), not reviveAgentPrepared, and the builder creates the revival scheduled transaction with the failed agent's owner as caller so verifier CH8 can accept the revive path for FAILED agents.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Generate canonical heartbeat revival for a FAILED agent and assert the scheduled transaction calldata selector is reviveAgent(address,bytes), the caller is the agent owner, and verifier CH8 accepts it.",
+    "Submit old reviveAgentPrepared calldata or reviveAgent for a non-FAILED agent and assert verifier rejection."
+  ],
+  "summary": "Heartbeat revival uses owner-called reviveAgent in the port.",
+  "test_or_falsification_candidate": "Generate FAILED-agent revival and assert calldata selector is reviveAgent(address,bytes), caller is owner, and verifier accepts the synthesized hash; old reviveAgentPrepared should reject.",
+  "title": "Heartbeat revival uses owner-called reviveAgent",
+  "total_invariants": 1954
+}

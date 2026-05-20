@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "The audited port BuilderContext has no shared SPC verifier field or accessor, so there is no builder-context sharing surface to map.",
+  "evidence_files": [
+    "crates/node/builder/src/builder/mod.rs",
+    "crates/node/builder/src/launch/common.rs",
+    "crates/node/builder/Cargo.toml"
+  ],
+  "invariant_id": "cur-6f2726fe02-builder-context-shares-verifier",
+  "invariant_index": 244,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/node/builder/src/builder/mod.rs",
+      "crates/node/builder/src/launch/common.rs",
+      "crates/node/builder/Cargo.toml"
+    ],
+    "checked_queries": [
+      "BuilderContext spc_verifier",
+      "pub fn spc_verifier",
+      "SpcVerifier::new",
+      "ExecutorRegistry::new",
+      "ctx.spc_verifier"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "BuilderContext",
+      "spc_verifier",
+      "SpcVerifier",
+      "ExecutorRegistry"
+    ],
+    "missing_behavior": "BuilderContext does not allocate, store, expose, or share a single SPC verifier instance.",
+    "related_but_insufficient_code": [
+      "crates/node/builder/src/builder/mod.rs BuilderContext contains head, provider, executor, and config_container only.",
+      "ritual-reth-nodebuilder-internal/crates/node/src/executor.rs calls ctx.spc_verifier(), but the audited port BuilderContext does not provide it."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The commit subject says to add a shared SPC verifier to BuilderContext and WithComponents, and the diff adds the field, initializes it once, clones it into the launch context, and exposes accessor methods. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "e3988dfd859f7e55ed9fd444fdaf0eaebbd3da7b"
+  ],
+  "statement": "BuilderContext::new must create a shared Arc<SpcVerifier> backed by an ExecutorRegistry configured with max 100 executors and 3600 second TTL via SpcVerifier::new_from_env, and launch contexts must expose the same Arc through spc_verifier() so downstream node components use a common verifier instance.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Construct a BuilderContext, obtain its spc_verifier Arc, launch components using that context, and assert the launch context's spc_verifier points to the same Arc instance and can verify against the same registry configuration/environment-derived settings."
+  ],
+  "summary": "BuilderContext does not carry a shared SPC verifier.",
+  "test_or_falsification_candidate": "Compile a BuilderContext test that calls ctx.spc_verifier() and verifies pointer equality across RPC/executor users; the current port BuilderContext has no such accessor.",
+  "title": "Builder context shares SPC verifier",
+  "total_invariants": 1954
+}

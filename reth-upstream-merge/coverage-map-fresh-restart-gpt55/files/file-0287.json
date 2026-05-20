@@ -1,0 +1,183 @@
+{
+  "record_type": "file",
+  "file_index": 287,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-async-inspector/src/inspector.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "async-inspector",
+    "precompile-detection",
+    "evm-inspector",
+    "commitment-validation"
+  ],
+  "atoms_total": 3,
+  "atoms": [
+    {
+      "record_id": "file-0287-atom-0001",
+      "file_index": 287,
+      "atom_index": 1,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-async-inspector/src/inspector.rs",
+      "source_hunk_hint": "@@ -0,0 +1,127 @@; async precompile constants and result surface",
+      "source_kind": "async_precompile_address_and_result_surface",
+      "source_snippet": "pub const HTTP_CALL_PRECOMPILE: Address = address!(\"0x0000000000000000000000000000000000000801\");\npub const LLM_CALL_PRECOMPILE: Address = address!(\"0x0000000000000000000000000000000000000802\");\npub const LONG_RUNNING_HTTP_PRECOMPILE: Address = address!(\"0x0000000000000000000000000000000000000805\");\npub const ZK_TWO_PHASE_PRECOMPILE: Address = address!(\"0x0000000000000000000000000000000000000806\");\npub const FHE_PRECOMPILE: Address = address!(\"0x0000000000000000000000000000000000000807\");\npub const IMAGE_CALL_PRECOMPILE: Address = address!(\"0x0000000000000000000000000000000000000818\");\npub const AUDIO_CALL_PRECOMPILE: Address = address!(\"0x0000000000000000000000000000000000000819\");\npub const VIDEO_CALL_PRECOMPILE: Address = address!(\"0x000000000000000000000000000000000000081A\");\npub const SOVEREIGN_AGENT_PRECOMPILE: Address = address!(\"0x000000000000000000000000000000000000080C\");\npub const DKMS_KEY_PRECOMPILE: Address = address!(\"0x000000000000000000000000000000000000081B\");\npub const PERSISTENT_AGENT_PRECOMPILE: Address = address!(\"0x0000000000000000000000000000000000000820\");\n\npub struct BasicAsyncCallResult { pub precompile_address: Address, pub input: Bytes, pub program_counter: Option<u64>, pub caller_address: Address }",
+      "semantic_claim": "The old divergence adds a shared async precompile address surface and a basic inspector result type covering HTTP, LLM, long-running HTTP, ZK, FHE, sovereign agent, image, audio, video, DKMS, and persistent-agent precompiles. The inspector exposes the detected address, input bytes, optional program counter, caller address, and async call count for downstream builder and verifier consumers.",
+      "high_risk": false,
+      "risk_tags": [
+        "precompile-addresses",
+        "public-api",
+        "async-call-result"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-inspector/src/inspector.rs",
+          "symbols": [
+            "HTTP_CALL_PRECOMPILE",
+            "LLM_CALL_PRECOMPILE",
+            "LONG_RUNNING_HTTP_PRECOMPILE",
+            "ZK_TWO_PHASE_PRECOMPILE",
+            "FHE_PRECOMPILE",
+            "IMAGE_CALL_PRECOMPILE",
+            "AUDIO_CALL_PRECOMPILE",
+            "VIDEO_CALL_PRECOMPILE",
+            "SOVEREIGN_AGENT_PRECOMPILE",
+            "DKMS_KEY_PRECOMPILE",
+            "PERSISTENT_AGENT_PRECOMPILE",
+            "AsyncPrecompileInspector",
+            "BasicAsyncCallResult"
+          ],
+          "evidence": "Destination `inspector.rs` preserves the same 224-line new file body, including all async precompile constants, inspector fields/accessors, and the `BasicAsyncCallResult` structure."
+        }
+      ],
+      "equivalence_argument": "The destination keeps the same constants and result/accessor surface, so builder, validator, and block-verifier consumers classify and retrieve async call metadata through the same shared API.",
+      "test_strategy": "compile_and_detection_regression",
+      "negative_test_candidate": "A call to each known async precompile address should be classified by the inspector; changing any address constant would make that precompile invisible to detector or verifier paths.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers the constants and public result surface only."
+    },
+    {
+      "record_id": "file-0287-atom-0002",
+      "file_index": 287,
+      "atom_index": 2,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-async-inspector/src/inspector.rs",
+      "source_hunk_hint": "@@ -0,0 +129,210 @@; Inspector::call async precompile detection",
+      "source_kind": "async_precompile_call_detection",
+      "source_snippet": "fn call(&mut self, _context: &mut CTX, inputs: &mut CallInputs) -> Option<CallOutcome> {\n    if inputs.target_address == HTTP_CALL_PRECOMPILE\n        || inputs.target_address == LLM_CALL_PRECOMPILE\n        || inputs.target_address == LONG_RUNNING_HTTP_PRECOMPILE\n        || inputs.target_address == ZK_TWO_PHASE_PRECOMPILE\n        || inputs.target_address == FHE_PRECOMPILE\n        || inputs.target_address == SOVEREIGN_AGENT_PRECOMPILE\n        || inputs.target_address == IMAGE_CALL_PRECOMPILE\n        || inputs.target_address == AUDIO_CALL_PRECOMPILE\n        || inputs.target_address == VIDEO_CALL_PRECOMPILE\n        || inputs.target_address == DKMS_KEY_PRECOMPILE\n        || inputs.target_address == PERSISTENT_AGENT_PRECOMPILE\n    {\n        self.async_call_count += 1;\n        if !self.has_async_call {\n            self.has_async_call = true;\n            self.precompile_address = Some(inputs.target_address);\n            self.precompile_input = Some(inputs.input.clone());\n            self.program_counter = self.rolling_program_counter.or(Some(0));\n            self.caller_address = Some(inputs.caller);\n        }\n    }\n    None\n}",
+      "semantic_claim": "The old divergence adds the inspector call hook that detects calls to any known async precompile, increments a defense-in-depth async call counter, records only the first detected async call so later calls cannot overwrite commitment validation metadata, captures input bytes and caller address, and returns None so normal EVM call execution continues.",
+      "high_risk": false,
+      "risk_tags": [
+        "evm-inspector",
+        "first-call-wins",
+        "commitment-validation",
+        "input-capture"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-inspector/src/inspector.rs",
+          "symbols": [
+            "impl Inspector for AsyncPrecompileInspector",
+            "AsyncPrecompileInspector::call"
+          ],
+          "evidence": "Destination `Inspector::call` preserves the same address allowlist, call-count increment, first-call recording guard, input/caller capture, PC fallback, multiple-call debug path, and `None` return."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async/src/detector.rs",
+          "symbols": [
+            "AsyncPrecompileInspector"
+          ],
+          "evidence": "Destination detector consumers instantiate and read `AsyncPrecompileInspector`, using the preserved first-call metadata surface."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-commitment-validator/src/lib.rs",
+          "symbols": [
+            "AsyncPrecompileInspector",
+            "async_call_result"
+          ],
+          "evidence": "Destination commitment validation replays origin transactions with `AsyncPrecompileInspector` and compares the detected precompile/input against the commitment."
+        }
+      ],
+      "equivalence_argument": "The destination preserves the exact first-call-wins inspector behavior and the observed builder/verifier consumers use the same shared inspector type, so commitment detection and validation metadata cannot drift between paths.",
+      "test_strategy": "detector_and_verifier_regression",
+      "negative_test_candidate": "A transaction that calls one async precompile and then another should leave the inspector result set to the first call while incrementing `async_call_count`; overwriting with the second call would validate the wrong commitment input.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers call-hook detection and first-call metadata capture."
+    },
+    {
+      "record_id": "file-0287-atom-0003",
+      "file_index": 287,
+      "atom_index": 3,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-async-inspector/src/inspector.rs",
+      "source_hunk_hint": "@@ -0,0 +212,224 @@; Inspector::step program-counter tracking",
+      "source_kind": "async_call_program_counter_tracking",
+      "source_snippet": "fn step(\n    &mut self,\n    interp: &mut revm::interpreter::Interpreter<EthInterpreter>,\n    _context: &mut CTX,\n) {\n    let pc = interp.bytecode.pc() as u64;\n    self.rolling_program_counter = Some(pc);\n}",
+      "semantic_claim": "The old divergence adds per-instruction program-counter tracking so the call hook can attach the most recent EVM program counter to detected async precompile calls. If a call is observed before any step, the detector falls back to PC 0 and logs that invariant violation.",
+      "high_risk": false,
+      "risk_tags": [
+        "program-counter",
+        "debuggability",
+        "traceability"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-inspector/src/inspector.rs",
+          "symbols": [
+            "AsyncPrecompileInspector::step",
+            "rolling_program_counter"
+          ],
+          "evidence": "Destination `Inspector::step` preserves the same bytecode PC read and rolling program counter storage, while the call hook preserves the `or(Some(0))` fallback."
+        }
+      ],
+      "equivalence_argument": "The destination preserves the source traceability behavior exactly: detected async calls receive the latest recorded PC when available and use the same fallback path otherwise.",
+      "test_strategy": "inspector_trace_regression",
+      "negative_test_candidate": "Execute bytecode that calls an async precompile after at least one interpreter step and assert the inspector result has a non-None program counter corresponding to the call site rather than losing PC metadata.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers only PC tracking and fallback trace metadata."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The async inspector implementation is exact-port preserved across the precompile address surface, first-call async detection, input/caller capture, call-count tracking, and program-counter trace metadata.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 287: A\tcrates/ritual-async-inspector/src/inspector.rs.",
+    "Source diff for file-0287 starts at line 42260 with a 224-line new file and ends before the `crates/ritual-async-inspector/src/lib.rs` diff header at line 42490.",
+    "Destination `crates/ritual-async-inspector/src/inspector.rs` preserves the same 224-line implementation, including address constants, inspector fields/accessors, call-hook detection, first-call guard, and step-hook PC tracking.",
+    "Bounded destination usage evidence confirmed the shared inspector is consumed by async detection and async commitment validation paths.",
+    "No review queue entry was required because the audited inspector behavior is preserved exactly."
+  ]
+}

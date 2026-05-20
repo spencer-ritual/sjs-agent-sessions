@@ -1,0 +1,68 @@
+{
+  "cluster_key": "scheduler:locks-observability",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/transaction-pool/src/blocking_handlers.rs"
+  ],
+  "invariant_id": "cur-580c866f4b-canonical-handler-processes-async-commitments-first",
+  "invariant_index": 28,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/mod.rs",
+      "crates/transaction-pool/src/lib.rs",
+      "crates/node/builder/src/components/pool.rs",
+      "crates/node/builder/src/launch/engine.rs",
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "blocking_handlers.rs",
+      "process_canonical_state_transactions|process_async_commitment_transactions|scheduled.*canonical",
+      "async commitment.*before.*scheduled",
+      "process_blocking_scheduling_for_canonical_state"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "blocking_handlers.rs",
+      "create_blocking_canonical_handler",
+      "process_canonical_state_transactions",
+      "process_blocking_scheduling_for_canonical_state",
+      "process_async_commitment_transactions",
+      "process_blocking_canonical_state_change",
+      "subscribe_blocking_canon_state"
+    ],
+    "missing_behavior": "Missing blocking canonical-state handler that processes async commitment transactions and then scheduled canonical-state processing in the same handler/order.",
+    "related_but_insufficient_code": [
+      "process_blocking_canonical_state_change processes async commitments/settlements/expiry, and node blocking handlers call only that async pool hook. Scheduled work moved to payload building and verifier paths, not a combined canonical handler."
+    ]
+  },
+  "notes": "Confirmed gap; async canonical processing exists but not the combined handler.",
+  "rationale": "The candidate defines a current ordering requirement between async commitment handling and scheduled canonical-state processing.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "d08bea8763e87abdcd0f3974b7757d585be4e9ad"
+  ],
+  "statement": "The blocking canonical-state handler must process async commitment transactions from a sealed block before running scheduled transaction canonical-state processing.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Use an instrumented pool/handler for a canonical block containing async commitment and scheduled transactions and assert async commitment processing is invoked before scheduled canonical-state processing."
+  ],
+  "summary": "Canonical handler async-then-scheduled ordering is absent.",
+  "test_or_falsification_candidate": "Instrument provider blocking canonical handler with async commitment and due scheduled work; current port lacks the scheduled callback after async processing.",
+  "title": "Canonical handler processes async commitments first",
+  "total_invariants": 1954
+}

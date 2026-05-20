@@ -1,0 +1,9 @@
+{
+  "record_type": "adversarial_review",
+  "record_id": "review-file-0077-atom-0003",
+  "atom_record_id": "file-0077-atom-0003",
+  "review_result": "pass",
+  "falsification_attempt": "Feature graph check passed for reth-evm-ethereum --features async-context.",
+  "missed_risks": [],
+  "notes": "The public async-context feature surface is restored on reth-evm-ethereum."
+}

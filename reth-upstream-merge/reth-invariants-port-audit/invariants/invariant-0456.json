@@ -1,0 +1,69 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-async-fees/src/lib.rs"
+  ],
+  "invariant_id": "cur-d1fec9884c-multimodal-phase-uses-constant-async-fees",
+  "invariant_index": 456,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-precompile-addresses/src/lib.rs",
+      "crates/rpc/rpc/src/async_tx_validator.rs",
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-async-fees/src/wallet.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "ritual-revm-internal/crates/precompile/src/image_call.rs",
+      "ritual-revm-internal/crates/precompile/src/video_call.rs"
+    ],
+    "checked_queries": [
+      "calculate_async_fees IMAGE_CALL_PRECOMPILE AUDIO_CALL_PRECOMPILE VIDEO_CALL_PRECOMPILE",
+      "calculate_image calculate_video calculate_audio_fees_phase1",
+      "TWO_PHASE_PHASE1_SETTLEMENT_FEE_WEI IMAGE_CALL_PRECOMPILE"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "calculate_async_fees",
+      "calculate_two_phase_fees_phase1",
+      "IMAGE_CALL_PRECOMPILE",
+      "AUDIO_CALL_PRECOMPILE",
+      "VIDEO_CALL_PRECOMPILE"
+    ],
+    "missing_behavior": "Phase 1 fee calculation does not return dedicated image/audio/video Phase 1 calculators; calculate_async_fees rejects those precompile addresses instead of pricing them.",
+    "related_but_insufficient_code": [
+      "crates/ritual-precompile-addresses/src/lib.rs registers image/audio/video as two-phase metadata.",
+      "crates/ritual-async-fees/src/lib.rs has calculate_two_phase_fees_phase1 but only uses it for long-running HTTP and sovereign agent in calculate_async_fees."
+    ]
+  },
+  "notes": "The port recognizes media precompile metadata but does not price all three media Phase 1 submissions.",
+  "rationale": "The primary merge adds image/audio/video branches to the general async fee calculation path and documents that Phase 1 just returns a job id while Phase 2 uses actual output dimensions or duration. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "7bb0f4d3a6ebf5fa929fa7045228eccdf63dea61"
+  ],
+  "statement": "Phase 1 fee calculation for image, audio, and video precompiles must return their dedicated Phase 1 fee calculators based on input length, because Phase 2 output work is priced after delivery.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call calculate_async_fees for 0x0818, 0x0819, and 0x081A with representative input lengths and assert each returns Ok from the corresponding Phase 1 fee calculator rather than an unsupported-precompile error."
+  ],
+  "summary": "Image/audio/video Phase 1 fee calculators are absent.",
+  "test_or_falsification_candidate": "Call calculate_async_fees for 0x0818, 0x0819, and 0x081A with representative input lengths and assert each returns Ok from the corresponding Phase 1 fee calculator rather than an unsupported-precompile error.",
+  "title": "Multimodal Phase 1 uses constant async fees",
+  "total_invariants": 1954
+}

@@ -1,0 +1,59 @@
+{
+  "cluster_key": "scheduler:generation-service",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/scheduling/src/contract.rs"
+  ],
+  "invariant_id": "cur-c172a5245e-scheduler-monitor-share-state",
+  "invariant_index": 19,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/scheduling/src/contract.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs"
+    ],
+    "checked_queries": [
+      "SchedulerContract|SchedulerServiceState|new_with_state|Arc<Mutex<SchedulerServiceState|Scheduler.*State",
+      "SchedulerContract|SchedulerServiceState|new_with_state"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "SchedulerContract",
+      "SchedulerServiceState",
+      "new_with_state",
+      "Arc<Mutex<SchedulerServiceState>>"
+    ],
+    "missing_behavior": "No audited repo implements SchedulerContract construction with an externally supplied Arc<Mutex<SchedulerServiceState>> for sharing one scheduler service-state instance.",
+    "related_but_insufficient_code": [
+      "crates/ritual-scheduled-block-building/src/lib.rs contains compute_obligations_from_calls and explicitly documents that it replaces the old SchedulerServiceState-specific helper with a plain iterator, so the old shared service-state construction surface is absent."
+    ]
+  },
+  "notes": "Confirmed gap for an old scheduling service construction invariant; the port has a replacement iterator helper but no shared service-state object.",
+  "rationale": "The shared-state constructor is independent construction plumbing needed when multiple scheduler components must observe the same SchedulerServiceState. No later packet candidate supersedes it.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "b0fddbf7f9757fb7c46ec6d03614fb5474a27155"
+  ],
+  "statement": "SchedulerContract must support construction with an externally supplied Arc<Mutex<SchedulerServiceState>> so scheduler components can share one service-state instance.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Construct SchedulerContract with new_with_state using a shared Arc<Mutex<SchedulerServiceState>>, mutate the state through another Arc clone, and assert the contract observes the same mutation."
+  ],
+  "summary": "The shared SchedulerContract/SchedulerServiceState construction surface is absent from the v2 port and dependency repos.",
+  "test_or_falsification_candidate": "Attempt to construct SchedulerContract::new_with_state with a shared Arc<Mutex<SchedulerServiceState>> and observe mutations through another Arc clone; the required types/constructor are absent from the audited repo set.",
+  "title": "Scheduler monitor can share state",
+  "total_invariants": 1954
+}

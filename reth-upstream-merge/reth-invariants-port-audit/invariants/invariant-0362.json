@@ -1,0 +1,74 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "The builder and verifier call shared pricing and propagate ordinary errors, but the LLM pricing function still converts executor-reported error outputs into a constant fee, so exact no-fallback settlement pricing is not fully preserved.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ritual-async-fees/src/llm.rs"
+  ],
+  "invariant_id": "cur-94e6d998d2-async-settlement-fees-exact-pricing-without-fallback",
+  "invariant_index": 362,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/llm.rs",
+      "crates/ritual-async-fees/src/constants.rs",
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "exact LLM pricing without fallback",
+      "has_error returns constant fee",
+      "LLM executor returned an error response; using constant error fee",
+      "LLM_HAS_ERROR_PREFIX",
+      "LLM_ERROR_EXECUTOR_FEE_WEI",
+      "skipping fulfilled async settlement entry",
+      "async fee calculation failed"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "prepare_fulfilled_async_settlement",
+      "calculate_async_fees",
+      "compute_llm_executor_fee",
+      "decode_llm_response",
+      "LLM_HAS_ERROR_PREFIX",
+      "LLM_ERROR_EXECUTOR_FEE_WEI"
+    ],
+    "missing_behavior": "Async settlement creation/verification does not fail closed for LLM executor outputs with has_error=true; those outputs receive a constant executor fee instead of exact LLM pricing failure.",
+    "related_but_insufficient_code": [
+      "prepare_fulfilled_async_settlement delegates to calculate_async_fees and would skip settlement on Err, and verify_settlements rejects fee-calculation Err or component mismatches.",
+      "compute_llm_executor_fee returns Err for missing output, malformed output, and missing models, but catches decode_llm_response errors prefixed with LLM_HAS_ERROR_PREFIX and returns Ok(LLM_ERROR_EXECUTOR_FEE_WEI).",
+      "The local test llm_has_error_returns_constant_fee asserts the constant-fee behavior for executor-reported LLM errors."
+    ]
+  },
+  "notes": "Confirmed gap in the shared async-fees path used by settlement building and verification.",
+  "rationale": "The primary diff removes a unified fallback-style fee path and replaces it with explicit LLM compute_llm_executor_fee handling that maps errors to transaction skipping, while HTTP operations continue to use input/output byte pricing. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "19bd287f1e4c369f324043e1a1f11a1025f39fdf"
+  ],
+  "statement": "When creating async settlement transactions, LLM async executions must compute executor fees from the actual execution result using exact LLM pricing and fail settlement creation if that pricing fails; non-LLM HTTP executions use byte-based executor pricing plus commitment and inclusion fees.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Attempt to create settlement for an LLM async result with malformed or missing pricing data and assert settlement creation errors instead of falling back; for a valid LLM result assert exact fee plus commitment and inclusion fees, and for an HTTP result assert byte-based executor fee plus the same common components."
+  ],
+  "summary": "LLM settlement pricing still accepts executor-reported error outputs as a constant fee.",
+  "test_or_falsification_candidate": "Build a fulfilled LLM settlement whose executor output sets has_error=true and assert the invariant expects settlement creation to fail or verification to reject; current compute_llm_executor_fee returns Ok(LLM_ERROR_EXECUTOR_FEE_WEI).",
+  "title": "Async settlement fees use exact LLM pricing without fallback",
+  "total_invariants": 1954
+}

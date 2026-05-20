@@ -1,0 +1,74 @@
+{
+  "cluster_key": "scheduler:locks-observability",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/ritual-scheduled-verification/src/lib.rs",
+    "crates/ritual-block-verification/src/error.rs"
+  ],
+  "invariant_id": "cur-fc5e70c5fd-scheduled-verification-parent-state-backed",
+  "invariant_index": 34,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ritual-block-verification/src/error.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-verification/src/error.rs",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal/bin/src/main.rs"
+    ],
+    "checked_queries": [
+      "ScheduledConstraintViolation|StateProviderDatabase::new(parent_state)",
+      "scheduled pool|ScheduledTransactionNotInPool",
+      "read_wallet_balance|wallet_balance_slot|RitualWallet|C9",
+      "validity-constraints|skip mode"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "verify_short_async_block_with_simulators",
+      "verify_scheduled_transactions",
+      "verify_scheduled_transactions_full_with_predicate_evaluator",
+      "read_wallet_balance",
+      "wallet_balance_slot",
+      "ScheduledTransactionNotInPool",
+      "RitualShortAsyncPostExecutionValidator"
+    ],
+    "missing_behavior": "Missing full invariant: block verification does not hard-fail RitualWallet balance C9 failures unless skip mode is enabled; instead underfunded wallet cases are allowed for Scheduler.execute contract eviction.",
+    "related_but_insufficient_code": [
+      "Parent-state Scheduler-backed verification is present and local pool membership appears absent, but C9 wallet balance is explicitly allowed for contract eviction and no skip-mode gate was found."
+    ]
+  },
+  "notes": "Confirmed gap because one required behavior is intentionally not enforced.",
+  "rationale": "The lineage shows a temporary non-fatal/local-pool policy that was later superseded by current parent-state scheduled verification, with skip mode as the remaining explicit bypass.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "ac25be145a0a2fcdd99324a6c42766c8f59888fb",
+    "10aafb95a014de8b8000ab15b70976a9649fd45b",
+    "eb17b9e1f0c6db39ea39f56f50819cd1bdc44e74",
+    "dd5202f34a1727c880f9737396f57771d4097321",
+    "8305f0018e43de61905ee2bcafe70f43cea51c30"
+  ],
+  "statement": "Current block verification for scheduled transactions must ignore local scheduled/async pool membership and validate block-contained scheduled transactions against parent-block Scheduler and RitualWallet contract state; C1-C10 failures hard-fail block verification unless the explicit validity-constraints skip mode is enabled.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Verify the same block on nodes with different local scheduled pools but identical parent Scheduler state and assert both reach the same scheduled-verification result.",
+    "Mutate parent Scheduler state or scheduled transaction metadata to violate a C1-C10 constraint and assert block verification returns ScheduledConstraintViolation with skip mode disabled and only logs/continues with skip mode enabled."
+  ],
+  "summary": "Scheduled verification is parent-state backed, but RitualWallet C9 hard-fail behavior is absent.",
+  "test_or_falsification_candidate": "Construct valid scheduled tx with insufficient RitualWallet balance and skip mode disabled; invariant expects verifier failure, current port tests/logic predict Ok.",
+  "title": "Scheduled verification is parent-state backed",
+  "total_invariants": 1954
+}

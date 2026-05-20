@@ -1,0 +1,103 @@
+{
+  "cluster_key": "scheduler:scheduled-gets-execution-5d28c368",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "The execution index is derived from Scheduler parent state and emitted on ScheduledObligation.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let Some((first_due_index, last_due_index)) = due_index_bounds(...); for i in first_due_index..=last_due_index { ... obligations.push(ScheduledObligation { call_id, index: i, ... }); }",
+      "symbols": [
+        "due_index_bounds",
+        "compute_obligations",
+        "ScheduledObligation"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "The synthesized scheduled transaction receives the obligation index in Scheduler.execute calldata and TxScheduled.index.",
+      "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "executeCall { callId: U256::from(obligation.call_id), executionIndex: U256::from(obligation.index) }; TxScheduled::new_with_options(... obligation.call_id, obligation.index, ...).",
+      "symbols": [
+        "create_scheduled_execution_transaction",
+        "create_scheduled_execution_transaction_from_state"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Payload builder consumes state-derived obligations and preserves their indices.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let obligations = compute_obligations(...); ... let index = obligation.index; let scheduled_tx = create_scheduled_execution_transaction_from_state(..., &obligation)",
+      "symbols": [
+        "compute_obligations",
+        "create_scheduled_execution_transaction_from_state"
+      ]
+    }
+  ],
+  "equivalence_argument": "The old mutable SynchronousScheduler count lookup is absent; v2 derives the execution index from Scheduler state and on-chain execution bitmap. That preserves the behavior that generated scheduled transactions carry the correct execution index, without preserving the old fallback-to-zero lookup failure shape.",
+  "evidence_files": [
+    "crates/scheduling/src/canonical.rs"
+  ],
+  "invariant_id": "cur-a840fc74ee-scheduled-gets-execution-index",
+  "invariant_index": 24,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/scheduling/src/canonical.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs",
+      "crates/ethereum/payload/src/lib.rs"
+    ],
+    "checked_queries": [
+      "get_and_increment_execution_count|SynchronousScheduler",
+      "create_scheduled_execution_transaction_from_state|compute_obligations"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "SynchronousScheduler",
+      "get_and_increment_execution_count",
+      "create_scheduled_transaction",
+      "create_scheduled_execution_transaction",
+      "ScheduledObligation.index"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "Old SynchronousScheduler/get_and_increment_execution_count symbols are absent; current owner is state-derived obligation synthesis."
+    ]
+  },
+  "notes": "Mapped structurally; old mutable count/fallback path is intentionally absent.",
+  "rationale": "The packet contains one high-confidence candidate for canonical scheduled transaction construction. Neighbor candidates establish the scheduled transaction pipeline but do not supersede the requirement that generated scheduled transactions carry an execution index obtained from the call's execution count.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "79f460b21a6c54e08cedcfa3b1c408fff07ffdee"
+  ],
+  "statement": "When canonical scheduling creates a scheduled transaction, it must obtain and increment the call's execution count and pass that execution index into create_scheduled_transaction; if the count lookup fails, the bounded evidence says it falls back to index 0.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Trigger canonical processing for the same scheduled call twice and assert the generated scheduled transactions carry increasing execution indices.",
+    "Mock a count lookup failure during canonical scheduled transaction construction and assert create_scheduled_transaction receives execution index 0, unless tip behavior has intentionally changed to return an error."
+  ],
+  "summary": "Scheduled transactions get their execution index from state-derived obligations in the port.",
+  "test_or_falsification_candidate": "Build at blocks N and N+F for a Scheduler call and assert synthesized TxScheduled transactions carry indices 0 and 1 in calldata and TxScheduled.index; mark index 0 executed and assert it is not regenerated.",
+  "title": "Scheduled tx gets execution index",
+  "total_invariants": 1954
+}

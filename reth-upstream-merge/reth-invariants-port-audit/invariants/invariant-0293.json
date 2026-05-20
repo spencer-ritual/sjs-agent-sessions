@@ -1,0 +1,54 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The pool-aware builder requires TransactionPoolExt and constructs the BlockVerifier from the supplied extended pool, giving verification access to async-capable pool state.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "fn build_evm_with_pool(self, ctx: &BuilderContext<Node>, pool: impl TransactionPoolExt + Clone + 'static) -> ... {\n    let block_verifier = Arc::new(BlockVerifier::<_, reth_ethereum_primitives::Block, _, _>::new_with_evm_classification(\n        pool.clone(), ctx.provider().clone(), evm_config.clone(), None,\n    ));\n    RitualBlockExecutorProvider::new(evm_config.clone(), spc_verifier, Some(block_verifier));\n}",
+      "symbols": [
+        "RitualExecutorBuilder::build_evm_with_pool",
+        "TransactionPoolExt",
+        "BlockVerifier::new_with_evm_classification"
+      ]
+    }
+  ],
+  "equivalence_argument": "The method bound requires TransactionPoolExt rather than a plain TransactionPool, and the exact supplied pool clone is passed into BlockVerifier construction before the verifier is attached to the executor provider.",
+  "evidence_files": [
+    "crates/node/src/executor.rs"
+  ],
+  "invariant_id": "cur-7b1a875550-block-verification-receives-async-capable-pool",
+  "invariant_index": 293,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in nodebuilder pool-aware executor construction.",
+  "rationale": "The primary commit changes build_evm_with_pool from accepting a generic TransactionPool to accepting TransactionPoolExt, imports BlockVerifier directly, and constructs BlockVerifier from the supplied pool before passing it into BasicBlockExecutorProvider::new_with_verification. The commit subject states that async processing of the async pool is being moved into block verification. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "267706e882b8b2f51e66b9feb1f769aa065f015a"
+  ],
+  "statement": "When the node executor is built with a transaction pool, the resulting BasicBlockExecutorProvider includes a BlockVerifier constructed from the supplied pool, and that pool must implement TransactionPoolExt so verification can access extended transaction-pool state such as async-pool data.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Build the Ritual executor with a test pool implementing TransactionPoolExt and seeded with distinctive async-pool state, then run a block-verification path that requires async-pool inspection and assert the verifier observes that state. Also verify a pool lacking TransactionPoolExt cannot satisfy build_evm_with_pool's bound."
+  ],
+  "summary": "The pool-aware executor path requires TransactionPoolExt and passes that pool into BlockVerifier.",
+  "test_or_falsification_candidate": "Build with a pool implementing TransactionPoolExt and seeded async state; assert the verifier receives that pool, and that a pool lacking TransactionPoolExt cannot satisfy the method bound.",
+  "title": "Block verification receives async-capable pool",
+  "total_invariants": 1954
+}

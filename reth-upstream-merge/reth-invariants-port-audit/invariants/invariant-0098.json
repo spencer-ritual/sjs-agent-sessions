@@ -1,0 +1,75 @@
+{
+  "cluster_key": "scheduler:scheduled-signed-exported-f2fdb444",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "169074f08721705fbb99cc9531ea798b61e9f3cc",
+      "evidence": "try_into_pooled accepts Scheduled and converts it into the pooled envelope instead of rejecting it.",
+      "path": "crates/consensus/src/transaction/envelope.rs",
+      "repo": "/home/ritual/repos/ritual-alloy-internal",
+      "snippet": "match self { ... Self::Scheduled(tx) => Ok(tx.into()), Self::AsyncCommitment(tx) => Ok(tx.into()), ... }",
+      "symbols": [
+        "EthereumTxEnvelope::try_into_pooled"
+      ]
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "169074f08721705fbb99cc9531ea798b61e9f3cc",
+      "evidence": "PooledTransaction is an EthereumTxEnvelope with sidecar-capable EIP-4844 and therefore includes the Scheduled envelope variant.",
+      "path": "crates/consensus/src/transaction/pooled.rs",
+      "repo": "/home/ritual/repos/ritual-alloy-internal",
+      "snippet": "pub type PooledTransaction = EthereumTxEnvelope<TxEip4844WithSidecar<BlobTransactionSidecarEip7594>>;",
+      "symbols": [
+        "PooledTransaction"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in alloy dependency: signed Scheduled envelopes convert into pooled envelopes preserving the signed value.",
+  "evidence_files": [
+    "crates/ethereum/primitives/src/transaction.rs"
+  ],
+  "invariant_id": "cur-f89c5503f6-signed-scheduled-convert-pooled-scheduled",
+  "invariant_index": 98,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-alloy-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/consensus/src/transaction/envelope.rs",
+      "crates/consensus/src/transaction/pooled.rs"
+    ],
+    "checked_queries": [
+      "try_into_pooled|Scheduled\\(tx\\) => Ok\\(tx.into\\(\\)\\)|UnsupportedForP2P|PooledTransaction"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-alloy-internal"
+    ],
+    "checked_symbols": [
+      "EthereumTxEnvelope::try_into_pooled",
+      "PooledTransaction"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in dependency.",
+  "rationale": "The later neighbor directly reverses the primary candidate UnsupportedForP2P conversion rule and is therefore the effective current behavior for signed scheduled transaction conversion.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "8da2286f21a9",
+    "c3d406930861aa70d423d0bffdf02927c4980a0a"
+  ],
+  "statement": "At current tip, TryFrom<TransactionSigned> for PooledTransaction must accept a signed Transaction::Scheduled by producing PooledTransaction::Scheduled that preserves the scheduled transaction, signature, and hash, rather than rejecting it as UnsupportedForP2P.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Construct a signed Scheduled envelope and call try_into_pooled; assert the result is the Scheduled pooled variant with matching hash/signature.",
+    "Assert UnsupportedForP2P is not returned for Scheduled."
+  ],
+  "summary": "Signed scheduled transactions convert to pooled scheduled transactions in alloy.",
+  "test_or_falsification_candidate": "Scheduled TransactionSigned try_into_pooled should return PooledTransaction::Scheduled.",
+  "title": "Signed scheduled transactions convert to pooled scheduled transactions",
+  "total_invariants": 1954
+}

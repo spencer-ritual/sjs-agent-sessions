@@ -1,0 +1,69 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The nodebuilder installs a post-execution validator that verifies short async blocks using parent state and a header-derived EVM environment for commitment re-simulation.",
+      "path": "bin/src/main.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "ritual_block_verification::verify_short_async_block_with_simulators(\n    block, parent_state,\n    |commitment| {\n        let evm_env = evm_config.evm_env(parent_header.header())?;\n        let mut evm = evm_config.evm_with_env_and_inspector(StateProviderDatabase::new(parent_state), evm_env, inspector.clone());\n        evm.transact(recovered_original)?;\n        Ok(SimulatedAsyncCall { async_call_count: inspector.async_call_count(), precompile_address: detected.precompile_address, input: detected.input })\n    }, ...\n)",
+      "symbols": [
+        "RitualShortAsyncPostExecutionValidator::validate_post_execution_block",
+        "verify_short_async_block_with_simulators",
+        "EthEvmConfig::evm_env"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The verifier rejects invalid async commitments using parent-state AsyncJobTracker checks, wallet checks, executor lookup, and EVM re-simulation parity.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let job_active = ritual_async_registry::job_exists_and_active(&mut db, None, commitment.origin_tx, current_block)?;\nif job_active { return Err(BlockVerificationError::InvalidAsyncCommitment(...)); }\nverify_wallet_for_commitment(&mut db, original_payer, commitment.precompile_address, &commitment.precompile_input, commitment.ttl, current_block)?;\nlet simulated = simulate_commitment(commitment)?;\nif simulated.async_call_count != 1 || simulated.precompile_address != commitment.precompile_address || simulated.input != commitment.precompile_input { return Err(BlockVerificationError::InvalidAsyncCommitment(...)); }",
+      "symbols": [
+        "verify_async_commitments",
+        "verify_wallet_for_commitment",
+        "job_exists_and_active"
+      ]
+    }
+  ],
+  "equivalence_argument": "The local nodebuilder no longer uses the older new_with_async_validation constructor shape. The equivalent behavior is installed as an engine tree post-execution validator: it passes the transaction pool/provider-owned parent state plus an EVM environment derived from EthEvmConfig::evm_env(parent_header) into verify_short_async_block_with_simulators, which rejects invalid async commitments.",
+  "evidence_files": [
+    "crates/node/src/executor.rs",
+    "crates/node/Cargo.toml"
+  ],
+  "invariant_id": "cur-682ae6e6a4-block-verifier-validates-async-commitments",
+  "invariant_index": 329,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to the current nodebuilder verification hook rather than the older BlockVerifier constructor name.",
+  "rationale": "The commit message says async commitment validation is wired into block verification, and the diff replaces BlockVerifier::new(pool) with new_with_async_validation(pool.clone(), ctx.provider().clone(), evm_env_factory) while adding the required ConfigureEvm/alloy-consensus dependency. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "cd2347a670ab59f98b401f8a6ebc00a109bfedcc"
+  ],
+  "statement": "The node's block verification path must construct BlockVerifier via new_with_async_validation using the transaction pool, the node state provider, and an EVM environment factory derived from EthEvmConfig::evm_env(header), so async commitment validation has access to both state and header-specific EVM environment.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Instantiate the node executor wiring with a test provider and EVM config, submit or verify a block containing an async commitment that requires state/header-specific validation, and assert verification invokes the async validation path and rejects an invalid commitment that would have passed with the plain BlockVerifier::new(pool) constructor."
+  ],
+  "summary": "Nodebuilder validates async commitments through the post-execution short-async verifier and header-derived EVM re-simulation.",
+  "test_or_falsification_candidate": "Build a block containing an async commitment whose original transaction re-simulates to a different precompile/input under the parent-header EVM env and assert the post-execution validator returns InvalidAsyncCommitment.",
+  "title": "Block verifier validates async commitments",
+  "total_invariants": 1954
+}

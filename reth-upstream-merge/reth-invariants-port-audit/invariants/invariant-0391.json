@@ -1,0 +1,69 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-async/src/wallet.rs",
+    "crates/ritual-async-fees/src/constants.rs",
+    "crates/ritual-async-fees/src/lib.rs"
+  ],
+  "invariant_id": "cur-7d473f9dd4-agent-wallet-escrow-uses-worst-case-work",
+  "invariant_index": 391,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/wallet.rs",
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-async-fees/src/constants.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs"
+    ],
+    "checked_queries": [
+      "AGENT_CALL_PRECOMPILE",
+      "AGENT_MAX_ITERATIONS",
+      "AGENT_MAX_TOOL_CALLS",
+      "verify_wallet_for_commitment 0808",
+      "agent_escrow_lockup SOVEREIGN_AGENT_PRECOMPILE"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "verify_wallet_for_commitment",
+      "agent_escrow_lockup",
+      "SOVEREIGN_AGENT_PRECOMPILE",
+      "SOVEREIGN_AGENT_MAX_ITERATIONS",
+      "SOVEREIGN_AGENT_MAX_TOOL_CALLS",
+      "AGENT_CALL_PRECOMPILE"
+    ],
+    "missing_behavior": "Wallet validation does not recognize a 0x0808 agent-call precompile and therefore cannot require AGENT_MAX_ITERATIONS/AGENT_MAX_TOOL_CALLS escrow for that invariant path.",
+    "related_but_insufficient_code": [
+      "crates/ritual-async-fees/src/wallet.rs does call agent_escrow_lockup(SOVEREIGN_AGENT_MAX_ITERATIONS, SOVEREIGN_AGENT_MAX_TOOL_CALLS) for SOVEREIGN_AGENT_PRECOMPILE.",
+      "The same file returns unsupported precompile for addresses without metadata, and crates/ritual-precompile-addresses/src/lib.rs defines no 0x0808 agent-call metadata."
+    ]
+  },
+  "notes": "Confirmed gap: sovereign-agent escrow is present, but the invariant names an AGENT_CALL_PRECOMPILE path that does not exist locally.",
+  "rationale": "The wallet validation branch for AGENT_CALL_PRECOMPILE calls agent_escrow_lockup with system maximum iteration/tool-call constants before adding commitment and inclusion fees to total_required_fees. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "a5be1396136caf79405755ec98e2d9ceb131f730"
+  ],
+  "statement": "Wallet validation for an agent-call async transaction must require executor escrow based on agent_escrow_lockup(AGENT_MAX_ITERATIONS, AGENT_MAX_TOOL_CALLS), in addition to normal async commitment and inclusion fees, rather than using HTTP output-size pricing or LLM model pricing.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Construct a 0x0808 async result and wallet state with balance just below and just above AGENT_MAX_ITERATIONS*AGENT_ITERATION_FEE_WEI + AGENT_MAX_TOOL_CALLS*AGENT_TOOL_CALL_FEE_WEI plus commitment/inclusion fees; assert validation fails below the threshold and passes above it when lock duration is sufficient."
+  ],
+  "summary": "Agent wallet escrow is missing for the exact 0x0808 agent-call path.",
+  "test_or_falsification_candidate": "Run verify_wallet_for_commitment for address 0x0808 with otherwise sufficient wallet state; the current code should return unsupported instead of applying worst-case agent escrow.",
+  "title": "Agent wallet escrow uses worst-case work",
+  "total_invariants": 1954
+}

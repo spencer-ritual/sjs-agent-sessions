@@ -1,0 +1,242 @@
+{
+  "record_type": "file",
+  "file_index": 337,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-sequencing-rights/src/classifier.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "sequencing-rights",
+    "classifier",
+    "evm-inspector"
+  ],
+  "atoms_total": 5,
+  "atoms": [
+    {
+      "record_id": "file-0337-atom-0001",
+      "file_index": 337,
+      "atom_index": 1,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-sequencing-rights/src/classifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,122 @@; classification enum, feature env, top-level classifier",
+      "source_kind": "sequencing_classification_public_surface",
+      "source_snippet": "pub enum Classification { SingleContract(ContractInteraction), MultiContract, NoSequencingRights, SimpleTransfer, Exempt, Failed(String) }\npub const SR_FULL_CALL_GRAPH_ENABLED_ENV: &str = \"RITUAL_SEQUENCING_RIGHTS_FULL_CALL_GRAPH_ENABLED\";\npub fn sequencing_rights_full_call_graph_enabled() -> bool { ... }\npub fn classify_top_level_with_sr<S: StateProvider>(...) -> Classification { ... }",
+      "semantic_claim": "The old divergence adds sequencing-rights classification variants, the environment flag for full call-graph classification, default false parsing, and the low-latency top-level target/selector classifier gated by `SequencingRightsReader`.",
+      "high_risk": false,
+      "risk_tags": [
+        "classification",
+        "feature-flag",
+        "top-level",
+        "sequencing-rights"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-sequencing-rights/src/classifier.rs",
+          "symbols": [
+            "Classification",
+            "SR_FULL_CALL_GRAPH_ENABLED_ENV",
+            "sequencing_rights_full_call_graph_enabled",
+            "classify_top_level_with_sr"
+          ],
+          "evidence": "Destination lines 1-122 exactly match source-added diff lines 67302-67423."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps classification modes and the default top-level classifier behavior unchanged.",
+      "test_strategy": "sequencing_classification_mode_tests",
+      "negative_test_candidate": "A transaction with input shorter than four bytes should classify as no sequencing rights in the top-level path.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0337-atom-0002",
+      "file_index": 337,
+      "atom_index": 2,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-sequencing-rights/src/classifier.rs",
+      "source_hunk_hint": "@@ -0,0 +124,273 @@; ContractCallInspector state and classification methods",
+      "source_kind": "sequencing_contract_call_inspector_state",
+      "source_snippet": "pub struct ContractCallInspector { pub contract_calls: HashMap<Address, SelectorSet>, pub call_order: Vec<(Address, Selector)>, pub depth: u32 }\nimpl ContractCallInspector { pub fn into_classification(self) -> Classification { ... } pub fn into_classification_with_sr<S: StateProvider>(...) -> Classification { ... } pub fn classify(&self) -> (usize, Option<ContractInteraction>) { ... } pub fn reset(&mut self) { ... } }",
+      "semantic_claim": "The old divergence adds the EVM call inspector's accumulated call graph state and classification helpers, including the corrected sequencing-rights-only call graph predicate `|{A in CallGraph(tx) | SR(A) != bottom}| <= 1`.",
+      "high_risk": false,
+      "risk_tags": [
+        "evm-inspector",
+        "call-graph",
+        "sequencing-rights",
+        "classification"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-sequencing-rights/src/classifier.rs",
+          "symbols": [
+            "ContractCallInspector",
+            "ContractCallInspector::into_classification",
+            "ContractCallInspector::into_classification_with_sr",
+            "ContractCallInspector::classify",
+            "ContractCallInspector::reset"
+          ],
+          "evidence": "Destination lines 124-273 exactly match source-added diff lines 67425-67574."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves call graph classification and the sequencing-rights filtered conflict rule.",
+      "test_strategy": "contract_call_inspector_classification_tests",
+      "negative_test_candidate": "A call graph with many contracts but exactly one sequencing-rights contract should classify as `SingleContract`, not `MultiContract`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0337-atom-0003",
+      "file_index": 337,
+      "atom_index": 3,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-sequencing-rights/src/classifier.rs",
+      "source_hunk_hint": "@@ -0,0 +275,338 @@; REVM Inspector hooks and static classification fast path",
+      "source_kind": "sequencing_inspector_hooks_and_static_fast_path",
+      "source_snippet": "impl<CTX> Inspector<CTX, EthInterpreter> for ContractCallInspector { fn call(&mut self, _ctx: &mut CTX, inputs: &mut CallInputs) -> Option<CallOutcome> { ... } fn call_end(&mut self, ...) { ... } }\npub fn try_classify_static(tx: &Recovered<TransactionSigned>) -> Option<Classification> { ... }",
+      "semantic_claim": "The old divergence adds REVM inspector hooks that record target contract selectors and call depth, plus a static fast path for contract creation/no-selector transactions that do not require EVM simulation.",
+      "high_risk": false,
+      "risk_tags": [
+        "revm-inspector",
+        "call-hook",
+        "selector-tracking",
+        "static-fast-path"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-sequencing-rights/src/classifier.rs",
+          "symbols": [
+            "Inspector for ContractCallInspector",
+            "try_classify_static"
+          ],
+          "evidence": "Destination lines 275-338 exactly match source-added diff lines 67576-67639."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps EVM call graph capture and static no-selector classification unchanged.",
+      "test_strategy": "sequencing_inspector_hook_and_static_fast_path_tests",
+      "negative_test_candidate": "An input of exactly four bytes should be treated as a valid selector boundary.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0337-atom-0004",
+      "file_index": 337,
+      "atom_index": 4,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-sequencing-rights/src/classifier.rs",
+      "source_hunk_hint": "@@ -0,0 +340,607 @@; classifier unit tests",
+      "source_kind": "sequencing_classifier_unit_tests",
+      "source_snippet": "#[cfg(test)]\nmod tests { #[test] fn test_inspector_single_contract() { ... } #[test] fn test_inspector_multi_contract() { ... } #[test] fn test_inspector_reset() { ... } #[test] fn test_exactly_4_byte_selector() { ... } #[test] fn test_many_contracts_multi_contract_classification() { ... } }",
+      "semantic_claim": "The old divergence adds unit tests for inspector single/multi-contract classification, selector lookup, reset, exact selector boundary, duplicate selector deduplication, many-contract stress, depth tracking, and enum coverage.",
+      "high_risk": false,
+      "risk_tags": [
+        "tests",
+        "classifier",
+        "inspector",
+        "selector-boundary"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-sequencing-rights/src/classifier.rs",
+          "symbols": [
+            "test_inspector_single_contract",
+            "test_inspector_multi_contract",
+            "test_exactly_4_byte_selector",
+            "test_many_contracts_multi_contract_classification"
+          ],
+          "evidence": "Destination lines 340-607 exactly match source-added diff lines 67641-67908."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps classifier unit regression coverage.",
+      "test_strategy": "cargo test -p ritual-sequencing-rights classifier",
+      "negative_test_candidate": "Repeated calls to the same selector should deduplicate in `contract_calls` while preserving entries in `call_order`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Test atom only."
+    },
+    {
+      "record_id": "file-0337-atom-0005",
+      "file_index": 337,
+      "atom_index": 5,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-sequencing-rights/src/classifier.rs",
+      "source_hunk_hint": "@@ -0,0 +609,763 @@; classifier property tests",
+      "source_kind": "sequencing_classifier_property_tests",
+      "source_snippet": "proptest! { #[test] fn prop_classify_deterministic(...) { ... } #[test] fn prop_into_classification_deterministic(...) { ... } #[test] fn prop_empty_is_simple_transfer(...) { ... } #[test] fn prop_single_contract_classification(...) { ... } #[test] fn prop_multi_contract_classification(...) { ... } #[test] fn prop_reset_clears_state(...) { ... } }",
+      "semantic_claim": "The old divergence adds property tests asserting deterministic classifier behavior, empty/single/multi-contract classification invariants, reset clearing, and selector lookup correctness.",
+      "high_risk": false,
+      "risk_tags": [
+        "property-tests",
+        "classifier",
+        "determinism"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-sequencing-rights/src/classifier.rs",
+          "symbols": [
+            "prop_classify_deterministic",
+            "prop_into_classification_deterministic",
+            "prop_reset_clears_state"
+          ],
+          "evidence": "Destination lines 609-763 exactly match source-added diff lines 67910-68064."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves randomized determinism guards for classification.",
+      "test_strategy": "cargo test -p ritual-sequencing-rights classifier::tests::prop_",
+      "negative_test_candidate": "Two inspectors populated with identical calls must classify to the same variant.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Property test atom only."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The sequencing-rights classifier module is exact-port preserved, including classification modes, top-level and full-call-graph classifiers, REVM inspector hooks, static fast path, and deterministic tests.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 337: A\tcrates/ritual-sequencing-rights/src/classifier.rs.",
+    "Source-added hunk spans diff lines 67302-68064 with header `@@ -0,0 +1,763 @@`; the next diff starts at line 68065.",
+    "Destination `crates/ritual-sequencing-rights/src/classifier.rs` has 763 lines and matches the source-added content exactly.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

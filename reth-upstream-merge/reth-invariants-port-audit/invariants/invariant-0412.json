@@ -1,0 +1,76 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "Raw transaction submission runs async admission before pool insertion.",
+      "path": "crates/rpc/rpc/src/eth/helpers/transaction.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "async_tx_validator::validate_rpc_async_admission::<N>(...) .await?;\n...\nadd_pool_transaction(origin, pool_transaction).await?",
+      "symbols": [
+        "send_transaction",
+        "validate_rpc_async_admission"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "The admission guard rejects malformed or invalid recognized async precompile payloads before normal transaction pool insertion.",
+      "path": "crates/rpc/rpc/src/async_tx_validator.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "validate_async_payload(async_call.precompile_address, async_call.input.as_ref(), MAX_SHORT_ASYNC_TTL_BLOCKS)?;\nlet decoded = try_decode_precompile_data(...)?;\nvalidate_executor(db, decoded.executor, metadata)?;",
+      "symbols": [
+        "validate_detected_async_call"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "Metadata-routed validation covers malformed ABI, oversized inputs, invalid executors/TTLs, URLs, and LLM model/messages for recognized async precompiles.",
+      "path": "crates/ritual-precompile-codecs/src/validation.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if input.len() > MAX_ASYNC_INPUT_SIZE { return Err(PayloadValidationError::InputTooLarge { ... }); }\nmatch metadata.address { HTTP_CALL_PRECOMPILE => ..., LLM_CALL_PRECOMPILE => ..., LONG_RUNNING_HTTP_PRECOMPILE => ..., ... }",
+      "symbols": [
+        "validate_async_payload"
+      ]
+    }
+  ],
+  "equivalence_argument": "The current port implements this as simulation/inspector-based async call detection rather than a named PrecompileConsumer static parser; the behavioral surface is equivalent for recognized async calls because invalid payloads are rejected before add_pool_transaction.",
+  "evidence_files": [
+    "crates/rpc/rpc/src/eth/helpers/transaction.rs",
+    "crates/rpc/rpc/src/async_tx_validator.rs"
+  ],
+  "invariant_id": "cur-70c17f9783-rejects-malformed-async-precompileconsumer-payloads-before-pool-insertion",
+  "invariant_index": 412,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped through RPC admission and shared payload validation.",
+  "rationale": "The primary merge adds validate_precompile_consumer_call into send_raw_transaction before add_transaction, extracts the async precompile input from recognized PrecompileConsumer selectors, and routes payload validation by precompile address. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "33ac6bbf926323bd11d852fbfb42319c7af9fd2b"
+  ],
+  "statement": "send_raw_transaction must statically validate recognized PrecompileConsumer async calls before pool insertion, rejecting malformed payloads, oversized inputs, zero executors, invalid TTLs, invalid HTTP URLs, and empty LLM model or messages with an RPC invalid-params error.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Submit raw transactions calling PrecompileConsumer HTTP, LLM, and long-running HTTP with invalid TTL, oversized input, zero executor, bad URL, empty model, or empty messages; assert send_raw_transaction returns InvalidParams and the transaction is never present in the pool."
+  ],
+  "summary": "RPC rejects malformed recognized async payloads before pool insertion.",
+  "test_or_falsification_candidate": "Submit raw transactions that call recognized async precompiles with malformed ABI, oversized input, zero executor, invalid TTL, bad HTTP URL, empty LLM model, or empty LLM messages and assert InvalidParams before pool insertion.",
+  "title": "RPC rejects malformed async PrecompileConsumer payloads before pool insertion",
+  "total_invariants": 1954
+}

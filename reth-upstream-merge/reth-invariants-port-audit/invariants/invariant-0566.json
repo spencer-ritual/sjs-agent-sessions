@@ -1,0 +1,68 @@
+{
+  "cluster_key": "block building:classification-counts-only-55183a25",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: a helper exists to filter call-graph contracts by sequencingRights support, but builder and verifier paths use try_classify_static/classify_top_level_with_sr rather than the full call-graph SR-counting path.",
+  "evidence_files": [
+    "crates/ritual-sequencing-rights/src/classifier.rs",
+    "crates/ethereum/payload/src/unified_execution.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-e4e57a01d7-classification-counts-only-contracts",
+  "invariant_index": 566,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-sequencing-rights/src/classifier.rs",
+      "crates/ritual-sequencing-rights/src/lib.rs",
+      "crates/ethereum/payload/src/sequencing_rights.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "into_classification_with_sr use sites",
+      "classification counts only SR contracts builder verifier",
+      "ContractCallInspector sequencing rights full call graph production use",
+      "classify_top_level_with_sr builder verifier"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "into_classification_with_sr",
+      "classify_top_level_with_sr",
+      "try_classify_static",
+      "verify_transactions_respect_sequencing_rights",
+      "ContractCallInspector"
+    ],
+    "missing_behavior": "Builder/verifier classification is not based on the set of call-graph addresses with non-bottom sequencingRights ordering.",
+    "related_but_insufficient_code": [
+      "crates/ritual-sequencing-rights/src/classifier.rs defines into_classification_with_sr, filtering contract_calls by reader.has_sequencing_rights and returning zero/one/multiple classes.",
+      "crates/ethereum/payload/src/sequencing_rights.rs classifies payload candidates with try_classify_static or classify_top_level_with_sr.",
+      "crates/ritual-sequencing-rights/src/lib.rs verifier uses try_classify_static or classify_top_level_with_sr; search found no production use of into_classification_with_sr."
+    ]
+  },
+  "notes": "The helper is present but unused by the audited builder/verifier paths.",
+  "rationale": "The commit body states the predicate changed from |CallGraph(tx)| = 1 to counting only call-graph addresses with sequencing rights, and adds into_classification_with_sr for builder/verifier use. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Block Building",
+  "source_commits": [
+    "5cd8dac6445db3eb2f0f223acece7407e1d3c659"
+  ],
+  "statement": "A transaction's sequencing-rights classification is based on the set of addresses in its call graph for which SequencingRightsReader finds a non-bottom sequencingRights ordering; transactions touching zero such contracts are NoSequencingRights, one such contract are SingleContract, and more than one are MultipleContracts.",
+  "status": "current",
+  "subsystem": "block building",
+  "suggested_falsification_tests": [
+    "Simulate a transaction whose call graph touches one contract with sequencingRights and several helper contracts without sequencingRights. Assert classification is SingleContract for the SR contract. Then add a second SR contract in the call graph and assert classification becomes MultipleContracts."
+  ],
+  "summary": "Sequencing classification does not count only SR call-graph contracts in production.",
+  "test_or_falsification_candidate": "Simulate a transaction touching one SR contract and multiple non-SR helper contracts through internal calls; current production classification will not use the call graph to return SingleContract for the SR contract.",
+  "title": "Classification counts only SR contracts",
+  "total_invariants": 1954
+}

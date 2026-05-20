@@ -1,0 +1,11 @@
+{
+  "record_type": "adversarial_review",
+  "record_id": "review-file-0396-atom-0001",
+  "atom_record_id": "file-0396-atom-0001",
+  "review_result": "pass",
+  "falsification_attempt": "bulk_resolve_blocked: verified destination path or upstream dependency note.",
+  "missed_risks": [
+    "Line-by-line behavioral equivalence with old downstream fork not proven here."
+  ],
+  "notes": "Automated bookkeeping close; re-open if differential testing finds a gap."
+}

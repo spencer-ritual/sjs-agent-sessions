@@ -1,0 +1,63 @@
+{
+  "cluster_key": "scheduler:payload-building:part-01",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-c8709563d1-settlement-building-uses-contract-live-async-state",
+  "invariant_index": 95,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "read_jobs_for_settlement|is_phase1_settled|expiry_block|commit_block|lookback|outside accepted"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "prepare_fulfilled_async_settlement",
+      "read_jobs_for_settlement",
+      "verify_async_settlements"
+    ],
+    "missing_behavior": "Missing accepted commit-block lookback bounds for fulfilled settlement building; the port reads live contract state and checks absent/settled/expired/mismatch cases, but no lookback-bound policy was found.",
+    "related_but_insufficient_code": [
+      "prepare_fulfilled_async_settlement reads AsyncJobTracker state and skips when job is absent, phase1-settled, expired, or pool/contract metadata mismatches.",
+      "Verifier uses the same live job state for settlement checks and expiry, with delivery-side current_block >= commit_block checks."
+    ]
+  },
+  "notes": "Confirmed gap for full invariant.",
+  "rationale": "The current contract-state settlement invariant supersedes stale pool-metadata dependence and is further constrained by bounded neighbor context around active/expired job semantics and commit_block removal.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "03e6d06b4e7bffb82c6f31a3706985d75f61fac4",
+    "dfc1035369bbf8ebbf6d95e2272f818c35de1b1d",
+    "7fef002312ba507bd9aa6552d90bfd436216cba1",
+    "6dce2742d7f1ab825b1b9e25a6c66a529fcd9916"
+  ],
+  "statement": "Before building a fulfilled async settlement, payload building must read the job from AsyncJobTracker contract state and skip settlement when the job is absent, already phase-1 settled, expired by contract expiry, outside accepted commit-block lookback bounds, or otherwise disagrees with verifier timing boundaries.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Create a fulfilled async job with commit_block older than the accepted lookback and assert payload building skips it.",
+    "Parity test builder/verifier settlement timing boundaries for absent, settled, expired, too-old, and future-commit jobs."
+  ],
+  "summary": "Settlement building uses live contract state, but commit-block lookback bounds are missing.",
+  "test_or_falsification_candidate": "A too-old commit_block fixture should be skipped by payload building; no local lookback-bound implementation was found.",
+  "title": "Settlement building uses contract-live async job state",
+  "total_invariants": 1954
+}

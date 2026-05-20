@@ -1,0 +1,57 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "The registry reader functions accept the caller-supplied database/contract and perform direct storage reads for public keys, payment address, TEE address/type, capability, and workload id without a cache layer.",
+      "path": "crates/ritual-tee-registry-reader/src/reader.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn read_executor_public_keys<DB: Database>(db: &mut DB, contract: Address, tee_addresses: &[Address]) -> Result<HashMap<Address, Vec<u8>>, RegistryReadError> { ... db.storage(contract, pk_slot) ... }\n...\npub fn read_executor<DB: Database>(db: &mut DB, contract: Address, tee_address: Address) -> Result<Option<ExecutorInfo>, RegistryReadError> { ... db.storage(contract, record_base) ... db.storage(contract, workload_id_slot(tee_address)) ... }",
+      "symbols": [
+        "read_executor_public_keys",
+        "read_executor",
+        "read_all_executors"
+      ]
+    }
+  ],
+  "equivalence_argument": "The implementation is currently named ritual-tee-registry-reader rather than ritual-executor-registry-reader, but it is the local contract-state registry reader used by verification/building paths and performs uncached storage-layout reads from the supplied DB.",
+  "evidence_files": [
+    "crates/ritual-executor-registry-reader/src/lib.rs",
+    "crates/ritual-executor-registry-reader/src/reader.rs",
+    "crates/ritual-executor-registry-reader/src/storage_layout.rs",
+    "crates/ritual-executor-registry-reader/src/types.rs"
+  ],
+  "invariant_id": "cur-193a2800dd-executor-registry-reads-uncached-contract-state-reads",
+  "invariant_index": 340,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to the port registry reader crate despite the current TEE-service naming.",
+  "rationale": "The commit body says all reads go directly to the smart contract with no caching, and the new functions compute storage slots and read via Database/StateProvider wrappers for public keys, tee metadata, workload ID, and capability. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "0825778b288e3bee3577beef278ed861794c3d17"
+  ],
+  "statement": "Executor registry reader functions must read executor public keys and executor metadata directly from the supplied contract state/database using the ExecutorRegistry storage layout, rather than returning cached registry data.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Populate a test StateProvider/Database with ExecutorRegistry storage for an executor, read it, mutate the backing storage public key or capability without touching any reader cache, read again, and assert the second result reflects the new storage value."
+  ],
+  "summary": "Registry reads are direct uncached contract-state reads in the port reader crate.",
+  "test_or_falsification_candidate": "Read an executor, mutate the backing DB storage for its public key or capability, read again, and assert the second result reflects storage rather than cached data.",
+  "title": "Executor registry reads are uncached contract-state reads",
+  "total_invariants": 1954
+}

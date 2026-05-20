@@ -1,0 +1,113 @@
+{
+  "record_type": "file",
+  "file_index": 358,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-tee-registry-reader/src/storage_layout.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "tee-registry-reader",
+    "storage-layout"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0358-atom-0001",
+      "file_index": 358,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/ritual-tee-registry-reader/src/storage_layout.rs",
+      "source_hunk_hint": "@@ -0,0 +1,35 @@; storage layout docs and slot constants",
+      "source_kind": "tee_registry_storage_layout_constants",
+      "source_snippet": "pub const SLOT_SERVICE_RECORDS: u64 = 2;\npub const SLOT_SERVICE_ADDRESSES: u64 = 6;\npub const SLOT_SERVICE_WORKLOAD_IDS: u64 = 7;",
+      "semantic_claim": "The old divergence adds the TEEServiceRegistry storage layout documentation and constants for service records, service address array, and service workload id mapping.",
+      "high_risk": false,
+      "risk_tags": [
+        "storage-layout",
+        "slot-constants",
+        "tee-registry"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-tee-registry-reader/src/storage_layout.rs",
+          "symbols": [
+            "SLOT_SERVICE_RECORDS",
+            "SLOT_SERVICE_ADDRESSES",
+            "SLOT_SERVICE_WORKLOAD_IDS"
+          ],
+          "evidence": "Destination lines 1-35 exactly match source-added diff lines 75806-75840."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the documented contract storage layout.",
+      "test_strategy": "storage_layout_slot_constant_tests",
+      "negative_test_candidate": "Changing `SLOT_SERVICE_RECORDS` should break service record slot calculation tests.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0358-atom-0002",
+      "file_index": 358,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/ritual-tee-registry-reader/src/storage_layout.rs",
+      "source_hunk_hint": "@@ -0,0 +36,61 @@; slot calculators",
+      "source_kind": "tee_registry_storage_slot_calculators",
+      "source_snippet": "pub fn service_record_slot(primary_address: Address) -> U256 { ... }\npub fn workload_id_slot(primary_address: Address) -> U256 { ... }\npub fn service_array_slot(index: usize) -> U256 { ... }",
+      "semantic_claim": "The old divergence adds keccak-based slot calculators for service records, workload ids, and service address array elements.",
+      "high_risk": false,
+      "risk_tags": [
+        "slot-calculation",
+        "keccak",
+        "storage-layout"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-tee-registry-reader/src/storage_layout.rs",
+          "symbols": [
+            "service_record_slot",
+            "workload_id_slot",
+            "service_array_slot"
+          ],
+          "evidence": "Destination lines 36-61 exactly match source-added diff lines 75841-75866."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves raw storage slot addressing.",
+      "test_strategy": "test_service_record_slot_calculation",
+      "negative_test_candidate": "Using left-aligned address bytes in mapping preimage should produce a different slot and fail the regression test.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The TEE registry storage-layout module is exact-port preserved, including slot constants and keccak slot calculators.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 358: A\tcrates/ritual-tee-registry-reader/src/storage_layout.rs.",
+    "Destination file has 61 lines and matches the source-added content exactly.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

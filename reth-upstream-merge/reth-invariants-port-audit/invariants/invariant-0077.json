@@ -1,0 +1,98 @@
+{
+  "cluster_key": "scheduler:payload-building:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "169074f08721705fbb99cc9531ea798b61e9f3cc",
+      "evidence": "TxAsyncCommitment carries ttl but no commit_block field or constructor argument.",
+      "path": "crates/consensus/src/transaction/async_commitment.rs",
+      "repo": "/home/ritual/repos/ritual-alloy-internal",
+      "snippet": "pub struct TxAsyncCommitment {\n    ...\n    pub ttl: u64,\n    pub executor_address: Address,\n    pub commitment_validator: Address,\n}\n...\npub fn new(..., ttl: u64, executor_address: Address, commitment_validator: Address) -> Self",
+      "symbols": [
+        "TxAsyncCommitment",
+        "TxAsyncCommitment::new"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Payload addJob calldata includes ttl and parent context fields but no commit_block argument.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "function addJob(... uint256 ttl, bytes32 prevHash, uint256 prevNum, uint256 prevTime, address sender, address commitVal, ...)\n...\nttl: U256::from(ttl),\nprevNum: U256::from(parent_number)",
+      "symbols": [
+        "create_short_async_commitment_tx",
+        "addJobCall"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Canonical transaction-pool processing derives commit_block from the canonical block containing the async commitment and computes contract expiry as commit_block + ttl.",
+      "path": "crates/transaction-pool/src/pool/mod.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let commit_block = new_tip.number();\nlet contract_expiry_block = match commit_block.checked_add(async_commitment.ttl) { Some(expiry) => expiry, None => u64::MAX };\n...\ncommit_block, contract_expiry_block",
+      "symbols": [
+        "process_async_commitment_transactions",
+        "add_committed_async_tx"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped across alloy and the port: the commitment transaction/ABI does not carry commit_block, and pool lifecycle metadata obtains commit_block from canonical inclusion block number plus ttl-derived expiry.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/storage/codecs/src/alloy/transaction/async_commitment.rs",
+    "crates/transaction-pool/src/pool/async_pool.rs",
+    "crates/transaction-pool/src/pool/mod.rs",
+    "crates/ritual-async/src/detector.rs",
+    "crates/alloy/transaction/async_commitment.rs"
+  ],
+  "invariant_id": "cur-6efdc29f0a-async-block-inclusion-derived",
+  "invariant_index": 77,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+    "/home/ritual/repos/ritual-alloy-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/consensus/src/transaction/async_commitment.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/transaction-pool/src/pool/mod.rs"
+    ],
+    "checked_queries": [
+      "commit_block in TxAsyncCommitment|addJob.*commit|commit_block = new_tip.number"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-alloy-internal"
+    ],
+    "checked_symbols": [
+      "TxAsyncCommitment",
+      "addJobCall",
+      "process_async_commitment_transactions"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in dependency and port.",
+  "rationale": "The two candidates state the same durable contract between Reth and AsyncJobTracker after commit_block was removed from the transaction and ABI.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "6928703ed2877e02544a27ce7a75667b45bcac1a",
+    "187eeac4c05bae7885a8966a721881a00cced2fc"
+  ],
+  "statement": "Async commitment transactions and AsyncJobTracker.addJob calldata must not include a user-supplied commit_block; job timing is derived from inclusion block.number and ttl, and transaction-pool metadata derives commit_block from finalized expiry data rather than from the commitment transaction.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Compile-fail or serialization test proving TxAsyncCommitment cannot encode a commit_block field.",
+    "Canonical block-processing test that mines an async commitment at block N with ttl T and asserts metadata.commit_block == N and contract_expiry_block == N + T."
+  ],
+  "summary": "Async commit block is inclusion-derived in the port/dependency code.",
+  "test_or_falsification_candidate": "Mine a commitment at a known block and assert pool metadata derives commit_block from the canonical block, not from transaction calldata.",
+  "title": "Async commit block is inclusion derived",
+  "total_invariants": 1954
+}

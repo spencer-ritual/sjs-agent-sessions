@@ -1,0 +1,278 @@
+[
+  {
+    "id": "cur-8f90f3deb9-asyncexec-participates-typing-metrics",
+    "title": "AsyncExec participates in transaction typing and metrics",
+    "section": "Scheduler",
+    "subsystem": "scheduler",
+    "cluster_key": "scheduler:type-hash-codec:part-01",
+    "status": "current",
+    "confidence": "medium",
+    "statement": "AsyncExec transactions are encoded/decoded as first-class storage-codec variants and are counted separately in announced transaction type metrics rather than folded into scheduled or other transaction buckets.",
+    "rationale": "The AsyncExec candidates are adjacent custom-transaction typing work, not scheduled-specific, but they share the type/codec lineage and have direct evidence files.",
+    "evidence_files": [
+      "ritual-reth-internal/crates/net/network/src/metrics.rs",
+      "ritual-reth-internal/crates/storage/codecs/src/alloy/transaction/mod.rs",
+      "ritual-reth-internal/crates/storage/codecs/src/alloy/transaction/asyncexec.rs"
+    ],
+    "suggested_falsification_tests": [
+      "Round-trip an AsyncExec transaction through the alloy storage codec and assert the decoded variant and fields are AsyncExec.",
+      "Feed announced transaction metrics a mix including AsyncExec and Scheduled transactions and assert AsyncExec increments only the AsyncExec counter/histogram."
+    ],
+    "open_questions": [],
+    "source_candidate_ids": [
+      "ritual-reth-internal:e92354243607:01",
+      "ritual-reth-internal:ac25b7d77c44:03"
+    ],
+    "source_commits": [
+      "e92354243607490ac62479e2a90e043214061732",
+      "ac25b7d77c442a6c2c025ae9fda3d037c7209552"
+    ],
+    "earliest_date": "2025-06-11T22:02:23+00:00"
+  },
+  {
+    "id": "cur-83d91eba84-scheduled-origin-byte-semantics-special-cased",
+    "title": "Scheduled origin-byte semantics are special-cased",
+    "section": "Scheduler",
+    "subsystem": "scheduler",
+    "cluster_key": "scheduler:type-hash-codec:part-01",
+    "status": "current",
+    "confidence": "medium",
+    "statement": "Async detection uses EIP-2718 bytes for ordinary typed origin transactions but uses scheduled signing-payload bytes for scheduled originals, matching the current scheduled transaction hash semantics.",
+    "rationale": "The packet contains a direct conflict: an older scheduled-hash candidate claims full signed EIP-2718 hashing, while later/current evidence uses encode_for_signing for scheduled recalculation and scheduled async originals. The refined invariant keeps the current special case.",
+    "evidence_files": [
+      "ritual-reth-internal/crates/ritual-async/src/detector.rs"
+    ],
+    "suggested_falsification_tests": [
+      "Detect async calls for an EIP-1559 origin and assert origin_tx_rlp begins with the EIP-2718 type byte and decodes through the EIP-2718 decoder.",
+      "Detect async calls for a Scheduled origin and assert stored origin bytes equal encode_for_signing output and not the full signed EIP-2718 encoding.",
+      "Recalculate a signed scheduled transaction hash and assert it matches the signing-payload hash path used by scheduled transaction construction."
+    ],
+    "open_questions": [],
+    "source_candidate_ids": [
+      "ritual-reth-internal:b36e52e9914d:01",
+      "ritual-reth-internal:7ce306fe1d39:02"
+    ],
+    "source_commits": [
+      "b36e52e9914d4e5fb7f2c8c55718c51a0ba1b7e1",
+      "7ce306fe1d391baa1e90d7efc85a16d64916f361"
+    ],
+    "earliest_date": "2025-06-28T19:59:28+00:00"
+  },
+  {
+    "id": "cur-4b6d786787-assorted-current-scheduler-adjacent-guards-remain-distinct",
+    "title": "Assorted current scheduler-adjacent guards remain distinct",
+    "section": "Scheduler",
+    "subsystem": "scheduler",
+    "cluster_key": "scheduler:type-hash-codec:part-01",
+    "status": "current",
+    "confidence": "medium",
+    "statement": "Finalized scheduled transaction logs include scheduler metadata, blocking scheduling skips submission when the derived scheduled transaction already exists in the async pool, and scheduled heartbeat transactions must satisfy the dedicated heartbeat shape constraints.",
+    "rationale": "These candidates are load-bearing but do not collapse cleanly into the type-codec or canonical-firing groups; keeping them distinct avoids over-generalizing.",
+    "evidence_files": [
+      "ritual-reth-internal/crates/ritual-metrics/src/tx.rs",
+      "ritual-reth-internal/crates/transaction-pool/src/blocking_handlers.rs",
+      "ritual-reth-internal/crates/ritual-block-verification/src/verifier.rs"
+    ],
+    "suggested_falsification_tests": [
+      "Finalize a block with a scheduled transaction and assert the tx_finalized event contains origin, call_id, index, initial/start block, frequency, and block number.",
+      "Preload the async pool with a derived scheduled transaction hash and assert the blocking scheduler handler skips add_scheduled_transaction for that hash.",
+      "Build heartbeat scheduled transactions violating dummy signature, zero value, selector/length, caller, and duplicate checkAndRevive constraints and assert verifier rejection."
+    ],
+    "open_questions": [],
+    "source_candidate_ids": [
+      "ritual-reth-internal:d1489cf567f9:01",
+      "ritual-reth-internal:64773e5b4bab:03",
+      "ritual-reth-internal:396438683921:01"
+    ],
+    "source_commits": [
+      "d1489cf567f9e06ef10b6d2ca86931c978685b08",
+      "64773e5b4bab64e3d5342aa261922d03106c5cbb",
+      "396438683921f506765f6fab3da8d512bb4bd1d9"
+    ],
+    "earliest_date": "2025-06-04T12:24:04-04:00"
+  },
+  {
+    "id": "cur-eeb164b3a4-scheduled-commitment-sender-uniqueness-uses-caller-identity",
+    "title": "Scheduled commitment sender uniqueness uses caller identity",
+    "section": "Scheduler",
+    "subsystem": "scheduler",
+    "cluster_key": "scheduler:type-hash-codec:part-01",
+    "status": "current",
+    "confidence": "high",
+    "statement": "When block verification extracts the sender for async commitment sender-uniqueness checks, decoded scheduled origin transactions use the scheduled transaction caller field as the originating sender, while legacy and EIP-1559 origins recover their signer from the decoded signed transaction.",
+    "rationale": "This candidate is a distinct current validation identity rule: scheduled transactions are system-submitted, so duplicate-sender checks must use the embedded caller rather than the system sender.",
+    "evidence_files": [
+      "ritual-reth-internal/crates/ritual-block-verification/src/verifier.rs"
+    ],
+    "suggested_falsification_tests": [
+      "Create async commitments for legacy, EIP-1559, and scheduled origins; assert regular origins use recovered signers and scheduled origins use scheduled_tx.caller for duplicate-sender checks.",
+      "Use malformed or unsupported origin_tx_rlp in a commitment and assert decode_original_transaction failure prevents silently falling back to the system sender."
+    ],
+    "open_questions": [],
+    "source_candidate_ids": [
+      "ritual-reth-internal:702c5256ed73:01"
+    ],
+    "source_commits": [
+      "702c5256ed7380988de60dfbbefadfc2d868c7c0"
+    ],
+    "earliest_date": "2026-01-07T14:54:27+00:00"
+  },
+  {
+    "id": "cur-6eeeb40bb1-active-async-jobs-satisfy-scheduled-obligations",
+    "title": "Active async jobs satisfy scheduled obligations",
+    "section": "Precompile Pricing",
+    "subsystem": "precompile pricing",
+    "cluster_key": "precompile pricing:active-async-jobs-22a1a27d",
+    "status": "current",
+    "confidence": "medium",
+    "statement": "During scheduled censorship verification, an unfulfilled scheduled obligation with enough gas remaining must not be classified as a censorship failure when the verifier can reconstruct the obligation's scheduled origin transaction hash and AsyncJobTracker reports an active job for that hash at the current block.",
+    "rationale": "The only in-cluster candidate states the current effective behavior: scheduled censorship verification can treat an unfulfilled scheduled obligation as satisfied when the verifier reconstructs the scheduled origin transaction hash and finds an active async job for that obligation at the current block. With no predecessor candidates in the cluster, there is no justified lineage edge to emit.",
+    "evidence_files": [
+      "crates/ritual-block-verification/src/verifier.rs",
+      "Cargo.lock"
+    ],
+    "suggested_falsification_tests": [
+      "Create a scheduled obligation that is absent from the block while enough gas remains, and assert verification reports censorship when no active async job exists for the reconstructed scheduled origin hash.",
+      "For the same absent scheduled obligation and gas conditions, populate AsyncJobTracker with an active job keyed by the reconstructed scheduled origin hash and assert verification does not report the capacity/censorship failure."
+    ],
+    "open_questions": [
+      "The assignment does not include a predecessor candidate for the async job tracker behavior, so the exact historical dependency chain is unresolved.",
+      "The subsystem label appears inconsistent with the candidate behavior."
+    ],
+    "source_candidate_ids": [
+      "ritual-reth-internal:c563c9a7f694:02"
+    ],
+    "source_commits": [
+      "c563c9a7f6944a4302b8c10d5c82438f81a74f80"
+    ],
+    "earliest_date": "2026-02-24T17:17:10+00:00"
+  },
+  {
+    "id": "cur-c1e13e6b63-agent-commitments-expose-phase-deadline",
+    "title": "CLI agent commitments expose Phase 2 deadline",
+    "section": "Precompile Pricing",
+    "subsystem": "precompile pricing",
+    "cluster_key": "precompile pricing:agent-commitments-expose-f1a9fb82",
+    "status": "current",
+    "confidence": "high",
+    "statement": "AsyncCommitmentPool deadline lookup for CLI_AGENT_PRECOMPILE commitments must extract the max_poll_block offset from the CLI agent precompile input and return commit_block plus that offset via checked addition; CLI agent commitments must not fall through to having no deadline.",
+    "rationale": "The only candidate directly describes a load-bearing deadline-dispatch requirement added for CLI_AGENT_PRECOMPILE commitments. It stands as the current effective invariant for this bounded cluster, with no older or newer in-cluster candidate to collapse or supersede.",
+    "evidence_files": [
+      "crates/transaction-pool/src/pool/async_pool.rs"
+    ],
+    "suggested_falsification_tests": [
+      "Insert a CLI_AGENT_PRECOMPILE async commitment whose input encodes a valid max_poll_block offset and assert deadline lookup returns commit_block + offset.",
+      "Insert CLI_AGENT_PRECOMPILE commitments with malformed deadline input and with an offset that overflows checked_add, and assert lookup returns None rather than a wrong deadline or panic."
+    ],
+    "open_questions": [
+      "The assignment does not include the CLI agent ABI details, so the exact max_poll_block byte offset remains tied to the cited implementation rather than independently derived here."
+    ],
+    "source_candidate_ids": [
+      "ritual-reth-internal:792f7a6a4746:02"
+    ],
+    "source_commits": [
+      "792f7a6a4746fdea70e4bf40caa107722272759d"
+    ],
+    "earliest_date": "2026-02-21T03:19:08+00:00"
+  },
+  {
+    "id": "cur-8a5490d454-agent-escrow-uses-specific-limits",
+    "title": "CLI agent escrow uses CLI-specific limits",
+    "section": "Executor Delivery",
+    "subsystem": "executor delivery",
+    "cluster_key": "executor delivery:agent-escrow-uses-eb8a5c4b",
+    "status": "current",
+    "confidence": "high",
+    "statement": "Wallet fee verification must price AGENT_CALL_PRECOMPILE with AGENT_MAX_ITERATIONS and AGENT_MAX_TOOL_CALLS, but must price CLI_AGENT_PRECOMPILE with CLI_AGENT_MAX_ITERATIONS and CLI_AGENT_MAX_TOOL_CALLS.",
+    "rationale": "The commit separates standard agent and CLI agent pricing branches so CLI agent escrow uses its higher tool-call limit instead of being under-collateralized by the standard agent constants. No candidate in this bounded assignment contradicts or removes it.",
+    "evidence_files": [
+      "crates/ritual-async-fees/src/wallet.rs"
+    ],
+    "suggested_falsification_tests": [
+      "Run wallet fee verification for 0x0808 and 0x080C with the same input and assert the executor fee equals agent_escrow_lockup(AGENT_MAX_ITERATIONS, AGENT_MAX_TOOL_CALLS) for 0x0808 and agent_escrow_lockup(CLI_AGENT_MAX_ITERATIONS, CLI_AGENT_MAX_TOOL_CALLS) for 0x080C."
+    ],
+    "open_questions": [],
+    "source_candidate_ids": [
+      "ritual-reth-internal:792f7a6a4746:01"
+    ],
+    "source_commits": [
+      "792f7a6a4746fdea70e4bf40caa107722272759d"
+    ],
+    "earliest_date": "2026-02-21T03:19:08+00:00"
+  },
+  {
+    "id": "cur-3c262b569a-async-backlog-block-capped",
+    "title": "Async backlog per block is capped",
+    "section": "Executor Delivery",
+    "subsystem": "executor delivery",
+    "cluster_key": "executor delivery:async-backlog-block-e1c3a7cf",
+    "status": "current",
+    "confidence": "medium",
+    "statement": "Payload building must cap fulfilled async settlements and delivery-ready settlements per block using `RETH_MAX_FULFILLED_ASYNC_PER_BLOCK` and `RETH_MAX_DELIVERY_PER_BLOCK`, defaulting each cap to 64.",
+    "rationale": "The diff adds environment-driven caps for fulfilled async and delivery-ready transaction collections, with default 64 and warnings when truncating, to keep unbounded async backlog from consuming the block-building budget. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: The default cap is an operational knob and may change with throughput requirements.",
+    "evidence_files": [
+      "crates/ethereum/payload/src/lib.rs"
+    ],
+    "suggested_falsification_tests": [
+      "Set `RETH_MAX_FULFILLED_ASYNC_PER_BLOCK=2` and provide more than two fulfilled async entries; assert only two are processed for the block. Repeat for `RETH_MAX_DELIVERY_PER_BLOCK`."
+    ],
+    "open_questions": [],
+    "source_candidate_ids": [
+      "ritual-reth-internal:b974fa586053:02"
+    ],
+    "source_commits": [
+      "b974fa58605342b18354a1089fde1b1f624de99f"
+    ],
+    "earliest_date": "2026-03-17T18:38:35+00:00"
+  },
+  {
+    "id": "cur-3f52ad246e-async-commitments-cannot-recreate-existing-jobs",
+    "title": "Async commitments cannot recreate existing jobs",
+    "section": "Executor Delivery",
+    "subsystem": "executor delivery",
+    "cluster_key": "executor delivery:async-commitments-cannot-566b865d",
+    "status": "current",
+    "confidence": "high",
+    "statement": "Block verification must reject an async commitment if `AsyncJobTracker` parent-state storage already contains a job for the commitment's `origin_tx`; inability to read the job existence state is also a verification failure.",
+    "rationale": "The verifier now opens parent state for an AsyncJobTracker job-existence check and fails the block if `job_exists` returns true or errors for the commitment origin transaction. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: It is implemented as a storage lookup helper, but the observable behavior is the consensus rejection of duplicate commitments for already-created jobs.",
+    "evidence_files": [
+      "crates/ritual-block-verification/src/verifier.rs"
+    ],
+    "suggested_falsification_tests": [
+      "Pre-populate AsyncJobTracker storage with `jobExecutor[origin_tx] != address(0)`, include an async commitment with the same `origin_tx`, and assert block verification returns `InvalidAsyncCommitment` instead of accepting the block."
+    ],
+    "open_questions": [],
+    "source_candidate_ids": [
+      "ritual-reth-internal:9ce222c2e932:03"
+    ],
+    "source_commits": [
+      "9ce222c2e932ae81de65a84bf93052b451c2cc1b"
+    ],
+    "earliest_date": "2026-02-10T18:42:19+00:00"
+  },
+  {
+    "id": "cur-76ef05ef82-async-detection-service-critical",
+    "title": "Async detection service is critical",
+    "section": "Executor Delivery",
+    "subsystem": "executor delivery",
+    "cluster_key": "executor delivery:async-detection-service-fb535e59",
+    "status": "current",
+    "confidence": "medium",
+    "statement": "The node must spawn the async detection service as a critical task named \"async detection service\" rather than as an ordinary background task.",
+    "rationale": "Changing spawn to spawn_critical changes how the node supervises the async detection service, suggesting the service should be treated as node-critical infrastructure. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: The primary diff does not show the task executor's failure semantics, so the observable behavior depends on the surrounding reth task system.",
+    "evidence_files": [
+      "crates/ethereum/node/src/node.rs"
+    ],
+    "suggested_falsification_tests": [
+      "Use a test task executor or integration harness where the async detection service returns an error or panics, and assert the task is registered under the critical task path/name rather than ordinary spawn bookkeeping."
+    ],
+    "open_questions": [],
+    "source_candidate_ids": [
+      "ritual-reth-internal:f28470bdc1cd:03"
+    ],
+    "source_commits": [
+      "f28470bdc1cd6134d9c5fc418bd6c1964ab6eedb"
+    ],
+    "earliest_date": "2025-07-22T19:48:33+00:00"
+  }
+]

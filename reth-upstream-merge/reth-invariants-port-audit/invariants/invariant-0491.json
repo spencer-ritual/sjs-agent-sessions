@@ -1,0 +1,53 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "SPC verification reads fail immediately on a missing job instead of returning a partial map.",
+      "path": "crates/ritual-async-registry/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if executor.is_zero() {\n    return Err(RegistryError::DatabaseError(format!(\n        \"Job {} not found in AsyncJobTracker (jobExecutor is zero) \u2014 cannot verify SPC for non-existent job\",\n        job_id\n    )));\n}",
+      "symbols": [
+        "read_jobs_for_spc_verification"
+      ]
+    }
+  ],
+  "equivalence_argument": "The SPC reader checks jobExecutor for every requested job and returns an error on the first zero executor, preventing silent omission from the verification map.",
+  "evidence_files": [
+    "crates/ritual-async-registry/src/lib.rs"
+  ],
+  "invariant_id": "cur-d2cfe44c94-reads-fail-closed",
+  "invariant_index": 491,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This maps only the SPC reader behavior, not settlement reader behavior.",
+  "rationale": "The primary diff changes the zero-executor branch in read_jobs_for_settlement from continue to Err with a message that non-existent jobs cannot be settled. The primary diff changes the zero-executor branch in read_jobs_for_spc_verification from continue to Err with a message that non-existent jobs cannot be verified for SPC. Collapsed 2 closely related historical candidate statements into the latest effective formulation.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "a17731060c276af7ddf9f520ec7e0f724249cea2"
+  ],
+  "statement": "read_jobs_for_spc_verification must return an error when any requested job_id has a zero jobExecutor in AsyncJobTracker, rather than silently omitting that job from the returned map.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call read_jobs_for_settlement with two job IDs where one has valid storage and one has jobExecutor zero. Assert the function returns Err and does not return a partial map omitting the missing job.",
+    "Call read_jobs_for_spc_verification with a missing job whose jobExecutor storage slot is zero and assert the function returns Err. Include a mixed valid/missing job set and assert it still fails rather than returning only the valid job."
+  ],
+  "summary": "SPC job reads fail closed for missing jobs.",
+  "test_or_falsification_candidate": "Call read_jobs_for_settlement with two job IDs where one has valid storage and one has jobExecutor zero. Assert the function returns Err and does not return a partial map omitting the missing job.",
+  "title": "SPC job reads fail closed",
+  "total_invariants": 1954
+}

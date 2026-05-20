@@ -1,0 +1,54 @@
+{
+  "record_type": "file",
+  "file_index": 312,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-metrics/src/lib.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "intentionally_absent",
+  "tags": [
+    "intentionally_absent",
+    "needs-review",
+    "non-exact"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0312-atom-0001",
+      "file_index": 312,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-metrics/src/lib.rs",
+      "source_hunk_hint": "@@ -0,0 +1,20 @@",
+      "source_kind": "other",
+      "source_snippet": "//! Ritual Metrics - Standardized instrumentation for Ritual logging\n\n/// Log target constants\npub mod targets {\n    /// Target for block lifecycle logging\n    pub const BLOCK_LIFECYCLE: &str = \"ritual::block::lifecycle\";",
+      "semantic_claim": "The downstream diff for crates/ritual-metrics/src/lib.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "intentionally_absent",
+      "destinations": [],
+      "equivalence_argument": null,
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Ritual metrics/tracing router surfaces are intentionally not part of the current runtime-critical v2.2 slice; no live consensus/FSM behavior depends on them.",
+      "required_change": "No code change in this v2 slice; behavior is intentionally inactive or out of scope."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Atoms in this file are intentionally absent or mapped to active v2.2 behavior where applicable.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "No same-path or uniquely named destination evidence was found in the configured search scope."
+}

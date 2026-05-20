@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "The wallet verifier computes precompile-specific executor escrow, adds async fees, rejects unsupported precompiles, and enforces balance and lock duration.",
+      "path": "crates/ritual-async-fees/src/wallet.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let executor_fee = if precompile_address == LLM_CALL_PRECOMPILE { ... } else if precompile_address == HTTP_CALL_PRECOMPILE || precompile_address == LONG_RUNNING_HTTP_PRECOMPILE { http_executor_fee(...) } else if precompile_address == DKMS_KEY_PRECOMPILE { return verify_fixed_fee_wallet_lock(...) } else if precompile_address == ZK_TWO_PHASE_PRECOMPILE { U256::from(ZK_PROOF_GENERATION_FEE_WEI) } else if precompile_address == SOVEREIGN_AGENT_PRECOMPILE { agent_escrow_lockup(...) } else if precompile_address == PERSISTENT_AGENT_PRECOMPILE { persistent_agent_escrow_lockup(input_len) } else { return Err(...); };\n...\nif balance < total_required_fees { return Err(...); }\nif lock_until < U256::from(required_lock_until) { return Err(...); }",
+      "symbols": [
+        "verify_wallet_for_commitment",
+        "supports_wallet_check"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "Block verification invokes the wallet verifier against parent-block state for each async commitment.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "verify_wallet_for_commitment(&mut db, original_payer, commitment.precompile_address, &commitment.precompile_input, commitment.ttl, current_block)?;",
+      "symbols": [
+        "verify_commitments"
+      ]
+    }
+  ],
+  "equivalence_argument": "The invariant is enforced by the same parent-state wallet verifier used during block verification: unsupported precompiles fail, supported precompiles require sufficient balance and lock duration.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/wallet.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-0dc2f162bb-async-commitments-require-funded-locked-wallets",
+  "invariant_index": 394,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in the port wallet verifier and block verification path.",
+  "rationale": "The new wallet verifier reads RitualWallet balance and lock mappings, calculates required fees by async precompile type, enforces balance and lock duration, and is invoked from block verification against parent state. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "bbdeb15b8da70fded205f7556253281eeedc794f"
+  ],
+  "statement": "Block verification must reject an async commitment unless, at parent-block wallet state, the origin sender's RitualWallet balance covers the precompile-specific executor fee plus async commitment and inclusion fees, and the sender's lockUntil is at least commit_block + ttl.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Verify blocks containing async commitments for senders with insufficient balance, insufficient lockUntil, unknown precompile address, and sufficient wallet state; assert only the sufficient case passes wallet verification."
+  ],
+  "summary": "Async commitments require funded and locked RitualWallet state.",
+  "test_or_falsification_candidate": "Verify blocks containing commitments with insufficient balance, insufficient lockUntil, unknown precompile, and sufficient state; only sufficient supported state should pass.",
+  "title": "Async commitments require funded locked wallets",
+  "total_invariants": 1954
+}

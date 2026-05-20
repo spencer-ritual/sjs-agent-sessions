@@ -1,0 +1,74 @@
+{
+  "record_type": "file",
+  "file_index": 221,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/optimism/primitives/src/receipt.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "intentionally_absent",
+  "tags": [
+    "intentionally_absent",
+    "non-exact"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0221-atom-0001",
+      "file_index": 221,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/optimism/primitives/src/receipt.rs",
+      "source_hunk_hint": "@@ -43,4 +43,4 @@ impl OpReceipt {",
+      "source_kind": "other",
+      "source_snippet": "            Self::Legacy(receipt)\n            | Self::Eip2930(receipt)\n            | Self::Eip1559(receipt)\n            | Self::Eip7702(receipt) => receipt,\n            Self::Legacy(receipt)\n            | Self::Eip2930(receipt)",
+      "semantic_claim": "The downstream diff for crates/optimism/primitives/src/receipt.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "intentionally_absent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "MERGE_NOTES.md",
+          "symbols": [],
+          "snippet": "Left OP execution out of scope for this skeleton. Upstream Reth `v2.2.0` has\nno `crates/optimism/*` workspace members and no manifest references to\n`alloy-op-evm` or `op-revm` in this fresh tree.",
+          "evidence": "The v2 port explicitly scopes out the old OP primitives crate that owned `OpReceipt`."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/primitives/src/receipt.rs",
+          "symbols": [
+            "Receipt",
+            "calculate_receipt_root_no_memo"
+          ],
+          "snippet": "pub fn calculate_receipt_root_no_memo<T: TxTy>(receipts: &[Receipt<T>]) -> B256 {\n    ordered_trie_root_with_encoder(receipts, |r, buf| {\n        alloy_consensus::TxReceipt::with_bloom_ref(r).encode_2718(buf)\n    })\n}",
+          "evidence": "The active v2 port has Ethereum receipt support, but no OP-specific `OpReceipt` enum surface."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "human_question": null,
+      "notes": "Reclassified from missing to intentionally absent because the current v2 port explicitly omits old `crates/optimism/*` workspace members. Guideline remediation: accepted as intentionally absent because The current v2.2/Summit port explicitly scopes old OP primitives out via `MERGE_NOTES.md`, so `OpReceipt` EIP-7702 handling is outside the active merge target rather than missing Ethereum/Summit behavior.",
+      "required_change": null,
+      "intentional_absence_basis": "documented_scope_exclusion",
+      "intentional_absence_rationale": "The current v2.2/Summit port explicitly scopes old OP primitives out via `MERGE_NOTES.md`, so `OpReceipt` EIP-7702 handling is outside the active merge target rather than missing Ethereum/Summit behavior."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Atoms in this file are intentionally absent or mapped to active v2.2 behavior where applicable.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "This remains a human scope confirmation for future OP work rather than an implementation gap in the active Summit/Ethereum port."
+}

@@ -1,0 +1,93 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "The primary async fee API requires a mutable ModelCache and passes it into LLM executor fee calculation.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn calculate_async_fees<DB: revm::Database>(..., model_cache: &mut ModelCache) -> Result<AsyncFees, String>\n...\ncompute_llm_executor_fee(db, model_registry_contract, output, is_encrypted, model_cache)?",
+      "symbols": [
+        "calculate_async_fees",
+        "compute_llm_executor_fee"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "LLM fee pricing obtains model configuration through the cached registry read path.",
+      "path": "crates/ritual-async-fees/src/llm.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let config = model_config_from_registry(db, model_registry_contract, metrics.model.as_deref(), model_cache)?;\n...\nlet info = read_model_from_db_cached(db, contract, model_name, cache)?;",
+      "symbols": [
+        "compute_llm_executor_fee",
+        "model_config_from_registry"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "Payload building creates and reuses a per-block ModelCache for async fee calculation.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let mut model_cache = ModelCache::default();\n...\n&mut model_cache",
+      "symbols": [
+        "build_payload",
+        "ModelCache"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "Block verification mirrors builder pricing with a per-block ModelCache.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let mut model_cache = ModelCache::default();\n...\ncalculate_async_fees(..., &mut model_cache)",
+      "symbols": [
+        "verify_async_settlements",
+        "ModelCache"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port removed optional/no-cache fee calculation at the builder/verifier call surface: calculate_async_fees requires &mut ModelCache, compute_llm_executor_fee reads model config through read_model_from_db_cached, and both payload construction and block verification pass a per-block cache.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ritual-async-fees/src/llm.rs",
+    "crates/ritual-async-fees/src/registry.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-849dc540f6-pricing-always-uses-model-cache",
+  "invariant_index": 409,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in fee API, LLM pricing, payload builder, and verifier call sites.",
+  "rationale": "The diff renames the cached fee function to the primary calculate_async_fees API, changes cache parameters from Option<&mut ModelCache> to &mut ModelCache, removes non-cached wrapper functions, and updates payload building and block verification call sites to pass their model cache directly. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "cf54601f71e1212b962560816304723ade8e0f8e"
+  ],
+  "statement": "Async fee calculation and LLM executor fee pricing must be called with a mutable per-block ModelCache; model registry reads must check and populate that cache, and there must be no fallback path that silently performs uncached model lookups.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Run two LLM fee calculations for the same model in a block using a database mock that counts storage reads. Assert the first call populates ModelCache and the second returns the cached value without an additional model-registry read; also assert call sites fail to compile or tests fail if no ModelCache is supplied."
+  ],
+  "summary": "LLM settlement fee pricing uses a required per-block ModelCache.",
+  "test_or_falsification_candidate": "Use a database mock counting ModelRegistry reads for two LLM settlements with the same model in one block; the second calculation should hit ModelCache without a second storage read.",
+  "title": "LLM fee pricing always uses model cache",
+  "total_invariants": 1954
+}

@@ -1,0 +1,76 @@
+{
+  "cluster_key": "executor delivery:delivery-result-length-b7c20d06",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The shared async-fees constants define the deliveryResult ABI offset as parameter index 10 for Phase 2 delivery settlement calldata.",
+      "path": "crates/ritual-async-fees/src/constants.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const SETTLEMENT_BYTES_OFFSET_POSITION: usize = 10 * 32;\n...\nSelf::Deliver => DELIVER_PRECOMPILE_INPUT_OFFSET,",
+      "symbols": [
+        "SETTLEMENT_BYTES_OFFSET_POSITION",
+        "AsyncSettlementCall::Deliver"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The verifier classifies delivery calldata and extracts deliveryResult using the shared 10 * 32 offset, so Phase 1/Phase 2 classification uses the corrected parameter.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if call != AsyncSettlementCall::Deliver { ... }\nextract_dynamic_bytes_from_calldata(calldata, call.selector(), SETTLEMENT_BYTES_OFFSET_POSITION)",
+      "symbols": [
+        "extract_delivery_result_from_calldata"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port moved the offset into a shared constant and the verifier consumes that constant for AsyncSettlementCall::Deliver, preserving the parameter-10 delivery-result length rule.",
+  "evidence_files": [
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/transaction-pool/src/pool/mod.rs"
+  ],
+  "invariant_id": "cur-08cf86e7d2-delivery-result-length-uses-parameter",
+  "invariant_index": 195,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/constants.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "SETTLEMENT_BYTES_OFFSET_POSITION|10 * 32|extract_delivery_result_from_calldata|AsyncSettlementCall::Deliver"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "SETTLEMENT_BYTES_OFFSET_POSITION",
+      "extract_delivery_result_from_calldata",
+      "AsyncSettlementCall::Deliver"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The commit message identifies the offset bug as `9*32 -> 10*32`. The verifier and transaction pool now document the 11-parameter layout and read the deliveryResult offset at `10 * 32`, which controls Phase 1 vs Phase 2 settlement classification. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "cf67a7bdd0a8bde3a557501a8fc9c5b09cfb48d9"
+  ],
+  "statement": "For SC-2 settlement calldata with 11 parameters, delivery-result length extraction must read the dynamic bytes offset at parameter index 10, not parameter index 9, so empty delivery results are treated as Phase 1 and non-empty delivery results as Phase 2 removals.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Encode `settleAsyncTransaction(..., precompileInput = nonempty, deliveryResult = empty)` and assert delivery-result length extraction returns 0; encode a Phase 2 call with nonempty deliveryResult and assert it returns that result length."
+  ],
+  "summary": "Delivery result extraction uses the shared parameter-10 offset in the port.",
+  "test_or_falsification_candidate": "Encode delivery calldata with precompileInput nonempty and deliveryResult empty/nonempty and assert extract_delivery_result_from_calldata reports the parameter-10 bytes length.",
+  "title": "Delivery result length uses parameter ten",
+  "total_invariants": 1954
+}

@@ -1,0 +1,76 @@
+{
+  "record_type": "file",
+  "file_index": 540,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/transaction-pool/src/traits.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "structural_equivalent",
+  "tags": [
+    "structural_equivalent",
+    "reviewed",
+    "txpool",
+    "traits"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0540-atom-0001",
+      "file_index": 540,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/transaction-pool/src/traits.rs",
+      "source_hunk_hint": "@@ -2,13 +2,17 @@ use crate::{",
+      "source_kind": "txpool_trait",
+      "source_snippet": "        async_pool::{AsyncConversionError, AsyncTxMeta, AsyncUpdateError},\n        state::SubPool,\n        BestTransactionFilter, NewTransactionEvent, TransactionEvents, TransactionListenerKind,\nuse alloy_consensus::{\n    transaction::{OriginalTransaction, PooledTransaction, SpcCall},\n    BlockHeader, Signed, Typed2718,\n};\nuse alloy_primitives::{Address, BlockHash, BlockNumber, Bytes, TxHash, TxKind, B256, U256};\n    fn add_scheduled_transaction(\n        &self,",
+      "semantic_claim": "The old trait adds direct scheduled/async insertion, metadata queries, result submission, delivery readiness, and async containment APIs.",
+      "high_risk": true,
+      "risk_tags": [
+        "txpool",
+        "async",
+        "api"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/traits.rs",
+          "symbols": [
+            "add_async_metadata",
+            "submit_async_result",
+            "submit_async_delivery_result",
+            "get_async_metadata",
+            "fulfilled_async_entries"
+          ],
+          "evidence": "Destination trait exposes context-rich async metadata/result methods with safe defaults, but omits old direct scheduled/async insertion and containment method names."
+        }
+      ],
+      "equivalence_argument": "Reviewed structural equivalent for active async lifecycle callers after refactor: the destination trait exposes metadata insertion, context-checked result and delivery submissions, metadata lookup, fulfilled-entry replay, and delivery-ready APIs. Old direct scheduled insertion APIs are intentionally absent because scheduled execution is synthesized from Scheduler parent state in the payload builder.",
+      "test_strategy": "compile RPC/payload callers against destination TransactionPool trait",
+      "negative_test_candidate": "Direct old `add_scheduled_transaction` callers should fail; v2.2 callers should use Scheduler-state synthesis and async metadata APIs.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed: active async trait surface is present; raw scheduled trait methods are intentionally replaced by v2 scheduled synthesis."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Reviewed: TransactionPool async lifecycle trait behavior is structurally preserved with a different API shape; direct scheduled insertion is intentionally replaced by Scheduler-state payload synthesis.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0540: M\tcrates/transaction-pool/src/traits.rs.",
+    "Source diff lines 96164-96549; first hunk `@@ -2,13 +2,17 @@ use crate::{`.",
+    "Fresh destination evidence was checked against /home/ritual/repos/ritual-reth-internal-v2.2.0-port.",
+    "Review conclusion: no active TransactionPool trait gap remains for async lifecycle or scheduled execution."
+  ]
+}

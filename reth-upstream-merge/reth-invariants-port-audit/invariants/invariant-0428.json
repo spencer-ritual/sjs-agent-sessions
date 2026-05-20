@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "The verifier enforces inclusive TTL bounds, rejects unsupported precompile metadata, and rejects zero executor addresses before accepting an async commitment as structurally valid.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "fn validate_commitment_structure(\n    commitment: &TxAsyncCommitment,\n) -> Result<&'static AsyncPrecompileMetadata, BlockVerificationError> {\n    if commitment.ttl == 0 || commitment.ttl > MAX_SHORT_ASYNC_TTL_BLOCKS {\n        return Err(BlockVerificationError::InvalidAsyncCommitment(format!(\n            \"TTL {} outside async commitment bounds 1..={}\",\n            commitment.ttl, MAX_SHORT_ASYNC_TTL_BLOCKS\n        )));\n    }\n    let metadata = async_commitment_metadata(commitment.precompile_address, \"async commitment\")\n        .map_err(BlockVerificationError::InvalidAsyncCommitment)?;\n    if commitment.executor_address.is_zero() {\n        return Err(BlockVerificationError::InvalidAsyncCommitment(\n            \"executor address cannot be zero\".to_string(),\n        ));\n    }",
+      "symbols": [
+        "validate_commitment_structure",
+        "async_commitment_metadata"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "After structural checks, the verifier validates and decodes the precompile payload and rejects executor or TTL drift between the payload and commitment fields.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "validate_async_payload(\n    commitment.precompile_address,\n    commitment.precompile_input.as_ref(),\n    MAX_SHORT_ASYNC_TTL_BLOCKS,\n)\n.map_err(|err| {\n    BlockVerificationError::InvalidAsyncCommitment(format!(\n        \"invalid async commitment precompile input for {} ({}): {err}\",\n        commitment.precompile_address,\n        metadata.capability_tag.name()\n    ))\n})?;\n...\nif decoded.executor != commitment.executor_address {\n    return Err(BlockVerificationError::InvalidAsyncCommitment(format!(\n        \"async request executor {} does not match commitment executor {}\",\n        decoded.executor, commitment.executor_address\n    )));\n}\nif decoded.ttl != commitment.ttl {\n    return Err(BlockVerificationError::InvalidAsyncCommitment(format!(\n        \"async request TTL {} does not match commitment TTL {}\",\n        decoded.ttl, commitment.ttl\n    )));\n}",
+      "symbols": [
+        "validate_async_payload",
+        "try_decode_precompile_data"
+      ]
+    }
+  ],
+  "equivalence_argument": "The verifier accepts commitments only after checking TTL in 1..=MAX_SHORT_ASYNC_TTL_BLOCKS, resolving supported async precompile metadata, rejecting zero executor addresses, validating the precompile payload, and confirming decoded executor/TTL match the commitment fields. Each invalid path returns an error instead of panicking.",
+  "evidence_files": [
+    "crates/ritual-async-commitment-validator/src/lib.rs"
+  ],
+  "invariant_id": "cur-3028833859-async-commitments-obey-structural-validity-constraints",
+  "invariant_index": 428,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The v2 supported set excludes unported fee families such as audio/video/FHE from commitment acceptance.",
+  "rationale": "The commit replaces TODO tests with concrete unit and property tests for TTL lower/upper bounds, valid precompile addresses, zero executor rejection, valid commitment acceptance, and no panics on arbitrary commitment structure inputs. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "01c7f205cde653a81f671efa3795c01def3648d8"
+  ],
+  "statement": "Async commitment validation must accept commitments only when ttl is in the inclusive range [1, MAX_TTL_BLOCKS], the precompile address is one of the supported async precompiles, and executor_address is nonzero; invalid TTL, invalid precompile address, or zero executor address must be rejected without panicking.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Run validate_commitment_structure against commitments with ttl 0, ttl MAX_TTL_BLOCKS + 1, an unsupported precompile address, and Address::ZERO executor and assert the expected errors; run valid combinations across all supported precompiles and assert Ok with no panics under fuzzed inputs."
+  ],
+  "summary": "Async commitment structural constraints are enforced inline.",
+  "test_or_falsification_candidate": "Run validate_commitment_structure against commitments with ttl 0, ttl MAX_TTL_BLOCKS + 1, an unsupported precompile address, and Address::ZERO executor and assert the expected errors; run valid combinations across all supported precompiles and assert Ok with no panics under fuzzed inputs.",
+  "title": "Async commitments obey structural validity constraints",
+  "total_invariants": 1954
+}

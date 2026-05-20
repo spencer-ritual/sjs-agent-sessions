@@ -1,0 +1,32 @@
+{
+  "record_type": "file",
+  "file_index": 170,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/net/network/src/swarm.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "network",
+    "swarm"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The swarm divergence is semicolon-only rustfmt noise in connection handling and stream polling returns; no swarm behavior changed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 170: M\tcrates/net/network/src/swarm.rs.",
+    "The isolated patch only adds semicolons to None/Some/Poll returns and continue statements in incoming connection, state action, session event, connection event, and pending paths.",
+    "No shutdown rejection, incoming capacity handling, outbound dialing, discovered node handling, session event handling, listener event handling, or stream polling behavior changed."
+  ]
+}

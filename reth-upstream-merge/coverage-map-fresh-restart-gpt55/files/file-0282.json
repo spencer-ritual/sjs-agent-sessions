@@ -1,0 +1,209 @@
+{
+  "record_type": "file",
+  "file_index": 282,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-async-fees/src/registry.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "async-fees",
+    "model-registry",
+    "storage-reader",
+    "per-block-cache",
+    "multimodal-pricing"
+  ],
+  "atoms_total": 4,
+  "atoms": [
+    {
+      "record_id": "file-0282-atom-0001",
+      "file_index": 282,
+      "atom_index": 1,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-async-fees/src/registry.rs",
+      "source_hunk_hint": "@@ -0,0 +1,1132 @@; ModelInfo and read_model_from_db storage layout",
+      "source_kind": "model_registry_storage_reader",
+      "source_snippet": "pub struct ModelInfo {\n    pub params_b: f64,\n    pub theta: f64,\n    pub max_seq_len: Option<u64>,\n    pub image_fee_wei_per_pixel: u128,\n    pub image_min_fee_wei: u128,\n    pub image_steps_baseline: u32,\n    pub audio_fee_wei_per_second: u128,\n    pub audio_min_fee_wei: u128,\n    pub video_base_fee_wei: u128,\n    pub video_fee_wei_per_pixel_second: u128,\n    pub video_steps_baseline: u32,\n    pub video_fps_baseline: u32,\n}\n\npub fn read_model_from_db<DB: revm::Database>(\n    db: &mut DB,\n    contract: Address,\n    model_name: &str,\n) -> Result<Option<ModelInfo>, String>",
+      "semantic_claim": "The old divergence adds the canonical ModelRegistry storage reader for async fee pricing. It requires the registry account to exist, computes the model mapping base slot for mapping slot 0, reads slots 0-12 for text/image/audio/video pricing fields plus the exists flag, returns Ok(None) when exists is false, and treats database/account/storage access failures as explicit errors rather than recoverable missing-model cases.",
+      "high_risk": false,
+      "risk_tags": [
+        "consensus-critical-registry-read",
+        "model-registry-storage-layout",
+        "async-fee-pricing-input"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/registry.rs",
+          "symbols": [
+            "ModelInfo",
+            "read_model_from_db",
+            "compute_string_mapping_slot"
+          ],
+          "evidence": "The destination `registry.rs` is byte-for-byte identical to the source-added file extracted from diff lines 40065-41202, ending before `scheduled.rs` at line 41203. Extracted source and destination each contain 1132 lines with SHA-256 `49f48848bbf8aa6990b3e5bd2408a1bb9f3a857c0a6b88a34242e7552a6c841f`."
+        }
+      ],
+      "equivalence_argument": "Because the full file content is identical, the registry account check, exact slot sequence, exists=false behavior, storage error strings, and returned ModelInfo field mapping are preserved exactly.",
+      "test_strategy": "textual_exact_match_with_embedded_unit_tests_preserved",
+      "negative_test_candidate": "A missing ModelRegistry account should return an error containing `ModelRegistry contract not found` and `Transaction will be skipped`; treating it as Ok(None) would hide a registry deployment failure.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers only the registry storage layout and direct database reader behavior."
+    },
+    {
+      "record_id": "file-0282-atom-0002",
+      "file_index": 282,
+      "atom_index": 2,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-async-fees/src/registry.rs",
+      "source_hunk_hint": "@@ -0,0 +1,1132 @@; value conversion and registry configuration validation",
+      "source_kind": "model_registry_value_conversion_and_validation",
+      "source_snippet": "let params_b = u256_to_f64_scaled(params_b_u256)\n    .map_err(|e| format!(\"Failed to convert params_b for model '{}': {}\", model_name, e))?;\nlet theta = u256_to_f64_scaled(theta_u256)\n    .map_err(|e| format!(\"Failed to convert theta for model '{}': {}\", model_name, e))?;\n\nif params_b <= 0.0 { return Err(format!(\"Invalid model configuration for '{}': params_b must be > 0 (got {}). \\\n             This indicates a governance error in the on-chain registry. Transaction will be skipped.\", model_name, params_b)); }\nif theta <= 0.0 { return Err(format!(\"Invalid model configuration for '{}': theta must be > 0 (got {}). \\\n             This indicates a governance error in the on-chain registry. Transaction will be skipped.\", model_name, theta)); }\n\npub fn u256_to_f64_scaled(value: U256) -> Result<f64, String>",
+      "semantic_claim": "The old divergence enforces deterministic conversion and validation for registry values: params_b/theta are decoded from 1e18-scaled uint256 with an upper precision guard, max_seq_len is optional when zero, integer modality fields must fit their destination widths, text pricing requires params_b and theta to be positive, and partially configured image/audio/video pricing is rejected as a governance error rather than silently defaulted.",
+      "high_risk": false,
+      "risk_tags": [
+        "deterministic-numeric-conversion",
+        "registry-governance-validation",
+        "multimodal-pricing-validation"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/registry.rs",
+          "symbols": [
+            "read_model_from_db",
+            "u256_to_f64_scaled",
+            "u256_to_u128",
+            "u256_to_u64",
+            "u256_to_u32",
+            "tests::test_invalid_model_config_params_b_zero",
+            "tests::test_invalid_model_config_theta_zero",
+            "tests::test_image_pricing_partial_config_rejected",
+            "tests::test_audio_pricing_partial_config_rejected",
+            "tests::test_video_pricing_partial_config_rejected"
+          ],
+          "evidence": "The validation and conversion code is included in the exact-matched destination file. Source and destination line counts are both 1132 and SHA-256 is `49f48848bbf8aa6990b3e5bd2408a1bb9f3a857c0a6b88a34242e7552a6c841f`."
+        }
+      ],
+      "equivalence_argument": "The destination preserves the same numeric width checks, f64 precision limit, 1e18 scale, positive text-pricing validation, multimodal all-or-none validation rules, error messages, and unit-test coverage because the full file is an exact text match.",
+      "test_strategy": "textual_exact_match_with_embedded_unit_tests_preserved",
+      "negative_test_candidate": "A model with non-zero image min fee but zero image fee per pixel should be rejected with `Invalid image pricing`; accepting partial modality pricing would produce inconsistent fee estimates.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom includes the validation rules used by LLM, image, audio, and video async fee paths."
+    },
+    {
+      "record_id": "file-0282-atom-0003",
+      "file_index": 282,
+      "atom_index": 3,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-async-fees/src/registry.rs",
+      "source_hunk_hint": "@@ -0,0 +1,1132 @@; ModelCache and read_model_from_db_cached",
+      "source_kind": "per_block_model_cache",
+      "source_snippet": "pub type ModelCache = HashMap<String, Option<ModelInfo>>;\n\npub fn read_model_from_db_cached<DB: revm::Database>(\n    db: &mut DB,\n    contract: Address,\n    model_name: &str,\n    cache: &mut ModelCache,\n) -> Result<Option<ModelInfo>, String>\nwhere\n    DB::Error: std::fmt::Display,\n{\n    if let Some(cached_result) = cache.get(model_name) {\n        return Ok(cached_result.clone());\n    }\n    let result = read_model_from_db(db, contract, model_name)?;\n    cache.insert(model_name.to_string(), result.clone());\n    Ok(result)\n}",
+      "semantic_claim": "The old divergence adds a required per-block model cache keyed by model name. Cache hits return the previously stored Some(ModelInfo) or None without rereading storage, cache misses read through the canonical registry reader, and both successful model lookups and not-found results are cached so repeated transactions in one block observe consistent model metadata for fee calculation.",
+      "high_risk": false,
+      "risk_tags": [
+        "per-block-cache",
+        "model-registry-consistency",
+        "storage-read-deduplication"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/registry.rs",
+          "symbols": [
+            "ModelCache",
+            "read_model_from_db_cached",
+            "tests::test_read_model_from_db_cached"
+          ],
+          "evidence": "The cache alias, cache-hit branch, miss-read branch, insertion of cloned Some/None results, and cache unit test are present in the exact-matched destination file with SHA-256 `49f48848bbf8aa6990b3e5bd2408a1bb9f3a857c0a6b88a34242e7552a6c841f`."
+        }
+      ],
+      "equivalence_argument": "The destination keeps the cache semantics byte-for-byte, including caching negative lookups and returning cloned cached results, so callers in `llm.rs` and the crate root receive identical per-block registry behavior.",
+      "test_strategy": "textual_exact_match_with_embedded_unit_tests_preserved",
+      "negative_test_candidate": "A first lookup for `gpt-4` should populate the cache and a second lookup should leave cache length unchanged at one; failing to cache would re-read mutable registry state within a block.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Relevant destination usage was observed in `llm.rs` and crate-root async fee helpers; no behavior outside `registry.rs` was audited as a separate queue item."
+    },
+    {
+      "record_id": "file-0282-atom-0004",
+      "file_index": 282,
+      "atom_index": 4,
+      "atoms_total": 4,
+      "source_path": "crates/ritual-async-fees/src/registry.rs",
+      "source_hunk_hint": "@@ -0,0 +1,1132 @@; mapping-slot computation, fixed-point conversion tests, and registry unit coverage",
+      "source_kind": "registry_slot_and_test_coverage",
+      "source_snippet": "pub fn compute_string_mapping_slot(key: &str, mapping_slot: u64) -> U256 {\n    let mut slot_bytes = [0u8; 32];\n    slot_bytes[24..32].copy_from_slice(&mapping_slot.to_be_bytes());\n\n    let mut data = Vec::with_capacity(key.len() + 32);\n    data.extend_from_slice(key.as_bytes());\n    data.extend_from_slice(&slot_bytes);\n\n    U256::from_be_slice(keccak256(&data).as_slice())\n}\n\n#[cfg(test)]\nmod tests",
+      "semantic_claim": "The old divergence fixes the Solidity string-key mapping slot computation as `keccak256(raw key bytes || 32-byte big-endian slot)` and preserves targeted unit tests for registry absence, valid and missing models, scaled fixed-point conversion, overflow rejection, slot compatibility with the documented `cast index string` value, cache population, and text-only versus fully configured multimodal models.",
+      "high_risk": false,
+      "risk_tags": [
+        "solidity-storage-compatibility",
+        "fixed-point-conversion",
+        "registry-unit-coverage"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/registry.rs",
+          "symbols": [
+            "compute_string_mapping_slot",
+            "tests::test_compute_string_mapping_slot",
+            "tests::test_u256_to_f64_scaled",
+            "tests::test_u256_to_f64_scaled_overflow",
+            "tests::test_model_exists_valid_config",
+            "tests::test_model_not_found",
+            "tests::test_text_only_model_no_multimodal_pricing_valid",
+            "tests::test_fully_configured_image_model_valid"
+          ],
+          "evidence": "The slot helper and embedded tests are preserved by the same exact file match: diff lines 40065-41202 and destination `registry.rs` each contain 1132 lines with SHA-256 `49f48848bbf8aa6990b3e5bd2408a1bb9f3a857c0a6b88a34242e7552a6c841f`."
+        }
+      ],
+      "equivalence_argument": "Because the helper and tests are byte-for-byte identical, the destination preserves Solidity-compatible registry slot addressing, fixed-point conversion bounds, and the regression tests documenting valid, invalid, absent, cached, and multimodal registry states.",
+      "test_strategy": "textual_exact_match_with_embedded_unit_tests_preserved",
+      "negative_test_candidate": "The slot for `moonshotai/kimi-k2-thinking` at mapping slot 0 should equal `0xd2d018006e89a58c437144772e1cd45c8a1d1ae46a5b02f9d1e19102f0600cdf`; ABI-encoding the string differently would read the wrong model storage.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "The embedded unit tests were preserved by exact match but not executed for this audit record."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The async model registry helper module is exact-port preserved across registry storage reads, deterministic value conversion and validation, per-block model caching, Solidity string mapping slot computation, and embedded registry/cache/multimodal unit coverage.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 282: A\tcrates/ritual-async-fees/src/registry.rs.",
+    "Source diff for file-0282 starts at line 40065 and ends before the `crates/ritual-async-fees/src/scheduled.rs` diff header at line 41203.",
+    "Automated comparison found 1132 extracted source-added lines and 1132 destination lines with exact match true and identical SHA-256 `49f48848bbf8aa6990b3e5bd2408a1bb9f3a857c0a6b88a34242e7552a6c841f`.",
+    "No review queue entry was required because every audited registry helper behavior in this file is byte-for-byte preserved."
+  ]
+}

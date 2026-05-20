@@ -1,0 +1,141 @@
+{
+  "record_type": "file",
+  "file_index": 106,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/evm/src/async_context_tests.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "structural_equivalent",
+  "tags": [
+    "high-risk",
+    "non-exact",
+    "structural_equivalent"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0106-atom-0001",
+      "file_index": 106,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/evm/src/async_context_tests.rs",
+      "source_hunk_hint": "@@ -0,0 +1,99 @@",
+      "source_kind": "other",
+      "source_snippet": "//! Unit tests for async context functionality\n//!\n//! These tests verify that async context works correctly with the new per-EVM instance\n//! architecture.\n\n#[cfg(test)]",
+      "semantic_claim": "The downstream diff for crates/evm/src/async_context_tests.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "execution"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "Async context construction",
+            "build_short_async_commitment_transaction"
+          ],
+          "snippet": "payload creates async commitments from EVM-detected async calls and parent context",
+          "evidence": "The active async execution path moved from old EVM helper APIs into payload/revm async context integration."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-revm-internal",
+          "path": "crates/context/interface/src/async_context.rs",
+          "symbols": [
+            "AsyncContextTr",
+            "ExecutionMode"
+          ],
+          "snippet": "async context state and SPC call tracking live in revm context dependency",
+          "evidence": "Async-context behavior is preserved in the dependency graph and exercised through async-context feature checks."
+        }
+      ],
+      "equivalence_argument": "Async context behavior is preserved through dependency async-context plumbing and payload integration.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Exercise the crates/evm/src/async_context_tests.rs behavior boundary in the port and verify the downstream path-specific behavior still exists; absence or changed rejection/ordering would falsify the mapping.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to async-context feature propagation and payload integration."
+    },
+    {
+      "record_id": "file-0106-atom-0002",
+      "file_index": 106,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/evm/src/async_context_tests.rs",
+      "source_hunk_hint": "@@ -0,0 +1,99 @@",
+      "source_kind": "state_transition",
+      "source_snippet": "    use alloy_primitives::{Address, Bytes};\n    use revm_context::{AsyncCommitmentutionContext, ExecutionMode};\n\n    #[test]\n    fn test_async_context_default_values() {\n        // Test that a fresh async context has the expected default values\n        let context = AsyncCommitmentutionContext::default();\n\n        assert_eq!(context.execution_mode, ExecutionMode::Building);\n        assert_eq!(context.spc_call_index, 0);\n        assert!(context.execution_results.is_empty());\n        assert!(context.pending_spc_calls.is_empty());\n        assert!(context.async_metadata.is_none());\n    }\n\n    #[test]\n    fn test_async_context_execution_mode_setting() {\n        // Test that execution mode can be \n---\n        assert!(context.async_metadata.is_none());\n    }\n\n    #[test]\n    fn test_async_context_execution_mode_setting() {\n        // Test that execution mode can be set correctly\n        let mut context = AsyncCommitmentutionContext::default();\n\n        // Default should be Building\n        assert_eq!(context.execution_mode, ExecutionMode::Building);\n\n        // Set to Verification\n        context.execution_mode = ExecutionMode::Verification;\n        assert_eq!(context.execution_mode, ExecutionMode::Verification);\n\n        // Set back to Building\n        context.execution_mode = ExecutionMode::Building;\n        assert_eq!(context.execution_mode, ExecutionMode::Building);\n    }\n\n    #[test]\n\n---\n        assert_eq!(context.execution_mode, ExecutionMode::Building);\n    }\n\n    #[test]\n    fn test_async_context_execution_results() {\n        // Test that execution results can be stored and retrieved\n        let mut context = AsyncCommitmentutionContext::default();\n\n        // Add some results\n        let address = Address::ZERO;\n        let result = Bytes::from(vec![0x42, 0x43, 0x44]);\n        context.execution_results.insert(address, result.clone());\n\n        // Verify results are stored\n        assert!(!context.execution_results.is_empty());\n        assert_eq!(context.execution_results.get(&address).unwrap(), &result);\n    }\n\n    #[test]\n    fn test_async_context_spc_call_index() {\n   ",
+      "semantic_claim": "Async EVM context preserves default building mode, execution-mode switching, SPC call index progression, pending SPC calls, and execution-result storage.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "Async context construction",
+            "build_short_async_commitment_transaction"
+          ],
+          "snippet": "payload creates async commitments from EVM-detected async calls and parent context",
+          "evidence": "The active async execution path moved from old EVM helper APIs into payload/revm async context integration."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-revm-internal",
+          "path": "crates/context/interface/src/async_context.rs",
+          "symbols": [
+            "AsyncContextTr",
+            "ExecutionMode"
+          ],
+          "snippet": "async context state and SPC call tracking live in revm context dependency",
+          "evidence": "Async-context behavior is preserved in the dependency graph and exercised through async-context feature checks."
+        }
+      ],
+      "equivalence_argument": "Async context behavior is preserved through dependency async-context plumbing and payload integration.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_async_context_default_values, test_async_context_execution_mode_setting, test_async_context_execution_results, test_async_context_spc_call_index, test_async_context_pending_spc_calls.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to async-context feature propagation and payload integration.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_async_context_default_values",
+        "test_async_context_execution_mode_setting",
+        "test_async_context_execution_results",
+        "test_async_context_spc_call_index",
+        "test_async_context_pending_spc_calls"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0106-atom-0001",
+        "test-file-0106-atom-0002",
+        "test-file-0106-atom-0003",
+        "test-file-0106-atom-0004",
+        "test-file-0106-atom-0005"
+      ]
+    }
+  ],
+  "high_risk_atoms_total": 2,
+  "non_exact_atoms_total": 2,
+  "adversarial_reviews": [],
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "No same-path or uniquely named destination evidence was found in the configured search scope. Curated test-atom insertion appended 1 grouped behavior atom(s) from coverage-map/test-atom-audit; raw helper/no-assert/default-only cases were not canonicalized."
+}

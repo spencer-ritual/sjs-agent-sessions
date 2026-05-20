@@ -1,0 +1,128 @@
+{
+  "cluster_key": "executor delivery:autonomous-agent-precompile-80075c5c",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The canonical 0x0820 precompile is registered as a two-phase async/SPC precompile in the port metadata.",
+      "path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const PERSISTENT_AGENT_PRECOMPILE: Address =\n    address!(\"0x0000000000000000000000000000000000000820\");\n...\nsettlement: AsyncPrecompileSettlement::TwoPhase,",
+      "symbols": [
+        "PERSISTENT_AGENT_PRECOMPILE",
+        "ALL_ASYNC_PRECOMPILE_METADATA",
+        "ALL_TWO_PHASE_PRECOMPILE_ADDRESSES"
+      ]
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "c7845a2265d1245116728116e7418f636ef3b8af",
+      "evidence": "The dependency precompile returns the simulated input and actual output pair for 0x0820 async replay.",
+      "path": "crates/precompile/src/persistent_agent.rs",
+      "repo": "/home/ritual/repos/ritual-revm-internal",
+      "snippet": "let combined_output = abi_encode_bytes_pair(&spc_input, &spc_output);\n...\n\"Returning (input@simulation, output) pair\"",
+      "symbols": [
+        "persistent_agent_run_async_aware",
+        "abi_encode_bytes_pair"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Wallet validation includes Phase 2 callback gas/value cost decoded from the 0x0820 agent request delivery fields.",
+      "path": "crates/ritual-async-fees/src/wallet.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "else if precompile_address == SOVEREIGN_AGENT_PRECOMPILE ||\n    precompile_address == PERSISTENT_AGENT_PRECOMPILE\n{\n    Some(6)\n}",
+      "symbols": [
+        "verify_wallet_for_commitment",
+        "delivery_callback_cost",
+        "PERSISTENT_AGENT_PRECOMPILE"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Payload delivery settlement supports 0x0820 as two-phase and decodes its delivery config from the agent ABI field offset.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "LONG_RUNNING_HTTP_PRECOMPILE |\n    ZK_TWO_PHASE_PRECOMPILE |\n    SOVEREIGN_AGENT_PRECOMPILE |\n    PERSISTENT_AGENT_PRECOMPILE",
+      "symbols": [
+        "is_supported_two_phase_precompile",
+        "decode_delivery_config",
+        "prepare_delivery_settlement_transaction"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Phase 2 settlement fees for 0x0820 are calculated from the delivery result length without falling back to long-running HTTP block polling.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "else if precompile_address == PERSISTENT_AGENT_PRECOMPILE {\n    let executor_fee =\n        U256::from(PERSISTENT_AGENT_SPAWN_FEE_WEI) + http_executor_fee(0, delivery_result_len);\n    Ok(AsyncFees::new(executor_fee, U256::ZERO, U256::ZERO))\n}",
+      "symbols": [
+        "calculate_async_fees_phase2",
+        "PERSISTENT_AGENT_PRECOMPILE"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped under current naming: 0x0820 is PERSISTENT_AGENT_PRECOMPILE locally, but it is registered as a two-phase async precompile, returns the required simulation/output pair in revm, decodes callback fields from agent ABI offset 6 in wallet and payload paths, and prices Phase 2 from delivery result length.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-async-fees/src/wallet.rs",
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/ritual-precompile-codecs/src/long_running.rs",
+    "crates/transaction-pool/src/pool/async_pool.rs"
+  ],
+  "invariant_id": "cur-0dc5505d45-autonomous-agent-precompile-uses-phase-async-delivery",
+  "invariant_index": 167,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+    "/home/ritual/repos/ritual-revm-internal"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-precompile-addresses/src/lib.rs",
+      "crates/precompile/src/persistent_agent.rs",
+      "crates/ritual-async-fees/src/wallet.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs"
+    ],
+    "checked_queries": [
+      "PERSISTENT_AGENT_PRECOMPILE|0x0820|TwoPhase|abi_encode_bytes_pair|delivery_callback_cost|calculate_async_fees_phase2"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-revm-internal"
+    ],
+    "checked_symbols": [
+      "PERSISTENT_AGENT_PRECOMPILE",
+      "persistent_agent_run_async_aware",
+      "delivery_callback_cost",
+      "decode_delivery_config",
+      "calculate_async_fees_phase2",
+      "phase2_deadline_offset"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped; the local name is Persistent Agent rather than Autonomous Agent.",
+  "rationale": "The primary merge diff adds AUTONOMOUS_AGENT_PRECOMPILE handling in payload delivery settlement, wallet Phase 2 callback-cost calculation, verifier Phase 2 fee validation, delivery config decoding, and long-running async classification. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: This is a merge commit with conflict-resolution hunks; some autonomous-agent behavior may have been introduced on the merged branch before this merge, so this commit may be integrating rather than originally defining the behavior.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "0f6c83a0fb5814d99934f318f45451e6d5bac1e3"
+  ],
+  "statement": "Precompile address 0x0000000000000000000000000000000000000820 should be treated as an async two-phase Autonomous Agent precompile: async output unwrapping should expect the (simmedInput, actualOutput) pair, wallet validation should include Phase 2 callback costs decoded from AutonomousAgentRequest, payload delivery settlement should use Autonomous Agent delivery config decoding, and Phase 2 fees should use autonomous-agent fee calculation from delivery result length.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create an Autonomous Agent async job with a delivery config and delivery result, then assert wallet validation includes callback gas/value costs, payload builder decodes the autonomous-agent delivery config and calculates autonomous-agent Phase 2 fees, verifier accepts the same fee calculation, and AsyncTxMeta::is_long_running returns true for 0x0820."
+  ],
+  "summary": "The 0x0820 agent precompile is implemented as a two-phase persistent-agent async delivery path.",
+  "test_or_falsification_candidate": "Create a 0x0820 two-phase job and assert revm returns (simmedInput, actualOutput), wallet/payload decode callback fields at 6-11, and builder/verifier agree on persistent-agent Phase 2 fees from delivery result length.",
+  "title": "Autonomous Agent precompile uses two-phase async delivery",
+  "total_invariants": 1954
+}

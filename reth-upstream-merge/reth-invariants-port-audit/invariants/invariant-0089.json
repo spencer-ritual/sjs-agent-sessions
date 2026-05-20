@@ -1,0 +1,96 @@
+{
+  "cluster_key": "scheduler:payload-building:part-01",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Scheduled async commitment construction passes the scheduled caller as original async sender.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "sender: scheduled_sender ... build_short_async_commitment_transaction(&scheduled_tx, scheduled_sender, async_call, ...)",
+      "symbols": [
+        "PayloadCandidate::Scheduled",
+        "build_short_async_commitment_transaction"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Settlement uses TxScheduled.caller for scheduled originals and writes commitment_tx/settlement_tx metadata into Scheduled payloads.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "OriginalTransaction::Scheduled(tx) => tx.tx().caller ... TransactionSigned::Scheduled(signed) => { tx.commitment_tx = Some(commitment_hash); tx.settlement_tx = Some(settlement_hash); tx.spc_calls = Some(spc_calls.clone()); }",
+      "symbols": [
+        "original_user_address",
+        "annotate_fulfilled_original_transaction",
+        "TransactionSigned::Scheduled"
+      ]
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "169074f08721705fbb99cc9531ea798b61e9f3cc",
+      "evidence": "Scheduled payload carries caller plus commitment_tx/settlement_tx/spc_calls fields.",
+      "path": "crates/consensus/src/transaction/scheduled.rs",
+      "repo": "/home/ritual/repos/ritual-alloy-internal",
+      "snippet": "pub caller: Address; pub commitment_tx: Option<B256>; pub settlement_tx: Option<B256>; pub spc_calls: Option<Vec<SpcCall>>",
+      "symbols": [
+        "TxScheduled"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in port/dependency.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/scheduling/src/transaction.rs",
+    "crates/storage/codecs/src/alloy/transaction/scheduled.rs"
+  ],
+  "invariant_id": "cur-0a33a2d834-scheduled-async-metadata-settlement-scheduled-caller-context",
+  "invariant_index": 89,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+    "/home/ritual/repos/ritual-alloy-internal"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/consensus/src/transaction/scheduled.rs"
+    ],
+    "checked_queries": [
+      "scheduled_sender|original_user_address|OriginalTransaction::Scheduled|commitment_tx|settlement_tx|spc_calls"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-alloy-internal"
+    ],
+    "checked_symbols": [
+      "scheduled_sender",
+      "original_user_address",
+      "annotate_fulfilled_original_transaction",
+      "TxScheduled"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in port.",
+  "rationale": "The settlement and metadata candidates preserve caller/metadata fields needed by downstream async accounting.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "fb6b3c50385b8d535aa04a4d4814f7a5664f9a0c",
+    "e289ac646dee992226fe617494bb5df2c8d54906"
+  ],
+  "statement": "When payload construction handles scheduled async work, settlement calldata must charge the scheduled transaction's original caller rather than the transaction signer, and scheduled transaction payloads must carry commitment_tx and settlement_tx metadata when those async pool and settlement values are present.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Scheduled async tx with signer SYSTEM_SENDER and caller user should charge caller.",
+    "Fulfilled scheduled async should carry commitment_tx and settlement_tx."
+  ],
+  "summary": "Scheduled async caller context and metadata propagation are mapped.",
+  "test_or_falsification_candidate": "Scheduled async settlement fixture with different signer/caller should charge caller and preserve metadata fields.",
+  "title": "Scheduled async metadata and settlement use scheduled caller context",
+  "total_invariants": 1954
+}

@@ -1,0 +1,54 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "85b41ec83e0009175c328eb0b9a07c92c3008129",
+      "evidence": "Encrypted-output fee computation falls back to the plaintext envelope when encrypted pricing decode fails, then maps plaintext has_error responses to the constant LLM error fee.",
+      "path": "crates/ritual-async-fees/src/llm.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if is_encrypted_output {\n    match try_decode_encrypted(data) {\n        Ok(metrics) => return Ok(metrics),\n        Err(err) => { info!(..., \"Encrypted LLM pricing decode failed; trying plaintext error/metrics envelope\"); }\n    }\n}\nlet has_error = read_abi_bool(data, 0)?;\nif has_error { return Err(format!(\"{LLM_HAS_ERROR_PREFIX}: {error_message}\")); }\n...\nErr(err) if err.starts_with(LLM_HAS_ERROR_PREFIX) => return Ok(U256::from(LLM_ERROR_EXECUTOR_FEE_WEI));",
+      "symbols": [
+        "decode_llm_response",
+        "try_decode_encrypted",
+        "compute_llm_executor_fee"
+      ]
+    }
+  ],
+  "equivalence_argument": "For encrypted-output jobs, plaintext has_error responses are not silently dropped: after encrypted pricing decode fails, the same plaintext has_error prefix path reaches compute_llm_executor_fee and returns the constant fee.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/llm.rs"
+  ],
+  "invariant_id": "cur-5e7e02d1b1-plaintext-errors-settle-constant",
+  "invariant_index": 534,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Malformed plaintext non-error responses still fail; only explicit has_error responses use the constant fee.",
+  "rationale": "The existing has_error handling returns a prefixed error that compute_llm_executor_fee maps to the constant LLM error fee; this commit makes that path reachable for plaintext error responses returned during encrypted-output jobs. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "ac93261b9ba6ed9020a2039f24f875d90cf706dc"
+  ],
+  "statement": "If the fallback non-encrypted LLM response has has_error=true, fee computation treats it as an executor error and applies LLM_ERROR_EXECUTOR_FEE_WEI so the transaction can settle on-chain instead of being silently dropped.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Pass compute_llm_executor_fee an encrypted-output job result containing a plaintext non-encrypted response with has_error=true and an error message; assert the returned fee is LLM_ERROR_EXECUTOR_FEE_WEI and fallback_reason contains has_error."
+  ],
+  "summary": "Plaintext fallback LLM errors settle with the constant fee.",
+  "test_or_falsification_candidate": "Pass compute_llm_executor_fee an encrypted-output result containing a plaintext has_error=true envelope and assert it returns LLM_ERROR_EXECUTOR_FEE_WEI.",
+  "title": "Plaintext LLM errors settle with constant fee",
+  "total_invariants": 1954
+}

@@ -1,0 +1,34 @@
+{
+  "record_type": "file",
+  "file_index": 109,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/evm/src/metrics.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "metrics",
+    "test",
+    "reviewed"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The metrics.rs divergence is deterministic rustfmt noise in a test condition; no metric declaration, label, recorder, histogram, counter, gauge, or assertion behavior changed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 109: M\tcrates/evm/src/metrics.rs.",
+    "The isolated patch only reformats an if condition that checks sync.execution.accounts_loaded_histogram, sync.execution.storage_slots_loaded_histogram, and sync.execution.bytecodes_loaded_histogram.",
+    "Metric names, DebugValue::Histogram handling, and the surrounding assertion logic are unchanged.",
+    "No behavior-bearing metrics or async observability atoms were identified."
+  ]
+}

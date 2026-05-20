@@ -1,0 +1,68 @@
+{
+  "cluster_key": "scheduler:payload-building:part-03",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-312da4fe92-async-simulation-caps-protect-regular-candidates",
+  "invariant_index": 63,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs"
+    ],
+    "checked_queries": [
+      "allocate_async_sim_slots|scheduled_cap|regular_cap|AsyncSims",
+      "cap-above-total|lane-starvation|zero cap|combined total cap"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "allocate_async_sim_slots",
+      "AsyncSims",
+      "scheduled_cap",
+      "regular_cap",
+      "combined total cap",
+      "once-per-process warnings",
+      "cap observations"
+    ],
+    "missing_behavior": "Missing phase-1 async simulation allocation policy: no hard total cap, soft scheduled/regular caps, regular-priority overcommit, overflow allocation, zero-cap lane disablement, warnings, or pre-cap cap pressure diagnostics.",
+    "related_but_insufficient_code": [
+      "The current payload builder uses sequential async inspection/execution and has no phase-1 async simulation slot allocator, cap observations, or lane cap env parsing."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The final per-category cap merge and its test/doc candidates converge on a current allocator policy: hard total cap, soft lane caps, regular priority under overcommit, leftover overflow, zero-cap disablement, once-per-process warnings, and pre-cap observation.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "39eda808ce436adadd9dd445acef9c7e0e7753a2",
+    "230b5c21c0ce3566a07228bcc8974e7703d7b382",
+    "74029b7b439531b9cbc1831b17616048c44b570e",
+    "78915edb01bb31bc9a37ec2da4d3ece317e2592b",
+    "78915edb01bb31bc9a37ec2da4d3ece317e2592b",
+    "8af5317430a438f8ad136cf28348a882c613daac"
+  ],
+  "statement": "Phase-1 async simulation allocation respects a hard combined total cap, applies soft scheduled and regular category caps, gives regular candidates priority when category allocations exceed the total cap, lets unused budget overflow first to regular and then scheduled unmet demand, treats a zero category cap as disabling that lane, emits once-per-process warnings for lane-starvation or cap-above-total configurations, and observes pre-cap candidate counts for cap pressure diagnostics while simulating only the truncated set.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Call allocate_async_sim_slots with scheduled=100, regular=51, total=50, scheduled_cap=32, regular_cap=32 and assert regular=32, scheduled=18, and total is not exceeded.",
+    "Test single-lane demand, both-under-cap, caps above total, and zero scheduled/regular caps; assert overflow and disable semantics match the invariant.",
+    "Set starvation and per-lane-cap-above-total environment variables, call collect_async_transactions twice, and assert each relevant warning is emitted once."
+  ],
+  "summary": "Async simulation caps protecting regular candidates are absent.",
+  "test_or_falsification_candidate": "Call allocate_async_sim_slots-style cases from the invariant; current port has no allocator symbol or equivalent behavior to test.",
+  "title": "Async simulation caps protect regular candidates",
+  "total_invariants": 1954
+}

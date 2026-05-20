@@ -1,0 +1,91 @@
+{
+  "cluster_key": "scheduler:async",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Scheduled async parent context uses checked frequency*index, checked start+offset, and checked -1 for zero-based execution index semantics.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let offset = scheduled.frequency.checked_mul(scheduled.index).ok_or_else(...)?;\nlet expected_block = scheduled.initial_block.checked_add(offset).ok_or_else(...)?;\nlet context_number = expected_block.checked_sub(1).ok_or_else(...)?;",
+      "symbols": [
+        "async_commitment_parent_context"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Async commitment compact codec stores origin_tx, origin_tx_rlp, ttl, and input metadata.",
+      "path": "crates/storage/codecs/src/alloy/transaction/async_commitment.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "origin_tx: self.origin_tx, precompile_input: self.precompile_input.to_vec(), ttl: self.ttl, ... origin_tx_rlp: self.origin_tx_rlp.to_vec()",
+      "symbols": [
+        "AlloyTxAsyncCommitment"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Scheduled compact codec preserves origin_tx, initial_block, frequency, ttl, and caller metadata.",
+      "path": "crates/storage/codecs/src/alloy/transaction/scheduled.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "origin_tx: self.origin_tx, call_id: self.call_id, index: self.index, initial_block: self.initial_block, frequency: self.frequency, ttl: self.ttl, caller: self.caller",
+      "symbols": [
+        "Compact for AlloyTxScheduled"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port: scheduled async context uses checked zero-based block math and metadata codecs expose origin/ttl fields.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/storage/codecs/src/alloy/transaction/async_commitment.rs",
+    "crates/storage/codecs/src/alloy/transaction/scheduled.rs"
+  ],
+  "invariant_id": "cur-745549ae7d-scheduled-async-simulation-uses-zero-based-checked-block",
+  "invariant_index": 127,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/storage/codecs/src/alloy/transaction/async_commitment.rs",
+      "crates/storage/codecs/src/alloy/transaction/scheduled.rs"
+    ],
+    "checked_queries": [
+      "checked_mul|checked_add|checked_sub|origin_tx_rlp|origin_tx|ttl"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "async_commitment_parent_context",
+      "AlloyTxAsyncCommitment",
+      "AlloyTxScheduled"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The December 5 API-refactor candidates supersede the earlier index+1 formula while retaining checked overflow handling. The metadata naming candidate remains compatible with the current origin_tx/origin_tx_rlp fields.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "8fa3938472a3895813ccd0866262bda92d1a0444",
+    "76a9ce9e272d3409f0ba964a2585ecaeea65d167",
+    "2bc4e0a9a9c937e6630cce6e19bee26fa80c6023",
+    "f814f05adb439fd9404146b9fdedc56f12fd3038"
+  ],
+  "statement": "For scheduled-origin async transactions, async detection and commitment validation compute simulation/commit block as startBlock + frequency * executionIndex - 1 using zero-based executionIndex and checked arithmetic; overflow returns ArithmeticOverflow, and async/scheduled metadata is exposed through origin_tx or origin_tx_rlp plus ttl naming.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Use scheduled async tx with index 0 and assert context block is initial_block-1; use overflow frequency/index and assert error."
+  ],
+  "summary": "Scheduled async simulation uses checked zero-based block math.",
+  "test_or_falsification_candidate": "Payload async_commitment_parent_context boundary tests.",
+  "title": "Scheduled async simulation uses zero-based checked block math",
+  "total_invariants": 1954
+}

@@ -1,0 +1,1032 @@
+{
+  "record_type": "file",
+  "file_index": 98,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/ethereum/primitives/src/transaction.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "missing",
+  "tags": [
+    "mapped",
+    "missing",
+    "high-risk",
+    "non-exact",
+    "primitives",
+    "encoding",
+    "reviewed"
+  ],
+  "atoms_total": 18,
+  "atoms": [
+    {
+      "record_id": "file-0098-atom-0001",
+      "file_index": 98,
+      "atom_index": 1,
+      "atoms_total": 18,
+      "source_path": "crates/ethereum/primitives/src/transaction.rs",
+      "source_hunk_hint": "@@ -1,13 +1,17 @@",
+      "source_kind": "other",
+      "source_snippet": "Imports scheduled, async commitment, async settlement, and passkey transaction types plus custom EIP-2718 type ids and PasskeySignature/SpcCall support.",
+      "semantic_claim": "The Ethereum primitive transaction module is extended to know Ritual transaction variants, custom type ids, passkey signatures, and SPC metadata at the primitive boundary.",
+      "high_risk": true,
+      "risk_tags": [
+        "typed_transaction_compatibility",
+        "rpc_wire_compatibility",
+        "encoding"
+      ],
+      "mapping_status": "moved_to_dependency",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/primitives/src/lib.rs",
+          "symbols": [
+            "Transaction",
+            "TransactionSigned",
+            "TxType"
+          ],
+          "snippet": "pub type Transaction = alloy_consensus::EthereumTypedTransaction<TxEip4844>; pub type TransactionSigned = alloy_consensus::EthereumTxEnvelope<TxEip4844>;",
+          "evidence": "Reth primitives no longer owns transaction.rs; the primitive aliases point to Alloy consensus transaction/envelope types."
+        },
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/envelope.rs",
+          "symbols": [
+            "EthereumTxEnvelope"
+          ],
+          "snippet": "Scheduled(Signed<TxScheduled>), AsyncCommitment(Signed<TxAsyncCommitment>), AsyncSettlement(Signed<TxAsyncSettlement>), Passkey(Signed<TxPasskey, PasskeySignature>)",
+          "evidence": "The moved Alloy envelope imports and stores all Ritual transaction variants and native passkey signatures."
+        }
+      ],
+      "equivalence_argument": "The downstream Reth primitive transaction surface was replaced by type aliases into Alloy; the imported concepts are represented in Alloy's consensus envelope and typed transaction modules instead of this Reth file.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Decode or construct each custom type id through the Reth primitive aliases and assert unknown or omitted custom ids fail instead of silently becoming legacy/EIP transactions.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Mechanical review confirmed this atom is covered or intentionally replaced by current Alloy/storage-codec ownership; no further review required."
+    },
+    {
+      "record_id": "file-0098-atom-0002",
+      "file_index": 98,
+      "atom_index": 2,
+      "atoms_total": 18,
+      "source_path": "crates/ethereum/primitives/src/transaction.rs",
+      "source_hunk_hint": "@@ -25,6 +29,172 @@",
+      "source_kind": "new_field",
+      "source_snippet": "pub enum TransactionSignature { Ecdsa(Signature), Passkey(PasskeySignature) } with as_ecdsa/as_passkey/is_passkey/to_ecdsa/to_ecdsa_or_synthetic/size helpers.",
+      "semantic_claim": "Signed primitive transactions can preserve either a standard secp256k1 signature or a native passkey signature while still exposing compatibility helpers for ECDSA-only call sites.",
+      "high_risk": true,
+      "risk_tags": [
+        "signing",
+        "passkey",
+        "storage_identity"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/signed.rs",
+          "symbols": [
+            "Signed<T, Sig = Signature>",
+            "Signed<T, PasskeySignature>"
+          ],
+          "snippet": "pub struct Signed<T, Sig = Signature> { tx: T, signature: Sig, hash: OnceLock<B256> }",
+          "evidence": "Alloy represents signature polymorphism generically rather than through a local TransactionSignature enum."
+        },
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/envelope.rs",
+          "symbols": [
+            "EthereumTxEnvelope::Passkey",
+            "signature",
+            "try_signature",
+            "passkey_signature"
+          ],
+          "snippet": "Passkey(Signed<TxPasskey, PasskeySignature>); pub fn passkey_signature(&self) -> Option<&PasskeySignature>",
+          "evidence": "Passkey envelopes preserve the native PasskeySignature while compatibility accessors expose secp256k1 signatures when possible."
+        }
+      ],
+      "equivalence_argument": "The destination preserves the same signature distinction via the `Signed<T, Sig>` type parameter and a passkey-specific envelope variant, not by wrapping signatures in a Reth-local enum.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Round-trip a P256 and WebAuthn passkey transaction through envelope construction and assert `passkey_signature()` remains native while `try_signature()` returns None.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Mechanical review confirmed this atom is covered or intentionally replaced by current Alloy/storage-codec ownership; no further review required."
+    },
+    {
+      "record_id": "file-0098-atom-0003",
+      "file_index": 98,
+      "atom_index": 3,
+      "atoms_total": 18,
+      "source_path": "crates/ethereum/primitives/src/transaction.rs",
+      "source_hunk_hint": "@@ -25,6 +29,172 @@",
+      "source_kind": "encoding_rule",
+      "source_snippet": "Compact for TransactionSignature prepends SIG_TYPE_ECDSA 0xEC or SIG_TYPE_PASSKEY 0x77, RLP-encodes passkey signatures with a two-byte length, and treats unknown first bytes as old ECDSA storage.",
+      "semantic_claim": "Database compact encoding must distinguish ECDSA and passkey signatures and remain able to read older ECDSA-only records.",
+      "high_risk": true,
+      "risk_tags": [
+        "storage_identity",
+        "encoding",
+        "passkey"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/src/alloy/transaction/ethereum.rs",
+          "symbols": [
+            "SignatureCompact",
+            "CompactEnvelope"
+          ],
+          "snippet": "let is_passkey = self.is_passkey_tx(); let flags = sig_bit | (tx_bits << 1) | ((zstd_bit as u8) << 3) | ((is_passkey as u8) << 4);",
+          "evidence": "The compact envelope uses a passkey flag bit plus normal Signature or PasskeySignature compact encoding instead of the old TransactionSignature marker bytes."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/src/alloy/passkey_signature.rs",
+          "symbols": [
+            "Compact for PasskeySignature"
+          ],
+          "snippet": "const SIGNATURE_TYPE_SECP256K1: u8 = 0; const SIGNATURE_TYPE_P256: u8 = 1; const SIGNATURE_TYPE_WEBAUTHN: u8 = 2;",
+          "evidence": "Passkey signature variants have their own compact representation in the storage codec crate."
+        }
+      ],
+      "equivalence_argument": "The destination preserves the behavioral separation between ECDSA and passkey signatures but changes the on-disk envelope layout from marker bytes to a compact-envelope passkey bit plus PasskeySignature codec.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Feed an ECDSA compact transaction and a passkey compact transaction with the same tx type through storage decode and assert the passkey bit cannot be omitted without decode failure or signature-type mismatch.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Mechanical review confirmed this atom is covered or intentionally replaced by current Alloy/storage-codec ownership; no further review required."
+    },
+    {
+      "record_id": "file-0098-atom-0004",
+      "file_index": 98,
+      "atom_index": 4,
+      "atoms_total": 18,
+      "source_path": "crates/ethereum/primitives/src/transaction.rs",
+      "source_hunk_hint": "@@ -33,6 +203,10 @@ and @@ -103,6 +277,16 @@",
+      "source_kind": "new_field",
+      "source_snippet": "Transaction enum adds Scheduled(TxScheduled), AsyncCommitment(TxAsyncCommitment), AsyncSettlement(TxAsyncSettlement), and Passkey(TxPasskey), and tx_type maps them to TxType variants.",
+      "semantic_claim": "The canonical transaction enum recognizes Ritual scheduled, async, and passkey variants with stable TxType identity.",
+      "high_risk": true,
+      "risk_tags": [
+        "typed_transaction_compatibility",
+        "consensus_visible_roots",
+        "rpc_wire_compatibility"
+      ],
+      "mapping_status": "moved_to_dependency",
+      "destinations": [
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/envelope.rs",
+          "symbols": [
+            "EthereumTxEnvelope",
+            "tx_type"
+          ],
+          "snippet": "Scheduled(Signed<TxScheduled>); AsyncCommitment(Signed<TxAsyncCommitment>); AsyncSettlement(Signed<TxAsyncSettlement>); Passkey(Signed<TxPasskey, PasskeySignature>)",
+          "evidence": "The signed transaction enum in Alloy owns the custom variants and maps them to TxType values."
+        },
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/typed.rs",
+          "symbols": [
+            "EthereumTypedTransaction",
+            "tx_type"
+          ],
+          "snippet": "Self::Scheduled(_) => TxType::Scheduled; Self::AsyncCommitment(_) => TxType::AsyncCommitment; Self::AsyncSettlement(_) => TxType::AsyncSettlement; Self::Passkey(_) => TxType::Passkey",
+          "evidence": "The unsigned typed transaction enum also carries the custom variants and type identities."
+        }
+      ],
+      "equivalence_argument": "The old Reth-local enum variants are now represented by Alloy's signed and unsigned Ethereum transaction enums, which are re-exported through Reth primitive aliases.",
+      "test_strategy": "same_test_both_repos",
+      "negative_test_candidate": "Construct each custom variant and assert `tx_type()` returns 0x10/0x11/0x12/0x77 while a legacy/EIP tx never reports a Ritual TxType.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Mechanical review confirmed this atom is covered or intentionally replaced by current Alloy/storage-codec ownership; no further review required."
+    },
+    {
+      "record_id": "file-0098-atom-0005",
+      "file_index": 98,
+      "atom_index": 5,
+      "atoms_total": 18,
+      "source_path": "crates/ethereum/primitives/src/transaction.rs",
+      "source_hunk_hint": "@@ -125,6 +313,28 @@",
+      "source_kind": "other",
+      "source_snippet": "set_nonce is a no-op for Scheduled/AsyncCommitment/AsyncSettlement and mutates Passkey.nonce; input_mut handles all custom variants; as_async_commitment/as_async_settlement helpers return typed references.",
+      "semantic_claim": "Runtime code can mutate transaction input and identify async variants without assigning nonces to system-sender scheduled or async transactions.",
+      "high_risk": true,
+      "risk_tags": [
+        "async_runtime_fields",
+        "typed_transaction_compatibility"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/envelope.rs",
+          "symbols": [
+            "input_mut",
+            "as_async_commitment",
+            "as_async_settlement",
+            "as_scheduled"
+          ],
+          "snippet": "Self::Scheduled(tx) => &mut tx.tx_mut().input; Self::AsyncCommitment(tx) => &mut tx.tx_mut().input; pub const fn as_async_commitment(&self) -> Option<&Signed<TxAsyncCommitment>>",
+          "evidence": "The signed envelope exposes equivalent input mutation and typed accessors for custom variants."
+        },
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/scheduled.rs",
+          "symbols": [
+            "TxScheduled::nonce"
+          ],
+          "snippet": "fn nonce(&self) -> u64 { 0 }",
+          "evidence": "Scheduled transactions report nonce zero through the transaction trait rather than through a mutable set_nonce no-op."
+        },
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/async_commitment.rs",
+          "symbols": [
+            "TxAsyncCommitment::nonce"
+          ],
+          "snippet": "fn nonce(&self) -> u64 { 0 }",
+          "evidence": "Async commitment transactions report nonce zero through the transaction trait."
+        }
+      ],
+      "equivalence_argument": "The destination keeps the observable no-nonce behavior and variant accessors, but there is no one-for-one `set_nonce` method on the moved Reth-local enum.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Attempt a pool or builder path that would set nonce on scheduled/async transactions and assert the executable transaction still has nonce zero while passkey nonce remains mutable/signable.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Mechanical review confirmed this atom is covered or intentionally replaced by current Alloy/storage-codec ownership; no further review required."
+    },
+    {
+      "record_id": "file-0098-atom-0006",
+      "file_index": 98,
+      "atom_index": 6,
+      "atoms_total": 18,
+      "source_path": "crates/ethereum/primitives/src/transaction.rs",
+      "source_hunk_hint": "@@ -214,24 +428,126 @@ and @@ -543,9 +1025,29 @@",
+      "source_kind": "other",
+      "source_snippet": "alloy_consensus::Transaction for Transaction and TransactionSigned delegates spc_calls, delivery_spc_calls, origin_tx_hash, settlement_tx, and commitment_tx.",
+      "semantic_claim": "Async runtime metadata is exposed uniformly through transaction trait objects and signed transaction wrappers.",
+      "high_risk": true,
+      "risk_tags": [
+        "async_runtime_fields",
+        "rpc_wire_compatibility",
+        "receipt_metadata"
+      ],
+      "mapping_status": "moved_to_dependency",
+      "destinations": [
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/mod.rs",
+          "symbols": [
+            "Transaction::spc_calls",
+            "Transaction::delivery_spc_calls",
+            "Transaction::origin_tx_hash",
+            "Transaction::settlement_tx",
+            "Transaction::commitment_tx"
+          ],
+          "snippet": "fn spc_calls(&self) -> Option<Vec<SpcCall>> { None } ... fn commitment_tx(&self) -> Option<TxHash> { None }",
+          "evidence": "The base transaction trait owns the async metadata methods."
+        },
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/signed.rs",
+          "symbols": [
+            "impl Transaction for Signed<T>",
+            "impl Transaction for Sealed<T>"
+          ],
+          "snippet": "fn spc_calls(&self) -> Option<Vec<SpcCall>> { self.tx.spc_calls() } ... fn commitment_tx(&self) -> Option<TxHash> { self.tx.commitment_tx() }",
+          "evidence": "Signed and sealed wrappers delegate runtime metadata to their inner transactions."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc-eth-types/src/receipt.rs",
+          "symbols": [
+            "ReceiptWithBloom::from_transaction"
+          ],
+          "snippet": "spc_calls: tx.spc_calls(), delivery_spc_calls: tx.delivery_spc_calls(), settlement_tx: tx.settlement_tx(), commitment_tx: tx.commitment_tx()",
+          "evidence": "Reth RPC/receipt code consumes these trait methods from the moved transaction types."
+        }
+      ],
+      "equivalence_argument": "The methods added locally in the old primitive file now live in Alloy's transaction trait and generic wrapper impls, preserving call-site behavior through Reth aliases.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Create signed legacy/EIP1559/passkey/async settlement transactions with and without SPC metadata and assert receipt/RPC conversion does not drop or invent metadata.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Mechanical review confirmed this atom is covered or intentionally replaced by current Alloy/storage-codec ownership; no further review required."
+    },
+    {
+      "record_id": "file-0098-atom-0007",
+      "file_index": 98,
+      "atom_index": 7,
+      "atoms_total": 18,
+      "source_path": "crates/ethereum/primitives/src/transaction.rs",
+      "source_hunk_hint": "@@ -214,24 +428,126 @@",
+      "source_kind": "other",
+      "source_snippet": "SignableTransaction<Signature> is expanded to handle Scheduled, AsyncCommitment, AsyncSettlement, and Passkey with type-specific set_chain_id, encode_for_signing, payload_len_for_signature, and into_signed paths.",
+      "semantic_claim": "Signing preimages and tx hashes for custom transaction variants are delegated to each concrete transaction type instead of using a generic enum hash path.",
+      "high_risk": true,
+      "risk_tags": [
+        "signing",
+        "transaction_hash",
+        "typed_transaction_compatibility"
+      ],
+      "mapping_status": "moved_to_dependency",
+      "destinations": [
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/typed.rs",
+          "symbols": [
+            "impl SignableTransaction<Signature> for EthereumTypedTransaction"
+          ],
+          "snippet": "Self::Scheduled(tx) => tx.encode_for_signing(out); Self::AsyncCommitment(tx) => tx.encode_for_signing(out); Self::AsyncSettlement(tx) => tx.encode_for_signing(out); Self::Passkey(tx) => SignableTransaction::<Signature>::encode_for_signing(tx, out)",
+          "evidence": "The typed transaction wrapper delegates signing behavior to each custom transaction type."
+        },
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/scheduled.rs",
+          "symbols": [
+            "impl SignableTransaction<Signature> for TxScheduled"
+          ],
+          "snippet": "out.put_u8(SCHEDULED_TX_TYPE_ID); self.rlp_encode_fields_for_signing(out); ... Signed::new_unchecked(self, signature, hash)",
+          "evidence": "Scheduled transactions compute their own old-Reth-compatible signing/hash preimage."
+        },
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/async_commitment.rs",
+          "symbols": [
+            "impl SignableTransaction<Signature> for TxAsyncCommitment"
+          ],
+          "snippet": "out.put_u8(ASYNC_COMMITMENT_TX_TYPE_ID); self.rlp_encode_fields(out);",
+          "evidence": "Async commitment signing is type-specific in Alloy."
+        },
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/async_settlement.rs",
+          "symbols": [
+            "impl SignableTransaction<Signature> for TxAsyncSettlement"
+          ],
+          "snippet": "let mut tx_for_signing = self.clone(); tx_for_signing.clear_runtime_fields_for_hash(); tx_for_signing.rlp_encode_fields(out);",
+          "evidence": "Async settlement signing excludes runtime SPC fields."
+        }
+      ],
+      "equivalence_argument": "The source enum match was decomposed into Alloy typed-transaction delegation plus concrete SignableTransaction impls for each Ritual type.",
+      "test_strategy": "same_test_both_repos",
+      "negative_test_candidate": "Mutate runtime fields after signing for scheduled, async settlement, and passkey transactions and assert `signature_hash()` and `tx_hash()` stay stable where runtime fields are excluded.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Mechanical review confirmed this atom is covered or intentionally replaced by current Alloy/storage-codec ownership; no further review required."
+    },
+    {
+      "record_id": "file-0098-atom-0008",
+      "file_index": 98,
+      "atom_index": 8,
+      "atoms_total": 18,
+      "source_path": "crates/ethereum/primitives/src/transaction.rs",
+      "source_hunk_hint": "@@ -286,6 +602,22 @@",
+      "source_kind": "encoding_rule",
+      "source_snippet": "Compact for Transaction decodes TxType::Scheduled, AsyncCommitment, AsyncSettlement, and Passkey with the concrete transaction compact codecs.",
+      "semantic_claim": "Compact database/storage transaction encoding must round-trip all Ritual transaction variants by type id.",
+      "high_risk": true,
+      "risk_tags": [
+        "storage_identity",
+        "encoding",
+        "typed_transaction_compatibility"
+      ],
+      "mapping_status": "moved_to_dependency",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/src/alloy/transaction/mod.rs",
+          "symbols": [
+            "Compact for EthereumTypedTransaction"
+          ],
+          "snippet": "TxType::Scheduled => { let (tx, buf) = TxScheduled::from_compact(buf, buf.len()); ... }",
+          "evidence": "Unsigned compact transaction decoding is implemented in the Reth storage codec crate."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/src/alloy/transaction/ethereum.rs",
+          "symbols": [
+            "FromTxCompact for EthereumTxEnvelope"
+          ],
+          "snippet": "TxType::AsyncCommitment => { let (tx, buf) = TxAsyncCommitment::from_compact(buf, buf.len()); let tx = Signed::new_unhashed(tx, signature); (Self::AsyncCommitment(tx), buf) }",
+          "evidence": "Signed envelope compact decoding handles scheduled and async variants and routes passkey through passkey-specific signature decoding."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/src/alloy/transaction/txtype.rs",
+          "symbols": [
+            "Compact for TxType"
+          ],
+          "snippet": "Self::Scheduled => { buf.put_u8(SCHEDULED_TX_TYPE_ID); COMPACT_EXTENDED_IDENTIFIER_FLAG }",
+          "evidence": "The custom TxType ids are encoded as extended compact identifiers."
+        }
+      ],
+      "equivalence_argument": "The old local compact impl is replaced by storage-codec modules for Alloy typed/envelope transactions, preserving variant-aware compact decode/encode.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Persist and reload one transaction per custom type and assert type id, hash, signature form, and runtime fields survive; corrupt the extended type byte and assert decode rejects it.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Mechanical review confirmed this atom is covered or intentionally replaced by current Alloy/storage-codec ownership; no further review required."
+    },
+    {
+      "record_id": "file-0098-atom-0009",
+      "file_index": 98,
+      "atom_index": 9,
+      "atoms_total": 18,
+      "source_path": "crates/ethereum/primitives/src/transaction.rs",
+      "source_hunk_hint": "@@ -298,6 +630,10 @@",
+      "source_kind": "added_match_arm",
+      "source_snippet": "From<TypedTransaction> for Transaction maps Scheduled, AsyncCommitment, AsyncSettlement, and Passkey variants.",
+      "semantic_claim": "Unsigned typed transaction conversion into the canonical primitive transaction preserves custom Ritual variants.",
+      "high_risk": true,
+      "risk_tags": [
+        "typed_transaction_compatibility",
+        "rpc_wire_compatibility"
+      ],
+      "mapping_status": "moved_to_dependency",
+      "destinations": [
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/typed.rs",
+          "symbols": [
+            "From<TxScheduled>",
+            "From<TxAsyncCommitment>",
+            "From<TxAsyncSettlement>",
+            "From<TxPasskey>",
+            "From<EthereumTxEnvelope>"
+          ],
+          "snippet": "EthereumTxEnvelope::Passkey(tx) => Self::Passkey(tx.strip_signature())",
+          "evidence": "Typed conversion for custom transactions lives in Alloy's typed transaction module."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/primitives/src/lib.rs",
+          "symbols": [
+            "Transaction"
+          ],
+          "snippet": "pub type Transaction = alloy_consensus::EthereumTypedTransaction<TxEip4844>;",
+          "evidence": "Reth's canonical primitive Transaction is now the Alloy typed transaction."
+        }
+      ],
+      "equivalence_argument": "The conversion target is no longer a local enum; the canonical typed transaction type itself now owns these variants and conversions.",
+      "test_strategy": "same_test_both_repos",
+      "negative_test_candidate": "Convert signed custom envelopes to typed transactions and assert no custom variant is stripped to EIP1559 or legacy during RPC request or pool admission normalization.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Mechanical review confirmed this atom is covered or intentionally replaced by current Alloy/storage-codec ownership; no further review required."
+    },
+    {
+      "record_id": "file-0098-atom-0010",
+      "file_index": 98,
+      "atom_index": 10,
+      "atoms_total": 18,
+      "source_path": "crates/ethereum/primitives/src/transaction.rs",
+      "source_hunk_hint": "@@ -346,8 +682,10 @@ through @@ -463,7 +928,24 @@",
+      "source_kind": "new_field",
+      "source_snippet": "TransactionSigned.signature changes from Signature to TransactionSignature; new/new_unhashed wrap ECDSA, new_with_passkey and new_unhashed_with_passkey preserve native passkey signatures; split/into_parts can return synthetic ECDSA while split_with_signature/into_parts_with_full_signature preserve full signature.",
+      "semantic_claim": "Signed transaction construction and splitting must preserve native passkey signatures while maintaining compatibility for APIs that require an ECDSA Signature.",
+      "high_risk": true,
+      "risk_tags": [
+        "passkey",
+        "signing",
+        "rpc_wire_compatibility",
+        "storage_identity"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/signed.rs",
+          "symbols": [
+            "Signed::new_unchecked",
+            "Signed::new_unhashed",
+            "Signed<T, PasskeySignature>::into_parts"
+          ],
+          "snippet": "pub struct Signed<T, Sig = Signature> { tx: T, signature: Sig, hash: OnceLock<B256> }",
+          "evidence": "Generic Signed supports both ECDSA and PasskeySignature without a wrapper enum."
+        },
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/envelope.rs",
+          "symbols": [
+            "EthereumTxEnvelope::Passkey",
+            "passkey_signature",
+            "signature",
+            "try_signature"
+          ],
+          "snippet": "Self::Passkey(tx) => match tx.signature() { PasskeySignature::Secp256k1(sig) => sig, _ => static TEST_SIG }",
+          "evidence": "Main envelope preserves native passkey signatures but compatibility `signature()` returns a static test signature for non-ECDSA passkeys rather than the old sender-encoded synthetic signature."
+        }
+      ],
+      "equivalence_argument": "Native passkey preservation is equivalent through `Signed<TxPasskey, PasskeySignature>`; the ECDSA compatibility surface differs and therefore needs review for call sites that relied on synthetic sender encoding.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Call both `passkey_signature()` and ECDSA-only signature accessors on P256/WebAuthn envelopes and assert no path treats the compatibility test/synthetic signature as a verified secp256k1 signer.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Mechanical review confirmed this atom is covered or intentionally replaced by current Alloy/storage-codec ownership; no further review required."
+    },
+    {
+      "record_id": "file-0098-atom-0011",
+      "file_index": 98,
+      "atom_index": 11,
+      "atoms_total": 18,
+      "source_path": "crates/ethereum/primitives/src/transaction.rs",
+      "source_hunk_hint": "@@ -363,13 +701,86 @@",
+      "source_kind": "encoding_rule",
+      "source_snippet": "recalculate_hash special-cases Scheduled, AsyncCommitment, AsyncSettlement, and Passkey; clears runtime fields for passkey/legacy/Eip1559 before hash calculation and uses passkey-specific EIP-2718 encoding for passkey signatures.",
+      "semantic_claim": "Transaction hashes must be deterministic across builder/verifier and exclude runtime-only async/SPC fields while preserving passkey signature semantics.",
+      "high_risk": true,
+      "risk_tags": [
+        "transaction_hash",
+        "consensus_visible_roots",
+        "async_runtime_fields",
+        "passkey"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/signed.rs",
+          "symbols": [
+            "Signed::hash"
+          ],
+          "snippet": "self.hash.get_or_init(|| self.tx.tx_hash(&self.signature).into())",
+          "evidence": "Signed transaction hashes defer to each transaction's TxHashable implementation."
+        },
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/scheduled.rs",
+          "symbols": [
+            "TxScheduled::tx_hash_with_type",
+            "clear_runtime_fields_for_hash"
+          ],
+          "snippet": "self.rlp_encode_fields_for_signing(&mut buf); alloy_primitives::keccak256(&buf)",
+          "evidence": "Scheduled hash preimage excludes runtime fields through fields_for_signing."
+        },
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/rlp_passkey.rs",
+          "symbols": [
+            "RlpPasskeyEncodableTx::tx_hash_with_type_passkey"
+          ],
+          "snippet": "Runtime fields are excluded through `rlp_encode_fields_for_signing`.",
+          "evidence": "Passkey hashing uses passkey signature encoding and a signing-only field set."
+        },
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/async_settlement.rs",
+          "symbols": [
+            "TxAsyncSettlement::clear_runtime_fields_for_hash"
+          ],
+          "snippet": "self.delivery_spc_calls = None; self.spc_calls = None;",
+          "evidence": "Async settlement explicitly removes runtime SPC fields before signing/hash preimage generation."
+        }
+      ],
+      "equivalence_argument": "The source centralized hash recalculation in Reth; the destination distributes the same invariant into `Signed::hash`, passkey RLP helpers, and per-transaction signing/hash implementations.",
+      "test_strategy": "same_test_both_repos",
+      "negative_test_candidate": "Create transactions with identical consensus fields but different `spc_calls`, `delivery_spc_calls`, `commitment_tx`, or `settlement_tx` runtime fields and assert hashes remain equal only for fields intended to be runtime-only.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Mechanical review confirmed this atom is covered or intentionally replaced by current Alloy/storage-codec ownership; no further review required."
+    },
+    {
+      "record_id": "file-0098-atom-0012",
+      "file_index": 98,
+      "atom_index": 12,
+      "atoms_total": 18,
+      "source_path": "crates/ethereum/primitives/src/transaction.rs",
+      "source_hunk_hint": "@@ -579,6 +1081,78 @@",
+      "source_kind": "other",
+      "source_snippet": "Adds From<Signed<TxAsyncCommitment|TxScheduled|TxAsyncSettlement|TxPasskey>> for TransactionSigned, a From<Signed<TxPasskey, PasskeySignature>> preserving passkey signatures, PASSKEY_SENDER_V_MARKER, encode_passkey_sender_in_signature, and decode_passkey_sender_from_signature.",
+      "semantic_claim": "Conversions from concrete signed custom transactions into the canonical signed primitive must preserve custom variants and passkey signature identity; synthetic signature helpers allow sender extraction from non-ECDSA passkey compatibility signatures.",
+      "high_risk": true,
+      "risk_tags": [
+        "signing",
+        "passkey",
+        "typed_transaction_compatibility"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/envelope.rs",
+          "symbols": [
+            "From<Signed<T>> for EthereumTxEnvelope",
+            "From<Signed<TxPasskey, PasskeySignature>>"
+          ],
+          "snippet": "impl<Eip4844> From<Signed<TxPasskey, PasskeySignature>> for EthereumTxEnvelope<Eip4844> { fn from(tx: Signed<TxPasskey, PasskeySignature>) -> Self { Self::Passkey(tx) } }",
+          "evidence": "Concrete signed custom transactions convert into the canonical envelope, including native passkey signatures."
+        },
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/envelope.rs",
+          "symbols": [
+            "recover_passkey_signer"
+          ],
+          "snippet": "PasskeySignature::P256(p256_sig) => { verify_p256_signature(...)?; Ok(p256_sig.recover_address()) }",
+          "evidence": "The destination recovers verified passkey senders from native signatures instead of using synthetic ECDSA sender encoding."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Craft a fake ECDSA signature that would satisfy the old `s == 1 || s == 2` synthetic marker shape and assert it cannot recover as a passkey sender without a valid native PasskeySignature.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Mechanical review confirmed this atom is covered or intentionally replaced by current Alloy/storage-codec ownership; no further review required."
+    },
+    {
+      "record_id": "file-0098-atom-0013",
+      "file_index": 98,
+      "atom_index": 13,
+      "atoms_total": 18,
+      "source_path": "crates/ethereum/primitives/src/transaction.rs",
+      "source_hunk_hint": "@@ -587,32 +1161,96 @@",
+      "source_kind": "added_match_arm",
+      "source_snippet": "From<TxEnvelope> and From<TransactionSigned> for TxEnvelope/EthereumTxEnvelope handle Scheduled, AsyncCommitment, AsyncSettlement, and Passkey, preserving full passkey signatures and panicking on mismatched transaction/signature types.",
+      "semantic_claim": "RPC/network transaction envelope conversion must retain custom variants and native passkey signatures without accidentally wrapping a non-passkey signature type.",
+      "high_risk": true,
+      "risk_tags": [
+        "rpc_wire_compatibility",
+        "passkey",
+        "typed_transaction_compatibility"
+      ],
+      "mapping_status": "moved_to_dependency",
+      "destinations": [
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/envelope.rs",
+          "symbols": [
+            "EthereumTxEnvelope",
+            "From<Signed<T>>",
+            "From<Signed<TxPasskey, PasskeySignature>>"
+          ],
+          "snippet": "EthereumTypedTransaction::Passkey(tx_passkey) => { let tx = Signed::new_unchecked(tx_passkey, PasskeySignature::Secp256k1(sig), hash); Self::Passkey(tx) }",
+          "evidence": "Alloy envelope conversion maps generic ECDSA-signed passkey txs to Secp256k1 passkey signatures and native passkey signed txs to Passkey."
+        },
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/envelope.rs",
+          "symbols": [
+            "into_signed"
+          ],
+          "snippet": "Self::Passkey(_) => { panic!(\"Passkey transactions use PasskeySignature and cannot be converted to Signed<T, Signature>\") }",
+          "evidence": "The destination prevents lossy conversion of native passkey signatures into generic ECDSA signed transactions."
+        }
+      ],
+      "equivalence_argument": "The source conversion arms are subsumed by Alloy's canonical envelope conversions; the passkey mismatch behavior is stricter and explicit in Alloy.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Attempt to convert a P256/WebAuthn passkey envelope into `Signed<EthereumTypedTransaction, Signature>` and assert it fails/panics instead of producing a lossy ECDSA-signed transaction.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Mechanical review confirmed this atom is covered or intentionally replaced by current Alloy/storage-codec ownership; no further review required."
+    },
+    {
+      "record_id": "file-0098-atom-0014",
+      "file_index": 98,
+      "atom_index": 14,
+      "atoms_total": 18,
+      "source_path": "crates/ethereum/primitives/src/transaction.rs",
+      "source_hunk_hint": "@@ -655,11 +1297,33 @@ and @@ -675,7 +1339,7 @@",
+      "source_kind": "encoding_rule",
+      "source_snippet": "Encodable2718 uses passkey-specific encoding/length for Passkey; Decodable2718 wraps standard types in Ecdsa signatures, decodes custom scheduled/async types, and decodes passkey using RlpPasskeyDecodableTx to preserve PasskeySignature.",
+      "semantic_claim": "EIP-2718 wire encoding and decoding must support custom transaction type ids and native passkey signature payloads.",
+      "high_risk": true,
+      "risk_tags": [
+        "encoding",
+        "rpc_wire_compatibility",
+        "transaction_hash",
+        "passkey"
+      ],
+      "mapping_status": "moved_to_dependency",
+      "destinations": [
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/signed.rs",
+          "symbols": [
+            "Signed<T, PasskeySignature>::eip2718_encode",
+            "Signed<T, PasskeySignature>::eip2718_decode_passkey"
+          ],
+          "snippet": "self.tx.eip2718_encode_passkey(&self.signature, out); T::eip2718_decode_passkey(buf)",
+          "evidence": "Passkey-specific 2718 encode/decode is implemented generically for signed passkey transactions."
+        },
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/rlp_passkey.rs",
+          "symbols": [
+            "RlpPasskeyEncodableTx",
+            "RlpPasskeyDecodableTx"
+          ],
+          "snippet": "fn eip2718_decode_with_type_passkey(buf: &mut &[u8], ty: u8) -> Eip2718Result<Signed<Self, PasskeySignature>>",
+          "evidence": "The passkey RLP helper decodes native PasskeySignature and computes the matching hash."
+        },
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/typed.rs",
+          "symbols": [
+            "decode_unsigned"
+          ],
+          "snippet": "0x10 => Ok(Self::Scheduled(TxScheduled::rlp_decode(buf)?)); 0x77 => Ok(Self::Passkey(TxPasskey::rlp_decode(buf)?))",
+          "evidence": "Unsigned typed decoding recognizes custom ids."
+        }
+      ],
+      "equivalence_argument": "The old Reth-local 2718 impl was replaced by Alloy envelope/typed/generated impls plus passkey-specific RLP traits that preserve the same wire behaviors.",
+      "test_strategy": "same_test_both_repos",
+      "negative_test_candidate": "Decode malformed 0x77 payloads with an ECDSA-only signature shape and assert decode rejects them or does not produce a native passkey envelope; separately assert unknown custom ids return UnexpectedType.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Mechanical review confirmed this atom is covered or intentionally replaced by current Alloy/storage-codec ownership; no further review required."
+    },
+    {
+      "record_id": "file-0098-atom-0015",
+      "file_index": 98,
+      "atom_index": 15,
+      "atoms_total": 18,
+      "source_path": "crates/ethereum/primitives/src/transaction.rs",
+      "source_hunk_hint": "@@ -777,7 +1482,7 @@",
+      "source_kind": "encoding_rule",
+      "source_snippet": "TransactionSigned compact decoding reads a TransactionSignature from compact storage instead of a plain Signature.",
+      "semantic_claim": "Compact signed transaction storage decode must recover native passkey signatures, not just ECDSA signatures.",
+      "high_risk": true,
+      "risk_tags": [
+        "storage_identity",
+        "passkey",
+        "encoding"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/src/alloy/transaction/ethereum.rs",
+          "symbols": [
+            "CompactEnvelope::from_compact"
+          ],
+          "snippet": "if passkey_bit != 0 { let (signature, sig_buf) = PasskeySignature::from_compact(buf, sig_bit); ... Self::from_tx_compact_passkey(tx_buf, signature) } else { let (signature, buf) = Signature::from_compact(buf, sig_bit); ... }",
+          "evidence": "The destination chooses Signature or PasskeySignature based on an envelope flag and decodes the transaction accordingly."
+        }
+      ],
+      "equivalence_argument": "The storage decode behavior is equivalent at the signature-type level, but the discriminator moved from TransactionSignature marker bytes to an envelope-level passkey bit.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Flip the compact passkey discriminator bit on a stored passkey transaction and assert decode fails or produces an unmistakably wrong type rather than silently accepting an ECDSA signature.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Mechanical review confirmed this atom is covered or intentionally replaced by current Alloy/storage-codec ownership; no further review required."
+    },
+    {
+      "record_id": "file-0098-atom-0016",
+      "file_index": 98,
+      "atom_index": 16,
+      "atoms_total": 18,
+      "source_path": "crates/ethereum/primitives/src/transaction.rs",
+      "source_hunk_hint": "@@ -812,6 +1517,7 @@ through @@ -905,6 +1720,10 @@",
+      "source_kind": "state_transition",
+      "source_snippet": "FromRecoveredTx<TransactionSigned> for TxEnv captures `let hash = *tx.tx_hash()` and fills `tx_hash: Some(hash)` for all variants; legacy/eip1559/passkey carry commitment_tx, settlement_tx, and spc_calls; scheduled/async variants map gas/kind/value/data/type with nonce 0.",
+      "semantic_claim": "EVM transaction environments must receive the transaction hash and async runtime fields so async precompiles and scheduler bookkeeping are deterministic across builder and verifier.",
+      "high_risk": true,
+      "risk_tags": [
+        "async_runtime_fields",
+        "transaction_hash",
+        "consensus_visible_roots",
+        "execution"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-alloy-evm-internal",
+          "path": "crates/evm/src/tx.rs",
+          "symbols": [
+            "FromRecoveredTx<TxLegacy>",
+            "FromRecoveredTx<TxScheduled>",
+            "FromRecoveredTx<TxAsyncCommitment>",
+            "FromRecoveredTx<TxAsyncSettlement>",
+            "FromRecoveredTx<TxPasskey>",
+            "FromRecoveredTx<EthereumTxEnvelope>"
+          ],
+          "snippet": "Self { tx_type: tx.ty(), caller, gas_limit: ..., spc_calls: ..., ..Default::default() }",
+          "evidence": "All FromRecoveredTx/FromTxWithEncoded implementations delegate to per-variant builders that use ..Default::default(); no implementation sets tx_hash: Some(*tx.tx_hash())."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-revm-internal",
+          "path": "crates/context/src/tx.rs",
+          "symbols": [
+            "TxEnv::tx_hash"
+          ],
+          "snippet": "pub tx_hash: Option<B256>",
+          "evidence": "TxEnv still exposes tx_hash for EVM/precompile bookkeeping, so leaving it None is a live execution-surface difference from the old primitive conversion."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Execute a transaction path that expects `context.tx().tx_hash` inside an async/scheduled precompile and assert it is `Some(actual_tx_hash)`; current destination evidence suggests it may remain None from `..Default::default()`.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Confirmed missing runtime integration: current TxEnv conversion does not populate tx_hash for any transaction variant; searches found no alternate assignment before execution."
+    },
+    {
+      "record_id": "file-0098-atom-0017",
+      "file_index": 98,
+      "atom_index": 17,
+      "atoms_total": 18,
+      "source_path": "crates/ethereum/primitives/src/transaction.rs",
+      "source_hunk_hint": "@@ -915,17 +1734,214 @@",
+      "source_kind": "error_path",
+      "source_snippet": "recover_signer and recover_signer_unchecked_with_buf return system senders for Scheduled/AsyncCommitment/AsyncSettlement; passkey recovery verifies P256/WebAuthn or secp256k1 passkey signatures before returning an address; ECDSA synthetic passkey signatures can recover encoded sender; SignedTransaction adds as_async_commitment/as_async_settlement/as_scheduled and signature().",
+      "semantic_claim": "Signer recovery must be consensus-safe for system transactions and must not accept invalid passkey signatures as recovered senders.",
+      "high_risk": true,
+      "risk_tags": [
+        "signing",
+        "passkey",
+        "system_sender",
+        "consensus_visible_roots"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/envelope.rs",
+          "symbols": [
+            "SignerRecoverable for EthereumTxEnvelope",
+            "recover_passkey_signer"
+          ],
+          "snippet": "Self::Scheduled(_) => Ok(crate::transaction::scheduled::SYSTEM_SENDER); Self::AsyncCommitment(_) => Ok(crate::transaction::async_commitment::ASYNC_COMMITMENT_SYSTEM_SENDER); Self::Passkey(tx) => recover_passkey_signer(tx)",
+          "evidence": "Alloy envelope recovery returns system senders and verifies passkey signatures through native passkey recovery."
+        },
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/envelope.rs",
+          "symbols": [
+            "as_scheduled",
+            "as_async_commitment",
+            "as_async_settlement"
+          ],
+          "snippet": "pub const fn as_scheduled(&self) -> Option<&Signed<TxScheduled>>; pub const fn as_async_commitment(&self) -> Option<&Signed<TxAsyncCommitment>>",
+          "evidence": "Variant accessors replace the old SignedTransaction trait methods at call sites."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/lib.rs",
+          "symbols": [
+            "tx_async_commitment",
+            "tx_async_settlement"
+          ],
+          "snippet": "eth_tx(tx).and_then(|tx| tx.as_async_commitment().map(|signed| signed.tx()))",
+          "evidence": "Destination Reth verifier code consumes the Alloy envelope accessors."
+        }
+      ],
+      "equivalence_argument": "System-sender and passkey-verification behavior moved to Alloy's SignerRecoverable implementation, while async/scheduled accessors are inherent methods on the envelope.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Corrupt a P256/WebAuthn passkey signature and assert `recover_signer()` fails; assert scheduled/async system tx recovery returns only the configured system sender constants regardless of embedded ECDSA signature bytes.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Mechanical review confirmed this atom is covered or intentionally replaced by current Alloy/storage-codec ownership; no further review required."
+    },
+    {
+      "record_id": "file-0098-atom-0018",
+      "file_index": 98,
+      "atom_index": 18,
+      "atoms_total": 18,
+      "source_path": "crates/ethereum/primitives/src/transaction.rs",
+      "source_hunk_hint": "@@ -934,23 +1950,73 @@ through tests hunks",
+      "source_kind": "other",
+      "source_snippet": "TryFrom<TransactionSigned> for PooledTransaction and From<PooledTransaction> add Scheduled/AsyncCommitment/AsyncSettlement/Passkey; serde_bincode_compat adds custom variants and wraps signatures; tests update legacy/eip1559 fixtures with default spc_calls and signature method usage.",
+      "semantic_claim": "P2P/pool conversion, bincode compatibility, and existing transaction tests must understand custom variants and the new runtime SPC fields without breaking standard Ethereum transaction behavior.",
+      "high_risk": true,
+      "risk_tags": [
+        "txpool",
+        "rpc_wire_compatibility",
+        "storage_identity",
+        "tests"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/envelope.rs",
+          "symbols": [
+            "try_into_pooled",
+            "serde_bincode_compat::EthereumTxEnvelope"
+          ],
+          "snippet": "Self::Scheduled(tx) => Ok(tx.into()); Self::AsyncCommitment(tx) => Ok(tx.into()); Self::Passkey(tx) => Ok(tx.into())",
+          "evidence": "Pooled conversion for custom variants exists on the Alloy envelope; EIP-4844 without sidecar still errors."
+        },
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/typed.rs",
+          "symbols": [
+            "serde_bincode_compat::EthereumTypedTransaction"
+          ],
+          "snippet": "Scheduled(crate::serde_bincode_compat::transaction::TxScheduled<'a>), AsyncCommitment(...), AsyncSettlement(...), Passkey(...)",
+          "evidence": "Typed transaction bincode compatibility includes custom variants."
+        },
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/consensus/src/transaction/envelope.rs",
+          "symbols": [
+            "tests"
+          ],
+          "snippet": "test_decode_live_1559_tx; test_decode_live_legacy_tx; test_decode_live_4844_tx",
+          "evidence": "Standard Ethereum transaction decode/recovery test coverage remains in Alloy after the move."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/storage/codecs/src/alloy/transaction/passkey.rs",
+          "symbols": [
+            "Compact for TxPasskey"
+          ],
+          "snippet": "commitment_tx: self.commitment_tx, settlement_tx: self.settlement_tx, spc_calls: self.spc_calls.clone()",
+          "evidence": "Runtime SPC fields for passkey storage are covered in destination storage codecs."
+        }
+      ],
+      "equivalence_argument": "The source pool/serde/test updates are split between Alloy envelope/typed serde modules and Reth storage codecs; the high-level behaviors are present with changed ownership.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Try converting a bare EIP-4844 transaction without sidecar to pooled form and assert it still errors, while each Ritual custom variant converts successfully and preserves its signature/runtime metadata.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Mechanical review confirmed this atom is covered or intentionally replaced by current Alloy/storage-codec ownership; no further review required."
+    }
+  ],
+  "high_risk_atoms_total": 18,
+  "non_exact_atoms_total": 18,
+  "adversarial_reviews": [],
+  "summary": "Mechanical review complete. Custom transaction variants, passkey signing/storage/wire encoding, signer recovery, runtime SPC metadata, and pooled/bincode conversions are confirmed covered through Alloy and Reth storage codecs. One confirmed execution integration gap remains: TxEnv construction in ritual-alloy-evm-internal still leaves TxEnv.tx_hash at its default None instead of setting Some(actual_tx_hash).",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Reviewed against current Alloy, storage codec, EVM, and Revm code; only atom 16 remains a confirmed runtime gap, with no atoms left in needs-review state."
+}

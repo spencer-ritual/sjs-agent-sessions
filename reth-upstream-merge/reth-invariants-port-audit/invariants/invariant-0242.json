@@ -1,0 +1,62 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "Neither execute_one nor execute_one_with_state_hook invokes SPC batch verification before strategy setup; both only refresh registry state before execution.",
+  "evidence_files": [
+    "crates/evm/src/execute.rs"
+  ],
+  "invariant_id": "cur-92e2da6790-both-execution-paths-batch-verification",
+  "invariant_index": 242,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/evm/evm/src/execute.rs",
+      "ritual-reth-nodebuilder-internal/crates/node/src/executor.rs"
+    ],
+    "checked_queries": [
+      "execute_one verify_batch",
+      "execute_one_with_state_hook verify_batch",
+      "perform_spc_batch_verification",
+      "No SPC verification performed"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "execute_one",
+      "execute_one_with_state_hook",
+      "perform_spc_batch_verification",
+      "verify_batch"
+    ],
+    "missing_behavior": "Both block execution paths lack the configured pre-strategy SPC batch verification step.",
+    "related_but_insufficient_code": [
+      "ritual-reth-nodebuilder-internal/crates/node/src/executor.rs execute_one updates registry, then sets up the strategy and executes transactions.",
+      "execute_one_with_state_hook has the same registry-update-first flow and no batch verifier call before strategy setup."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The subject says batch SPC verification was extracted and used in both execute paths, and the diff adds perform_spc_batch_verification plus calls it from execute_one and execute_one_with_state_hook before strategy setup. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "a48c09d3e453dd1f81072684e672425f34cc995f"
+  ],
+  "statement": "BasicBlockExecutor must perform SPC batch verification before constructing/executing the block strategy in both execute_one and execute_one_with_state_hook when an SPC verifier is configured; if no verifier is configured, the step is skipped without failing.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Configure an SPC verifier that records calls or fails, then invoke execute_one and execute_one_with_state_hook; both should call the verifier before apply_pre_execution_changes, and both should propagate verifier failure. With no verifier configured, both should continue."
+  ],
+  "summary": "Neither block execution path runs the required SPC batch verification step.",
+  "test_or_falsification_candidate": "Invoke execute_one and execute_one_with_state_hook with a failing SPC batch verifier and assert both fail before strategy construction; current paths do not call the batch verifier.",
+  "title": "Both execution paths run SPC batch verification",
+  "total_invariants": 1954
+}

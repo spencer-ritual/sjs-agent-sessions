@@ -1,0 +1,80 @@
+{
+  "cluster_key": "precompile pricing:agent-timeout-comes-9ef8d20f",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The async pool computes max_poll_block when metadata is created and reads field 4 for the 0x080C sovereign/CLI agent precompile.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let max_poll_block = phase2_deadline_offset(precompile_address, &precompile_input);\n...\n} else if precompile_address == SOVEREIGN_AGENT_PRECOMPILE {\n    4\n} ...\nu64_static_head_field(precompile_input, field_index)",
+      "symbols": [
+        "AsyncTxMetadata::awaiting_execution",
+        "phase2_deadline_offset"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The stored field-4 offset is converted to an absolute Phase 2 deadline by adding it to the settlement/commitment block when the pool enters delivery waiting state.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let phase2_offset = metadata.max_poll_block.ok_or(AsyncPoolError::MissingPhase2Deadline { ... })?;\nlet phase2_deadline = settlement_block.checked_add(phase2_offset)...?;\nmetadata.state = AsyncState::AwaitingDelivery;",
+      "symbols": [
+        "AsyncPool::mark_awaiting_delivery"
+      ]
+    }
+  ],
+  "equivalence_argument": "The local port names 0x080C as SOVEREIGN_AGENT_PRECOMPILE, but the timeout behavior matches the invariant: field 4 is extracted as max_poll_block and converted into an absolute delivery deadline from the settlement block.",
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/async_pool.rs"
+  ],
+  "invariant_id": "cur-2cfc9375ca-agent-timeout-comes-field-offset",
+  "invariant_index": 182,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/ritual-precompile-codecs/src/sovereign_agent.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs"
+    ],
+    "checked_queries": [
+      "validate_commitment_structure|validate_async_commitment|InvalidPrecompileAddress|ASYNC_MAX_BLOCK_LOOKBACK|job_exists_and_active|should_skip_sender_locked_tx|max_poll_block|CLI_AGENT_PRECOMPILE",
+      "SOVEREIGN_AGENT_PRECOMPILE|max_poll_block|field_index"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "phase2_deadline_offset",
+      "AsyncTxMetadata::awaiting_execution",
+      "AsyncPool::mark_awaiting_delivery",
+      "SOVEREIGN_AGENT_PRECOMPILE",
+      "max_poll_block"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The sole candidate states the effective timeout rule for CLI_AGENT_PRECOMPILE commitments: decode the max_poll_block offset from input field 4 and add it to commit_block. No in-cluster historical candidate creates a lineage edge.",
+  "record_type": "invariant_mapping",
+  "section": "Precompile Pricing",
+  "source_commits": [
+    "9f4b4d5a5fa0517e96e41192104409dccc7d9172"
+  ],
+  "statement": "Async pool timeout calculation for CLI_AGENT_PRECOMPILE commitments must extract max_poll_block from field 4 of the precompile input and convert it to an absolute timeout by adding the offset to commit_block.",
+  "status": "current",
+  "subsystem": "precompile pricing",
+  "suggested_falsification_tests": [
+    "Create a CLI agent async commitment with commit_block 100 and field 4 max_poll_block offset 25, then assert timeout calculation returns 125.",
+    "Create comparable commitments for the other two-phase precompile paths and assert their existing offset helpers still determine their deadlines rather than using the CLI agent field 4 helper."
+  ],
+  "summary": "The 0x080C agent timeout is derived from field 4 and converted to an absolute delivery deadline in the port.",
+  "test_or_falsification_candidate": "Create a 0x080C async metadata entry with field 4 set to 25 and a settlement block of 100; max_poll_block should be Some(25) and the delivery deadline should become 125.",
+  "title": "CLI agent timeout comes from field 4 offset",
+  "total_invariants": 1954
+}

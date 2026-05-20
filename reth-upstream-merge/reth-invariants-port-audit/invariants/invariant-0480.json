@@ -1,0 +1,81 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "The metadata registers DKMS as a short-settlement async precompile, not a two-phase precompile.",
+      "path": "crates/ritual-precompile-addresses/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const DKMS_KEY_PRECOMPILE: Address = address!(\"0x000000000000000000000000000000000000081b\");\n...\naddress: DKMS_KEY_PRECOMPILE,\ncapability_tag: AsyncPrecompileCapabilityTag::HttpCall,\nsettlement: AsyncPrecompileSettlement::ShortSettlement,\nshort_settlement_enabled: true,",
+      "symbols": [
+        "DKMS_KEY_PRECOMPILE",
+        "ALL_ASYNC_PRECOMPILE_METADATA",
+        "ALL_TWO_PHASE_PRECOMPILE_ADDRESSES"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "DKMS has dedicated payload decoding and validation.",
+      "path": "crates/ritual-precompile-codecs/src/validation.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let request = DkmsKeyRequest::from_abi(input).map_err(decode_error(\"DkmsKeyRequest\"))?;\nvalidate_executor_base_fields(request.executor, request.ttl, &request.encrypted_secrets, &request.user_public_key, max_ttl)?;\nif request.owner.is_zero() {\n    return Err(PayloadValidationError::OwnerZeroAddress);\n}",
+      "symbols": [
+        "validate_dkms_key_payload"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "The unified async fee dispatcher prices DKMS through explicit fixed DKMS fees.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if precompile_address == DKMS_KEY_PRECOMPILE {\n    return Ok(calculate_dkms_fees(input_len));\n}",
+      "symbols": [
+        "calculate_dkms_fees",
+        "calculate_async_fees"
+      ]
+    }
+  ],
+  "equivalence_argument": "DKMS is detected as a known async precompile through metadata, validated through DkmsKeyRequest, priced through calculate_dkms_fees with fixed executor and standard validator fees, and omitted from ALL_TWO_PHASE_PRECOMPILE_ADDRESSES.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ritual-async-fees/src/wallet.rs",
+    "crates/ritual-async-inspector/src/inspector.rs",
+    "crates/ritual-async/src/validation.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-4f1352eb77-dkms-fixed-async-precompile",
+  "invariant_index": 480,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The implementation covers detection/registration, validation, pricing, and single-phase classification.",
+  "rationale": "The primary combined merge diff adds `DKMS_KEY_PRECOMPILE`, includes it in inspector detection and exports, adds DKMS payload validation, explicit fee and escrow functions, and asserts DKMS is not a two-phase precompile. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "805eab0cdc1974fdb367e79355632a48d6aacd96"
+  ],
+  "statement": "The DKMS key derivation precompile at `0x081B` must be detected as an async precompile, validated with DKMS-specific payload decoding, priced with explicit fixed DKMS executor fees plus standard commitment and inclusion fees for a 20-byte output, and treated as single-phase.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Submit a DKMS key request to the async inspector and validation paths and assert it is detected and decoded; call `calculate_async_fees` with `DKMS_KEY_PRECOMPILE` and assert the executor fee equals the DKMS fixed fee, inclusion uses 20 output bytes, escrow equals total fees, and `is_two_phase_precompile(DKMS_KEY_PRECOMPILE)` is false."
+  ],
+  "summary": "DKMS is a validated fixed-fee single-phase async precompile.",
+  "test_or_falsification_candidate": "Submit a DKMS key request to the async inspector and validation paths and assert it is detected and decoded; call `calculate_async_fees` with `DKMS_KEY_PRECOMPILE` and assert the executor fee equals the DKMS fixed fee, inclusion uses 20 output bytes, escrow equals total fees, and `is_two_phase_precompile(DKMS_KEY_PRECOMPILE)` is false.",
+  "title": "DKMS is a fixed-fee async precompile",
+  "total_invariants": 1954
+}

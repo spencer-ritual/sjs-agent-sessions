@@ -1,0 +1,9 @@
+{
+  "record_type": "adversarial_review",
+  "record_id": "review-file-0077-atom-0001",
+  "atom_record_id": "file-0077-atom-0001",
+  "review_result": "pass",
+  "falsification_attempt": "Feature graph check passed for reth-evm-ethereum --features async-context.",
+  "missed_risks": [],
+  "notes": "The direct `revm-context` dependency was not restored in reth-evm-ethereum because the current crate has no direct revm_context uses; the async-context behavior is restored through the feature graph owned by reth-evm and dependency crates."
+}

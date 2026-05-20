@@ -1,0 +1,70 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-async-fees/src/constants.rs",
+    "crates/ritual-async-fees/src/lib.rs"
+  ],
+  "invariant_id": "cur-8887904fbb-pricing-split-across-phases",
+  "invariant_index": 395,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/constants.rs",
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "calculate_fhe",
+      "FHE_PHASE",
+      "FHE_BASE",
+      "FHE_LAYER",
+      "fhe fee",
+      "calculate_async_fees_phase2 FHE_PRECOMPILE"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "calculate_fhe_fees_phase1",
+      "calculate_fhe_fees_phase2_work",
+      "FHE_PHASE1_SETTLEMENT_FEE_WEI",
+      "FHE_BASE_INFERENCE_FEE_WEI",
+      "FHE_LAYER_FEE_WEI",
+      "calculate_async_fees_phase2"
+    ],
+    "missing_behavior": "The audited port has no FHE-specific Phase 1 fixed fee helper and no Phase 2 base-plus-per-layer FHE pricing with zero validator fees.",
+    "related_but_insufficient_code": [
+      "crates/ritual-precompile-addresses/src/lib.rs registers FHE_PRECOMPILE as a two-phase precompile.",
+      "crates/ritual-async-fees/src/lib.rs has generic two-phase and ZK/Persistent Phase 2 helpers, but no FHE Phase 1 or layer-priced Phase 2 helper.",
+      "crates/ethereum/payload/src/ritual_async.rs rejects FHE async commitment metadata with the other two-phase families lacking fee parity."
+    ]
+  },
+  "notes": "FHE is registered as two-phase metadata, but the actual FHE fee constants and pricing helpers are absent from the audited port and dependency repos.",
+  "rationale": "The commit adds FHE fee constants and new FHE pricing functions: Phase 1 uses a fixed settlement fee and assumes a job_id-sized output, while Phase 2 computes executor payment from layer count and sets validator fees to zero because they were paid in Phase 1. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "2142b4b49a834ba14de71f015aed41e1d559680e"
+  ],
+  "statement": "FHE async pricing must charge a fixed Phase 1 executor fee plus normal commitment and 32-byte inclusion fees, and Phase 2 must charge only the FHE execution fee computed as base fee plus per-layer fee with zero commitment and inclusion fees.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call `calculate_fhe_fees_phase1` for a known input length and assert executor fee is `FHE_PHASE1_SETTLEMENT_FEE_WEI` with inclusion priced for 32 output bytes; call `calculate_fhe_fees_phase2_work(3)` and assert executor fee equals `FHE_BASE_INFERENCE_FEE_WEI + 3 * FHE_LAYER_FEE_WEI` and both validator fee fields are zero."
+  ],
+  "summary": "FHE phase-split pricing is not ported.",
+  "test_or_falsification_candidate": "Call the port fee APIs for FHE Phase 1 and Phase 2 layer counts; the current port has no FHE pricing entrypoint and generic Phase 2 fee calculation rejects 0x0807.",
+  "title": "FHE pricing is split across phases",
+  "total_invariants": 1954
+}

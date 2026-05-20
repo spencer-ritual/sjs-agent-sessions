@@ -1,0 +1,11 @@
+{
+  "record_type": "adversarial_review",
+  "record_id": "review-file-0536-atom-0001",
+  "atom_record_id": "file-0536-atom-0001",
+  "review_result": "pass",
+  "falsification_attempt": "Checked whether missing Scheduled/AsyncCommitment SubPool variants imply missing runtime behavior. The v2.2 port routes async through AsyncPool metadata and scheduled obligations through payload/verifier state checks, so putting these back into SubPool would duplicate stale old-design state.",
+  "missed_risks": [
+    "Consumers expecting scheduled or async counts inside PoolSize are not preserved; no current v2.2 consumer was found relying on those old fields."
+  ],
+  "notes": "The regular pending/queued/basefee/blob ordering invariants remain upstream-compatible."
+}

@@ -1,0 +1,106 @@
+{
+  "record_type": "file",
+  "file_index": 192,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/node/builder/src/components/pool.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "partial",
+  "tags": [
+    "partial",
+    "high-risk",
+    "non-exact",
+    "node-builder",
+    "pool-builder",
+    "transaction-pool",
+    "block-verification",
+    "reviewed",
+    "intentional-architecture"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0192-atom-0001",
+      "file_index": 192,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/node/builder/src/components/pool.rs",
+      "source_hunk_hint": "@@ -11,6 +11,7 @@; @@ -25,6 +26,7 @@",
+      "source_kind": "public_api",
+      "source_snippet": "pub trait PoolBuilder<Node: FullNodeTypes>: Send {\n    /// The transaction pool to build.\n    type Pool: TransactionPool<Transaction: PoolTransaction<Consensus = TxTy<Node::Types>>>\n        + reth_transaction_pool::TransactionPoolExt\n        + Unpin\n        + 'static;\n...\nPool: TransactionPool<Transaction: PoolTransaction<Consensus = TxTy<Node::Types>>>\n    + reth_transaction_pool::TransactionPoolExt\n    + Unpin\n    + 'static,",
+      "semantic_claim": "The old pool-builder API requires every constructed pool to implement `TransactionPoolExt`, making extended transaction-pool operations available to downstream builder/EVM/block-verification code.",
+      "high_risk": true,
+      "risk_tags": [
+        "transaction-pool",
+        "pool-builder-api",
+        "block-verification",
+        "verification-pool-coupling"
+      ],
+      "mapping_status": "intentionally_absent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "MERGE_NOTES.md",
+          "symbols": [
+            "build_evm_with_pool"
+          ],
+          "evidence": "The merge notes explicitly say not to carry forward the old build_evm_with_pool shim. They direct custom execution to the current ExecutorBuilder shape and say async/scheduled txpool behavior should map to PoolBuilder<Node, Evm>, transaction validation, or pool maintenance because the pool now receives the builder-created EVM config directly."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/node/builder/src/components/builder.rs",
+          "symbols": [
+            "ComponentsBuilder::build_components"
+          ],
+          "evidence": "Current component construction builds evm_config with executor_builder.build_evm(context), then calls pool_builder.build_pool(context, evm_config.clone()), then wires network and payload builder with the pool and EVM config. This is the intended v2 ownership direction: EVM config into pool, not pool into EVM construction."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/node/builder/src/components/pool.rs",
+          "symbols": [
+            "PoolBuilder",
+            "spawn_pool_maintenance_task"
+          ],
+          "evidence": "The current PoolBuilder is generic over Evm and build_pool receives evm_config. Concrete maintenance helpers still require TransactionPoolExt and spawn maintain_transaction_pool_future on the provider canonical_state_stream."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/mod.rs",
+          "symbols": [
+            "Pool::on_canonical_state_change",
+            "process_async_commitment_transactions",
+            "process_async_settlement_transactions"
+          ],
+          "evidence": "When the pool receives canonical-state changes, it updates the normal txpool, processes canonical async commitments into the async lifecycle pool, processes canonical async settlements/deliveries, and cleans up expired async entries. This proves the old pool-aware async lifecycle work moved to pool maintenance rather than EVM construction."
+        }
+      ],
+      "equivalence_argument": "Confirmed after mechanical review: the old trait-level TransactionPoolExt guarantee was part of the old build_evm_with_pool/pool-aware verifier API shape and is intentionally not preserved at the PoolBuilder associated-type boundary. Current concrete pool maintenance helpers still require TransactionPoolExt where extended methods are used. The old broad trait guarantee is therefore an intentional API-shape difference; the real remaining FSM non-equivalence is synchronous blocking-handler registration, tracked in files 194 and 197.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Focus tests on the concrete TransactionPoolExt users: pool maintenance should process canonical async commitments/settlements and sender locks as expected.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed 2026-05-11: no unresolved proof remains. Trait-level bound is intentionally absent; concrete helper bounds preserve current extended-pool usage."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Reviewed and downgraded: the old PoolBuilder-wide TransactionPoolExt guarantee is intentionally absent with the old build_evm_with_pool architecture. Current helpers require TransactionPoolExt at concrete maintenance boundaries where needed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Reviewed 2026-05-11 against current port code and MERGE_NOTES.",
+    "Current PoolBuilder<Node, Evm> does not require TransactionPoolExt on every associated pool type.",
+    "Concrete maintenance helpers such as spawn_pool_maintenance_task still require TransactionPoolExt.",
+    "Pool::on_canonical_state_change processes async lifecycle state once maintenance receives canonical updates.",
+    "Residual synchronous ordering gap is tracked in files 194 and 197."
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "cluster_key": "scheduler:payload-building:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Scheduled block math is centralized in saturating helpers; compute_max_block_number_u64 returns 0 for num_calls == 0 and uses saturating_add/saturating_mul for the remaining terms.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if num_calls == 0 { return 0; }\n(start_block as u64)\n    .saturating_add((frequency as u64).saturating_mul(num_calls as u64 - 1))\n    .saturating_add(ttl as u64)\n...\nself.expected_block(execution_index).saturating_add(self.ttl as u64)",
+      "symbols": [
+        "compute_max_block_number_u64",
+        "compute_max_block_number_u32_saturating",
+        "ScheduledCall::expected_block",
+        "ScheduledCall::ttl_deadline",
+        "ScheduledCall::expiry_block"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Payload-builder obligation derivation calls the shared due_index_bounds helper and therefore inherits its zero-num_calls and saturating due-window behavior.",
+      "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let Some((first_due_index, last_due_index)) = ritual_scheduled_verification::due_index_bounds(\n    block_number, call.start_block as u64, call.frequency as u64, call.ttl as u64, call.num_calls as u64,\n) else { continue; };",
+      "symbols": [
+        "compute_obligations_from_calls",
+        "due_index_bounds"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port: scheduled max-block, expected-block, TTL deadline, and builder due-window calculations use shared saturating u64 helpers and return no execution window for num_calls == 0.",
+  "evidence_files": [
+    "crates/ritual-scheduled-block-building/src/lib.rs",
+    "crates/ritual-scheduled-verification/src/lib.rs"
+  ],
+  "invariant_id": "cur-59290e8e9b-scheduled-block-math-overflow-safe",
+  "invariant_index": 74,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs"
+    ],
+    "checked_queries": [
+      "compute_max_block_number|ttl_deadline|expiry_block|saturating|num_calls|due_index_bounds"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "compute_max_block_number_u64",
+      "compute_max_block_number_u32_saturating",
+      "due_index_bounds"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped exactly.",
+  "rationale": "The later candidates consolidate overflow handling for reconstructed scheduled transactions and ScheduledCall helper calculations.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "6e26a250eaa9104cc5e3890dfea181291e4576fc",
+    "465eb33883dd0065dad09836142410b2454881a9",
+    "f4eb5f66c2d2e789f4299b8cadd6f7f08b599ada"
+  ],
+  "statement": "Scheduled expected_block, ttl_deadline, expiry_block, and payload-builder max_block_number derivation must use saturating arithmetic, with expiry_block returning 0 for num_calls == 0, so malformed or extreme schedule fields cannot panic or wrap during augmentation or verification.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Construct ScheduledCall values with num_calls=0, u32::MAX frequency, u32::MAX start_block, and u32::MAX ttl; assert expiry_block returns 0 for zero calls and saturates rather than panicking or wrapping for extreme values.",
+    "Run compute_obligations_from_calls on an extreme call snapshot and assert due_index_bounds either returns a valid bounded interval or None without overflow."
+  ],
+  "summary": "Scheduled block math is overflow-safe in the port.",
+  "test_or_falsification_candidate": "Add overflow-boundary unit tests for compute_max_block_number_u64, ScheduledCall::ttl_deadline, expiry_block, and compute_obligations_from_calls.",
+  "title": "Scheduled block math is overflow safe",
+  "total_invariants": 1954
+}

@@ -1,0 +1,69 @@
+{
+  "cluster_key": "scheduler:locks-observability",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/transaction-pool/src/maintain.rs",
+    "crates/scheduling/src/contract.rs"
+  ],
+  "invariant_id": "cur-e6a6cb5e5f-scheduled-maintenance-event-bounds-defensive",
+  "invariant_index": 31,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/maintain.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/transaction-pool/src/pool/mod.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs"
+    ],
+    "checked_queries": [
+      "CHAIN_HALT_THRESHOLD_SECS|CHAIN_HALT|halt threshold|poisonous",
+      "evict_all_scheduled_transactions|cleanup_expired_scheduled|scheduled_transactions",
+      "derive_execution_bounds|compute_max_block_number"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "CHAIN_HALT_THRESHOLD_SECS",
+      "get_chain_halt_threshold",
+      "evict_all_scheduled_transactions",
+      "remove_scheduled_expired_by_time",
+      "cleanup_expired_async_by_time",
+      "compute_max_block_number_u64",
+      "compute_max_block_number_u32_saturating"
+    ],
+    "missing_behavior": "Missing txpool maintenance that reads CHAIN_HALT_THRESHOLD_SECS with default 10, compares latest-block wall-clock divergence, and evicts all scheduled transactions as poisonous only when threshold is exceeded.",
+    "related_but_insufficient_code": [
+      "The port preserves saturating scheduled max-block arithmetic, but maintain.rs explicitly omits the old chain-halt scheduled tx eviction loop."
+    ]
+  },
+  "notes": "Confirmed gap because one required half of the invariant is explicitly absent.",
+  "rationale": "These are separate defensive arithmetic/maintenance rules around scheduled state: chain halt eviction is operator-configurable, and legacy event bounds are derived with saturating arithmetic.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "20e17461606c4ee128e508c51656fddaff3d9502",
+    "6b25e8dbc4c7974585426891ef50f6837accf546"
+  ],
+  "statement": "Transaction-pool maintenance must evict scheduled transactions as poisonous only when wall-clock divergence from the latest block exceeds CHAIN_HALT_THRESHOLD_SECS, defaulting to 10 on absent or invalid configuration, and Scheduler event parsers must derive legacy max-block fields with saturating last-execution arithmetic.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Run maintenance with scheduled transactions and controlled timestamps; assert eviction honors unset, invalid, and valid CHAIN_HALT_THRESHOLD_SECS values.",
+    "Decode cancelled, executed, completed, and failed events with startBlock/frequency/numCalls values that would overflow unchecked arithmetic and assert parsing succeeds with saturated legacy max block."
+  ],
+  "summary": "Scheduled maintenance/event defensive bounds are only partially present; chain-halt scheduled eviction behavior is absent.",
+  "test_or_falsification_candidate": "Run txpool maintenance with raw scheduled tx and stale latest block timestamp >10 seconds; expected poisonous eviction path is absent.",
+  "title": "Scheduled maintenance and event bounds are defensive",
+  "total_invariants": 1954
+}

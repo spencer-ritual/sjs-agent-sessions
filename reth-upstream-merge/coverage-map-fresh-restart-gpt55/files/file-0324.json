@@ -1,0 +1,275 @@
+{
+  "record_type": "file",
+  "file_index": 324,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-precompile-codecs/src/long_running.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "precompile-codecs",
+    "long-running",
+    "delivery-config",
+    "phase2",
+    "fhe"
+  ],
+  "atoms_total": 5,
+  "atoms": [
+    {
+      "record_id": "file-0324-atom-0001",
+      "file_index": 324,
+      "atom_index": 1,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-precompile-codecs/src/long_running.rs",
+      "source_hunk_hint": "@@ -0,0 +1,183 @@; DeliveryConfig shape and HTTP-family delivery config decoder",
+      "source_kind": "delivery_config_http_family_decoder",
+      "source_snippet": "pub struct DeliveryConfig { pub target: Address, pub selector: FixedBytes<4>, pub gas_limit: u64, pub max_fee_per_gas: U256, pub max_priority_fee_per_gas: U256, pub value: U256 }\n\npub fn from_abi(data: &[u8]) -> Result<Self, CodecError> { ... }",
+      "semantic_claim": "The old divergence adds the shared Phase 2 `DeliveryConfig` type and HTTP-family long-running delivery config decoder, extracting target, bytes4 selector, gas limit, EIP-1559 fee caps, and delivery value from fixed ABI slots with selector length validation and gas-limit capping at `u64::MAX`.",
+      "high_risk": false,
+      "risk_tags": [
+        "delivery-config",
+        "phase2",
+        "long-running-http",
+        "fee-fields",
+        "abi-decoding"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/long_running.rs",
+          "symbols": [
+            "DeliveryConfig",
+            "DeliveryConfig::from_abi"
+          ],
+          "evidence": "Destination lines 1-183 exactly match source-added diff lines 58348-58530."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/wallet.rs",
+          "symbols": [
+            "DeliveryConfig::from_abi"
+          ],
+          "evidence": "Wallet/fee verification uses this decoder for HTTP-family Phase 2 delivery fee checks."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the delivery config field layout and numeric/selector validation behavior unchanged for HTTP-family precompiles.",
+      "test_strategy": "delivery_config_http_family_decode_tests",
+      "negative_test_candidate": "A delivery selector not exactly four bytes should return a `CodecError::FieldExtractionFailed` selector-length error.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0324-atom-0002",
+      "file_index": 324,
+      "atom_index": 2,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-precompile-codecs/src/long_running.rs",
+      "source_hunk_hint": "@@ -0,0 +185,639 @@; ZK, Sovereign Agent, and Persistent Agent DeliveryConfig decoders",
+      "source_kind": "delivery_config_specialized_two_phase_decoders",
+      "source_snippet": "pub fn from_zk_abi(data: &[u8]) -> Result<Self, CodecError> { ... }\npub fn from_sovereign_agent_abi(data: &[u8]) -> Result<Self, CodecError> { ... }\npub fn from_persistent_agent_abi(data: &[u8]) -> Result<Self, CodecError> { ... }",
+      "semantic_claim": "The old divergence adds specialized delivery config decoders for ZK two-phase, Sovereign Agent, and Persistent Agent ABI layouts, reading each precompile family's delivery fields from its correct offsets, using zero delivery value for Sovereign Agent, and preserving family-specific error labels.",
+      "high_risk": false,
+      "risk_tags": [
+        "delivery-config",
+        "zk",
+        "sovereign-agent",
+        "persistent-agent",
+        "phase2"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/long_running.rs",
+          "symbols": [
+            "DeliveryConfig::from_zk_abi",
+            "DeliveryConfig::from_sovereign_agent_abi",
+            "DeliveryConfig::from_persistent_agent_abi"
+          ],
+          "evidence": "Destination lines 185-639 exactly match source-added diff lines 58532-58986."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "DeliveryConfig::from_zk_abi",
+            "DeliveryConfig::from_sovereign_agent_abi",
+            "DeliveryConfig::from_persistent_agent_abi"
+          ],
+          "evidence": "Payload settlement logic uses the family-specific decoders for Phase 2 delivery checks."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the family-specific ABI offsets needed for correct Phase 2 settlement fee and callback extraction.",
+      "test_strategy": "delivery_config_family_offset_tests",
+      "negative_test_candidate": "A Sovereign Agent payload should decode delivery target/selector/fees from fields 6-10 and set delivery value to zero.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0324-atom-0003",
+      "file_index": 324,
+      "atom_index": 3,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-precompile-codecs/src/long_running.rs",
+      "source_hunk_hint": "@@ -0,0 +641,885 @@; FHE delivery config, structure validation, and output size extraction",
+      "source_kind": "fhe_delivery_and_result_codec",
+      "source_snippet": "pub fn from_fhe_abi(data: &[u8]) -> Result<Self, CodecError> { ... }\npub fn validate_fhe_payload_structure(data: &[u8]) -> Result<(), CodecError> { ... }\npub fn extract_fhe_output_size(data: &[u8]) -> Result<u64, CodecError> { ... }",
+      "semantic_claim": "The old divergence adds FHE-specific delivery config decoding, 19-field FHE payload structure validation including StorageRef tuple fields, and FHE delivery result output-size extraction from the `output_size_bytes` result field.",
+      "high_risk": false,
+      "risk_tags": [
+        "fhe",
+        "delivery-config",
+        "storage-ref",
+        "output-size",
+        "phase2"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/long_running.rs",
+          "symbols": [
+            "DeliveryConfig::from_fhe_abi",
+            "validate_fhe_payload_structure",
+            "extract_fhe_output_size"
+          ],
+          "evidence": "Destination lines 641-885 exactly match source-added diff lines 58988-59232."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-block-verification/src/verifier.rs",
+          "symbols": [
+            "extract_fhe_output_size"
+          ],
+          "evidence": "Block verifier imports and uses `extract_fhe_output_size` for FHE Phase 2 settlement fee validation."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps FHE delivery offsets, StorageRef tuple validation, and output-size extraction semantics unchanged.",
+      "test_strategy": "fhe_delivery_result_codec_tests",
+      "negative_test_candidate": "Malformed FHE result data should return a field extraction error rather than defaulting the output size.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0324-atom-0004",
+      "file_index": 324,
+      "atom_index": 4,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-precompile-codecs/src/long_running.rs",
+      "source_hunk_hint": "@@ -0,0 +887,1152 @@; validation-focused long-running HTTP request decoder",
+      "source_kind": "long_running_http_validation_decoder",
+      "source_snippet": "pub struct LongRunningHTTPCallRequest { ... }\n\nimpl LongRunningHTTPCallRequest {\n    pub fn from_abi(data: &[u8]) -> Result<Self, CodecError> { ... }\n}",
+      "semantic_claim": "The old divergence adds a validation-focused long-running HTTP request decoder that extracts base executor fields, polling interval/deadline, task id marker, and the initial, poll, and result URLs from the long-running HTTP ABI.",
+      "high_risk": false,
+      "risk_tags": [
+        "long-running-http",
+        "rpc-validation",
+        "polling",
+        "url-validation",
+        "abi-decoding"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/long_running.rs",
+          "symbols": [
+            "LongRunningHTTPCallRequest",
+            "LongRunningHTTPCallRequest::from_abi"
+          ],
+          "evidence": "Destination lines 887-1152 exactly match source-added diff lines 59234-59499."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async/src/validation.rs",
+          "symbols": [
+            "LongRunningHTTPCallRequest::from_abi"
+          ],
+          "evidence": "Async payload validation decodes long-running HTTP payloads through this request type."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the long-running HTTP validation field offsets and retained URL/polling fields.",
+      "test_strategy": "long_running_http_request_decode_tests",
+      "negative_test_candidate": "A payload missing the result URL slot should fail with an expected-token count or field extraction error.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    },
+    {
+      "record_id": "file-0324-atom-0005",
+      "file_index": 324,
+      "atom_index": 5,
+      "atoms_total": 5,
+      "source_path": "crates/ritual-precompile-codecs/src/long_running.rs",
+      "source_hunk_hint": "@@ -0,0 +1154,1172 @@; DeliveryConfig smoke test",
+      "source_kind": "long_running_delivery_config_tests",
+      "source_snippet": "#[cfg(test)]\nmod tests {\n    #[test]\n    fn test_decode_delivery_config() { ... }\n}",
+      "semantic_claim": "The old divergence adds a smoke test asserting that a `DeliveryConfig` can be constructed with expected gas and fee fields.",
+      "high_risk": false,
+      "risk_tags": [
+        "tests",
+        "delivery-config"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/long_running.rs",
+          "symbols": [
+            "test_decode_delivery_config"
+          ],
+          "evidence": "Destination lines 1154-1172 exactly match source-added diff lines 59501-59519."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the local smoke test for the shared delivery config shape.",
+      "test_strategy": "cargo test -p ritual-precompile-codecs long_running",
+      "negative_test_candidate": "A constructed delivery config should retain the provided gas limit and EIP-1559 fee fields.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Test atom only."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The long-running precompile codec is exact-port preserved, including shared Phase 2 delivery config decoding for HTTP-family, ZK, Sovereign Agent, Persistent Agent, and FHE payloads, FHE output-size extraction, FHE structure validation, long-running HTTP validation decode, and a delivery config smoke test.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 324: A\tcrates/ritual-precompile-codecs/src/long_running.rs.",
+    "Source-added hunk spans diff lines 58348-59519 with header `@@ -0,0 +1,1172 @@`; the next diff starts at line 59520.",
+    "Destination `crates/ritual-precompile-codecs/src/long_running.rs` has 1172 lines and matches the source-added content exactly.",
+    "Bounded usage evidence found delivery config decoding in payload settlement, async fees wallet checks, block verifier FHE fee validation, and async payload validation.",
+    "No review queue entry required because all atoms are exact."
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "Registry-read and block-verifier failures emit structured error logs with contract or block identifiers before returning BlockExecutionError.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "let executors = read_all_executors(&mut self.db, contract).map_err(|e| { tracing::error!(target: \"ritual::block_execution\", contract = %contract, error = ?e, \"Registry read failed during block execution\"); BlockExecutionError::msg(format!(\"Registry read failed: {:?}\", e)) })?;\n...\ntracing::error!(target: \"ritual::block_verification\", block_hash = %block.hash(), block_number = block.number(), error = ?e, \"Block verification failed\");\nreturn Err(BlockExecutionError::msg(format!(\"Block verification failed: {:?}\", e)));",
+      "symbols": [
+        "update_executor_registry_from_block",
+        "execute_one"
+      ]
+    }
+  ],
+  "equivalence_argument": "Nodebuilder is the dependency that wraps block execution and consensus verification; both failure paths log before error propagation.",
+  "evidence_files": [
+    "crates/node/src/executor.rs"
+  ],
+  "invariant_id": "cur-3a5099f204-verification-failures-logged-before-return",
+  "invariant_index": 383,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in nodebuilder dependency.",
+  "rationale": "The commit is explicitly an observability fix for errors that were only visible through Summit RPC responses; the diff adds tracing::error calls immediately inside the map_err paths before constructing BlockExecutionError. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "9560c8852f880ee29214cf84eda6e0de89346188"
+  ],
+  "statement": "If executor registry reading or consensus block verification fails during block execution, Reth must emit an error log with the relevant contract or block identifiers and underlying error before returning the BlockExecutionError to the caller.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Inject a failing registry reader and a failing BlockVerifier in execute_one and execute_batch, capture tracing output, and assert an error log containing the contract or block hash/number and error is emitted before the returned BlockExecutionError is observed."
+  ],
+  "summary": "Block execution logs verification failures before returning.",
+  "test_or_falsification_candidate": "Inject registry-reader and BlockVerifier failures, capture tracing, and assert the error events precede the returned BlockExecutionError.",
+  "title": "Verification failures are logged before return",
+  "total_invariants": 1954
+}

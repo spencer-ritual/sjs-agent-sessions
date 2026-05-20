@@ -1,0 +1,77 @@
+{
+  "record_type": "file",
+  "file_index": 275,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-async-fees/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "cargo-manifest",
+    "workspace",
+    "async-fees",
+    "fee-calculation"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0275-atom-0001",
+      "file_index": 275,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-async-fees/Cargo.toml",
+      "source_hunk_hint": "@@ -0,0 +1,39 @@",
+      "source_kind": "crate_manifest_workspace_wiring",
+      "source_snippet": "[package]\nname = \"ritual-async-fees\"\nversion = \"0.1.0\"\nedition = \"2021\"\nlicense = \"MIT OR Apache-2.0\"\nrepository = \"https://github.com/ritual-net/ritual-reth-internal\"\n\n[dependencies]\nalloy-primitives.workspace = true\nritual-precompile-addresses.workspace = true\nalloy-consensus.workspace = true\nreth-ethereum-primitives.workspace = true\nreth-primitives-traits.workspace = true\nalloy-sol-types.workspace = true\nserde_json.workspace = true\ntracing.workspace = true\nrevm.workspace = true\nhex.workspace = true\nritual-precompile-codecs.workspace = true\n\n[dev-dependencies]",
+      "semantic_claim": "The old divergence adds the `ritual-async-fees` crate manifest for async fee calculation support, with primitive, precompile address/codecs, consensus transaction, Reth primitive trait, scheduled-event parsing, JSON metadata, tracing, revm database, and hex test dependencies sourced from the workspace; the root workspace wires the crate as a member and workspace dependency.",
+      "high_risk": false,
+      "risk_tags": [
+        "crate-manifest",
+        "workspace-members",
+        "workspace-dependencies",
+        "async-fees"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/Cargo.toml",
+          "evidence": "Destination manifest preserves the same package name, version, edition, license, repository, dependency set, dependency comments, workspace dependency declarations, and empty dev-dependencies section."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "Cargo.toml",
+          "evidence": "Destination workspace root includes `crates/ritual-async-fees/` as a member and declares `ritual-async-fees = { path = \"crates/ritual-async-fees\" }` in workspace dependencies, matching the source workspace wiring."
+        }
+      ],
+      "equivalence_argument": "The destination preserves the async fees crate's manifest and workspace visibility exactly, so downstream async-fee implementation files can resolve the same crate-local and workspace dependencies without manifest drift.",
+      "test_strategy": "cargo_metadata_regression",
+      "negative_test_candidate": "Run cargo metadata or a package check for `ritual-async-fees` and assert all manifest dependencies resolve through the workspace root.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This record covers only the `ritual-async-fees` manifest and root workspace member/dependency wiring; implementation files beginning with `src/constants.rs` remain for subsequent queue entries."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The async fees crate manifest and root workspace wiring are exact-port preserved in the destination.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 275: A\tcrates/ritual-async-fees/Cargo.toml.",
+    "Source diff adds a new 39-line Cargo.toml manifest ending immediately before `crates/ritual-async-fees/src/constants.rs`.",
+    "Destination manifest and workspace member/dependency declarations preserve the source addition exactly.",
+    "No implementation files from `crates/ritual-async-fees/src/` were processed in this record."
+  ]
+}

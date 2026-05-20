@@ -1,0 +1,85 @@
+{
+  "record_type": "file",
+  "file_index": 305,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-blocking-pubsub/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "manifest",
+    "blocking-pubsub",
+    "workspace"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0305-atom-0001",
+      "file_index": 305,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-blocking-pubsub/Cargo.toml",
+      "source_hunk_hint": "@@ -0,0 +1,13 @@; blocking pubsub crate manifest",
+      "source_kind": "crate_manifest",
+      "source_snippet": "[package]\nname = \"ritual-blocking-pubsub\"\nversion.workspace = true\nedition.workspace = true\nrust-version.workspace = true\nlicense.workspace = true\nhomepage.workspace = true\nrepository.workspace = true\n\n[dependencies]\n# Need minimal types to avoid circular dependency\nreth-execution-types = { path = \"../evm/execution-types\" }\nreth-primitives-traits = { path = \"../primitives-traits\" }",
+      "semantic_claim": "The old divergence adds the `ritual-blocking-pubsub` crate manifest with workspace package metadata and only the minimal `reth-execution-types` and `reth-primitives-traits` dependencies needed to publish blocking canonical-state callbacks without introducing a circular dependency.",
+      "high_risk": false,
+      "risk_tags": [
+        "manifest",
+        "workspace-member",
+        "dependency-boundary",
+        "canonical-state-notification"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-blocking-pubsub/Cargo.toml",
+          "symbols": [
+            "package:ritual-blocking-pubsub",
+            "reth-execution-types",
+            "reth-primitives-traits"
+          ],
+          "evidence": "Destination manifest lines 1-13 exactly match source-added diff lines 54335-54347, including the dependency-boundary comment and two local path dependencies."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "Cargo.toml",
+          "symbols": [
+            "workspace.members",
+            "workspace.dependencies.ritual-blocking-pubsub"
+          ],
+          "evidence": "Destination workspace includes `crates/ritual-blocking-pubsub/` as a member and exposes `ritual-blocking-pubsub` as a workspace dependency."
+        }
+      ],
+      "equivalence_argument": "The crate manifest is byte-for-byte preserved in the destination and remains wired into the workspace, so the dependency-light blocking pubsub crate boundary is exact-port preserved.",
+      "test_strategy": "workspace_manifest_and_crate_resolution",
+      "negative_test_candidate": "Removing either local dependency or the workspace member entry should break compilation for providers that expose blocking canonical-state subscriptions.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact manifest mapping; no review queue entry required."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The `ritual-blocking-pubsub` manifest is exact-port preserved, retaining the minimal dependency boundary used for blocking canonical-state notification callbacks.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 305: A\tcrates/ritual-blocking-pubsub/Cargo.toml.",
+    "Source-added hunk spans diff lines 54335-54347 with header `@@ -0,0 +1,13 @@`.",
+    "Destination `crates/ritual-blocking-pubsub/Cargo.toml` has 13 lines and matches the source-added manifest exactly.",
+    "No review queue entry required because the atom is exact."
+  ]
+}

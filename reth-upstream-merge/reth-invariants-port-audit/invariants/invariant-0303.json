@@ -1,0 +1,64 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "",
+  "evidence_files": [
+    "crates/ritual-precompile-codecs/src/executor.rs",
+    "crates/ritual-async/src/detector.rs"
+  ],
+  "invariant_id": "cur-5d024cd2a2-executor-request-base-fields-extensibly-decoded",
+  "invariant_index": 303,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-precompile-codecs/src/executor.rs",
+      "ritual-reth-internal-v2.2.0-port/crates/ritual-precompile-codecs/src/validation.rs"
+    ],
+    "checked_queries": [
+      "decode_base_fields",
+      "read_abi_word",
+      "word_to_usize",
+      "ExecutorRequest trailing fields",
+      "Expected 5 tokens"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "ExecutorRequest::decode_base_fields",
+      "ethabi::decode",
+      "read_abi_word",
+      "word_to_usize"
+    ],
+    "missing_behavior": "The audited code does not implement a manual extensible base-prefix decoder that recovers only executor/encrypted_secrets/ttl from the first ABI words while tolerating arbitrary trailing request-specific fields.",
+    "related_but_insufficient_code": [
+      "ExecutorRequest::decode_base_fields currently calls ethabi::decode with a fixed five-field ABI type list and returns an error unless exactly five tokens decode.",
+      "No read_abi_word/word_to_usize/manual ABI prefix parser exists in ritual-precompile-codecs; dependency repos did not contain an alternate ExecutorRequest decoder."
+    ]
+  },
+  "notes": "Confirmed gap in the port precompile codec; related exact decoder is insufficient for this invariant.",
+  "rationale": "The diff replaces exact tuple decoding with manual ABI word parsing for the shared executor/secrets/ttl prefix, and the detector uses that decoder for non-HTTP precompiles such as LLM. This lets richer precompile request payloads preserve a common async scheduling prefix. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "0192e13de434f8b6a35ee509944ea31422ff3adb"
+  ],
+  "statement": "`ExecutorRequest::decode_base_fields` must recover executor address, encrypted secrets, and TTL from the first three ABI words of a precompile request while tolerating additional trailing request-specific fields, validating dynamic bytes offsets/lengths and TTL overflow.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "ABI-encode a request with executor, encrypted secrets, TTL, and extra LLM-specific fields after the base prefix; assert `decode_base_fields` returns the base values and ignores trailing fields. Also assert malformed offsets, truncated bytes payloads, and TTL values larger than `u64` return errors."
+  ],
+  "summary": "ExecutorRequest base decoding is fixed-shape rather than an extensible manual ABI prefix decoder.",
+  "test_or_falsification_candidate": "ABI-encode executor/encrypted_secrets/ttl followed by extra request-specific fields without the port-required five-field tuple and assert current decode_base_fields fails instead of recovering the base prefix.",
+  "title": "Executor request base fields are extensibly decoded",
+  "total_invariants": 1954
+}

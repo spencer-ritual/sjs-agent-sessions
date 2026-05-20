@@ -1,0 +1,76 @@
+{
+  "cluster_key": "scheduler:receipt-rpc",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Legacy verification maps read_scheduled_call errors or None to CallNotFound before later checks.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let call = read_scheduled_call(db, Some(scheduler), call_id)\n    .map_err(|_| ScheduledConstraintViolation::CallNotFound { call_id })?\n    .ok_or(ScheduledConstraintViolation::CallNotFound { call_id })?;",
+      "symbols": [
+        "verify_scheduled_transactions",
+        "read_scheduled_call",
+        "ScheduledConstraintViolation::CallNotFound"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Block-building filtering emits C1CallNotFound when batch_read_scheduled_calls lacks the call id.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let call = match calls_map.get(&call_id) { Some(c) => c, None => { results.push(FilterResult::C1CallNotFound); continue; } };",
+      "symbols": [
+        "filter_scheduled_for_block_building_full",
+        "FilterResult::C1CallNotFound"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port: missing Scheduler calls are rejected as CallNotFound/C1 before downstream validation.",
+  "evidence_files": [
+    "ritual-reth-internal/crates/ritual-scheduled-verification/src/lib.rs"
+  ],
+  "invariant_id": "cur-2faa3a174f-scheduled-verification-rejects-missing-calls",
+  "invariant_index": 118,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-scheduled-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "CallNotFound|read_scheduled_call|C1CallNotFound"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "verify_scheduled_transactions",
+      "ScheduledConstraintViolation::CallNotFound",
+      "FilterResult::C1CallNotFound"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The current legacy scheduled verifier maps missing or unreadable scheduled call storage to CallNotFound before later state, timing, or execution checks.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "e8a279a42adedf25b719050b9e13335816ea9608"
+  ],
+  "statement": "Scheduled transaction verification must reject a scheduled transaction whose call_id cannot be read from Scheduler contract storage, returning ScheduledConstraintViolation::CallNotFound for that call id.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Verify a scheduled tx with absent call_id and assert ScheduledConstraintViolation::CallNotFound."
+  ],
+  "summary": "Scheduled verification rejects missing calls.",
+  "test_or_falsification_candidate": "Existing C1 call-not-found tests should remain part of scheduled verifier coverage.",
+  "title": "Scheduled verification rejects missing calls",
+  "total_invariants": 1954
+}

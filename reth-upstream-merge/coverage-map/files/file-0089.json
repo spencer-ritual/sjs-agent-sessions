@@ -1,0 +1,111 @@
+{
+  "record_type": "file",
+  "file_index": 89,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ethereum/payload/src/collector.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "structural_equivalent",
+  "tags": [
+    "high-risk",
+    "non-exact",
+    "structural_equivalent"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0089-atom-0001",
+      "file_index": 89,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/ethereum/payload/src/collector.rs",
+      "source_hunk_hint": "@@ -0,0 +1,124 @@",
+      "source_kind": "other",
+      "source_snippet": "//! Unified transaction collection for block building.\n//!\n//! This module implements the unified collection of all tip-paying transactions\n//! from multiple sources (scheduled, fulfilled async, delivery, regular) into\n//! a single sorted list for optimal tip-maximizing block construction.\n",
+      "semantic_claim": "The downstream diff for crates/ethereum/payload/src/collector.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "default_ethereum_payload",
+            "ritual async/scheduled phases"
+          ],
+          "snippet": "scheduled obligations, async commitments, fulfilled async settlements, delivery readiness, and regular transactions are handled in the unified v2.2 payload builder",
+          "evidence": "The old collector/bundle/unified_builder split is collapsed into the current payload builder; active behavior is present in one module and verified by focused scheduled/async checks."
+        }
+      ],
+      "equivalence_argument": "Old payload submodules are collapsed into the current unified payload builder; active transaction fit/execution behavior is preserved there.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Exercise the crates/ethereum/payload/src/collector.rs behavior boundary in the port and verify the downstream path-specific behavior still exists; absence or changed rejection/ordering would falsify the mapping.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to current payload module; old file split is not restored."
+    },
+    {
+      "record_id": "file-0089-atom-0002",
+      "file_index": 89,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/ethereum/payload/src/collector.rs",
+      "source_hunk_hint": "@@ -0,0 +1,124 @@",
+      "source_kind": "test_fixture",
+      "source_snippet": "        // In a real test, we'd use a mock PoolTx type\n    }\n\n    #[test]\n    fn test_can_fit_transaction() {\n        assert!(can_fit_transaction(100, 0, 1000));\n        assert!(can_fit_transaction(100, 900, 1000));\n        assert!(!can_fit_transaction(100, 901, 1000));\n        assert!(!can_fit_transaction(1001, 0, 1000));\n    }\n}",
+      "semantic_claim": "can fit preserves the production behavior asserted by downstream tests: test_can_fit_transaction.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "default_ethereum_payload",
+            "ritual async/scheduled phases"
+          ],
+          "snippet": "scheduled obligations, async commitments, fulfilled async settlements, delivery readiness, and regular transactions are handled in the unified v2.2 payload builder",
+          "evidence": "The old collector/bundle/unified_builder split is collapsed into the current payload builder; active behavior is present in one module and verified by focused scheduled/async checks."
+        }
+      ],
+      "equivalence_argument": "Old payload submodules are collapsed into the current unified payload builder; active transaction fit/execution behavior is preserved there.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Run or port the grouped downstream tests: test_can_fit_transaction.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to current payload module; old file split is not restored.",
+      "test_derived": true,
+      "source_test_names": [
+        "test_can_fit_transaction"
+      ],
+      "source_raw_atom_ids": [
+        "test-file-0089-atom-0002"
+      ]
+    }
+  ],
+  "high_risk_atoms_total": 2,
+  "non_exact_atoms_total": 2,
+  "adversarial_reviews": [],
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "No same-path or uniquely named destination evidence was found in the configured search scope. Curated test-atom insertion appended 1 grouped behavior atom(s) from coverage-map/test-atom-audit; raw helper/no-assert/default-only cases were not canonicalized."
+}

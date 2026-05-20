@@ -1,0 +1,90 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "Normal EVM construction uses RitualEvm with RitualPrecompiles installed.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "type Evm<DB: Database, I: Inspector<AsyncEthEvmContext<DB>, EthInterpreter>> = RitualEvm<DB, I, RitualPrecompiles>;\n...\nRitualEvm::new(async_context, NoOpInspector::default())\n    .with_precompiles(RitualPrecompiles::new())",
+      "symbols": [
+        "RitualEvmFactory::create_evm",
+        "RitualPrecompiles::new"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "Inspector-backed EVM construction also installs RitualPrecompiles before enabling inspection.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "RitualEvm::new(async_context, inspector)\n    .with_precompiles(RitualPrecompiles::new())\n    .with_inspect(true)",
+      "symbols": [
+        "RitualEvmFactory::create_evm_with_inspector"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The executor builder wires RitualEvmFactory into the block executor provider, making the precompile set part of normal node execution.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "type EVM = EthEvmConfig<RitualEvmFactory>;\n...\nEthEvmConfig::new_with_evm_factory(ctx.chain_spec(), RitualEvmFactory::default())",
+      "symbols": [
+        "RitualExecutorBuilder::build_evm"
+      ]
+    }
+  ],
+  "equivalence_argument": "RitualEvmFactory installs RitualPrecompiles for both ordinary and inspector-backed EVMs, and RitualExecutorBuilder wires that factory into node execution.",
+  "evidence_files": [
+    "crates/node/src/executor.rs",
+    "crates/node/Cargo.toml"
+  ],
+  "invariant_id": "cur-5bf43234d6-executor-installs-precompiles",
+  "invariant_index": 213,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/node/src/executor.rs",
+      "crates/precompiles/src/lib.rs",
+      "crates/node/Cargo.toml"
+    ],
+    "checked_queries": [
+      "RitualPrecompiles::new|with_precompiles|create_evm_with_inspector|EthEvmConfig<RitualEvmFactory>"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+    ],
+    "checked_symbols": [
+      "RitualEvmFactory",
+      "RitualPrecompiles",
+      "create_evm",
+      "create_evm_with_inspector",
+      "EthEvmConfig<RitualEvmFactory>"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The primary commit replaces the local wrapper executor with an EthEvmConfig parameterized by RitualEvmFactory. RitualEvmFactory creates EthEvm instances whose inner revm context calls with_precompiles(RitualPrecompiles::new()), and the builder wires that factory into BasicBlockExecutorProvider. The commit subject explicitly says to use our precompiles. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "3256eee25a4f23e1204d11d280f3dbe4f1943c8c"
+  ],
+  "statement": "Every EVM constructed by the Ritual node executor configuration for normal execution or inspector-backed execution must include RitualPrecompiles, so transactions executed by the node can call Ritual precompile addresses through the block executor path.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Configure a Ritual node executor with this builder, execute a block containing a transaction or contract call to a known Ritual precompile address such as the ONNX precompile address, and assert the call is handled by RitualPrecompiles in both the ordinary execution path and an inspector-enabled execution path. The test should fail if the executor is constructed with plain Ethereum precompiles or no Ritual precompile set."
+  ],
+  "summary": "Nodebuilder executor-installed EVMs include Ritual precompiles in normal and inspector paths.",
+  "test_or_falsification_candidate": "Execute a transaction against a known Ritual precompile through both normal and inspector-backed node execution and assert RitualPrecompiles handles the call.",
+  "title": "Node executor installs Ritual precompiles",
+  "total_invariants": 1954
+}

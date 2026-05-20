@@ -1,0 +1,656 @@
+{
+  "record_type": "file",
+  "file_index": 64,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/engine/tree/src/tree/mod.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "partial",
+  "tags": [
+    "partial",
+    "missing",
+    "high-risk",
+    "non-exact",
+    "needs-review",
+    "engine-tree",
+    "sync",
+    "execution",
+    "payload",
+    "validation",
+    "telemetry",
+    "negative-path",
+    "reth-port"
+  ],
+  "atoms_total": 14,
+  "atoms": [
+    {
+      "record_id": "file-0064-atom-0001",
+      "file_index": 64,
+      "atom_index": 1,
+      "atoms_total": 14,
+      "source_path": "crates/engine/tree/src/tree/mod.rs",
+      "source_hunk_hint": "@@ -57,6 +58,8 @@",
+      "source_kind": "other",
+      "source_snippet": "use ritual_metrics;",
+      "semantic_claim": "The engine tree module imports Ritual metrics so canonical-chain and block-acceptance telemetry can be emitted from tree/mod.rs.",
+      "high_risk": false,
+      "risk_tags": [
+        "telemetry"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/engine/tree/src/tree/mod.rs",
+          "symbols": [
+            "use ritual_metrics"
+          ],
+          "snippet": "The destination now depends on `ritual-metrics` and uses fully qualified `ritual_metrics::...` call sites from the engine tree and payload validator.",
+          "evidence": "Post-fix search after commit `4af480689a` found engine-tree and payload-validator `ritual_metrics` call sites."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+          "path": "crates/node/src/executor.rs",
+          "symbols": [
+            "RitualBlockExecutor::execute_one"
+          ],
+          "snippet": "ritual_metrics is used in the nodebuilder executor for payload execution phases, not in engine tree acceptance.",
+          "evidence": "This is a related destination use of ritual_metrics but does not cover the source file's tree/mod.rs import or call sites."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Covered by commit `4af480689a`; the port uses fully qualified calls rather than a standalone `use ritual_metrics;` import."
+    },
+    {
+      "record_id": "file-0064-atom-0002",
+      "file_index": 64,
+      "atom_index": 2,
+      "atoms_total": 14,
+      "source_path": "crates/engine/tree/src/tree/mod.rs",
+      "source_hunk_hint": "@@ -89,7 +92,13 @@",
+      "source_kind": "changed_constant",
+      "source_snippet": "MIN_BLOCKS_FOR_PIPELINE_RUN changes from EPOCH_SLOTS to 64 with rationale about pipeline execution time, batch efficiency, live-sync coverage, and memory utilization.",
+      "semantic_claim": "Backfill pipeline sync should not be triggered until the live-sync gap exceeds 64 blocks, replacing the epoch-slot threshold with a Ritual-tuned threshold and documented rationale.",
+      "high_risk": true,
+      "risk_tags": [
+        "sync",
+        "liveness",
+        "payload"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/engine/tree/src/tree/mod.rs",
+          "symbols": [
+            "MIN_BLOCKS_FOR_PIPELINE_RUN",
+            "TreeHandler::exceeds_backfill_run_threshold"
+          ],
+          "snippet": "Destination now declares `pub(crate) const MIN_BLOCKS_FOR_PIPELINE_RUN: u64 = 64;` and applies it in the backfill threshold check.",
+          "evidence": "Post-fix search after commit `4af480689a` found the fixed 64-block threshold in the destination engine tree."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Drive forkchoice gaps of 33, 64, and 65 blocks and assert only the >64 gap starts pipeline backfill while smaller gaps remain in live block download/execution.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Covered by commit `4af480689a`; e2e test constants may still have comments describing the historical EPOCH_SLOTS value, but the engine-tree policy constant is now 64."
+    },
+    {
+      "record_id": "file-0064-atom-0003",
+      "file_index": 64,
+      "atom_index": 3,
+      "atoms_total": 14,
+      "source_path": "crates/engine/tree/src/tree/mod.rs",
+      "source_hunk_hint": "@@ -2146,6 +2155,8 @@",
+      "source_kind": "side_effect",
+      "source_snippet": "After setting the tree canonical head, the patch calls ritual_metrics::block::log_el_update_head(&tip.hash(), tip.number(), tip.timestamp()).",
+      "semantic_claim": "Every canonical-chain update records the execution-layer head hash, number, and timestamp through Ritual block metrics before notifications are emitted.",
+      "high_risk": true,
+      "risk_tags": [
+        "telemetry",
+        "canonical-chain",
+        "payload"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/engine/tree/src/tree/mod.rs",
+          "symbols": [
+            "TreeHandler::on_canonical_chain_update"
+          ],
+          "snippet": "Destination now calls `ritual_metrics::block::log_el_update_head(&tip.hash(), tip.number(), tip.timestamp())` in `on_canonical_chain_update`.",
+          "evidence": "Post-fix search after commit `4af480689a` found the `log_el_update_head` call in the destination engine tree."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Commit and reorg canonical chains and assert a Ritual EL head metric/log is emitted with the new tip hash, number, and timestamp for each update.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Covered by commit `4af480689a`."
+    },
+    {
+      "record_id": "file-0064-atom-0004",
+      "file_index": 64,
+      "atom_index": 4,
+      "atoms_total": 14,
+      "source_path": "crates/engine/tree/src/tree/mod.rs",
+      "source_hunk_hint": "@@ -2173,6 +2184,24 @@",
+      "source_kind": "side_effect",
+      "source_snippet": "The patch calls ritual_metrics::tx::log_tx_finalized_chain_update(&chain_update) after reorg handling and before canonical_in_memory_state.update_chain.",
+      "semantic_claim": "Canonical commit and reorg updates emit Ritual transaction finalization metrics for the complete NewCanonicalChain update.",
+      "high_risk": true,
+      "risk_tags": [
+        "telemetry",
+        "canonical-chain",
+        "transactions"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/engine/tree/src/tree/mod.rs",
+          "symbols": [
+            "TreeHandler::on_canonical_chain_update",
+            "NewCanonicalChain"
+          ],
+          "snippet": "Destination now calls `ritual_metrics::tx::log_tx_finalized_chain_update(&chain_update)` after reorg reinsertion and before in-memory canonical updates.",
+          "evidence": "Post-fix search after commit `4af480689a` found the `log_tx_finalized_chain_update` call in the destination engine tree."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Apply both Commit and Reorg canonical updates containing transactions and assert Ritual finalized-chain transaction metrics are emitted once per update.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Covered by commit `4af480689a`."
+    },
+    {
+      "record_id": "file-0064-atom-0005",
+      "file_index": 64,
+      "atom_index": 5,
+      "atoms_total": 14,
+      "source_path": "crates/engine/tree/src/tree/mod.rs",
+      "source_hunk_hint": "@@ -2173,6 +2184,24 @@",
+      "source_kind": "side_effect",
+      "source_snippet": "For NewCanonicalChain::Commit and ::Reorg, the patch iterates new executed blocks and logs target ritual::spc::provider with block_number, block_hash, timestamp, and message `Updated header cache with canonical block`.",
+      "semantic_claim": "Canonical updates emit per-block Ritual SPC provider debug evidence for each newly canonical block, even though the historical header cache has been removed.",
+      "high_risk": true,
+      "risk_tags": [
+        "telemetry",
+        "canonical-chain",
+        "spc"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/engine/tree/src/tree/mod.rs",
+          "symbols": [
+            "TreeHandler::on_canonical_chain_update"
+          ],
+          "snippet": "Destination has no ritual::spc::provider debug loop in canonical-chain updates.",
+          "evidence": "Exact searches for ritual::spc::provider and `Updated header cache with canonical block` across destination repos found no matches."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Canonicalize a multi-block commit and reorg and assert per-new-block SPC provider debug evidence includes block number, hash, and timestamp.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Telemetry-only, but it changes operational evidence around canonical blocks used by Ritual verification flows."
+    },
+    {
+      "record_id": "file-0064-atom-0006",
+      "file_index": 64,
+      "atom_index": 6,
+      "atoms_total": 14,
+      "source_path": "crates/engine/tree/src/tree/mod.rs",
+      "source_hunk_hint": "@@ -2342,13 +2371,17 @@ and @@ -2357,6 +2390,18 @@",
+      "source_kind": "error_path",
+      "source_snippet": "insert_block captures block_hash_str, parent_hash_str, tx_count, then logs block_accept_state_provider_fetch as skipped with reason missing_parent_state when state_provider_builder returns None.",
+      "semantic_claim": "Disconnected blocks with missing parent state emit a Ritual block-acceptance state-provider metric with skipped status and missing_parent_state reason before buffering the block.",
+      "high_risk": true,
+      "risk_tags": [
+        "telemetry",
+        "payload",
+        "negative-path",
+        "state-provider"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/engine/tree/src/tree/payload_validator.rs",
+          "symbols": [
+            "TreeHandler::insert_block_or_payload",
+            "StateProviderBuilder"
+          ],
+          "snippet": "Destination logs `block_accept_state_provider_fetch` with skipped status and `missing_parent_state` reason when the parent state provider is unavailable.",
+          "evidence": "Post-fix search after commit `4af480689a` found the metric in `payload_validator.rs`; the placement moved from tree/mod.rs because v2.2 delegates block validation through the payload validator."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Submit a payload whose parent state is unavailable and assert the block is buffered as disconnected and a skipped block_accept_state_provider_fetch metric with reason missing_parent_state is emitted.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Covered by commit `4af480689a` in the refactored v2.2 payload-validator path."
+    },
+    {
+      "record_id": "file-0064-atom-0007",
+      "file_index": 64,
+      "atom_index": 7,
+      "atoms_total": 14,
+      "source_path": "crates/engine/tree/src/tree/mod.rs",
+      "source_hunk_hint": "@@ -2383,11 +2428,47 @@",
+      "source_kind": "side_effect",
+      "source_snippet": "validate_header_against_parent is timed with block_accept_consensus_validation; errors log status error with reason, success logs status ok.",
+      "semantic_claim": "Parent-header consensus validation during block acceptance emits Ritual timing metrics for both success and failure outcomes.",
+      "high_risk": true,
+      "risk_tags": [
+        "telemetry",
+        "consensus",
+        "validation",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/engine/tree/src/tree/payload_validator.rs",
+          "symbols": [
+            "TreeHandler::insert_block_or_payload"
+          ],
+          "snippet": "Destination logs `block_accept_consensus_validation` around consensus and parent-header validation success and error paths.",
+          "evidence": "Post-fix search after commit `4af480689a` found `block_accept_consensus_validation` in `payload_validator.rs`; the placement is structurally equivalent under the v2.2 refactor."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Submit one block with a valid parent header and one with a parent-consensus mismatch; assert ok and error block_accept_consensus_validation metrics include block/parent hashes, tx count, and failure reason.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Covered by commit `4af480689a` in the refactored v2.2 payload-validator path."
+    },
+    {
+      "record_id": "file-0064-atom-0008",
+      "file_index": 64,
+      "atom_index": 8,
+      "atoms_total": 14,
+      "source_path": "crates/engine/tree/src/tree/mod.rs",
+      "source_hunk_hint": "@@ -2383,11 +2428,47 @@",
+      "source_kind": "side_effect",
+      "source_snippet": "provider_builder.build()? is timed and logs block_accept_state_provider_fetch with status ok.",
+      "semantic_claim": "Successful state-provider construction during block acceptance emits a Ritual timing metric separate from the missing-parent skipped case.",
+      "high_risk": true,
+      "risk_tags": [
+        "telemetry",
+        "execution",
+        "state-provider"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/engine/tree/src/tree/payload_validator.rs",
+          "symbols": [
+            "TreeHandler::insert_block_or_payload",
+            "StateProviderBuilder::build"
+          ],
+          "snippet": "Destination logs `block_accept_state_provider_fetch` with ok status after successful provider construction.",
+          "evidence": "Post-fix search after commit `4af480689a` found the ok state-provider fetch phase metric in `payload_validator.rs`."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Insert a connected block and assert successful state provider construction emits block_accept_state_provider_fetch with ok status and expected block metadata.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Covered by commit `4af480689a` in the refactored v2.2 payload-validator path."
+    },
+    {
+      "record_id": "file-0064-atom-0009",
+      "file_index": 64,
+      "atom_index": 9,
+      "atoms_total": 14,
+      "source_path": "crates/engine/tree/src/tree/mod.rs",
+      "source_hunk_hint": "@@ -2409,6 +2490,7 @@ through @@ -2432,6 +2525,18 @@",
+      "source_kind": "side_effect",
+      "source_snippet": "compute_trie_input logs block_accept_trie_input with ok status; when parallel state root is disabled, it logs skipped with reason parallel_state_root_disabled.",
+      "semantic_claim": "Trie-input preparation during block acceptance emits Ritual timing metrics for computed and skipped paths, distinguishing parallel-state-root-disabled skips.",
+      "high_risk": true,
+      "risk_tags": [
+        "telemetry",
+        "execution",
+        "trie",
+        "state-root",
+        "negative-path"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/engine/tree/src/tree/mod.rs",
+          "symbols": [
+            "compute_trie_input",
+            "payload_processor.spawn_cache_exclusive"
+          ],
+          "snippet": "Destination tree contains trie/change-set handling but no block_accept_trie_input ok or skipped Ritual phase metrics.",
+          "evidence": "Exact searches found no block_accept_trie_input or parallel_state_root_disabled metric reason in destination repos."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Run block insertion with parallel state root enabled and disabled; assert block_accept_trie_input emits ok for computed trie input and skipped/parallel_state_root_disabled for the disabled path.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "No equivalent trie-input acceptance telemetry was found in the port or dependency repos."
+    },
+    {
+      "record_id": "file-0064-atom-0010",
+      "file_index": 64,
+      "atom_index": 10,
+      "atoms_total": 14,
+      "source_path": "crates/engine/tree/src/tree/mod.rs",
+      "source_hunk_hint": "@@ -2446,12 +2551,24 @@",
+      "source_kind": "side_effect",
+      "source_snippet": "The executor.execute_metered call is timed with ritual_metrics::block::log_block_phase(\"block_accept_execution\", ..., \"ok\").",
+      "semantic_claim": "Successful block execution during engine-tree block acceptance emits a Ritual block_accept_execution timing metric around the executor call.",
+      "high_risk": true,
+      "risk_tags": [
+        "telemetry",
+        "execution",
+        "payload"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/engine/tree/src/tree/payload_validator.rs",
+          "symbols": [
+            "TreeHandler::insert_block_or_payload"
+          ],
+          "snippet": "Destination logs `block_accept_execution` with ok and error outcomes around block execution.",
+          "evidence": "Post-fix search after commit `4af480689a` found `block_accept_execution` in `payload_validator.rs`."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+          "path": "crates/node/src/executor.rs",
+          "symbols": [
+            "RitualBlockExecutor::execute_one",
+            "ritual_metrics::block::log_payload_phase"
+          ],
+          "snippet": "Nodebuilder emits block_execute_registry_update, block_execute_setup, block_execute_transactions, block_execute_consensus_verification, and block_execute_finalization.",
+          "evidence": "These are related executor-internal metrics, but they do not provide the source engine-tree block_accept_execution envelope or label."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Insert a valid payload and assert an engine-tree block_accept_execution metric wraps the executor call with block hash, parent hash, tx count, and ok status.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Covered by commit `4af480689a` in the refactored v2.2 payload-validator path."
+    },
+    {
+      "record_id": "file-0064-atom-0011",
+      "file_index": 64,
+      "atom_index": 11,
+      "atoms_total": 14,
+      "source_path": "crates/engine/tree/src/tree/mod.rs",
+      "source_hunk_hint": "@@ -2459,25 +2576,76 @@",
+      "source_kind": "side_effect",
+      "source_snippet": "validate_block_post_execution logs block_accept_post_exec_consensus_validation with error reason on failure and ok on success.",
+      "semantic_claim": "Post-execution consensus validation emits Ritual block-acceptance timing metrics for both valid output and invalid output error paths.",
+      "high_risk": true,
+      "risk_tags": [
+        "telemetry",
+        "consensus",
+        "execution",
+        "validation",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/engine/tree/src/tree/payload_validator.rs",
+          "symbols": [
+            "TreeHandler::insert_block_or_payload"
+          ],
+          "snippet": "Destination logs `block_accept_post_exec_consensus_validation` with ok and error outcomes around post-execution consensus validation.",
+          "evidence": "Post-fix search after commit `4af480689a` found `block_accept_post_exec_consensus_validation` in `payload_validator.rs`."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+          "path": "crates/node/src/executor.rs",
+          "symbols": [
+            "block_execute_consensus_verification"
+          ],
+          "snippet": "Nodebuilder logs a different executor-internal consensus verification phase.",
+          "evidence": "The label and placement differ and do not cover validate_block_post_execution in the tree acceptance path."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Force post-execution consensus validation failure and assert block_accept_post_exec_consensus_validation emits error with the validation reason before invalid-block handling.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Covered by commit `4af480689a` in the refactored v2.2 payload-validator path."
+    },
+    {
+      "record_id": "file-0064-atom-0012",
+      "file_index": 64,
+      "atom_index": 12,
+      "atoms_total": 14,
+      "source_path": "crates/engine/tree/src/tree/mod.rs",
+      "source_hunk_hint": "@@ -2459,25 +2576,76 @@",
+      "source_kind": "side_effect",
+      "source_snippet": "payload_validator.validate_block_post_execution_with_hashed_state logs block_accept_ritual_validation with error reason on failure and ok on success.",
+      "semantic_claim": "Ritual post-execution payload validation emits explicit block-acceptance timing metrics for success and failure paths.",
+      "high_risk": true,
+      "risk_tags": [
+        "telemetry",
+        "payload",
+        "ritual-validation",
+        "execution",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/engine/tree/src/tree/mod.rs",
+          "symbols": [
+            "TreeHandler::insert_block_or_payload",
+            "TreeCtx"
+          ],
+          "snippet": "Destination logs `block_accept_ritual_validation` with ok and error outcomes around `validate_block_post_execution_with_hashed_state`.",
+          "evidence": "Post-fix search after commit `4af480689a` found `block_accept_ritual_validation` in `payload_validator.rs`."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+          "path": "bin/src/main.rs",
+          "symbols": [
+            "RitualShortAsyncPostExecutionValidator"
+          ],
+          "snippet": "Nodebuilder wires a Ritual post-execution validator, but not the source tree-level Ritual validation metric.",
+          "evidence": "This is validation plumbing, not equivalent telemetry for success/error validation outcomes."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Trigger a Ritual post-execution validation rejection and assert block_accept_ritual_validation emits error status with the rejection reason; verify a valid block emits ok.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Covered by commit `4af480689a` in the refactored v2.2 payload-validator path."
+    },
+    {
+      "record_id": "file-0064-atom-0013",
+      "file_index": 64,
+      "atom_index": 13,
+      "atoms_total": 14,
+      "source_path": "crates/engine/tree/src/tree/mod.rs",
+      "source_hunk_hint": "@@ -2529,6 +2697,7 @@ through @@ -2541,9 +2710,22 @@",
+      "source_kind": "side_effect",
+      "source_snippet": "The patch records used_parallel_state_root = maybe_state_root.is_some() and logs block_accept_state_root with status ok for parallel root or fallback with reason parallel_state_root_unavailable.",
+      "semantic_claim": "State-root calculation emits Ritual acceptance telemetry that distinguishes parallel state root success from serial fallback.",
+      "high_risk": true,
+      "risk_tags": [
+        "telemetry",
+        "execution",
+        "state-root",
+        "negative-path"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/engine/tree/src/tree/payload_validator.rs",
+          "symbols": [
+            "TreeHandler::insert_block_or_payload"
+          ],
+          "snippet": "Destination logs `block_accept_state_root` with ok or fallback status and `parallel_state_root_unavailable` reason for fallback.",
+          "evidence": "Post-fix search after commit `4af480689a` found `block_accept_state_root` and `parallel_state_root_unavailable` in `payload_validator.rs`."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Exercise block insertion with parallel state-root available and unavailable, then assert block_accept_state_root emits ok for parallel output and fallback/parallel_state_root_unavailable for serial calculation.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Covered by commit `4af480689a` in the refactored v2.2 payload-validator path."
+    },
+    {
+      "record_id": "file-0064-atom-0014",
+      "file_index": 64,
+      "atom_index": 14,
+      "atoms_total": 14,
+      "source_path": "crates/engine/tree/src/tree/mod.rs",
+      "source_hunk_hint": "@@ -2725,6 +2907,27 @@",
+      "source_kind": "error_path",
+      "source_snippet": "Under cfg(feature = async-context), InsertBlockErrorKind::Execution(BlockExecutionError::Validation(BlockValidationError::OnnxModelUnavailableForVerification { .. })) warns and returns PayloadStatusEnum::Syncing before invalid-header cache insertion.",
+      "semantic_claim": "Temporary ONNX model unavailability during verification is treated as SYNCING and is not cached as INVALID, allowing the block to be retried after model download/backfill.",
+      "high_risk": true,
+      "risk_tags": [
+        "payload",
+        "validation",
+        "negative-path",
+        "async-context",
+        "onnx",
+        "liveness"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/engine/tree/src/tree/mod.rs",
+          "symbols": [
+            "TreeHandler::on_insert_block_error",
+            "PayloadStatusEnum::Invalid"
+          ],
+          "snippet": "Destination now has an explicit `OnnxModelUnavailableForVerification` branch in `on_insert_block_error` that returns `PayloadStatusEnum::Syncing` before invalid-header insertion.",
+          "evidence": "Post-fix search after commit `4af480689a` found the explicit ONNX-unavailable-to-SYNCING branch in the destination engine tree."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/lib.rs",
+          "symbols": [
+            "is_transient_precompile_validation_error"
+          ],
+          "snippet": "Payload building still skips transactions for OnnxModelUnavailableForVerification; engine-tree new-payload verification status handling is now covered separately.",
+          "evidence": "This remains a related builder path, while commit `4af480689a` covers engine-tree `SYNCING` status behavior."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-alloy-evm-internal",
+          "path": "crates/evm/src/eth/block.rs",
+          "symbols": [
+            "OnnxModelUnavailableForVerification"
+          ],
+          "snippet": "The dependency still produces BlockValidationError::OnnxModelUnavailableForVerification during verification.",
+          "evidence": "The error source exists, and the destination engine tree now maps it to SYNCING/no-invalid-cache semantics."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "With async-context enabled, make verification raise OnnxModelUnavailableForVerification during new payload handling and assert the response is SYNCING, invalid_headers is not updated, and a later retry can validate the same block.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Covered by commit `4af480689a`; localnet ONNX traffic validation passed after the change."
+    }
+  ],
+  "high_risk_atoms_total": 13,
+  "non_exact_atoms_total": 2,
+  "adversarial_reviews": [],
+  "summary": "Partially resolved after commit `4af480689a fix: restore engine tree ritual metrics parity`. The fixed 64-block threshold, Ritual metrics crate plumbing, EL head/finalized transaction metrics, most block_accept phase metrics, state-root fallback metric, and ONNX-unavailable-as-SYNCING behavior are now covered. Two telemetry atoms remain open: per-canonical-block `ritual::spc::provider` debug evidence and `block_accept_trie_input` / `parallel_state_root_disabled` trie-input telemetry.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "Post-fix verification searched the current v2.2 port after commit `4af480689a`. Covered atoms may live in `crates/engine/tree/src/tree/payload_validator.rs` rather than the original downstream `tree/mod.rs` hunk because v2.2 moved block validation responsibilities behind the payload validator. Remaining missing atoms are telemetry-only but still tracked for explicit parity or scope decision."
+}

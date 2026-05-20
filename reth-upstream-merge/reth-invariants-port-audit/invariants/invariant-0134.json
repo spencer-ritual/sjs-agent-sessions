@@ -1,0 +1,60 @@
+{
+  "cluster_key": "scheduler:type-hash-codec:part-01",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "ritual-reth-internal/crates/net/network/src/metrics.rs",
+    "ritual-reth-internal/crates/storage/codecs/src/alloy/transaction/mod.rs",
+    "ritual-reth-internal/crates/storage/codecs/src/alloy/transaction/asyncexec.rs"
+  ],
+  "invariant_id": "cur-8f90f3deb9-asyncexec-participates-typing-metrics",
+  "invariant_index": 134,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/net/network/src/metrics.rs",
+      "crates/storage/codecs/src/alloy/transaction/mod.rs",
+      "crates/storage/codecs/src/alloy/transaction/asyncexec.rs"
+    ],
+    "checked_queries": [
+      "AsyncExec|TxAsyncExec|asyncexec|AsyncExec metrics|transaction type metrics"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal"
+    ],
+    "checked_symbols": [
+      "AsyncExec",
+      "TxAsyncExec",
+      "asyncexec",
+      "announced transaction type metrics"
+    ],
+    "missing_behavior": "Missing AsyncExec as a first-class transaction type/storage codec variant/network announcement metric. Searches found no AsyncExec, TxAsyncExec, or asyncexec support in the audited repos.",
+    "related_but_insufficient_code": [
+      "crates/storage/codecs/src/alloy/transaction/mod.rs enumerates Scheduled, AsyncCommitment, AsyncSettlement, and Passkey transaction codec modules, but no AsyncExec variant or codec module.",
+      "Existing custom transaction type support covers other Ritual transaction variants and does not provide a separate AsyncExec metrics bucket."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The AsyncExec candidates are adjacent custom-transaction typing work, not scheduled-specific, but they share the type/codec lineage and have direct evidence files.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "e92354243607490ac62479e2a90e043214061732",
+    "ac25b7d77c442a6c2c025ae9fda3d037c7209552"
+  ],
+  "statement": "AsyncExec transactions are encoded/decoded as first-class storage-codec variants and are counted separately in announced transaction type metrics rather than folded into scheduled or other transaction buckets.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Round-trip an AsyncExec transaction through the alloy storage codec and assert the decoded variant and fields are AsyncExec.",
+    "Feed announced transaction metrics a mix including AsyncExec and Scheduled transactions and assert AsyncExec increments only the AsyncExec counter/histogram."
+  ],
+  "summary": "AsyncExec transaction typing, storage codec, and metrics support are absent.",
+  "test_or_falsification_candidate": "AsyncExec codec round-trip and announcement metrics regression tests.",
+  "title": "AsyncExec participates in transaction typing and metrics",
+  "total_invariants": 1954
+}

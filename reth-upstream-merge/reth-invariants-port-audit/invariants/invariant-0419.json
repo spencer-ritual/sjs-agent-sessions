@@ -1,0 +1,67 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-async-fees/src/lib.rs"
+  ],
+  "invariant_id": "cur-12a06561cd-audio-phase-pays-executor-only",
+  "invariant_index": 419,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-async-fees/src/constants.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "ritual-revm-internal/crates/precompile/src/audio_call.rs"
+    ],
+    "checked_queries": [
+      "calculate_audio_fees_phase2",
+      "audio_phase2_execution_fee",
+      "duration_seconds audio fee",
+      "AudioResponse outputDurationMs"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "calculate_audio_fees_phase2",
+      "audio_phase2_execution_fee",
+      "AUDIO_CALL_PRECOMPILE",
+      "AUDIO_RESPONSE_DURATION_OFFSET"
+    ],
+    "missing_behavior": "The audited v2.2 port lacks calculate_audio_fees_phase2(duration_seconds) that charges executor-only audio completion fees and zero validator fees.",
+    "related_but_insufficient_code": [
+      "constants.rs defines AUDIO_RESPONSE_DURATION_OFFSET but no audio Phase 2 pricing constants or function.",
+      "lib.rs calculate_async_fees_phase2 supports long-running HTTP, ZK, and persistent agent only; there is no audio Phase 2 branch.",
+      "payload and verifier helpers reject AUDIO_CALL_PRECOMPILE as unsupported two-phase fee parity.",
+      "ritual-revm-internal audio precompile code is not a settlement fee implementation in the audited port."
+    ]
+  },
+  "notes": "No audited repo provides the audio duration-based Phase 2 fee calculation for the v2 port.",
+  "rationale": "The restored Phase 2 function body explicitly encodes executor-only charging for audio completion work. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "700f7c97a183fe877b1e6c26eaaaf1d9b5060063"
+  ],
+  "statement": "calculate_audio_fees_phase2(duration_seconds) must charge audio_phase2_execution_fee(duration_seconds) as executor_fee and zero commitment_fee and inclusion_fee because validator fees were already paid in Phase 1.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call calculate_audio_fees_phase2 for several durations and assert executor_fee equals audio_phase2_execution_fee(duration) while commitment_fee and inclusion_fee are U256::ZERO."
+  ],
+  "summary": "Audio Phase 2 executor-only pricing is absent from the audited port.",
+  "test_or_falsification_candidate": "Call calculate_audio_fees_phase2 for several durations and assert executor_fee equals audio_phase2_execution_fee(duration) while commitment_fee and inclusion_fee are U256::ZERO.",
+  "title": "Audio Phase 2 pays executor only",
+  "total_invariants": 1954
+}

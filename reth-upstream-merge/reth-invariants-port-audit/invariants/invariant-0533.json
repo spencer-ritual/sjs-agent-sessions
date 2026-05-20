@@ -1,0 +1,53 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "85b41ec83e0009175c328eb0b9a07c92c3008129",
+      "evidence": "The decoder returns an error that starts with LLM_HAS_ERROR_PREFIX and appends the executor-supplied message when present.",
+      "path": "crates/ritual-async-fees/src/llm.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if has_error {\n    let error_message = read_abi_offset(data, error_offset_index)\n        .and_then(|offset| read_abi_string(data, offset))\n        .unwrap_or_default();\n    return if error_message.is_empty() {\n        Err(LLM_HAS_ERROR_PREFIX.to_string())\n    } else {\n        Err(format!(\"{LLM_HAS_ERROR_PREFIX}: {error_message}\"))\n    };\n}",
+      "symbols": [
+        "decode_llm_response",
+        "LLM_HAS_ERROR_PREFIX"
+      ]
+    }
+  ],
+  "equivalence_argument": "The original executor error message is preserved verbatim after the sentinel prefix, giving fee computation a stable prefix while keeping diagnostic text available.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/llm.rs"
+  ],
+  "invariant_id": "cur-4d2cd182d4-error-decode-preserves-prefixed-executor-message",
+  "invariant_index": 533,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The prefix match in compute_llm_executor_fee depends on this decode behavior.",
+  "rationale": "The primary commit replaces a tautological constant test with an ABI round-trip that encodes `has_error = true`, calls `decode_llm_response`, and asserts the returned error starts with `LLM_HAS_ERROR_PREFIX` and contains the executor's original error text. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "2a712b0a8e6b5587f22b2ecc509ca94ada8f7781"
+  ],
+  "statement": "Decoding an LLM response with `has_error = true` and a non-empty executor error string must return an error whose text starts with `LLM_HAS_ERROR_PREFIX` and includes the original executor error message.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "ABI-encode an LLM response with `has_error=true` and `error_msg='test error from executor'`, call `decode_llm_response`, and fail if the returned error is `Ok`, lacks the prefix, or drops the original error text."
+  ],
+  "summary": "LLM has_error decode preserves the prefixed executor message.",
+  "test_or_falsification_candidate": "ABI-encode has_error=true with error_msg=\"test error from executor\" and assert decode_llm_response returns Err starting with LLM_HAS_ERROR_PREFIX and containing the original message.",
+  "title": "LLM has-error decode preserves prefixed executor message",
+  "total_invariants": 1954
+}

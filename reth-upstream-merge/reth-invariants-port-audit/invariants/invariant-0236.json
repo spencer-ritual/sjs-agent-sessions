@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": "No equivalent public service module or ExecutorRegistryService export exists in the audited repos.",
+  "evidence_files": [
+    "crates/ritual-spc-verification/src/lib.rs"
+  ],
+  "invariant_id": "cur-6843f93f7e-executor-registry-apis-remain-public",
+  "invariant_index": 236,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-spc-verification/src/lib.rs",
+      "crates/ritual-spc-verification/src/types.rs",
+      "crates/ritual-spc-verification/src/service.rs"
+    ],
+    "checked_queries": [
+      "ExecutorRegistryService",
+      "pub mod service",
+      "pub use service",
+      "service.rs",
+      "ExecutorRegistryConfig"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "service",
+      "ExecutorRegistryService",
+      "ExecutorRegistry",
+      "ExecutorRegistryConfig",
+      "ExecutorRegistryStats",
+      "ExecutorInfo"
+    ],
+    "missing_behavior": "The crate root does not publicly expose a service module or ExecutorRegistryService, so downstream users cannot import the full API named by the invariant.",
+    "related_but_insufficient_code": [
+      "crates/ritual-spc-verification/src/lib.rs re-exports ExecutorRegistry, ExecutorRegistryConfig, ExecutorRegistryStats, and ExecutorInfo, but it declares no service module and exports no ExecutorRegistryService.",
+      "crates/ritual-spc-verification/src has verifier.rs, lib.rs, types.rs, error.rs, and client.rs; service.rs is absent."
+    ]
+  },
+  "notes": "Registry types remain public, but the invariant also requires service and ExecutorRegistryService exports.",
+  "rationale": "The commit title explicitly says these service module and executor registry types are exported in the public API, and the diff changes crate-root `pub mod`/`pub use` declarations. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "acc0d7ea0ac94c1ca21d514f0d49d280dc686bf0"
+  ],
+  "statement": "Downstream users of `ritual-spc-verification` can import `service`, `ExecutorRegistryService`, and the executor registry types directly from the crate root after this commit.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Add or keep a downstream compile test that imports `ritual_spc_verification::{service, ExecutorRegistryService, ExecutorRegistry, ExecutorRegistryConfig, ExecutorRegistryStats, ExecutorInfo}` from the crate root and fails if any item is no longer public there."
+  ],
+  "summary": "Executor registry service APIs are not public because the service symbol is absent.",
+  "test_or_falsification_candidate": "Add a downstream compile test importing ritual_spc_verification::{service, ExecutorRegistryService, ExecutorRegistry, ExecutorRegistryConfig, ExecutorRegistryStats, ExecutorInfo}; it should currently fail on service and ExecutorRegistryService.",
+  "title": "Executor registry APIs remain public",
+  "total_invariants": 1954
+}

@@ -1,0 +1,68 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/rpc/rpc-api/src/ritual.rs",
+    "crates/rpc/rpc/src/ritual.rs"
+  ],
+  "invariant_id": "cur-a476fe7189-delivery-results-require-block-proof-verification",
+  "invariant_index": 375,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/rpc/rpc-api/src/ritual.rs",
+      "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/ritual-spc-verification/src/verifier.rs"
+    ],
+    "checked_queries": [
+      "submitDeliveryResult blockHash",
+      "SubmitDeliveryResultRequest block_hash executor",
+      "submit_delivery_result SpcVerifier",
+      "verify delivery proof block hash",
+      "submit_async_delivery_result"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "SubmitDeliveryResultRequest",
+      "submit_delivery_result",
+      "AsyncDeliverySubmission",
+      "submit_delivery_result_with_context",
+      "SpcVerifier"
+    ],
+    "missing_behavior": "ritual_submitDeliveryResult accepts the request fields but does not validate supplied block_number, block_hash, or executor and does not verify the delivery proof before moving the pool entry to DeliveryReady.",
+    "related_but_insufficient_code": [
+      "crates/rpc/rpc-api/src/ritual.rs defines blockNumber, blockHash, and executor on SubmitDeliveryResultRequest.",
+      "crates/ethereum/node/src/ritual_async_rpc.rs submit_delivery_result copies only result/proof/zk_proof into AsyncDeliverySubmission.",
+      "crates/transaction-pool/src/pool/async_pool.rs submit_delivery_result_with_context checks non-empty proof and state, then stores the delivery result without block/proof verification."
+    ]
+  },
+  "notes": "Confirmed gap: request metadata exists, but the RPC/pool path ignores it and performs no block-hash or SPC delivery-proof verification.",
+  "rationale": "The commit adds SubmitDeliveryResultRequest with blockHash, exposes submitDeliveryResult, and implements checks for pool presence, block hash validity, and delivery proof verification before updating the async pool. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "09942d53e1ecc9fcaa4f5861c7fbbfd60aa2e5c7"
+  ],
+  "statement": "ritual_submitDeliveryResult must reject submissions unless the async transaction exists, the supplied block hash matches the supplied block number, and the delivery proof verifies over the result, executor, transaction hash, and block hash.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call ritual_submitDeliveryResult with a missing tx, a mismatched block hash, an invalid proof, and a valid request; assert only the valid request returns success and moves the job to DeliveryReady."
+  ],
+  "summary": "Delivery-result RPC verification is not ported.",
+  "test_or_falsification_candidate": "Call ritual_submitDeliveryResult with a mismatched blockHash or invalid delivery proof and assert the current port accepts it once the pool entry is AwaitingDelivery.",
+  "title": "Delivery results require block and proof verification",
+  "total_invariants": 1954
+}

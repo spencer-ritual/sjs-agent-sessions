@@ -1,0 +1,64 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-async-fees/src/wallet.rs",
+    "crates/ritual-async-fees/Cargo.toml"
+  ],
+  "invariant_id": "cur-7d3cefb063-verifier-includes-phase-callback-escrow-long-running-http",
+  "invariant_index": 397,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/wallet.rs",
+      "crates/ritual-precompile-codecs/src/validation.rs"
+    ],
+    "checked_queries": [
+      "delivery callback cost zero decode failure",
+      "DeliveryConfig decode failure zero",
+      "decode_delivery_callback_cost_at",
+      "LONG_RUNNING_HTTP_PRECOMPILE callback_fee"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "verify_wallet_for_commitment",
+      "delivery_callback_cost",
+      "decode_delivery_callback_cost_at",
+      "DeliveryConfig"
+    ],
+    "missing_behavior": "Long-running HTTP wallet verification includes callback cost when it can decode it, but decode failure is fail-closed rather than the required zero callback cost path.",
+    "related_but_insufficient_code": [
+      "crates/ritual-async-fees/src/wallet.rs adds callback_fee for LONG_RUNNING_HTTP_PRECOMPILE using ABI fields.",
+      "decode_delivery_callback_cost_at returns an Err on short input or overflow, and delivery_callback_cost propagates that Err instead of returning U256::ZERO.",
+      "crates/ritual-precompile-codecs/src/validation.rs validates long-running HTTP payload structure but does not implement the wallet-pricing zero-callback fallback required by the invariant."
+    ]
+  },
+  "notes": "The positive escrow arithmetic exists, but the specified decode-failure fallback behavior is absent.",
+  "rationale": "The diff removes the prior TTL polling-fee estimate for long-running HTTP, imports DeliveryConfig decoding, and adds Phase 2 callback gas/value cost into total_required_fees. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "4a85f7d0af2b18692eedb5eef09a4dc5d5d7139c"
+  ],
+  "statement": "During verifier wallet checks for long-running HTTP precompile calls, the required fee total includes the base HTTP executor fee plus commitment and inclusion fees plus Phase 2 callback cost decoded from DeliveryConfig as gas_limit * max_fee_per_gas plus callback value, using zero callback cost on DeliveryConfig decode failure.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Verify a long-running HTTP commitment with a DeliveryConfig containing nonzero callback gas limit, max fee, and value; assert the wallet balance must cover base HTTP fee, commitment fee, inclusion fee, and the decoded callback cost, and that malformed DeliveryConfig follows the builder-compatible zero-callback-cost path."
+  ],
+  "summary": "Long-running HTTP callback decode fallback is not ported.",
+  "test_or_falsification_candidate": "Verify a long-running HTTP commitment with malformed DeliveryConfig fields; the invariant expects zero callback cost, while current wallet verification returns an error.",
+  "title": "Verifier includes Phase 2 callback escrow for long-running HTTP",
+  "total_invariants": 1954
+}

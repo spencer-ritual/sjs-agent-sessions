@@ -1,0 +1,55 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "Sovereign-agent validation decodes the full ABI, rejects zero executor/TTL via shared bounds, and rejects empty or whitespace prompt.",
+      "path": "crates/ritual-precompile-codecs/src/validation.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "SOVEREIGN_AGENT_PRECOMPILE => validate_sovereign_agent_payload(input, max_ttl),\n...\nlet request = SovereignAgentRequest::from_abi(input)?;\nvalidate_executor_and_ttl_bounds(request.executor, request.ttl, max_ttl)?;\n...\nif request.prompt.trim().is_empty() { return Err(PayloadValidationError::EmptyPrompt); }",
+      "symbols": [
+        "validate_async_payload",
+        "validate_sovereign_agent_payload",
+        "SovereignAgentRequest::from_abi"
+      ]
+    }
+  ],
+  "equivalence_argument": "The validator accepts only ABI-decodable sovereign-agent payloads with nonzero executor, positive bounded TTL, and nonblank prompt; malformed bytes and zero/blank fields fail through decode_error, validate_executor_and_ttl_bounds, and EmptyPrompt.",
+  "evidence_files": [
+    "crates/ritual-async/src/validation.rs"
+  ],
+  "invariant_id": "cur-dade67b8c8-sovereign-agent-payload-validation",
+  "invariant_index": 514,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The current implementation also validates ECIES/user key/model/type/deadline, which is stricter than the invariant.",
+  "rationale": "The commit adds direct tests for `validate_async_payload(PERSISTENT_AGENT_PRECOMPILE, ...)` covering valid input and each listed invalid case. The commit adds explicit tests for `validate_async_payload(SOVEREIGN_AGENT_PRECOMPILE, ...)` across valid and invalid executor, TTL, prompt, and decode cases. Collapsed 2 closely related historical candidate statements into the latest effective formulation.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "adeb1e4bb6882c87e5f4202a7fe7bed9f0a830d2"
+  ],
+  "statement": "Sovereign-agent (`0x080C`) async payload validation accepts a well-formed payload with nonzero executor, positive TTL, and non-empty non-whitespace prompt, and rejects zero executor, zero TTL, empty or whitespace-only prompt, and undecodable garbage.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Run validation against generated persistent-agent payloads varying executor, TTL, model, and ABI encoding; assert the expected `AsyncPayloadError` variants match these cases.",
+    "Generate sovereign-agent payloads with zero executor, zero TTL, empty prompt, whitespace prompt, and garbage bytes; assert validation rejects each with the tested error class."
+  ],
+  "summary": "Sovereign-agent payload validation is enforced in the port.",
+  "test_or_falsification_candidate": "Generate sovereign-agent payloads with zero executor, zero TTL, empty prompt, whitespace prompt, and garbage bytes and assert validation rejects each.",
+  "title": "Sovereign-agent payload validation",
+  "total_invariants": 1954
+}

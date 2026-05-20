@@ -1,0 +1,59 @@
+{
+  "cluster_key": "scheduler:payload-building:part-02",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-1a59d83a46-async-collection-emits-detailed-lifecycle-stats",
+  "invariant_index": 83,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-metrics/src/block.rs",
+      "crates/rpc/rpc-api/src/ritual.rs"
+    ],
+    "checked_queries": [
+      "AsyncCollectionStats|scheduled candidate|regular simulated|deadline-skipped|parallel mode|fallback outcome|payload_async_collection|BlockBuildPhaseTrace"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "AsyncCollectionStats",
+      "BlockBuildPhaseTrace",
+      "BlockBuildAttemptTrace"
+    ],
+    "missing_behavior": "Missing AsyncCollectionStats return/log record with scheduled/regular/total simulated counts, accepted count, deadline-skipped count, parallel mode, deadline fields, and fallback outcome.",
+    "related_but_insufficient_code": [
+      "BlockBuildPhaseTrace can record generic phase duration and payload builder debug logs record candidate/deadline counts, but no AsyncCollectionStats type or lifecycle stats record was found."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The stats candidate is an observability invariant rather than a consensus rule, and no later bounded candidate removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "8c28bbef8d2ab76ea756d6446c38818fd3acaae3"
+  ],
+  "statement": "Payload async transaction collection should return and log AsyncCollectionStats covering scheduled candidate and simulated counts, regular simulated count, total simulated count, accepted count, deadline-skipped count, parallel mode, deadline fields, and fallback outcome when the deadline is exceeded.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Run async collection with scheduled and regular candidates, deadline exhaustion, and fallback path; assert a structured AsyncCollectionStats record exposes all required fields.",
+    "Assert debug/RPC surfaces include scheduled candidate count, regular simulated count, total simulated count, accepted count, deadline-skipped count, parallel mode, deadline fields, and fallback outcome."
+  ],
+  "summary": "Detailed async collection lifecycle stats are absent.",
+  "test_or_falsification_candidate": "Search/build for AsyncCollectionStats and lifecycle fields; current port lacks the type and logs only generic payload/deadline events.",
+  "title": "Async collection emits detailed lifecycle stats",
+  "total_invariants": 1954
+}

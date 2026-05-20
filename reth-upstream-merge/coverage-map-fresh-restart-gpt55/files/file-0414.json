@@ -1,0 +1,89 @@
+{
+  "record_type": "file",
+  "file_index": 414,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/scheduling/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "high-risk",
+    "non-exact",
+    "needs-review",
+    "scheduled",
+    "legacy-scheduling-crate"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0414-atom-0001",
+      "file_index": 414,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/scheduling/Cargo.toml",
+      "source_hunk_hint": "@@ -0,0 +1,42 @@",
+      "source_kind": "crate_manifest",
+      "source_snippet": "[package]\nname = \"ritual-scheduling\"\nversion = \"0.1.0\"\nedition = \"2021\"",
+      "semantic_claim": "The old divergence introduced a standalone `ritual-scheduling` crate as the scheduling service boundary.",
+      "high_risk": true,
+      "risk_tags": [
+        "scheduled",
+        "crate-boundary",
+        "workspace-wiring"
+      ],
+      "mapping_status": "partial",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "Cargo.toml",
+          "symbols": [
+            "workspace.members"
+          ],
+          "evidence": "The v2.2 workspace has no `crates/scheduling` member; it has `crates/ritual-scheduled-verification` and `crates/ritual-scheduled-block-building` instead."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-verification/Cargo.toml",
+          "evidence": "Destination crate owns Scheduler parent-state decoding and verification."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-scheduled-block-building/Cargo.toml",
+          "evidence": "Destination crate owns scheduled transaction synthesis and block-building helpers."
+        }
+      ],
+      "equivalence_argument": "Non-exact ownership split: the old crate manifest is intentionally not present, while behavior-bearing scheduled code is split into verification and block-building crates. This proves broad ownership migration, not complete API compatibility for any stale `ritual-scheduling` consumers.",
+      "test_strategy": "workspace metadata plus scheduled package compile",
+      "negative_test_candidate": "A stale downstream consumer depending on `ritual-scheduling` should fail to compile unless it was ported to the split v2 crates.",
+      "adversarial_review": {
+        "required": true,
+        "status": "queued",
+        "review_record_id": "review-file-0414-atom-0001"
+      },
+      "review_required": true,
+      "notes": "High-risk only because this is a public crate-boundary change; no source repository was modified."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [
+    {
+      "review_record_id": "review-file-0414-atom-0001",
+      "atom_id": "file-0414-atom-0001",
+      "status": "queued",
+      "reason": "Verify no live v2.2 consumer still requires the old `ritual-scheduling` crate boundary."
+    }
+  ],
+  "summary": "The old `ritual-scheduling` manifest is not exact-preserved; v2.2 splits scheduled behavior across dedicated verification and block-building crates.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": [
+    "Queue entry verified as file 414: A\tcrates/scheduling/Cargo.toml.",
+    "Source hunk begins at divergence diff line 81155.",
+    "Destination workspace intentionally has no `crates/scheduling` path."
+  ]
+}

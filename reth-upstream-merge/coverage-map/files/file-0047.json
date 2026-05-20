@@ -1,0 +1,73 @@
+{
+  "record_type": "file",
+  "file_index": 47,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/consensus/common/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "intentionally_absent",
+  "tags": [
+    "intentionally_absent",
+    "non-exact"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0047-atom-0001",
+      "file_index": 47,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/consensus/common/Cargo.toml",
+      "source_hunk_hint": "@@ -21,2 +21,3 @@",
+      "source_kind": "other",
+      "source_snippet": "tracing.workspace = true",
+      "semantic_claim": "`reth-consensus-common` adds a direct workspace dependency on `tracing` so the crate can compile downstream-only tracing macros used in its validation code.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "intentionally_absent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/consensus/common/Cargo.toml",
+          "symbols": [],
+          "snippet": "reth-primitives-traits.workspace = true\nalloy-consensus.workspace = true\nalloy-eips.workspace = true\nalloy-primitives.workspace = true",
+          "evidence": "The port target matches upstream v2.2.0 and does not declare `tracing` for this crate."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/consensus/common/src/validation.rs",
+          "symbols": [
+            "validate_body_against_header"
+          ],
+          "snippet": "let tx_root = body.calculate_tx_root();\nif header.transactions_root() != tx_root {\n    return Err(ConsensusError::BodyTransactionRootDiff(",
+          "evidence": "The destination validation code contains no `tracing` import or log macros, so the downstream manifest addition is not needed there."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "human_question": null,
+      "notes": "Destination search found no exact or near-exact Ritual logging strings in the port or dependency repos for this crate; the dependency addition is tied to downstream-only diagnostics, not retained runtime behavior. Guideline remediation: accepted as intentionally absent because The downstream `tracing` dependency only supported Ritual debug/error logging in consensus validation; the v2.2 port has no corresponding tracing call sites, so the manifest dependency is obsolete rather than a behavior gap.",
+      "required_change": null,
+      "intentional_absence_basis": "destination_absence_of_diagnostic_callsite",
+      "intentional_absence_rationale": "The downstream `tracing` dependency only supported Ritual debug/error logging in consensus validation; the v2.2 port has no corresponding tracing call sites, so the manifest dependency is obsolete rather than a behavior gap."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Atoms in this file are intentionally absent or mapped to active v2.2 behavior where applicable.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Accounted as one non-exact manifest atom with intentional absence backed by destination `validation.rs` and upstream-aligned `Cargo.toml` evidence."
+}

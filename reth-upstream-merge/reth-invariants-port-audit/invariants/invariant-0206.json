@@ -1,0 +1,91 @@
+{
+  "cluster_key": "executor delivery:duplicate-async-jobs-8bb57d6b",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The registry reader treats a job as duplicate-blocking only when it exists and expiryBlock is strictly greater than the current block.",
+      "path": "crates/ritual-async-registry/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn job_exists_and_active<DB: Database>(...) -> Result<bool, RegistryError> {\n    ...\n    if executor.is_zero() { return Ok(false); }\n    ...\n    if expiry_block <= current_block_number { return Ok(false); }\n    Ok(true)\n}",
+      "symbols": [
+        "job_exists_and_active"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The payload builder duplicate check uses the expiry-aware registry function before skipping a scheduled async augmentation.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let mut check_active_job = |hash, block| {\n    ritual_async_registry::job_exists_and_active(builder.evm_mut().db_mut(), None, hash, block)\n};\nif matches!(decide_active_job_augmentation(...), AugmentationDecision::SkipActiveJob) { continue; }",
+      "symbols": [
+        "decide_active_job_augmentation",
+        "job_exists_and_active"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The verifier rejects duplicate commitments only when the existing job is still active, matching the builder boundary.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let job_active = ritual_async_registry::job_exists_and_active(&mut db, None, commitment.origin_tx, current_block)?;\nif job_active {\n    return Err(BlockVerificationError::InvalidAsyncCommitment(...));\n}",
+      "symbols": [
+        "validate_async_commitment",
+        "job_exists_and_active"
+      ]
+    }
+  ],
+  "equivalence_argument": "Builder and verifier duplicate checks share the expiry-aware AsyncJobTracker reader, so expired jobs are treated as non-existent while active jobs reject/skip duplicates.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-async-registry/src/lib.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-520c9964e8-duplicate-async-jobs-expiry-aware",
+  "invariant_index": 206,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-registry/src/lib.rs",
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "job_exists_and_active|expiryBlock|AugmentationDecision::SkipActiveJob|already has an active AsyncJobTracker job"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "job_exists_and_active",
+      "expiry_block_slot",
+      "decide_active_job_augmentation",
+      "validate_async_commitment"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The merge adds job_exists_and_active(), uses expiryBlock to distinguish active from expired jobs, and updates both payload builder and verifier duplicate-commitment checks to call it instead of job_exists(). No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "01f87dd33e628f078048e491e309ae41653bc797"
+  ],
+  "statement": "Payload building and block verification must reject a new async commitment only when AsyncJobTracker already contains an active job for the origin transaction; expired jobs with expiryBlock <= current block must be treated as non-existent so a new commitment may overwrite them.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Populate AsyncJobTracker storage with a nonzero jobExecutor and expiryBlock greater than the block being built and assert builder skips and verifier rejects a duplicate commitment. Repeat with expiryBlock equal to or less than the current block and assert both builder and verifier allow the new commitment path."
+  ],
+  "summary": "Duplicate async job checks are expiry-aware in both builder and verifier.",
+  "test_or_falsification_candidate": "Populate AsyncJobTracker with expiryBlock equal to current block and greater than current block; assert builder/verifier allow the expired case and skip/reject the active case.",
+  "title": "Duplicate async jobs are expiry-aware",
+  "total_invariants": 1954
+}

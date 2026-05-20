@@ -1,0 +1,82 @@
+{
+  "cluster_key": "scheduler:payload-building:part-01",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Payload construction contains no SynchronousScheduler temporal-divergence eviction path before scheduled candidates execute.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "Scheduled candidates are assembled from obligations/heartbeat/pool verification and then executed; no SynchronousScheduler::evict_call or scheduled execution block-header lookup appears.",
+      "symbols": [
+        "default_ethereum_payload",
+        "PayloadCandidate"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Maintenance comments explicitly avoid resurrecting old scheduled chain-halt eviction; obligations are synthesized from parent state.",
+      "path": "crates/transaction-pool/src/maintain.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "Raw scheduled txpool admission is dormant in this port; scheduled obligations are synthesized from parent state, so the old chain-halt scheduled-tx eviction loop is intentionally not resurrected here.",
+      "symbols": [
+        "MAX_ASYNC_TRANSACTION_LIFETIME"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped as absence of removed behavior: no temporal-divergence eviction, SynchronousScheduler dependency, or evict_call path.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ethereum/payload/Cargo.toml"
+  ],
+  "invariant_id": "cur-7b5a0b0f44-payload-builder-longer-performs-temporal-divergence-eviction",
+  "invariant_index": 93,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ethereum/payload/Cargo.toml",
+      "crates/transaction-pool/src/maintain.rs"
+    ],
+    "checked_queries": [
+      "temporal divergence|SynchronousScheduler|evict_call|scheduled execution block|wall-clock"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "SynchronousScheduler::evict_call",
+      "temporal-divergence eviction"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped by removal/absence evidence.",
+  "rationale": "The later removal states the payload-based mechanism is dead/nonfunctional for halts and handled elsewhere.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "f5157ce76704a91eef5eedf0da7dd82f8a0fd5b8"
+  ],
+  "statement": "Payload construction must not evict scheduled calls through the removed wall-clock temporal-divergence path that looked up scheduled execution block headers, called SynchronousScheduler::evict_call, and filtered scheduled_txs before execution.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Build/search guard that ethereum/payload has no SynchronousScheduler or evict_call references."
+  ],
+  "summary": "Temporal-divergence scheduled eviction is absent from payload construction.",
+  "test_or_falsification_candidate": "Symbol search for SynchronousScheduler/evict_call in payload should remain empty.",
+  "title": "Payload builder no longer performs temporal divergence eviction",
+  "total_invariants": 1954
+}

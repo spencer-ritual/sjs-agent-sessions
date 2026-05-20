@@ -1,0 +1,91 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-01",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The payload path extracts the executor from the decoded async call and carries the same value into the detected call record.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let decoded = validate_async_commitment_call(&async_call)?;\n...\ndecoded.executor,\n...\nOk(DetectedShortAsyncCall {\n    commitment_tx,\n    executor: decoded.executor,\n    ...\n})",
+      "symbols": [
+        "build_short_async_commitment_transaction",
+        "create_short_async_commitment_tx"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The generated system async-commitment transaction receives the executor_address argument threaded from the decoded async call.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let async_commitment = TxAsyncCommitment::new(\n    ...\n    precompile_input,\n    ttl,\n    executor_address,\n    commitment_validator,\n);",
+      "symbols": [
+        "TxAsyncCommitment::new"
+      ]
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "169074f08721705fbb99cc9531ea798b61e9f3cc",
+      "evidence": "The transaction type stores executor_address as a first-class field initialized by its constructor.",
+      "path": "crates/consensus/src/transaction/async_commitment.rs",
+      "repo": "/home/ritual/repos/ritual-alloy-internal",
+      "snippet": "pub struct TxAsyncCommitment {\n    ...\n    pub executor_address: Address,\n    pub commitment_validator: Address,\n}\n...\nexecutor_address,",
+      "symbols": [
+        "TxAsyncCommitment",
+        "TxAsyncCommitment::new"
+      ]
+    }
+  ],
+  "equivalence_argument": "The current architecture renamed AsyncExec to TxAsyncCommitment, but the same generated system-transaction role is preserved: decoded.executor is passed into create_short_async_commitment_tx and stored as TxAsyncCommitment.executor_address.",
+  "evidence_files": [
+    "crates/ritual-async/src/detector.rs",
+    "implementations/executor-assignment/2-async-system-transaction-executor-field.md"
+  ],
+  "invariant_id": "cur-a01b9e107a-asyncexec-creation-preserves-executor-address",
+  "invariant_index": 223,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+    "/home/ritual/repos/ritual-alloy-internal"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/consensus/src/transaction/async_commitment.rs"
+    ],
+    "checked_queries": [
+      "decoded.executor|create_short_async_commitment_tx|TxAsyncCommitment::new|executor_address"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-alloy-internal"
+    ],
+    "checked_symbols": [
+      "DetectedShortAsyncCall",
+      "create_short_async_commitment_tx",
+      "TxAsyncCommitment::new",
+      "executor_address"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped across the port payload path and Alloy transaction type.",
+  "rationale": "The code now threads the already extracted executor_address into create_async_exec_transaction and into TxAsyncExec::new, while the added plan states the objective is to add a required executor address field for assignment and validation after simulation. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "9d01d85bdc573892adbbc900d32bc2a0048b1a86"
+  ],
+  "statement": "When an async call result creates its system TxAsyncExec transaction, the transaction must include the same executor_address extracted for that async call result.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Construct or simulate an AsyncCallResult with a non-default executor address, inspect the produced system_tx as TxAsyncExec, and fail if tx.executor_address differs from the extracted executor_address."
+  ],
+  "summary": "Async system transaction creation preserves the decoded executor address.",
+  "test_or_falsification_candidate": "Simulate an async call with executor A and assert the generated TxAsyncCommitment.executor_address and DetectedShortAsyncCall.executor are A.",
+  "title": "AsyncExec creation preserves executor address",
+  "total_invariants": 1954
+}

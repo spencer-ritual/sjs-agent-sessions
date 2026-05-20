@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:delivery-calls-verified-8e52b060",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping was found: the verifier does process delivery_spc_calls using the origin transaction job key and checks proof length/signature data, but it does not enforce the required at-most-one delivery SPC call cardinality.",
+  "evidence_files": [
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/ethereum/primitives/src/transaction.rs"
+  ],
+  "invariant_id": "cur-47c5879830-delivery-calls-verified-using-original-hash",
+  "invariant_index": 191,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/consensus/src/transaction/async_settlement.rs"
+    ],
+    "checked_queries": [
+      "delivery_spc_calls\\(\\)|delivery_spc_calls|more than one|at most one|len\\(\\) > 1|SPC proof too short|missing matching delivery",
+      "verify_spc_calls|origin_tx_hash|verify_signature_core|SPC_PROOF_SIGNATURE_LENGTH"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "verify_spc_calls",
+      "validate_ritual_async_block_structure",
+      "delivery_spc_calls",
+      "origin_tx_hash",
+      "SPC_PROOF_SIGNATURE_LENGTH",
+      "verify_signature_core"
+    ],
+    "missing_behavior": "Missing verifier enforcement that a delivery settlement contains at most one delivery_spc_call; extra calls can be ignored if one matching valid call is present.",
+    "related_but_insufficient_code": [
+      "crates/ethereum/payload/src/ritual_async.rs constructs delivery settlements with exactly one delivery_spc_call in the builder happy path.",
+      "crates/ritual-block-verification/src/lib.rs validate_ritual_async_block_structure only requires any delivery_spc_call with a supported address and non-empty output/proof for deliver settlements.",
+      "crates/ritual-block-verification/src/lib.rs verify_spc_calls uses calls.iter().find(...) to select a matching delivery SPC call, checks proof length >= 65, and verifies signature with job.tx_hash keyed by settlement.origin_tx.",
+      "Searches found no verifier-side check rejecting multiple delivery_spc_calls or extra non-matching delivery SPC calls."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The verifier removes the previous comment that delivery_spc_calls were not verified through SPC, adds structural checks and job-key selection using tx.origin_tx_hash(), and pushes the delivery SPC call into spc_data for verify_signature_core. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "a0e5174a8348b5b5995e2733d09eaf04e96162d2"
+  ],
+  "statement": "During block verification, delivery_spc_calls are processed by the same SPC signature verification pipeline as Phase 1 SPC calls, must have origin_tx_hash present, must contain at most one delivery SPC call, must target an accepted async precompile, must have a proof of at least SPC_PROOF_SIGNATURE_LENGTH, and use origin_tx_hash rather than the settlement transaction hash as the job key.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Construct delivery settlement transactions with no origin_tx_hash, multiple delivery_spc_calls, too-short proof, zero executor, unsupported precompile, and a valid signed proof; assert verifier rejects each malformed case and accepts the valid case only when the proof verifies against the original Phase 1 tx hash."
+  ],
+  "summary": "Delivery SPC verification is mostly present but lacks the required at-most-one call rejection.",
+  "test_or_falsification_candidate": "Create a delivery settlement containing one valid matching delivery_spc_call plus a second extra call; current verifier should find and verify the matching call instead of rejecting the transaction for cardinality.",
+  "title": "Delivery SPC calls are verified using original transaction hash",
+  "total_invariants": 1954
+}

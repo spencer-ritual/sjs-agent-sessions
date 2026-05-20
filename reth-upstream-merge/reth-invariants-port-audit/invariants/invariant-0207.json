@@ -1,0 +1,69 @@
+{
+  "cluster_key": "executor delivery:error-deliveries-constant-5d3c9325",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping was found: the audited repos contain neither delivery_has_error nor calculate_da_error_fees_phase2, and the current v2 delivery path rejects image/audio/video/FHE two-phase families.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-bbd1426b56-error-deliveries-constant",
+  "invariant_index": 207,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-async-fees/src/constants.rs"
+    ],
+    "checked_queries": [
+      "DA_ERROR_PHASE2_FEE_WEI|calculate_da_error_fees_phase2|delivery_has_error|hasError",
+      "IMAGE_CALL_PRECOMPILE|AUDIO_CALL_PRECOMPILE|VIDEO_CALL_PRECOMPILE|FHE_PRECOMPILE|ensure_supported_two_phase"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "delivery_has_error",
+      "calculate_da_error_fees_phase2",
+      "DA_ERROR_PHASE2_FEE_WEI",
+      "IMAGE_CALL_PRECOMPILE",
+      "AUDIO_CALL_PRECOMPILE",
+      "VIDEO_CALL_PRECOMPILE",
+      "FHE_PRECOMPILE"
+    ],
+    "missing_behavior": "Missing canonical hasError=true detection and deterministic DA error Phase 2 fee calculation in both payload builder and verifier.",
+    "related_but_insufficient_code": [
+      "Searches over the audited repos found no DA error fee symbols; matches exist only in a non-audited legacy checkout.",
+      "crates/ethereum/payload/src/ritual_async.rs calculates Phase 2 fees through calculate_async_fees_phase2 or agent work metrics, with no hasError short-circuit.",
+      "crates/ritual-block-verification/src/lib.rs mirrors normal Phase 2 fee calculation and rejects unported IMAGE/AUDIO/VIDEO/FHE families through ensure_supported_two_phase.",
+      "crates/ritual-block-verification/src/lib.rs has a test named supported_two_phase_helper_rejects_unported_fee_families for IMAGE/AUDIO/VIDEO/FHE."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The merge introduces delivery_has_error and calculate_da_error_fees_phase2, then wires that short-circuit into both builder and verifier for multimodal and FHE delivery settlement fee calculation. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "9b4910ecf7bedff56525f9012ef5f19425e83e68"
+  ],
+  "statement": "For image, audio, video, and FHE Phase 2 delivery settlements, if the delivery result has canonical hasError=true in ABI slot 0, both payload builder and block verifier must use calculate_da_error_fees_phase2 instead of normal output-size, duration, dimension, or FHE output pricing.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create Phase 2 delivery results for image, audio, video, and FHE with slot 0 set to canonical true and otherwise missing/invalid output fields; assert builder and verifier both compute the constant DA error fee and do not attempt normal extraction."
+  ],
+  "summary": "DA error delivery constant-fee behavior is not ported into the audited repos.",
+  "test_or_falsification_candidate": "Construct an image/audio/video/FHE Phase 2 delivery result with ABI slot 0 set true; current audited code has no DA error path and should reject these families or use normal fee logic if made reachable.",
+  "title": "DA error deliveries use constant fee",
+  "total_invariants": 1954
+}

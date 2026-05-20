@@ -1,0 +1,69 @@
+{
+  "cluster_key": "executor delivery:builder-verifier-active-4c7de627",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete implementation mapping was found in the audited local repo set: Missing regular async builder duplicate checking with job_exists_and_active; scheduled builder and verifier active-job checks are present, but the regular short-async collection path does not reject duplicate commitments only on active jobs.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-a73145efc8-builder-verifier-active-duplicate-checks",
+  "invariant_index": 183,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ritual-async-registry/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs"
+    ],
+    "checked_queries": [
+      "job_exists_and_active|should_skip_sender_locked_tx|validate_short_commitment_parent_state|active job|duplicate async",
+      "build_short_async_commitment_transaction|validate_short_commitment_parent_state|best_txs.mark_invalid|InvalidAsyncCommitment",
+      "job_exists_and_active\\(|job_exists\\(|existing active AsyncJobTracker job"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "job_exists_and_active",
+      "decide_active_job_augmentation",
+      "validate_short_commitment_parent_state",
+      "should_skip_sender_locked_tx",
+      "verify_commitments"
+    ],
+    "missing_behavior": "Missing regular async builder duplicate checking with job_exists_and_active; scheduled builder and verifier active-job checks are present, but the regular short-async collection path does not reject duplicate commitments only on active jobs.",
+    "related_but_insufficient_code": [
+      "crates/ethereum/payload/src/lib.rs uses decide_active_job_augmentation backed by job_exists_and_active for synthesized scheduled obligations.",
+      "crates/ritual-block-verification/src/lib.rs rejects async commitments only when job_exists_and_active returns true, allowing missing or expired jobs to proceed.",
+      "crates/ritual-async-registry/src/lib.rs implements job_exists_and_active so expired jobs return Ok(false).",
+      "The regular async path in crates/ethereum/payload/src/lib.rs proceeds through validate_short_commitment_parent_state, which checks executor capability and wallet lock but does not call job_exists_and_active for the origin tx hash.",
+      "should_skip_sender_locked_tx is a nonce-lock predicate and uses job_exists for fulfillment allowance; it is not the required regular async duplicate-commitment active-job check."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The commit replaces job_exists with job_exists_and_active in all three consensus-critical duplicate-check locations named in the commit message. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "e2a50aa75628498e28546e378efe5224701fbb8a"
+  ],
+  "statement": "Payload builder scheduled and regular async collection, and block verifier async commitment validation, must reject duplicate commitments only when job_exists_and_active is true; when it is false because the job is missing or expired, the async commitment may proceed.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Provide builder and verifier state where jobExecutor is non-zero but expiryBlock is <= current block; assert neither path rejects the commitment as a duplicate, then set expiryBlock > current block and assert both reject/skip."
+  ],
+  "summary": "Active-job duplicate checks are only partial, so this invariant is a confirmed gap.",
+  "test_or_falsification_candidate": "Put an active AsyncJobTracker job for a regular async origin tx hash, then build a payload with the same original transaction; current local code should reach commitment construction because the regular path has no origin-hash job_exists_and_active precheck.",
+  "title": "Builder and verifier use active-job duplicate checks",
+  "total_invariants": 1954
+}

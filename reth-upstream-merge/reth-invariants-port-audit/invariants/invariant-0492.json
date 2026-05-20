@@ -1,0 +1,52 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "Settlement reads skip missing jobs and continue building a result map for existing jobs.",
+      "path": "crates/ritual-async-registry/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if executor.is_zero() {\n    tracing::warn!(..., \"read_jobs_for_settlement: job not found (executor is zero)\");\n    continue; // Job doesn't exist \u2014 caller decides how to handle missing entries\n}",
+      "symbols": [
+        "read_jobs_for_settlement"
+      ]
+    }
+  ],
+  "equivalence_argument": "The settlement reader treats zero jobExecutor as an omitted result, not a fatal database error, so builder/verifier callers receive existing settlement jobs and decide how to handle absences.",
+  "evidence_files": [
+    "crates/ritual-async-registry/src/lib.rs"
+  ],
+  "invariant_id": "cur-ebba20f17e-settlement-reads-skip-missing-jobs",
+  "invariant_index": 492,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This is the current settlement-reader behavior and is intentionally different from SPC fail-closed reads.",
+  "rationale": "The primary diff changes missing jobExecutor handling in read_jobs_for_settlement from an immediate DatabaseError to continue, and the commit message explains builder callers need graceful skip behavior. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "d251095e9679576b24f577da449f0729106e059a"
+  ],
+  "statement": "read_jobs_for_settlement() must skip job IDs whose AsyncJobTracker jobExecutor slot is zero instead of returning an error, leaving builder/verifier callers to decide how to handle absent settlement jobs.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call read_jobs_for_settlement with a mix of existing and nonexistent job IDs and assert the nonexistent IDs are omitted from the returned map without error, while existing jobs are still decoded."
+  ],
+  "summary": "Settlement reads skip missing jobs without error.",
+  "test_or_falsification_candidate": "Call read_jobs_for_settlement with a mix of existing and nonexistent job IDs and assert the nonexistent IDs are omitted from the returned map without error, while existing jobs are still decoded.",
+  "title": "Settlement reads skip missing jobs",
+  "total_invariants": 1954
+}

@@ -1,0 +1,63 @@
+{
+  "cluster_key": "block building:builder-skips-validation-584dca38",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: the port skips several specific validation errors, but the generic BlockExecutionError::Validation catch-all still falls through to the fatal Err(err) branch.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs"
+  ],
+  "invariant_id": "cur-db1cfee895-builder-skips-validation-errors",
+  "invariant_index": 562,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs"
+    ],
+    "checked_queries": [
+      "BlockExecutionError::Validation catch-all skip",
+      "Builder skips validation errors",
+      "Err(BlockExecutionError::Validation(error)) continue",
+      "Err(err) => return Err(PayloadBuilderError::evm(err))"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "BlockExecutionError::Validation",
+      "BlockValidationError::InvalidTx",
+      "is_transient_precompile_validation_error",
+      "is_permanently_invalid_precompile_request",
+      "PayloadBuilderError::evm"
+    ],
+    "missing_behavior": "Arbitrary BlockExecutionError::Validation values not matched by the specific branches still abort payload building instead of being logged and skipped.",
+    "related_but_insufficient_code": [
+      "crates/ethereum/payload/src/lib.rs skips InvalidTx, TransactionGasLimitMoreThanAvailableBlockGas, transient async precompile validation, and permanently invalid precompile requests.",
+      "The final catch-all branch is Err(err) => return Err(PayloadBuilderError::evm(err)).",
+      "Search found no unguarded Err(BlockExecutionError::Validation(error)) branch that logs and continues."
+    ]
+  },
+  "notes": "The current code is narrower than the invariant: several validation families are non-fatal, but not the catch-all validation case.",
+  "rationale": "The catch-all validation branch prevents unknown validation failures from aborting block construction, while the following Err(err) branch still returns a payload builder error for non-validation failures. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Block Building",
+  "source_commits": [
+    "9f1a7ac036f522fd4086fbc47bb1b6786f2662dd"
+  ],
+  "statement": "During payload building, any BlockExecutionError::Validation not handled by a more specific branch must be logged and skipped, while non-validation execution errors must still abort payload building.",
+  "status": "current",
+  "subsystem": "block building",
+  "suggested_falsification_tests": [
+    "Execute a pool transaction that returns an arbitrary BlockExecutionError::Validation and assert the transaction is skipped with no PayloadBuilderError; execute one returning a non-validation BlockExecutionError and assert payload building returns an EVM error."
+  ],
+  "summary": "Generic validation errors still abort payload building.",
+  "test_or_falsification_candidate": "Inject an unrecognized BlockExecutionError::Validation from transaction execution and assert payload building returns an EVM error rather than skipping the transaction.",
+  "title": "Builder skips validation errors",
+  "total_invariants": 1954
+}

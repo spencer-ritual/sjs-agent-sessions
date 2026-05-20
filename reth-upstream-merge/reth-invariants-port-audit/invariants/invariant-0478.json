@@ -1,0 +1,72 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-async-fees/src/lib.rs"
+  ],
+  "invariant_id": "cur-dee63ab7c4-multimodal-pricing-model-specific-erroring",
+  "invariant_index": 478,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ritual-async-fees/src/registry.rs",
+      "crates/ritual-async-fees/src/wallet.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "ritual-revm-internal/crates/precompile/src/image_call.rs",
+      "ritual-revm-internal/crates/precompile/src/video_call.rs"
+    ],
+    "checked_queries": [
+      "image audio video model-specific pricing missing pricing error",
+      "calculate_image_fees_phase2 ModelInfo",
+      "calculate_video_fees_phase2 ModelInfo",
+      "image_escrow video_escrow audio_escrow"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "ModelInfo.image_fee_wei_per_pixel",
+      "ModelInfo.video_fee_wei_per_pixel_second",
+      "audio_escrow_lockup",
+      "calculate_audio_fees_phase2",
+      "calculate_image_fees_phase2",
+      "calculate_video_fees_phase2",
+      "image_escrow_lockup",
+      "video_escrow_lockup"
+    ],
+    "missing_behavior": "Image and video escrow/Phase 2 fee functions do not calculate from ModelInfo pricing fields or error on missing model pricing; only audio has model-specific erroring fee helpers.",
+    "related_but_insufficient_code": [
+      "crates/ritual-async-fees/src/lib.rs implements audio_escrow_lockup and calculate_audio_fees_phase2 with missing-pricing errors.",
+      "crates/ritual-async-fees/src/registry.rs keeps image/video ModelInfo fields zeroed/reserved and does not read image/video pricing from storage.",
+      "ritual-revm-internal image_call.rs and video_call.rs contain precompile gas-cost functions, not async escrow or Phase 2 fee accounting."
+    ]
+  },
+  "notes": "Because the invariant requires image, audio, and video behavior, the audio-only implementation is insufficient.",
+  "rationale": "The primary diff rewrites image, audio, and video escrow and Phase 2 fee functions to accept ModelInfo, validate modality-specific pricing fields, and return Err for missing pricing rather than falling back to uncalibrated constants. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "8aa848f34c3f6d6543a3731eb6a436cf361e287d"
+  ],
+  "statement": "Image, audio, and video escrow and Phase 2 fee functions calculate executor fees from ModelInfo pricing fields and return errors when the relevant model pricing is missing, instead of using stub or fallback pricing.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "For each image, audio, and video model, call escrow and Phase 2 fee functions with valid ModelInfo and assert the fee uses that model's modality pricing; then call with zeroed pricing fields and assert an error is returned and no fallback fee is produced."
+  ],
+  "summary": "Only audio has model-specific erroring media pricing; image and video are absent.",
+  "test_or_falsification_candidate": "For each image, audio, and video model, call escrow and Phase 2 fee functions with valid ModelInfo and assert the fee uses that model's modality pricing; then call with zeroed pricing fields and assert an error is returned and no fallback fee is produced.",
+  "title": "Multimodal pricing is model-specific and erroring",
+  "total_invariants": 1954
+}

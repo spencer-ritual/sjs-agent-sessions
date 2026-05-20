@@ -1,0 +1,92 @@
+{
+  "cluster_key": "executor delivery:async-pool-result-769c62fd",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The public pool API accepts shared &self access and forwards result fulfillment to the dedicated async_pool instead of requiring a mutable Pool or TxPool write path.",
+      "path": "crates/transaction-pool/src/pool/mod.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn submit_async_result(&self, submission: AsyncResultSubmission) -> Result<(), AsyncPoolError> {\n    self.async_pool.submit_result_with_context(submission)\n}",
+      "symbols": [
+        "Pool::submit_async_result"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Result submission rejects missing transactions and non-AwaitingExecution states before storing the executor output and proof on the tracked async metadata.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let metadata = inner.transactions.get_mut(&submission.original_tx_hash).ok_or(AsyncPoolError::TransactionNotFound)?;\nif metadata.state != AsyncState::AwaitingExecution { return Err(AsyncPoolError::InvalidState(metadata.state.clone())); }\n...\nSelf::fulfill_result(metadata, submission.execution_result, submission.execution_proof);",
+      "symbols": [
+        "AsyncPool::submit_result_with_context",
+        "AsyncPool::fulfill_result"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Unit coverage exercises the AwaitingExecution-to-Fulfilled transition and the already-fulfilled rejection path required by the invariant.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pool.submit_result_with_context(result_submission(tx_hash)).unwrap();\nassert_eq!(metadata.state, AsyncState::Fulfilled);\n...\nErr(AsyncPoolError::InvalidState(AsyncState::Fulfilled))",
+      "symbols": [
+        "tests::submit_result_transitions_to_fulfilled",
+        "tests::submit_result_rejects_invalid_state"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port implements the observable invariant with a dedicated AsyncPool behind shared Pool methods. Internally AsyncPool serializes metadata mutation with its own RwLock write guard rather than DashMap, but callers use shared pool access and the transition remains guarded: only AwaitingExecution entries are fulfilled, missing hashes return TransactionNotFound, and non-awaiting states return InvalidState.",
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/async_exec.rs",
+    "crates/transaction-pool/src/pool/mod.rs",
+    "crates/transaction-pool/src/pool/txpool.rs"
+  ],
+  "invariant_id": "cur-0f30d18912-async-pool-result-fulfillment-uses-shared-concurrent-access",
+  "invariant_index": 155,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/mod.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs",
+      "crates/transaction-pool/src/lib.rs",
+      "crates/transaction-pool/src/traits.rs"
+    ],
+    "checked_queries": [
+      "submit_async_result|submit_result_with_context|AwaitingExecution|Fulfilled|TransactionNotFound|InvalidState"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "Pool::submit_async_result",
+      "TransactionPool::submit_async_result",
+      "AsyncPool::submit_result_with_context",
+      "AsyncPool::fulfill_result"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The primary diff replaces HashMap storage with DashMap, changes mutation methods from &mut self to &self, switches submit_async_result to a read lock, and keeps the AwaitingExecution state check before atomically setting Fulfilled data. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: DashMap and read-lock usage are implementation choices; the intended invariant may only be that RPC processing should not block unrelated pool users while preserving existing fulfillment semantics.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "2e3234ab892a673c61f3460dddb658a38f78ced0"
+  ],
+  "statement": "Submitting an async execution result must be possible through shared pool access, update only transactions in AwaitingExecution to Fulfilled with output and optional proof, and return TransactionNotFound or InvalidState for missing or non-awaiting transactions.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Insert an async transaction, call submit_async_result through a shared/read-only pool handle, and assert the metadata becomes Fulfilled with the supplied output and proof; repeat for a missing hash and an already fulfilled transaction to assert TransactionNotFound and InvalidState respectively."
+  ],
+  "summary": "Async result fulfillment is exposed through shared pool access and guarded by async metadata state.",
+  "test_or_falsification_candidate": "Insert async metadata, submit a result through a shared Pool handle, assert Fulfilled output/proof, then assert missing and already-fulfilled submissions return TransactionNotFound and InvalidState.",
+  "title": "Async pool result fulfillment uses shared concurrent access",
+  "total_invariants": 1954
+}

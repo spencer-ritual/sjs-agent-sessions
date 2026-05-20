@@ -1,0 +1,32 @@
+{
+  "record_type": "file",
+  "file_index": 114,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/exex/exex/src/manager.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "semicolon_only",
+    "exex"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The ExEx manager divergence is semicolon-only rustfmt noise in Poll::Ready returns and loop control expressions; no notification buffering, capacity, or send behavior changed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 114: M\tcrates/exex/exex/src/manager.rs.",
+    "The isolated patch only adds semicolons to `return Poll::Ready(Ok(()))`, `continue`, `break`, and `return Poll::Ready(Err(err.into()))` expressions.",
+    "No polling branch, notification ordering, error propagation target, buffer capacity update, or ExEx send side effect changed."
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: the specific CLI-agent codec separation is absent from the audited repos.",
+  "evidence_files": [
+    "crates/ritual-async/src/detector.rs",
+    "crates/ritual-async/src/validation.rs"
+  ],
+  "invariant_id": "cur-29d56e1b7a-agent-decodes-codec",
+  "invariant_index": 507,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-precompile-codecs/src/validation.rs",
+      "crates/ritual-precompile-addresses/src/lib.rs",
+      "crates/ritual-async/src/detector.rs",
+      "crates/ritual-async/src/validation.rs"
+    ],
+    "checked_queries": [
+      "CLI_AGENT_PRECOMPILE",
+      "CLIAgentRequest",
+      "cli agent decode codec",
+      "crates/ritual-async/src/detector.rs"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "CLI_AGENT_PRECOMPILE",
+      "CLIAgentRequest",
+      "DKMS_KEY_PRECOMPILE",
+      "DkmsKeyRequest",
+      "try_decode_precompile_data",
+      "validate_async_payload"
+    ],
+    "missing_behavior": "No CLI_AGENT_PRECOMPILE or CLIAgentRequest codec path exists locally, so CLI agent extraction cannot decode its own codec instead of DKMS input.",
+    "related_but_insufficient_code": [
+      "crates/ritual-precompile-codecs/src/validation.rs has DkmsKeyRequest handling for DKMS_KEY_PRECOMPILE and no CLI-agent branch.",
+      "crates/ritual-precompile-addresses/src/lib.rs defines DKMS and persistent/sovereign agent addresses but no CLI_AGENT_PRECOMPILE.",
+      "The evidence files crates/ritual-async/src/detector.rs and crates/ritual-async/src/validation.rs are not present in the port checkout."
+    ]
+  },
+  "notes": "Searches covered the renamed validation crate as well as the original evidence paths.",
+  "rationale": "The combined diff separates CLI_AGENT_PRECOMPILE into a CLIAgentRequest::from_abi branch and leaves DKMS_KEY_PRECOMPILE on DkmsKeyRequest extraction. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "b068a7439cf527ab2397f46075412d35508a4c18"
+  ],
+  "statement": "For CLI_AGENT_PRECOMPILE, async precompile data extraction must decode CLIAgentRequest to obtain executor and TTL, rather than treating CLI agent input as DKMS key input.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Encode a valid CLIAgentRequest and assert detector and RPC validation extract its executor and TTL; assert the same bytes are not required to satisfy DkmsKeyRequest decoding."
+  ],
+  "summary": "CLI agent codec decoding is not present locally.",
+  "test_or_falsification_candidate": "Encode a CLIAgentRequest and assert detector/RPC validation extract executor and TTL without DKMS decoding; no local CLI-agent codec is available to run this path.",
+  "title": "CLI agent decodes with its own codec",
+  "total_invariants": 1954
+}

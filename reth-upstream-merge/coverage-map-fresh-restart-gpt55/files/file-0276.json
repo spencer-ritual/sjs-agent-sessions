@@ -1,0 +1,79 @@
+{
+  "record_type": "file",
+  "file_index": 276,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-async-fees/src/constants.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "async-fees",
+    "fee-constants",
+    "precompile-addresses",
+    "abi-offsets",
+    "consensus-critical"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0276-atom-0001",
+      "file_index": 276,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-async-fees/src/constants.rs",
+      "source_hunk_hint": "@@ -0,0 +1,443 @@",
+      "source_kind": "async_fee_constants_surface",
+      "source_snippet": "//! Fee calculation constants\n//!\n//! Fee-related numeric parameters here are the source of truth for async pricing.\n\npub const HTTP_EXECUTOR_BASE_FEE_WEI: u128 = 2_500_000_000_000;\npub const MAX_ASYNC_INPUT_SIZE_BYTES: usize = 10 * 1024;\npub const HTTP_CALL_MAX_OUTPUT_BYTES: usize = 5 * 1024;\npub const LLM_ERROR_EXECUTOR_FEE_WEI: u128 = 500_000_000_000;\npub const DA_ERROR_PHASE2_FEE_WEI: u128 = 500_000_000_000;\npub use ritual_precompile_addresses::{\n    is_two_phase_precompile, ALL_TWO_PHASE_PRECOMPILE_ADDRESSES, AUDIO_CALL_PRECOMPILE,\n    DKMS_KEY_PRECOMPILE, FHE_PRECOMPILE, HTTP_CALL_PRECOMPILE, IMAGE_CALL_PRECOMPILE,\n    LLM_CALL_PRECOMPILE, LONG_RUNNING_HTTP_PRECOMPILE, PERSISTENT_AGENT_PRECOMPILE,\n    SOVEREIGN_AGENT_PRECOMPILE, VIDEO_CALL_PRECOMPILE, ZK_TWO_PHASE_PRECOMPILE,\n};\npub const SETTLE_SELECTOR: [u8; 4] = [0x0a, 0xa4, 0xdd, 0x19];\npub const DELIVER_SELECTOR: [u8; 4] = [0x20, 0xb4, 0x8f, 0x49];",
+      "semantic_claim": "The old divergence adds the async fees crate constants surface: HTTP, LLM, DKMS, persistent-agent, long-running HTTP, sovereign-agent, image, audio, video, ZK, model-registry address, ABI offset, settlement selector, maximum dimension/duration, and shared size-limit constants, plus precompile address re-exports and compile-time assertions that bound error fees against minimum escrow constants.",
+      "high_risk": false,
+      "risk_tags": [
+        "fee-calculation",
+        "async-settlement",
+        "precompile-address-reexports",
+        "builder-verifier-shared-selectors",
+        "input-output-limits"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/constants.rs",
+          "evidence": "Destination file preserves the full 443-line added constants module, including the same public constants, precompile address re-exports, default model registry address, ABI offsets, settlement selectors, maximum size/dimension/duration limits, and compile-time assertions."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-fees/src/{http.rs,llm.rs,lib.rs,wallet.rs} and dependent payload/verifier/pool crates",
+          "evidence": "Destination usages resolve through the preserved constants surface: HTTP fee calculation uses HTTP_EXECUTOR_BASE_FEE_WEI, LLM error handling uses LLM_ERROR_EXECUTOR_FEE_WEI, async delivery error settlement uses DA_ERROR_PHASE2_FEE_WEI, wallet and payload code use HTTP_CALL_MAX_OUTPUT_BYTES, and pool/payload/verifier code use the shared settlement selectors and registry address."
+        }
+      ],
+      "equivalence_argument": "The source diff introduces `constants.rs` as a new shared constants module, and the destination preserves the module's public values and re-exports behaviorally exactly. Because downstream async fee, wallet, payload, verifier, and pool code refer to these same exported constants, the pricing, size-limit, selector, address, and ABI-offset semantics are retained without drift.",
+      "test_strategy": "compile_and_fee_regression",
+      "negative_test_candidate": "Run a package check plus async-fee regression tests that assert HTTP/LLM/error-delivery fees, selector bytes, model registry address, and max input/output limits remain equal to the constants in this module.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "This atom covers only `crates/ritual-async-fees/src/constants.rs`. `src/delivery.rs` begins at the next diff boundary and remains for file-0277."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The async fees constants module is exact-port preserved in the destination.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 276: A\tcrates/ritual-async-fees/src/constants.rs.",
+    "Source diff for file-0276 starts at the `constants.rs` diff header and ends before the `src/delivery.rs` diff header.",
+    "Destination `crates/ritual-async-fees/src/constants.rs` preserves the added constants surface exactly and downstream destination usages resolve through it.",
+    "No content from `crates/ritual-async-fees/src/delivery.rs` was audited or persisted in this record."
+  ]
+}

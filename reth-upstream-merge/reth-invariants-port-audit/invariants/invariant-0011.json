@@ -1,0 +1,100 @@
+{
+  "cluster_key": "scheduler:incident-calldata-capture-cc6ca040",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Incident recorder stores at most 2048 input bytes while preserving original length and truncation flag.",
+      "path": "crates/ritual-metrics/src/scheduling.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub const MAX_INCIDENT_INPUT_BYTES: usize = 2048;\nif input.len() > MAX_INCIDENT_INPUT_BYTES { encode(&input[..MAX_INCIDENT_INPUT_BYTES]), true } else { encode(input), false }\ninput_len: input.input.len(), input_truncated",
+      "symbols": [
+        "MAX_INCIDENT_INPUT_BYTES",
+        "encode_input",
+        "record_scheduled_incident"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "RPC debug type preserves bounded input hex, original length, and truncation flag.",
+      "path": "crates/rpc/rpc-api/src/ritual.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub input_hex: String, pub input_len: usize, pub input_truncated: bool",
+      "symbols": [
+        "ScheduledIncidentDebug"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Node RPC exposes the retained scheduled incident traces through the preserving conversion.",
+      "path": "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "recent_scheduled_incidents(...).into_iter().map(Into::into).collect()",
+      "symbols": [
+        "get_scheduled_incidents"
+      ]
+    }
+  ],
+  "equivalence_argument": "Exact mapping: trace creation bounds retained calldata to 2048 bytes, records original byte length, and exposes the truncation flag through RPC.",
+  "evidence_files": [
+    "crates/ritual-metrics/src/scheduling.rs"
+  ],
+  "invariant_id": "cur-035eff6085-scheduled-incident-calldata-capture-byte-bounded",
+  "invariant_index": 11,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-metrics/src/scheduling.rs",
+      "crates/rpc/rpc-api/src/ritual.rs",
+      "crates/ethereum/node/src/ritual_async_rpc.rs"
+    ],
+    "checked_queries": [
+      "input_truncated|input_len|input_hex|2048|MAX.*INPUT|calldata",
+      "scheduled.*incident|inputHex|inputLen|inputTruncated"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "MAX_INCIDENT_INPUT_BYTES",
+      "ScheduledIncidentTrace",
+      "record_scheduled_incident",
+      "ScheduledIncidentDebug",
+      "input_truncated"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "Other truncation or admission-size checks are unrelated to scheduled incident trace storage."
+    ]
+  },
+  "notes": "Mapped in ritual-metrics and RPC debug conversion.",
+  "rationale": "The direct candidate describes the current bounded representation used for scheduled incident trace calldata. Neighbor candidates cover scheduler execution, transaction typing, pool insertion, and receipt behavior, but none alter or refine the incident trace calldata capture rule.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "de28c877dac9c65e78542bc9051982087024849b"
+  ],
+  "statement": "Scheduled incident traces must store at most the first 2048 bytes of input calldata as hex, while preserving the original input byte length and a truncation flag that is true only when the original input exceeded 2048 bytes.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Record scheduled incident traces with calldata lengths of 0, 2047, 2048, and 2049 bytes; assert input_hex contains exactly the retained prefix, input_len equals the original byte length, and input_truncated is true only for the 2049-byte case.",
+    "Record an incident with calldata far larger than 2048 bytes; assert stored input_hex size remains bounded to the first 2048 bytes encoded as hex and does not grow with the original calldata size."
+  ],
+  "summary": "Scheduled incident calldata capture is byte bounded and observable in the port.",
+  "test_or_falsification_candidate": "Record inputs of length 0, 2048, and 2049; assert input_hex length is bounded, input_len is original length, and input_truncated is true only for >2048.",
+  "title": "Scheduled incident calldata capture is byte bounded",
+  "total_invariants": 1954
+}

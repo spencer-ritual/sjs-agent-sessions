@@ -1,0 +1,67 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-f7a09116c5-malformed-phase-settlement-data-rejects-blocks",
+  "invariant_index": 385,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ritual-block-verification/src/constants.rs",
+      "crates/ritual-spc-signature/src/lib.rs"
+    ],
+    "checked_queries": [
+      "multiple SPC",
+      "more than one SPC",
+      "spc_calls len > 1",
+      "delivery_spc_calls len > 1",
+      "SPC proof too short",
+      "extract_delivery_result_from_calldata"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "verify_spc_calls",
+      "delivery_spc_calls",
+      "spc_calls",
+      "SPC_PROOF_SIGNATURE_LENGTH",
+      "extract_delivery_result_from_calldata"
+    ],
+    "missing_behavior": "Block verification rejects malformed delivery-result extraction and short SPC proofs, but no local verifier path rejects a transaction merely because it carries more than one SPC call; the current code selects a matching call with any/find.",
+    "related_but_insufficient_code": [
+      "verify_spc_calls returns InvalidSpc for short proofs and missing matching calls.",
+      "verify_settlements extracts delivery_result from calldata and maps classification/extraction errors to InvalidAsyncSettlement.",
+      "validate_async_settlement_shape checks that at least one delivery SPC call exists but does not reject extra calls."
+    ]
+  },
+  "notes": "Confirmed gap: several malformed paths are fail-closed, but the more-than-one-SPC-call case is not enforced.",
+  "rationale": "The primary diff replaces delivery_result_len.unwrap_or(0) with an error and changes SPC extraction from warn-and-skip behavior to Result-returning hard rejection for malformed async SPC data. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "4a0af4dba1235af6894d289514d1e45521cf8fa8"
+  ],
+  "statement": "Block verification should reject blocks when Phase 2 delivery_result_len cannot be extracted, a transaction contains more than one SPC call, an async SPC proof is too short, or the SPC executor address cannot be extracted or is zero.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create block-verification fixtures with a Phase 2 settlement whose input cannot yield delivery_result_len, a transaction with two SPC calls, a proof shorter than SPC_PROOF_SIGNATURE_LENGTH, and an SPC call with zero or unextractable executor address. Each should make verification return an error instead of passing after skipping/defaulting."
+  ],
+  "summary": "Malformed SPC checks lack the multi-SPC rejection required by the invariant.",
+  "test_or_falsification_candidate": "Create a settlement/original transaction with two SPC calls where one matches; the invariant expects rejection, while current verification can select the matching call and continue.",
+  "title": "Malformed SPC and Phase 2 settlement data rejects blocks",
+  "total_invariants": 1954
+}

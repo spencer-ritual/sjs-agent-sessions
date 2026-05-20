@@ -1,0 +1,74 @@
+{
+  "record_type": "file",
+  "file_index": 335,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-sequencing-rights/Cargo.toml",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "manifest",
+    "sequencing-rights"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0335-atom-0001",
+      "file_index": 335,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-sequencing-rights/Cargo.toml",
+      "source_hunk_hint": "@@ -0,0 +1,35 @@; sequencing rights crate manifest",
+      "source_kind": "crate_manifest",
+      "source_snippet": "[package]\nname = \"ritual-sequencing-rights\"\nversion = \"0.1.0\"\nedition = \"2021\"\ndescription = \"Sequencing rights enforcement for transaction ordering in blocks\"\n\n[dependencies]\nalloy-primitives = { workspace = true }\nalloy-consensus = { workspace = true }\nalloy-sol-types = { workspace = true }\nreth-primitives = { workspace = true }\nreth-primitives-traits = { workspace = true }\nreth-storage-api = { workspace = true }\nreth-revm = { workspace = true }\nreth-ethereum-primitives = { workspace = true }\nrevm = { workspace = true }\nrevm-context = { workspace = true }\nrayon = { workspace = true }\nthiserror = { workspace = true }\ntracing = { workspace = true }\n\n[dev-dependencies]\nproptest = { workspace = true }",
+      "semantic_claim": "The old divergence adds the `ritual-sequencing-rights` manifest with dependencies for Alloy/Reth transaction types, state providers, REVM simulation/static calls, parallel bucket processing, typed errors, tracing, and property tests.",
+      "high_risk": false,
+      "risk_tags": [
+        "manifest",
+        "sequencing-rights",
+        "revm",
+        "rayon",
+        "proptest"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-sequencing-rights/Cargo.toml",
+          "symbols": [
+            "package:ritual-sequencing-rights"
+          ],
+          "evidence": "Destination manifest lines 1-35 exactly match source-added diff lines 66651-66685."
+        }
+      ],
+      "equivalence_argument": "Exact preservation keeps the sequencing-rights crate dependency boundary unchanged.",
+      "test_strategy": "workspace_manifest_and_sequencing_rights_compile",
+      "negative_test_candidate": "Removing `rayon` should break parallel bucket sorting/verification.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact manifest mapping."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The sequencing-rights manifest is exact-port preserved with the REVM, state-provider, parallelism, and test dependencies required by the crate.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 335: A\tcrates/ritual-sequencing-rights/Cargo.toml.",
+    "Source-added hunk spans diff lines 66651-66685 with header `@@ -0,0 +1,35 @@`.",
+    "Destination `crates/ritual-sequencing-rights/Cargo.toml` has 35 lines and matches the source-added manifest exactly.",
+    "No review queue entry required because the atom is exact."
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "cluster_key": "scheduler:type-hash-codec:part-01",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "ritual-reth-internal/crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-eeb164b3a4-scheduled-commitment-sender-uniqueness-uses-caller-identity",
+  "invariant_index": 137,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ritual-async/src/validation.rs",
+      "crates/consensus/src/transaction/envelope.rs"
+    ],
+    "checked_queries": [
+      "verify_nonce_locks|commitment_senders|OriginalTransaction::sender|scheduled_tx.caller|original_transaction_payer|Scheduled"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-alloy-internal"
+    ],
+    "checked_symbols": [
+      "verify_nonce_locks",
+      "commitment_senders",
+      "OriginalTransaction::sender",
+      "original_transaction_payer",
+      "scheduled_tx.caller"
+    ],
+    "missing_behavior": "verify_nonce_locks does not use scheduled_tx.caller for async commitment sender uniqueness. It identifies scheduled origins and continues before commitment_senders insertion; OriginalTransaction::sender for Scheduled recovers the signer/system sender rather than the embedded caller.",
+    "related_but_insufficient_code": [
+      "original_transaction_payer uses the scheduled caller for wallet payment checks.",
+      "That payer identity is not used by verify_nonce_locks for commitment sender uniqueness, so it does not satisfy the invariant."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "This candidate is a distinct current validation identity rule: scheduled transactions are system-submitted, so duplicate-sender checks must use the embedded caller rather than the system sender.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "702c5256ed7380988de60dfbbefadfc2d868c7c0"
+  ],
+  "statement": "When block verification extracts the sender for async commitment sender-uniqueness checks, decoded scheduled origin transactions use the scheduled transaction caller field as the originating sender, while legacy and EIP-1559 origins recover their signer from the decoded signed transaction.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Create async commitments for legacy, EIP-1559, and scheduled origins; assert regular origins use recovered signers and scheduled origins use scheduled_tx.caller for duplicate-sender checks.",
+    "Use malformed or unsupported origin_tx_rlp in a commitment and assert decode_original_transaction failure prevents silently falling back to the system sender."
+  ],
+  "summary": "Scheduled commitment sender uniqueness does not use scheduled_tx.caller.",
+  "test_or_falsification_candidate": "Async commitment nonce-lock tests for scheduled origins sharing caller identity.",
+  "title": "Scheduled commitment sender uniqueness uses caller identity",
+  "total_invariants": 1954
+}

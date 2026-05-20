@@ -1,0 +1,61 @@
+{
+  "cluster_key": "scheduler:payload-building:part-01",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/engine/tree/src/tree/cached_state.rs"
+  ],
+  "invariant_id": "cur-a08ea4a6b9-state-cache-defaults-long-environment-configurable",
+  "invariant_index": 97,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/engine/execution-cache/src/cached_state.rs",
+      "crates/engine/execution-cache/src/lib.rs",
+      "crates/engine/tree/src/tree/payload_processor/mod.rs"
+    ],
+    "checked_queries": [
+      "RETH_STATE_CACHE_TTL_SECS|RETH_STATE_CACHE_IDLE_SECS|ProviderCacheBuilder|time_to_live|time_to_idle|7200|3600|ExecutionCache::new"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "ProviderCacheBuilder",
+      "RETH_STATE_CACHE_TTL_SECS",
+      "RETH_STATE_CACHE_IDLE_SECS",
+      "ExecutionCache::new"
+    ],
+    "missing_behavior": "Missing ProviderCacheBuilder TTL/idle configurability and restored 7200s/3600s defaults; local execution cache is fixed-size and created by ExecutionCache::new without time_to_live/time_to_idle configuration.",
+    "related_but_insufficient_code": [
+      "ExecutionCache exists and is used by payload processing, but it exposes size-based fixed caches rather than env-configured TTL/idle caches."
+    ]
+  },
+  "notes": "Confirmed gap.",
+  "rationale": "The later candidate supersedes only the default values introduced by the earlier environment-configurable cache commit, preserving configurability as current behavior.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "86a452dc2fbb67568a10a50ea330a85b1003b1d8",
+    "5014738f65943023dce7ab83eb7587fc8d1e4a33"
+  ],
+  "statement": "ProviderCacheBuilder must apply RETH_STATE_CACHE_TTL_SECS and RETH_STATE_CACHE_IDLE_SECS to storage, account, and code caches when valid, and otherwise use restored defaults of 7200 seconds time_to_live and 3600 seconds time_to_idle.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Set RETH_STATE_CACHE_TTL_SECS and RETH_STATE_CACHE_IDLE_SECS and assert storage/account/code caches use those durations.",
+    "Unset both env vars and assert defaults are 7200s TTL and 3600s idle."
+  ],
+  "summary": "State cache TTL/idle environment configuration is absent.",
+  "test_or_falsification_candidate": "Search for ProviderCacheBuilder and RETH_STATE_CACHE_* env vars; current port lacks this cache builder/configuration.",
+  "title": "State cache defaults are long but environment configurable",
+  "total_invariants": 1954
+}

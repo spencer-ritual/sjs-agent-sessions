@@ -1,0 +1,54 @@
+{
+  "cluster_key": "block building:build-includes-both-8c982e50",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a2a16e97e8d7c4866b43f8be2a04b26369ac2d28",
+      "evidence": "The nodebuilder Makefile constructs GIT_COMMIT from the local reth port checkout short SHA and the nodebuilder checkout short SHA separated by a hyphen.",
+      "path": "Makefile",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "RETH_INTERNAL_COMMIT := $(shell cd ../ritual-reth-internal-v2.2.0-port && git rev-parse --short=7 HEAD)\nNODEBUILDER_COMMIT := $(shell git rev-parse --short=7 HEAD)\nGIT_COMMIT := $(RETH_INTERNAL_COMMIT)-$(NODEBUILDER_COMMIT)",
+      "symbols": [
+        "RETH_INTERNAL_COMMIT",
+        "NODEBUILDER_COMMIT",
+        "GIT_COMMIT"
+      ]
+    }
+  ],
+  "equivalence_argument": "The nodebuilder repository owns image/version metadata assembly, so the invariant maps to its Makefile rather than to the port crate code.",
+  "evidence_files": [
+    "Makefile"
+  ],
+  "invariant_id": "cur-fe6d0873e0-build-includes-both-repos",
+  "invariant_index": 559,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The local path references the v2.2.0 port checkout explicitly.",
+  "rationale": "The commit subject says git calculation should include reth too, and the diff adds separate short SHA reads for `../ritual-reth-internal` and the current repo before concatenating them. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Block Building",
+  "source_commits": [
+    "d12b750560cd632c4eabbfa4f6c4ab9f62bb6383"
+  ],
+  "statement": "The Makefile `GIT_COMMIT` value is formed as `<ritual-reth-internal short sha>-<nodebuilder short sha>` rather than only the nodebuilder repository's commit.",
+  "status": "current",
+  "subsystem": "block building",
+  "suggested_falsification_tests": [
+    "Run `make` target or evaluate `GIT_COMMIT` with both repos present and assert it equals the short SHA of `../ritual-reth-internal`, a hyphen, and the short SHA of nodebuilder."
+  ],
+  "summary": "Build commit metadata includes both repo SHAs.",
+  "test_or_falsification_candidate": "Evaluate the Makefile variables with both repos present and assert GIT_COMMIT is <reth-port-short-sha>-<nodebuilder-short-sha>.",
+  "title": "Build commit includes both repos",
+  "total_invariants": 1954
+}

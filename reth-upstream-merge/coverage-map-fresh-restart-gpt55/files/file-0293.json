@@ -1,0 +1,192 @@
+{
+  "record_type": "file",
+  "file_index": 293,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-async-registry/src/slots.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "async-registry",
+    "storage-layout",
+    "slot-calculation",
+    "nonce-lock"
+  ],
+  "atoms_total": 3,
+  "atoms": [
+    {
+      "record_id": "file-0293-atom-0001",
+      "file_index": 293,
+      "atom_index": 1,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-async-registry/src/slots.rs",
+      "source_hunk_hint": "@@ -0,0 +1,45 @@; AsyncJobTracker storage layout constants",
+      "source_kind": "async_job_tracker_storage_layout_constants",
+      "source_snippet": "pub const EXPIRY_BUCKETS_SLOT: u64 = 0;\npub const BUCKET_INDEX_SLOT: u64 = 1;\npub const EXPIRY_BLOCK_SLOT: u64 = 2;\npub const JOBS_SLOT: u64 = 3;\npub const JOB_EXECUTOR_SLOT: u64 = 4;\npub const EXECUTOR_JOBS_SLOT: u64 = 5;\npub const EXEC_INDEX_SLOT: u64 = 6;\npub const INPUT_HASHES_SLOT: u64 = 7;\npub const INPUT_SIZES_SLOT: u64 = 8;\npub const TX_RLP_HASHES_SLOT: u64 = 9;\npub const TX_RLP_SIZES_SLOT: u64 = 10;\npub const TOTAL_PENDING_SLOT: u64 = 11;\npub const LAST_CLEANUP_SLOT: u64 = 12;\npub const SENDER_JOBS_SLOT: u64 = 13;\npub const SENDER_INDEX_SLOT: u64 = 14;",
+      "semantic_claim": "The old divergence codifies AsyncJobTracker storage layout slots verified from the compiled contract, including expiry/job mappings, SC-2 hash/size mappings, total/cleanup counters, and nonce-locking sender job/index mappings.",
+      "high_risk": false,
+      "risk_tags": [
+        "storage-layout",
+        "contract-slot-parity",
+        "async-job-tracker"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-registry/src/slots.rs",
+          "symbols": [
+            "EXPIRY_BLOCK_SLOT",
+            "JOBS_SLOT",
+            "JOB_EXECUTOR_SLOT",
+            "INPUT_HASHES_SLOT",
+            "INPUT_SIZES_SLOT",
+            "TX_RLP_HASHES_SLOT",
+            "TX_RLP_SIZES_SLOT",
+            "SENDER_JOBS_SLOT",
+            "SENDER_INDEX_SLOT"
+          ],
+          "evidence": "Destination `slots.rs` preserves the same storage layout comments and slot constants as the source-added file."
+        }
+      ],
+      "equivalence_argument": "The destination constants are identical, so all registry storage readers derive the same base slots as the source divergence.",
+      "test_strategy": "slot_constant_and_compile_check",
+      "negative_test_candidate": "Changing any slot constant should make registry readers fetch incompatible contract storage; slot-determinism tests should catch distinct slot families staying distinct but cannot prove contract parity alone.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping; no review entry required."
+    },
+    {
+      "record_id": "file-0293-atom-0002",
+      "file_index": 293,
+      "atom_index": 2,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-async-registry/src/slots.rs",
+      "source_hunk_hint": "@@ -0,0 +47,95 @@; bytes32 mapping slot helpers for job-backed storage",
+      "source_kind": "async_job_tracker_b256_mapping_slot_helpers",
+      "source_snippet": "pub fn mapping_slot(key: B256, slot_number: u64) -> U256 { ... }\npub fn job_executor_slot(job_id: B256) -> U256 { ... }\npub fn jobs_slot(job_id: B256) -> U256 { ... }\npub fn input_hashes_slot(job_id: B256) -> U256 { ... }\npub fn input_sizes_slot(job_id: B256) -> U256 { ... }\npub fn tx_rlp_hashes_slot(job_id: B256) -> U256 { ... }\npub fn tx_rlp_sizes_slot(job_id: B256) -> U256 { ... }\npub fn expiry_block_slot(job_id: B256) -> U256 { ... }",
+      "semantic_claim": "The old divergence adds keccak256-based `mapping(bytes32 => T)` slot helpers for job executor, job struct base, input hash/size, origin RLP hash/size, and expiry block reads, using Solidity's `keccak256(key || slot_number)` storage formula.",
+      "high_risk": false,
+      "risk_tags": [
+        "storage-slot",
+        "keccak256",
+        "job-id-mapping"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-registry/src/slots.rs",
+          "symbols": [
+            "mapping_slot",
+            "job_executor_slot",
+            "jobs_slot",
+            "input_hashes_slot",
+            "input_sizes_slot",
+            "tx_rlp_hashes_slot",
+            "tx_rlp_sizes_slot",
+            "expiry_block_slot"
+          ],
+          "evidence": "Destination preserves the same 64-byte concatenation, U256 slot encoding, keccak256 hashing, and wrapper functions."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-registry/src/lib.rs",
+          "symbols": [
+            "read_jobs_for_settlement",
+            "job_exists_and_active",
+            "read_jobs_for_spc_verification"
+          ],
+          "evidence": "Destination registry readers use these exact slot helpers for settlement, activity, expiry, and SPC storage reads."
+        }
+      ],
+      "equivalence_argument": "The destination mapping helper code is identical to the source, preserving the Solidity storage-addressing semantics used by all job-backed registry reads.",
+      "test_strategy": "slot_helper_determinism_tests",
+      "negative_test_candidate": "Two distinct base slots for the same job id must produce distinct storage slots; if the key/slot concatenation order is reversed, registry reads would silently target wrong storage.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping; no review entry required."
+    },
+    {
+      "record_id": "file-0293-atom-0003",
+      "file_index": 293,
+      "atom_index": 3,
+      "atoms_total": 3,
+      "source_path": "crates/ritual-async-registry/src/slots.rs",
+      "source_hunk_hint": "@@ -0,0 +97,155 @@; address mapping helper, senderJobs slot helper, and tests",
+      "source_kind": "async_job_tracker_address_mapping_and_slot_tests",
+      "source_snippet": "pub fn address_mapping_slot(addr: Address, slot_number: u64) -> U256 { ... }\npub fn sender_jobs_slot(sender: Address) -> U256 { ... }\n\n#[cfg(test)]\nmod tests { ... }",
+      "semantic_claim": "The old divergence adds Solidity address-mapping slot calculation for left-padded addresses, exposes `sender_jobs_slot` for nonce-lock dynamic array length reads, and includes tests that mapping slots are nonzero, distinct across slot families, and distinct for SC-2 hash/size mappings.",
+      "high_risk": false,
+      "risk_tags": [
+        "sender-jobs",
+        "nonce-lock",
+        "address-mapping",
+        "tests"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-registry/src/slots.rs",
+          "symbols": [
+            "address_mapping_slot",
+            "sender_jobs_slot",
+            "test_mapping_slot_calculation",
+            "test_different_slots_produce_different_hashes",
+            "test_sc2_slot_functions"
+          ],
+          "evidence": "Destination preserves the same address padding logic, senderJobs wrapper, and inline tests."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-registry/src/lib.rs",
+          "symbols": [
+            "batch_sender_pending_job_counts",
+            "batch_senders_all_phase1_settled",
+            "read_sender_job_count",
+            "is_sender_all_phase1_settled"
+          ],
+          "evidence": "Destination nonce-lock readers use `sender_jobs_slot` for senderJobs length and element traversal."
+        }
+      ],
+      "equivalence_argument": "The destination preserves address left-padding and senderJobs slot derivation exactly, so nonce-lock readers address the same contract storage as the source divergence.",
+      "test_strategy": "slot_tests_and_nonce_lock_reader_tests",
+      "negative_test_candidate": "For a sender with multiple jobs, use `sender_jobs_slot(sender)` to read the array length and `keccak256(slot)+index` elements; right-padding the address would make every lookup miss.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping; no review entry required."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The async registry storage-slot helper file is exact-port preserved: contract storage layout constants, bytes32 job mapping slot derivation, address mapping slot derivation, senderJobs helper, and slot determinism tests all match the source divergence.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 293: A\tcrates/ritual-async-registry/src/slots.rs.",
+    "The source file diff starts at line 44849 with a 155-line new file and ends before the `crates/ritual-async/Cargo.toml` diff header at line 45010.",
+    "Destination `crates/ritual-async-registry/src/slots.rs` preserves the same 155-line file body as the source-added file.",
+    "Bounded destination usage evidence confirms `crates/ritual-async-registry/src/lib.rs` uses the slot helpers for settlement, nonce-lock, expiry, and SPC registry reads.",
+    "No review queue entry was required because the audited slot helper behavior is preserved exactly."
+  ]
+}

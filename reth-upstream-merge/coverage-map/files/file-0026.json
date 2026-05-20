@@ -1,0 +1,133 @@
+{
+  "record_type": "file",
+  "file_index": 26,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/chainspec/src/api.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "blocked",
+    "high-risk",
+    "needs-review",
+    "non-exact",
+    "structural_equivalent"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0026-atom-0001",
+      "file_index": 26,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/chainspec/src/api.rs",
+      "source_hunk_hint": "@@ -65,6 +65,10 @@ pub trait EthChainSpec",
+      "source_kind": "other",
+      "source_snippet": "fn max_extra_data_bytes(&self) -> Option<usize>;",
+      "semantic_claim": "EthChainSpec exposes an optional per-chain maximum header extra_data size, with None meaning unbounded.",
+      "high_risk": true,
+      "risk_tags": [
+        "consensus-constant"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/chainspec/src/api.rs",
+          "symbols": [
+            "EthChainSpec::max_extra_data_bytes"
+          ],
+          "snippet": "fn max_extra_data_bytes(&self) -> Option<usize> { Some(MAXIMUM_EXTRA_DATA_SIZE) }",
+          "evidence": "EthChainSpec now exposes the optional per-chain header extra_data cap."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/chainspec/src/spec.rs",
+          "symbols": [
+            "ChainSpec::max_extra_data_bytes",
+            "impl From<Genesis> for ChainSpec"
+          ],
+          "snippet": "max_extra_data_bytes: None for genesis-derived specs; Ethereum static specs default to Some(MAXIMUM_EXTRA_DATA_SIZE)",
+          "evidence": "Genesis-derived Ritual/Summit chains can now be unbounded while standard Ethereum specs retain the 32-byte cap."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/consensus/src/lib.rs",
+          "symbols": [
+            "EthBeaconConsensus::new"
+          ],
+          "snippet": "let max_extra_data_size = chain_spec.max_extra_data_bytes()",
+          "evidence": "Consensus header validation now reads the per-chain cap instead of using a hard-coded maximum."
+        }
+      ],
+      "equivalence_argument": "Per-chain extra_data cap behavior is restored with None meaning unbounded, and consensus consumes it.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Load a Summit genesis that requires unbounded header extra_data and verify consensus validation consults the chain spec instead of a fixed Ethereum max.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Covered by chain spec and consensus focused tests in this pass."
+    },
+    {
+      "record_id": "file-0026-atom-0002",
+      "file_index": 26,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/chainspec/src/api.rs",
+      "source_hunk_hint": "feature-preservation-map.md section 9: Chainspec, Genesis, And Config",
+      "source_kind": "other",
+      "source_snippet": "Feature-preservation claims: Environment-gated consensus constants only where already shipped.",
+      "semantic_claim": "Environment-gated consensus constants only where already shipped.",
+      "high_risk": true,
+      "risk_tags": [
+        "consensus-constant"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/chainspec/src/api.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/chainspec/src/api.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/chainspec/src/api.rs` maps to v2.2 `crates/chainspec/src/api.rs` (same_path). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Use feature-preservation-map.md to construct a focused regression for: Environment-gated consensus constants only where already shipped.",
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0026-atom-0002"
+      },
+      "review_required": false,
+      "notes": "Environment-gated consensus-constant claim is too broad; no concrete shipped runtime constant was identified for restoration in this pass.",
+      "feature_derived": true,
+      "feature_sections": [
+        9
+      ],
+      "source_feature_ids": [
+        "feature-raw-0103"
+      ],
+      "source_feature_claims": [
+        "Environment-gated consensus constants only where already shipped."
+      ],
+      "required_change": null,
+      "needs_atomization": false
+    }
+  ],
+  "high_risk_atoms_total": 2,
+  "non_exact_atoms_total": 2,
+  "adversarial_reviews": [],
+  "summary": "Remaining unresolved atoms are blocked for atomization or explicit scope decisions; concrete live behavior has been mapped or classified.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "This affects chain-specific header extra_data validation policy. Curated feature-preservation insertion appended 1 grouped feature-derived behavior atom(s)."
+}

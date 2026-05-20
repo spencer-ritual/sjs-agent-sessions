@@ -1,0 +1,52 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "910f91cf4b627222a8222f3976af0db517075458",
+      "evidence": "The media variants are included in the executor-capability predicate.",
+      "path": "crates/ritual-tee-registry-reader/src/types.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub enum Capability {\n    HttpCall = 0,\n    Llm = 1,\n    ZkCall = 5,\n    Dkms = 6,\n    ImageCall = 7,\n    AudioCall = 8,\n    VideoCall = 9,\n    Fhe = 10,\n}\n\npub fn is_executor_capability(&self) -> bool {\n    matches!(self, Capability::HttpCall | Capability::Llm | Capability::WormholeQuery | Capability::ZkCall | Capability::ImageCall | Capability::AudioCall | Capability::VideoCall | Capability::Fhe)\n}",
+      "symbols": [
+        "Capability::is_executor_capability"
+      ]
+    }
+  ],
+  "equivalence_argument": "The TEE registry reader treats ImageCall, AudioCall, and VideoCall as executor capabilities through the shared is_executor_capability predicate used when retaining executor records.",
+  "evidence_files": [
+    "crates/ritual-tee-registry-reader/src/types.rs"
+  ],
+  "invariant_id": "cur-302a8064d2-multimodal-capabilities-executor-capabilities",
+  "invariant_index": 464,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The capability classification is local to the port registry-reader crate and is consumed by RPC and verifier paths.",
+  "rationale": "The primary diff extends Capability::try_from for values 7, 8, and 9 and includes the new multimodal variants in is_executor_capability. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "cd0f30dc2eac1d62d67fc30eadd4a012659daec5"
+  ],
+  "statement": "The TEE registry reader should treat ImageCall, AudioCall, and VideoCall capabilities as executor-service capabilities for registration and validation purposes.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Assert Capability::try_from(7/8/9) returns ImageCall/AudioCall/VideoCall and that is_executor_capability returns true for each; assert unrelated service capabilities retain their prior behavior."
+  ],
+  "summary": "Multimodal capabilities are executor capabilities.",
+  "test_or_falsification_candidate": "Assert Capability::try_from(7/8/9) returns ImageCall/AudioCall/VideoCall and that is_executor_capability returns true for each; assert unrelated service capabilities retain their prior behavior.",
+  "title": "Multimodal capabilities are executor capabilities",
+  "total_invariants": 1954
+}

@@ -1,0 +1,75 @@
+{
+  "record_type": "file",
+  "file_index": 525,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/transaction-pool/src/maintain.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "missing",
+    "reviewed",
+    "txpool",
+    "maintenance"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0525-atom-0001",
+      "file_index": 525,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/transaction-pool/src/maintain.rs",
+      "source_hunk_hint": "@@ -9,7 +9,7 @@ use crate::{",
+      "source_kind": "maintenance_policy",
+      "source_snippet": "use alloy_primitives::{Address, BlockHash, BlockNumber, B256};\nfn get_chain_halt_threshold() -> u64 {\n    std::env::var(\"CHAIN_HALT_THRESHOLD_SECS\")\n        .ok()\n        .and_then(|v| v.parse::<u64>().ok())\n        .unwrap_or(10)\n}\npub const MAX_ASYNC_TRANSACTION_LIFETIME: Duration = Duration::from_secs(200);\n    pub max_async_tx_lifetime: Duration,\n            max_async_tx_lifetime: MAX_ASYNC_TRANSACTION_LIFETIME,",
+      "semantic_claim": "The old txpool maintenance loop adds chain-halt threshold validation, poisonous scheduled-job detection, and a 200 second async transaction lifetime.",
+      "high_risk": true,
+      "risk_tags": [
+        "txpool",
+        "scheduled",
+        "maintenance",
+        "missing"
+      ],
+      "mapping_status": "missing",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/maintain.rs",
+          "symbols": [
+            "CHAIN_HALT_THRESHOLD_SECS",
+            "MAX_ASYNC_TRANSACTION_LIFETIME"
+          ],
+          "evidence": "Destination maintain loop only has upstream stale eviction based on `max_tx_lifetime`; searches find no chain-halt threshold or max async lifetime policy. Async expiry exists in `pool/mod.rs` via contract expiry cleanup."
+        }
+      ],
+      "equivalence_argument": "Reviewed confirmed missing: v2.2 has block-number contract-expiry async cleanup, but not the old wall-clock chain-halt threshold, poisonous scheduled-job removal, or 200-second async transaction lifetime policy. The raw scheduled-pool portion is largely obsolete because scheduled execution moved to parent-state payload synthesis; the wall-clock async-lock/lifetime behavior remains absent.",
+      "test_strategy": "maintenance regression for stalled chain and async expiry",
+      "negative_test_candidate": "With a halted chain past threshold, old behavior should remove poisonous scheduled jobs; destination lacks that maintenance hook.",
+      "adversarial_review": {
+        "required": false,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed: this is a confirmed missing txpool liveness/maintenance policy, not an unresolved review item. If parity requires sender locks to clear during long wall-clock chain halts, this needs implementation."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Reviewed confirmed missing: old wall-clock chain-halt maintenance and 200-second async-age eviction are not preserved. Scheduled-poison cleanup is mostly obsolete with parent-state synthesis, but async sender-lock liveness during halted chains is still absent if required.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0525: M\tcrates/transaction-pool/src/maintain.rs.",
+    "Source diff lines 90761-91027; first hunk `@@ -9,7 +9,7 @@ use crate::{`.",
+    "Fresh destination evidence was checked against /home/ritual/repos/ritual-reth-internal-v2.2.0-port.",
+    "Review conclusion: definitive gap, not pending review. Current cleanup is block-height/contract-expiry based and does not reproduce old wall-clock halt/lifetime behavior."
+  ]
+}

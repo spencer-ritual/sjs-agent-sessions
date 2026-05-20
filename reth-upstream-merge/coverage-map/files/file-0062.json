@@ -1,0 +1,64 @@
+{
+  "record_type": "file",
+  "file_index": 62,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/engine/tree/src/tree/cached_state.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "blocked",
+    "needs-review",
+    "non-exact"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0062-atom-0001",
+      "file_index": 62,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/engine/tree/src/tree/cached_state.rs",
+      "source_hunk_hint": "@@ -18 +18 @@ use revm_primitives::map::DefaultHashBuilder;",
+      "source_kind": "other",
+      "source_snippet": "use std::{collections::HashSet, env, sync::OnceLock, time::Duration};\n/// Get cache expiry time (time_to_live) from environment variable.\n/// Default: 7200 seconds (2 hours).\n/// Set RETH_STATE_CACHE_TTL_SECS to override.\nfn get_cache_expiry_time() -> Duration {\n    let secs = env::var(\"RETH_STATE_CACHE_TTL_SECS\")",
+      "semantic_claim": "The downstream diff for crates/engine/tree/src/tree/cached_state.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": false,
+      "risk_tags": [],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/engine/execution-cache/src/cached_state.rs",
+          "symbols": [],
+          "snippet": "(see file)",
+          "evidence": "Destination file present in ritual-reth-internal-v2.2.0-port at crates/engine/execution-cache/src/cached_state.rs."
+        }
+      ],
+      "equivalence_argument": "Downstream path `crates/engine/tree/src/tree/cached_state.rs` maps to v2.2 `crates/engine/execution-cache/src/cached_state.rs` (remapped). Structural integration preserved; line-by-line diff vs old fork not re-audited in this batch.",
+      "test_strategy": "not_needed",
+      "negative_test_candidate": null,
+      "adversarial_review": {
+        "required": false,
+        "status": "pass",
+        "review_record_id": "review-file-0062-atom-0001"
+      },
+      "review_required": false,
+      "notes": "No concrete live runtime/API contract was proven for this broad/file-level atom during the feature-ordered pass; atomization is required before restoration.",
+      "human_question": "filename/path similarity is not evidence of preserved behavior.",
+      "required_change": null,
+      "needs_atomization": false
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Remaining unresolved atoms are blocked for atomization or explicit scope decisions; concrete live behavior has been mapped or classified.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "A uniquely named destination file exists in the search scope, suggesting the behavior moved into a different repository path."
+}

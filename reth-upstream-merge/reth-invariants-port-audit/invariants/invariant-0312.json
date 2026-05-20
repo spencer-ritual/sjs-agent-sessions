@@ -1,0 +1,68 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "LLM pricing resolves the decoded model through read_model_from_db_cached and returns errors when output is missing, the response lacks a model, or the model is absent from the LLM registry.",
+      "path": "crates/ritual-async-fees/src/llm.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let config = resolve_llm_model_config(db, model_registry_contract, metrics.model.as_deref(), model_cache)?;\n...\nlet model_name = model.ok_or_else(|| \"LLM response did not include a model\".to_string())?;\nlet info = read_model_from_db_cached(db, contract, model_name, cache)?.ok_or_else(|| format!(\"Model '{model_name}' not in LLM registry\"))?;",
+      "symbols": [
+        "compute_llm_executor_fee",
+        "resolve_llm_model_config",
+        "read_model_from_db_cached"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The model registry reader loads model records from the ModelRegistry contract storage and reports missing contract or missing model instead of using built-in default model parameters.",
+      "path": "crates/ritual-async-fees/src/registry.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn read_model_from_db<DB: revm::Database>(db: &mut DB, contract: Address, model_name: &str) -> Result<Option<ModelInfo>, String> { ... return Err(format!(\"ModelRegistry contract not found at {contract}\")); ... }",
+      "symbols": [
+        "read_model_from_db",
+        "read_model_from_db_cached",
+        "ModelCache"
+      ]
+    }
+  ],
+  "equivalence_argument": "The model registry is now state-backed rather than a static once_cell table, but the invariant's fail-closed behavior is preserved: missing output, undecodable output, absent model name, or unknown registry model prevents LLM fee computation instead of falling back to heuristics/defaults.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ethereum/payload/Cargo.toml"
+  ],
+  "invariant_id": "cur-d396c27c22-pricing-requires-registry-known-models",
+  "invariant_index": 312,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to the state-backed ModelRegistry reader used by ritual-async-fees.",
+  "rationale": "The merge adds an `once_cell::sync::Lazy` model registry with explicit model entries, removes default model constants and substring heuristics, and changes missing/decode/unknown-model paths to return errors rather than fallback metrics or default parameter estimates. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "54019aaf452301f210041dc44e1b5241f9a7a61f"
+  ],
+  "statement": "LLM executor fee computation must resolve model parameters from the static LLM model registry; if executor output is missing, undecodable, or the model cannot be resolved from registry candidates, LLM-specific pricing must fail instead of using heuristic/default model parameters.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Feed LLM pricing decoded metrics for an unknown model such as `unknown/999b` and assert `compute_llm_executor_fee` returns an error rather than computing with a default parameter count; then repeat with a registered model and assert it computes using that registry entry."
+  ],
+  "summary": "LLM pricing resolves model parameters through the registry and fails on unknown or undecodable model data.",
+  "test_or_falsification_candidate": "Call compute_llm_executor_fee with decoded metrics naming an absent model and assert it returns a registry error, then seed the registry and assert pricing uses that model info.",
+  "title": "LLM pricing requires registry-known models",
+  "total_invariants": 1954
+}

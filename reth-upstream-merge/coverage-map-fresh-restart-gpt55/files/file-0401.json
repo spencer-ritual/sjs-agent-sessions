@@ -1,0 +1,98 @@
+{
+  "record_type": "file",
+  "file_index": 401,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/rpc/rpc/src/eth/helpers/call.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "eth-call",
+    "non-exact",
+    "rpc",
+    "mapped",
+    "structural-equivalent",
+    "review-closed"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0401-atom-0001",
+      "file_index": 401,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/rpc/rpc/src/eth/helpers/call.rs",
+      "source_hunk_hint": "@@ -86,6 +86,12 @@; @@ -140,6 +146,10 @@",
+      "source_kind": "rpc_txenv_conversion",
+      "source_snippet": "origin_tx: _,\ncall_id: _,\nindex: _,\nmax_block: _,\ninitial_block: _,\nfrequency: _,\n...\ncommitment_tx: None,\nsettlement_tx: None,\nspc_calls: Default::default(),\ntx_hash: None,",
+      "semantic_claim": "The old RPC call helper accepts Ritual scheduled transaction request fields and initializes async/SPC fields on the constructed EVM `TxEnv` to safe defaults for eth_call/simulation paths.",
+      "high_risk": true,
+      "risk_tags": [
+        "rpc",
+        "eth-call",
+        "scheduled",
+        "async-fsm",
+        "spc"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-alloy-internal",
+          "path": "crates/rpc-types-eth/src/transaction/request.rs",
+          "symbols": [
+            "TransactionRequest",
+            "origin_tx",
+            "call_id",
+            "index",
+            "max_block",
+            "initial_block",
+            "frequency"
+          ],
+          "evidence": "Current RPC transaction request schema includes the scheduled request fields, so eth_call-style requests can deserialize them instead of dropping them at the JSON schema boundary."
+        },
+        {
+          "repo": "ritual-alloy-evm-internal",
+          "path": "crates/evm/src/rpc/transaction.rs",
+          "symbols": [
+            "TryIntoTxEnv for TransactionRequest"
+          ],
+          "evidence": "Current TxEnv conversion explicitly destructures `origin_tx`, `call_id`, `index`, `max_block`, `initial_block`, and `frequency` as ignored fields, then builds a default TxEnv. Runtime async/SPC fields remain default/None for simulation, matching the old safe-default behavior."
+        },
+        {
+          "repo": "ritual-alloy-evm-internal",
+          "path": "crates/evm/src/tx.rs",
+          "symbols": [
+            "FromRecoveredTx",
+            "TxEnv"
+          ],
+          "evidence": "Real recovered transaction execution paths preserve async/SPC runtime fields (`commitment_tx`, `settlement_tx`, `spc_calls`) when they come from signed transactions; eth_call request conversion is only the simulation/defaulting path."
+        }
+      ],
+      "equivalence_argument": "False positive: the behavior moved into local Alloy. The request schema still carries scheduled fields, and the TxEnv conversion intentionally ignores scheduled-only request fields while leaving runtime async/SPC fields at default values for eth_call/simulation. That is the same behavior the old RPC helper encoded locally.",
+      "test_strategy": "eth_call request deserialization/conversion regression with scheduled fields present",
+      "negative_test_candidate": "Deserialize an eth_call TransactionRequest containing scheduled fields and convert it to TxEnv; scheduled fields should be accepted but should not install commitment/settlement/SPC runtime context.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Closed as moved-to-Alloy structural equivalence; not a missing RPC FSM behavior."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "False positive closed: Ritual scheduled eth_call fields and safe TxEnv defaulting moved into local Alloy request/schema conversion.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Scheduled request fields are present in `ritual-alloy-internal` TransactionRequest.",
+    "`ritual-alloy-evm-internal` TryIntoTxEnv explicitly ignores those request-only fields and produces default runtime async/SPC TxEnv fields for simulation.",
+    "Recovered signed transaction paths still preserve async/SPC runtime fields where execution needs them."
+  ]
+}

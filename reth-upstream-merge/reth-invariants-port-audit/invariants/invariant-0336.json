@@ -1,0 +1,52 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "The signature core reconstructs a sorted-key compact JSON payload containing exactly the signed executor fields with hex strings emitted without 0x prefixes.",
+      "path": "crates/ritual-spc-signature/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let mut ordered_map = BTreeMap::new();\nordered_map.insert(\"block_number\", ...);\nordered_map.insert(\"error\", ...);\nordered_map.insert(\"input\", serde_json::Value::String(hex::encode(precompile_input)));\nordered_map.insert(\"output\", serde_json::Value::String(hex::encode(output)));\nordered_map.insert(\"precompile_address\", serde_json::Value::String(format!(\"{precompile_address:x}\")));\nordered_map.insert(\"previous_block_hash\", serde_json::Value::String(format!(\"{previous_block_hash:x}\")));\nordered_map.insert(\"previous_block_number\", ...);\nordered_map.insert(\"previous_block_timestamp\", ...);\nordered_map.insert(\"tx_hash\", serde_json::Value::String(format!(\"{tx_hash:x}\")));\nlet message_json = serde_json::to_string(&ordered_map)?;",
+      "symbols": [
+        "verify_signature_core"
+      ]
+    }
+  ],
+  "equivalence_argument": "The BTreeMap plus serde_json compact serialization matches Python sort_keys/no-spaces semantics and hashes the same field set before signature recovery.",
+  "evidence_files": [
+    "crates/ritual-spc-signature/src/lib.rs"
+  ],
+  "invariant_id": "cur-c4b43d960f-proof-json-matches-executor-signer",
+  "invariant_index": 336,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to the shared ritual-spc-signature crate.",
+  "rationale": "The new function builds a BTreeMap with the exact Python executor fields and uses serde_json::to_string for compact serialization before keccak hashing. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "26f42c211a439143753994fdfbac6c03ff4e913e"
+  ],
+  "statement": "verify_signature_core must reconstruct the signed message as compact JSON over sorted keys containing block_number, error, input hex without 0x, output hex without 0x, precompile_address hex without 0x, previous_block_hash hex without 0x, previous_block_number, previous_block_timestamp, and tx_hash hex without 0x.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Generate a fixture signature from the Python executor over the documented compact JSON fields and assert verify_signature_core returns true. Add a 0x prefix, omit a field, add a success field, or change key formatting and assert the same signature no longer verifies."
+  ],
+  "summary": "SPC proof verification reconstructs the executor-signed compact JSON payload.",
+  "test_or_falsification_candidate": "Verify a Python executor fixture, then add a 0x prefix or remove one JSON field and assert the same proof no longer verifies.",
+  "title": "SPC proof JSON matches executor signer",
+  "total_invariants": 1954
+}

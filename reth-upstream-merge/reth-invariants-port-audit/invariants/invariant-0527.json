@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "85b41ec83e0009175c328eb0b9a07c92c3008129",
+      "evidence": "FHE RPC validation checks base executor fields and structure/deadline only; it does not validate storage credential fields as ECIES blobs.",
+      "path": "crates/ritual-precompile-codecs/src/validation.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "fn validate_fhe_call_payload(input: &[u8], max_ttl: u64) -> Result<(), PayloadValidationError> {\n    validate_executor_request_payload(input, max_ttl)?;\n    let data = try_decode_precompile_data(FHE_PRECOMPILE, input)?;\n    if crate::long_running::validate_fhe_payload_structure(input).is_ok() {\n        let max_proof_block = u64_static_head_field(input, 10, \"max_proof_block\")?;\n        validate_phase2_deadline_offset(max_proof_block, data.ttl)?;\n    }\n    Ok(())\n}",
+      "symbols": [
+        "validate_fhe_call_payload",
+        "validate_fhe_payload_structure"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "85b41ec83e0009175c328eb0b9a07c92c3008129",
+      "evidence": "FHE fields 17 and 18 are structural StorageRef tuples, not ECIES credential blobs, in the local decoder.",
+      "path": "crates/ritual-precompile-codecs/src/long_running.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let storage_ref_type = StorageRef::abi_param_type();\nlet param_types = vec![ ... storage_ref_type.clone(), storage_ref_type ];\nethabi::decode(&param_types, data)?;",
+      "symbols": [
+        "validate_fhe_payload_structure",
+        "StorageRef::abi_param_type"
+      ]
+    }
+  ],
+  "equivalence_argument": "Credential validation is absent from RPC by design: the port only checks FHE base fields, optional structure decode, and phase-two offset, leaving actual storage credential interpretation to executor-side storage clients.",
+  "evidence_files": [
+    "crates/ritual-async/src/validation.rs",
+    "crates/ritual-precompile-codecs/src/long_running.rs"
+  ],
+  "invariant_id": "cur-4f45a71cd4-does-validate-storage-credentials",
+  "invariant_index": 527,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This is an intentional negative validation invariant, so the mapping cites the absence of ECIES calls on fields 17 and 18 plus the StorageRef structure decode.",
+  "rationale": "The validation path removes validate_ecies_blob calls for FHE storage fields and comments that credential validation happens in the executor, while structure decode failures are logged at debug level. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "4538c3c00d939ffd91a2b64f996775db5c96822b"
+  ],
+  "statement": "validate_fhe_call_payload must not validate fields 17 and 18 as ECIES credential blobs; credential validation is delegated to executor-side storage client creation, and RPC only attempts payload structure decoding.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call validate_fhe_call_payload with an FHE payload whose storage refs are not ECIES blobs and assert it does not fail due to ECIES validation; separately verify the executor-side storage client rejects invalid credentials."
+  ],
+  "summary": "FHE RPC validation does not validate storage credentials as ECIES blobs.",
+  "test_or_falsification_candidate": "Call validate_fhe_call_payload with StorageRef fields that are not ECIES blobs and assert RPC validation does not reject them for ECIES shape; validate credentials separately in executor storage-client tests.",
+  "title": "RPC does not validate FHE storage credentials",
+  "total_invariants": 1954
+}

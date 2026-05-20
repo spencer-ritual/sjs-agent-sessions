@@ -1,0 +1,54 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The standard pool-aware node executor path constructs the Ritual block verifier with the node provider and EVM configuration and installs it in the executor provider instead of using a pool-only verifier.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "let block_verifier = Arc::new(BlockVerifier::new_with_evm_classification(pool.clone(), ctx.provider().clone(), evm_config.clone(), None));\n...\nlet ritual_executor = RitualBlockExecutorProvider::new(evm_config.clone(), spc_verifier, Some(block_verifier));",
+      "symbols": [
+        "RitualExecutorBuilder::build_evm_with_pool",
+        "BlockVerifier::new_with_evm_classification"
+      ]
+    }
+  ],
+  "equivalence_argument": "new_with_evm_classification is the current async-validation capable constructor in this branch; it receives provider and EVM config and is later invoked before finalization by RitualBlockExecutor.",
+  "evidence_files": [
+    "crates/node/src/executor.rs",
+    "crates/node/Cargo.toml"
+  ],
+  "invariant_id": "cur-dbf04696fd-block-verification-includes-async-commitment-validation",
+  "invariant_index": 349,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in nodebuilder because it owns node executor construction.",
+  "rationale": "The primary diff replaces BlockVerifier::new(pool) with BlockVerifier::new_with_async_validation(pool.clone(), ctx.provider().clone(), evm_env_factory) and adds the alloy-consensus dependency needed to type the header passed into config.evm_env. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "ce2d947c22554653130ebe2c832b7734ee7caaaa"
+  ],
+  "statement": "The standard node block verifier should be constructed with async commitment validation enabled, using the node's provider and an EVM environment derived from the candidate block header, rather than using the pool-only BlockVerifier constructor.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Build a block containing an async commitment transaction that violates the async commitment validation rules but otherwise passes pool-level checks, run it through the node's block verifier, and assert verification rejects it; also assert the EVM env factory receives the candidate header context used for validation."
+  ],
+  "summary": "Nodebuilder installs async-capable block verification in the standard executor path.",
+  "test_or_falsification_candidate": "Submit a block with an invalid async commitment through the nodebuilder verifier path and assert the installed BlockVerifier rejects it using provider/EVM classification context.",
+  "title": "Block verification includes async commitment validation",
+  "total_invariants": 1954
+}

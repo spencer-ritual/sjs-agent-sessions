@@ -1,0 +1,70 @@
+{
+  "cluster_key": "scheduler:locks-observability",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/scheduling/src/canonical.rs"
+  ],
+  "invariant_id": "cur-ff06694da2-canonical-scheduling-fires-only-next-index",
+  "invariant_index": 36,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/scheduling/src/canonical.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs",
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/transaction-pool/src/pool/mod.rs"
+    ],
+    "checked_queries": [
+      "should_fire_at_block|current_fired|fired_count|execution_counts",
+      "missed catch-up|current fired|due_index_bounds|ttl window",
+      "**/scheduling/**"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "should_fire_at_block",
+      "current_index",
+      "fired_count",
+      "execution_counts",
+      "SynchronousScheduler",
+      "due_index_bounds",
+      "compute_obligations",
+      "PayloadCandidate::Scheduled"
+    ],
+    "missing_behavior": "No canonical scheduling path computes a single next/current execution index, compares it to fired_count, and skips missed catch-up indices; the port can synthesize multiple unexecuted due indices in one block/window.",
+    "related_but_insufficient_code": [
+      "The port due_index_bounds/compute_obligations path can emit every unexecuted index in a due TTL window, with tests asserting multi-index due windows. Payload building consumes that list and has no current-fired-count filter."
+    ]
+  },
+  "notes": "Confirmed gap; adjacent guards exist, but no-catch-up/current-fired-count invariant is not preserved.",
+  "rationale": "The canonical scheduling candidates collapse into a current dispatch invariant: local canonical processing fires one transaction for the next unfired index only, skips missed windows rather than catching up, and guards zero frequency.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "80967e33fc17c08c0348c595b83dc95c3bff1846",
+    "c5d10136f32c6c71fd898a08c0ccb81ef25fffed"
+  ],
+  "statement": "Canonical scheduling must emit a scheduled transaction only when the block's computed execution index equals the call's current fired count, must skip already-fired, future, exhausted, missed catch-up, and pre-start windows, and must skip frequency == 0 calls before any division.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Process a call with start_block 100, frequency 1, and num_calls 1 across a multi-block TTL window and assert only one scheduled transaction is submitted.",
+    "Advance a frequency-5 call past missed windows and assert canonical processing does not emit catch-up transactions for skipped indices.",
+    "Inject a frequency == 0 call and assert canonical processing does not panic or submit a transaction."
+  ],
+  "summary": "Canonical scheduling fires-only-next-index behavior is absent.",
+  "test_or_falsification_candidate": "Scheduler state with start_block=100, frequency=1, ttl=500, no executed bits at block 105 should produce 0..=5 in the port but invariant expects at most one next index.",
+  "title": "Canonical scheduling fires only the next index",
+  "total_invariants": 1954
+}

@@ -1,0 +1,63 @@
+{
+  "cluster_key": "scheduler:obligation-scan-honors-12b7f446",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "compute_obligations takes an optional std::time::Instant deadline, checks it at the top of each slot iteration, logs partial scan metadata, and breaks out of the loop. Because obligations are accumulated before the break and the function returns that Vec on normal completion, an elapsed supplied deadline bounds scanning and returns the partial obligation set found so far.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn compute_obligations<DB: Database>(\n    db: &mut DB,\n    block_number: u64,\n    base_fee: u64,\n    deadline: Option<std::time::Instant>,\n) -> Result<Vec<ScheduledObligation>, SchedulerError> {\n    ...\n    for slot_index in 0..slots_length {\n        if let Some(dl) = deadline {\n            if std::time::Instant::now() > dl {\n                tracing::warn!(\n                    target: \"ritual::scheduled::obligations\",\n                    scanned = slot_index,\n                    total = slots_length,\n                    obligations_found = obligations.len(),\n                    \"Phase 0.5 deadline reached -- partial obligation scan\"\n                );\n                break;\n            }\n        }\n        ...\n    }\n}",
+      "symbols": [
+        "compute_obligations"
+      ]
+    }
+  ],
+  "equivalence_argument": "This is an exact in-port implementation of the invariant: the destination function owns the scheduled obligation scan, accepts the supplied deadline as an argument, evaluates it during the slot scan, and uses break rather than erroring or discarding accumulated obligations.",
+  "evidence_files": [
+    "crates/ritual-scheduled-verification/src/lib.rs"
+  ],
+  "invariant_id": "cur-4cf8ab2d0d-obligation-scans-honor-supplied-deadlines",
+  "invariant_index": 13,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs"
+    ],
+    "checked_queries": [
+      "compute_obligations"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "compute_obligations",
+      "deadline"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped directly in the port repo using the invariant evidence file.",
+  "rationale": "The direct candidate is a single high-confidence function-level safety invariant: compute_obligations accepts an optional deadline and bounds the slot scan when the deadline has elapsed. The neighboring scheduler candidates describe earlier transaction, service, and pool machinery but do not refine or supersede this scheduled-verification scan bound.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "ec79a417dc46ef3e33e8278708f34a035d5430c6"
+  ],
+  "statement": "compute_obligations must honor a supplied deadline while scanning slots: once the current time exceeds the deadline, it stops further scanning and returns the partial obligation set found so far instead of continuing unbounded work.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Call compute_obligations with a deadline in the past and backing storage containing many eligible slots, then assert it returns promptly without scanning every slot.",
+    "Call compute_obligations with a future deadline and eligible obligations across several slots, then assert it continues scanning until the normal scan bound or available slot range is exhausted."
+  ],
+  "summary": "compute_obligations in the port honors a supplied deadline by breaking the slot scan and returning accumulated obligations.",
+  "test_or_falsification_candidate": "Call compute_obligations with a deadline in the past and many eligible Scheduler slots; it should return promptly with only obligations discovered before the deadline check, then call with a future deadline and confirm normal scanning proceeds.",
+  "title": "Obligation scans honor supplied deadlines",
+  "total_invariants": 1954
+}

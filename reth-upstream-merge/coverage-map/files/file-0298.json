@@ -1,0 +1,86 @@
+{
+  "record_type": "file",
+  "file_index": 298,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-async/src/wallet.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "structural_equivalent",
+  "tags": [
+    "high-risk",
+    "non-exact",
+    "structural_equivalent"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0298-atom-0001",
+      "file_index": 298,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-async/src/wallet.rs",
+      "source_hunk_hint": "@@ -0,0 +1,140 @@",
+      "source_kind": "other",
+      "source_snippet": "//! Wallet balance and lock validation for async transactions\n//!\n//! This module provides a thin wrapper that calls the centralized wallet verification\n//! logic in `ritual-async-fees::wallet`. All fee calculation and storage reading logic\n//! is centralized there to prevent consensus divergence between builder and verifier.\n",
+      "semantic_claim": "The downstream diff for crates/ritual-async/src/wallet.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": true,
+      "risk_tags": [
+        "async-fsm"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-async-inspector/src/lib.rs",
+          "symbols": [
+            "AsyncPrecompileInspector",
+            "SharedAsyncPrecompileInspector"
+          ],
+          "snippet": "inspector records registered async precompile calls during EVM execution",
+          "evidence": "The standalone detector crate was replaced by the v2.2 inspector plus payload ritual_async builder helpers."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-precompile-codecs/src/lib.rs",
+          "symbols": [
+            "try_decode_precompile_data",
+            "validate_async_payload"
+          ],
+          "snippet": "canonical async precompile decoding and validation surface",
+          "evidence": "The old ritual-async validation API moved into ritual-precompile-codecs and is consumed by RPC, payload, and verifier paths."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ethereum/payload/src/ritual_async.rs",
+          "symbols": [
+            "build_short_async_commitment_transaction",
+            "validate_short_commitment_parent_state"
+          ],
+          "snippet": "short async commitment construction and parent-state validation helpers",
+          "evidence": "The old ritual-async crate is decomposed into inspector, codecs, fees, registry, and payload ritual_async helpers."
+        }
+      ],
+      "equivalence_argument": "The old monolithic ritual-async crate was intentionally decomposed into v2.2 crates without losing the active short-async FSM.",
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Exercise the crates/ritual-async/src/wallet.rs behavior boundary in the port and verify the downstream path-specific behavior still exists; absence or changed rejection/ordering would falsify the mapping.",
+      "adversarial_review": {
+        "required": true,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Mapped to decomposed v2.2 async modules."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "No same-path or uniquely named destination evidence was found in the configured search scope."
+}

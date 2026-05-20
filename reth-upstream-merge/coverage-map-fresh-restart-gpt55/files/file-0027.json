@@ -1,0 +1,92 @@
+{
+  "record_type": "file",
+  "file_index": 27,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/chainspec/src/constants.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "high-risk",
+    "encoding",
+    "execution",
+    "consensus-constant",
+    "reth-port",
+    "alloy-evm"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0027-atom-0001",
+      "file_index": 27,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/chainspec/src/constants.rs",
+      "source_hunk_hint": "@@ -14,3 +14,9 @@ pub(crate) const MAINNET_DEPOSIT_CONTRACT: DepositContract = DepositContract::new",
+      "source_kind": "changed_constant",
+      "source_snippet": "/// Summit deposit event signature hash.\n/// keccak256(\"DepositEvent(bytes,bytes,bytes,bytes,bytes,bytes,bytes)\")\n/// Used for Summit's 7-field deposit events with Ed25519 node keys + BLS consensus keys.\npub const SUMMIT_DEPOSIT_EVENT_TOPIC: B256 =\n    b256!(\"0x0cff1634a9a72df9d813ea7e3a3874a76086e081904ad3cf81e12e43f4d4c87a\");",
+      "semantic_claim": "Defines the Summit 7-field deposit event topic as keccak256(\"DepositEvent(bytes,bytes,bytes,bytes,bytes,bytes,bytes)\") for Ed25519 node key plus BLS consensus key deposit events.",
+      "high_risk": true,
+      "risk_tags": [
+        "consensus-constant",
+        "execution",
+        "encoding",
+        "negative-path"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/chainspec/src/constants.rs",
+          "symbols": [
+            "SUMMIT_DEPOSIT_EVENT_TOPIC"
+          ],
+          "snippet": "/// Summit deposit event topic with Ritual's seven-field deposit event layout.\npub(crate) const SUMMIT_DEPOSIT_EVENT_TOPIC: B256 =\n    b256!(\"0x0cff1634a9a72df9d813ea7e3a3874a76086e081904ad3cf81e12e43f4d4c87a\");",
+          "evidence": "The destination port now exposes the same Summit deposit topic value from chainspec constants, matching the downstream atom at the original Reth location."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-alloy-evm-internal",
+          "path": "crates/evm/src/eth/eip6110.rs",
+          "symbols": [
+            "SUMMIT_DEPOSIT_SIGNATURE",
+            "accumulate_deposits_from_logs",
+            "check_summit_deposit_sig"
+          ],
+          "snippet": "/// Summit 7-field deposit event signature hash.\n/// This is keccak256(\"DepositEvent(bytes,bytes,bytes,bytes,bytes,bytes,bytes)\")\n/// The Solidity contract uses \"DepositEvent\" as the name, not \"SummitDepositEvent\".\nconst SUMMIT_DEPOSIT_SIGNATURE: B256 =\n    b256!(\"0cff1634a9a72df9d813ea7e3a3874a76086e081904ad3cf81e12e43f4d4c87a\");\n...\ntopic == Some(&DepositEvent::SIGNATURE_HASH) || topic == Some(&SUMMIT_DEPOSIT_SIGNATURE)",
+          "evidence": "The destination dependency contains the same B256 topic value and signature string under the renamed constant SUMMIT_DEPOSIT_SIGNATURE, uses it to filter and decode Summit 7-field deposit logs, and has a unit test asserting the expected hash."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "Cargo.toml",
+          "symbols": [
+            "workspace.dependencies.alloy-evm"
+          ],
+          "snippet": "alloy-evm = { version = \"0.34.0\", path = \"../ritual-alloy-evm-internal/crates/evm\", default-features = false }",
+          "evidence": "The port workspace points alloy-evm at the local ritual-alloy-evm-internal dependency where the Summit deposit topic behavior now lives."
+        }
+      ],
+      "equivalence_argument": null,
+      "test_strategy": "adapted_equivalence_test",
+      "negative_test_candidate": "Construct a receipt log at the configured deposit contract address whose first topic is 0x0cff1634a9a72df9d813ea7e3a3874a76086e081904ad3cf81e12e43f4d4c87a and whose data is ABI-encoded as the Summit 7-field event; parsing must accept it and produce the expected Summit deposit bytes, while changing only the topic to an unrelated B256 must not produce a deposit.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_requested",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "The Reth port now has exact chainspec-level constant evidence; alloy-evm remains supporting execution-side evidence."
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The Summit deposit event topic constant is now present exactly in the Reth port chainspec constants file.",
+  "review_required": false,
+  "status": "complete",
+  "notes": "Exact chainspec-level evidence was restored by adding SUMMIT_DEPOSIT_EVENT_TOPIC to crates/chainspec/src/constants.rs; alloy-evm still independently uses the same topic for EIP-6110 parsing."
+}

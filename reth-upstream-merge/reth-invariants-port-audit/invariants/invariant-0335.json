@@ -1,0 +1,53 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-03",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "84bf72fddb846c57da006bb7019441e9047904ab",
+      "evidence": "The verifier requires the immediately preceding fulfilled transaction, extracts the matching SPC call output, passes that output into shared fee calculation, and rejects fee mismatches.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let fulfilled_tx = &transactions[index - 1];\nlet spc_output = fulfilled_tx.spc_calls().and_then(|calls| calls.into_iter().find(|call| call.address == job.precompile_address && call.block_number == job.commit_block && keccak256(&call.input) == job.input_hash)).map(|call| call.output.clone()).ok_or_else(...)?;\nlet fees = calculate_async_fees(&mut db, get_model_registry_address(), job.precompile_address, &precompile_input, Some(&spc_output), &mut model_cache)?;\nif settlement.executor_fee != fees.executor_fee || settlement.commitment_fee != fees.commitment_fee || settlement.inclusion_fee != fees.inclusion_fee || settlement.total_amount != fees.total { return Err(...); }",
+      "symbols": [
+        "verify_settlements",
+        "calculate_async_fees"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port preserves output-aware settlement pricing by deriving the executor output from the adjacent fulfilled original and using the shared fee calculator for executor, commitment, inclusion, and total amounts before accepting settlement fees.",
+  "evidence_files": [
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-e75ffebf99-settlement-fees-fulfilled-output",
+  "invariant_index": 335,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped to the current verifier settlement path in the port.",
+  "rationale": "The previous verifier calculated fees without executor output; the new code extracts SPC output from the fulfilled transaction, passes it into calculate_async_fees, and rejects any settlement whose three fee fields differ from the computed values. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "5722ce3971d6ac0ced0d76726271a7acddc07944"
+  ],
+  "statement": "Settlement executor, commitment, and inclusion fees must equal calculate_async_fees(job.precompile_address, job.precompile_input, executor_output), where executor_output is extracted from the first SPC call output on the immediately preceding fulfilled transaction.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Create a fulfilled async transaction with a known SPC output that changes precompile-specific fee calculation, then submit settlements using output_len=0 fees and correct output-aware fees; verification must reject the stale-fee settlement and accept the output-aware one."
+  ],
+  "summary": "Settlement fees are verified against shared pricing using the fulfilled original SPC output.",
+  "test_or_falsification_candidate": "Build a fulfilled original with SPC output, then mutate settlement fees as if output_len were zero; block verification should reject the stale-fee settlement and accept fees calculated with the fulfilled output.",
+  "title": "Settlement fees use fulfilled output",
+  "total_invariants": 1954
+}

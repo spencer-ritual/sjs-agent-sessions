@@ -1,0 +1,327 @@
+{
+  "record_type": "file",
+  "file_index": 352,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-spc-verification/src/verifier.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "structural-equivalent",
+    "spc-verification",
+    "verifier",
+    "signature-verification"
+  ],
+  "atoms_total": 7,
+  "atoms": [
+    {
+      "record_id": "file-0352-atom-0001",
+      "file_index": 352,
+      "atom_index": 1,
+      "atoms_total": 7,
+      "source_path": "crates/ritual-spc-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +1,131 @@; imports, verifier state, constructor, previous block data",
+      "source_kind": "spc_verifier_state_and_construction",
+      "source_snippet": "pub struct SpcVerifier<P> { client: VerificationClient, config: VerificationConfig, executor_registry: Arc<RwLock<ExecutorRegistry>>, provider: P }\nimpl<P> SpcVerifier<P> { fn format_request_details(...); pub fn new(...); pub fn get_previous_block_data(...); pub fn new_from_env(...); pub fn new_from_env_simple(...); }",
+      "semantic_claim": "The old divergence adds the provider-backed SPC verifier state, debug formatting, truncated request-detail formatting for error logs, constructors, previous-header lookup, and RPC-oriented environment constructor alias.",
+      "high_risk": false,
+      "risk_tags": [
+        "verifier-state",
+        "header-provider",
+        "error-logging",
+        "construction"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/verifier.rs",
+          "symbols": [
+            "SpcVerifier",
+            "SpcVerifier::format_request_details",
+            "SpcVerifier::new",
+            "SpcVerifier::get_previous_block_data",
+            "SpcVerifier::new_from_env",
+            "SpcVerifier::new_from_env_simple"
+          ],
+          "evidence": "Destination lines 1-140 preserve the source behavior; the only semantic-neutral normalization in this region is using `alloy_primitives::hex::encode` instead of the standalone `hex` crate for request detail formatting."
+        }
+      ],
+      "equivalence_argument": "The destination keeps the same state and constructor behavior while routing hex encoding through Alloy's re-exported hex helper.",
+      "test_strategy": "test_verifier_creation and previous-header provider tests",
+      "negative_test_candidate": "Missing previous block header should return an internal verification error.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Non-exact due to hex helper normalization."
+    },
+    {
+      "record_id": "file-0352-atom-0002",
+      "file_index": 352,
+      "atom_index": 2,
+      "atoms_total": 7,
+      "source_path": "crates/ritual-spc-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +142,185 @@; registry update from execution state",
+      "source_kind": "spc_registry_update_from_execution_state",
+      "source_snippet": "pub async fn ensure_registry_synced(&self, _needed_block: u64) -> VerificationResult<()> { Ok(()) }\npub fn update_registry_from_data(&self, executors: Vec<(Address, Address, u8, Vec<u8>, FixedBytes<32>, u8)>, _block_number: u64) -> VerificationResult<()> { ... }",
+      "semantic_claim": "The old divergence adds a compatibility no-op registry sync method and an execution-state registry refresh that registers executors by TEE address while retaining payment address metadata.",
+      "high_risk": false,
+      "risk_tags": [
+        "executor-registry",
+        "tee-address",
+        "execution-state",
+        "compatibility"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/verifier.rs",
+          "symbols": [
+            "SpcVerifier::ensure_registry_synced",
+            "SpcVerifier::update_registry_from_data"
+          ],
+          "evidence": "Destination lines 142-185 exactly preserve this behavior from the source-added hunk."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves registry refresh semantics and TEE-address keying.",
+      "test_strategy": "registry_update_from_execution_state_tests",
+      "negative_test_candidate": "After updating from data, lookup by payment address should not be the primary registry key when TEE address differs.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact behavior in destination."
+    },
+    {
+      "record_id": "file-0352-atom-0003",
+      "file_index": 352,
+      "atom_index": 3,
+      "atoms_total": 7,
+      "source_path": "crates/ritual-spc-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +187,329 @@; single request verification routing",
+      "source_kind": "spc_single_verification_routing",
+      "source_snippet": "pub async fn verify_single(&self, request: &SpcVerificationRequest) -> VerificationResult<SpcVerificationResult> { if is_spc_block_verified_precompile(request.precompile_address) { ... direct signature verification ... } else { ... sidecar fallback ... } }",
+      "semantic_claim": "The old divergence adds per-request verification routing: direct signature verification for SPC block-verified precompiles with active registered executors, explicit errors/metrics for inactive or missing executors, and sidecar fallback for non-allowlisted precompiles.",
+      "high_risk": false,
+      "risk_tags": [
+        "verification-routing",
+        "direct-signature-verification",
+        "executor-registry",
+        "sidecar-fallback",
+        "metrics"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/verifier.rs",
+          "symbols": [
+            "SpcVerifier::verify_single"
+          ],
+          "evidence": "Destination lines 187-329 exactly preserve the source verification routing and metric/error logging behavior."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves direct-vs-sidecar verification behavior and failure policy.",
+      "test_strategy": "spc_verify_single_routing_tests",
+      "negative_test_candidate": "An SPC allowlisted precompile with an inactive executor should return `InvalidRequest(\"Executor is inactive\")`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact behavior in destination."
+    },
+    {
+      "record_id": "file-0352-atom-0004",
+      "file_index": 352,
+      "atom_index": 4,
+      "atoms_total": 7,
+      "source_path": "crates/ritual-spc-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +331,464 @@; config access and async batch verification",
+      "source_kind": "spc_batch_verification_async",
+      "source_snippet": "pub fn config(&self) -> &VerificationConfig { ... }\npub fn verification_url(&self) -> &str { ... }\npub fn validate_executor(&self, executor_address: &Address) -> bool { ... }\npub async fn verify_batch(&self, batch_request: BatchVerificationRequest) -> VerificationResult<BatchVerificationResult> { ... }\npub async fn verify_parallel(&self, requests: Vec<SpcVerificationRequest>) -> VerificationResult<BatchVerificationResult> { ... }",
+      "semantic_claim": "The old divergence adds verifier accessors, executor validation, async chunked batch verification with bounded parallelism via `JoinSet`, task join error handling, and a convenience parallel verification wrapper.",
+      "high_risk": false,
+      "risk_tags": [
+        "batch-verification",
+        "parallelism",
+        "joinset",
+        "executor-validation"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/verifier.rs",
+          "symbols": [
+            "SpcVerifier::config",
+            "SpcVerifier::verification_url",
+            "SpcVerifier::validate_executor",
+            "SpcVerifier::verify_batch",
+            "SpcVerifier::verify_parallel"
+          ],
+          "evidence": "Destination lines 331-464 exactly preserve accessors and async batch verification behavior."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves bounded async batch verification semantics.",
+      "test_strategy": "test_batch_verification_empty, test_batch_verification_single, test_batch_verification_multiple, test_verify_parallel",
+      "negative_test_candidate": "An empty batch should return zero results and zero duration-like timing without spawning tasks.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact behavior in destination."
+    },
+    {
+      "record_id": "file-0352-atom-0005",
+      "file_index": 352,
+      "atom_index": 5,
+      "atoms_total": 7,
+      "source_path": "crates/ritual-spc-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +466,657 @@; optimized rayon verification and direct signature verification",
+      "source_kind": "spc_optimized_direct_signature_verification",
+      "source_snippet": "pub async fn verify_parallel_optimized(&self, requests: Vec<SpcVerificationRequest>) -> VerificationResult<BatchVerificationResult> { ... }\nfn verify_single_sync(&self, request: &SpcVerificationRequest) -> VerificationResult<bool> { ... }\nasync fn verify_signature_direct(&self, public_key: &[u8], request: &SpcVerificationRequest) -> VerificationResult<bool> { ... }\nfn verify_signature_direct_sync(&self, public_key: &[u8], request: &SpcVerificationRequest) -> VerificationResult<bool> { ... }",
+      "semantic_claim": "The old divergence adds an optimized Rayon direct-verification path for allowlisted SPC precompiles, synchronous executor lookup, explicit rejection of non-allowlisted addresses, shared signature-crate delegation, and verification failure metrics.",
+      "high_risk": false,
+      "risk_tags": [
+        "rayon",
+        "direct-signature-verification",
+        "allowlist",
+        "metrics",
+        "spc"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/verifier.rs",
+          "symbols": [
+            "SpcVerifier::verify_parallel_optimized",
+            "SpcVerifier::verify_single_sync",
+            "SpcVerifier::verify_signature_direct",
+            "SpcVerifier::verify_signature_direct_sync"
+          ],
+          "evidence": "Destination lines 466-657 exactly preserve the optimized direct verification path and signature crate delegation."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves optimized verification behavior and failure semantics.",
+      "test_strategy": "optimized_spc_parallel_verification_tests",
+      "negative_test_candidate": "`verify_parallel_optimized` should reject a non-allowlisted precompile instead of calling the sidecar.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact behavior in destination."
+    },
+    {
+      "record_id": "file-0352-atom-0006",
+      "file_index": 352,
+      "atom_index": 6,
+      "atoms_total": 7,
+      "source_path": "crates/ritual-spc-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +660,691 @@; public signature core wrapper",
+      "source_kind": "spc_signature_core_wrapper",
+      "source_snippet": "pub fn verify_signature_core(public_key: &[u8], block_number: u64, tx_hash: B256, precompile_address: Address, precompile_input: &Bytes, output: &Bytes, previous_block_hash: B256, previous_block_number: u64, previous_block_timestamp: u64, error: &str, proof: &Bytes) -> VerificationResult<bool> { ... }",
+      "semantic_claim": "The old divergence exposes a public SPC verifier wrapper around `ritual_spc_signature::verify_signature_core`, mapping string errors into `VerificationError::InvalidRequest`.",
+      "high_risk": false,
+      "risk_tags": [
+        "public-api",
+        "signature-verification",
+        "error-mapping"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/verifier.rs",
+          "symbols": [
+            "verify_signature_core"
+          ],
+          "evidence": "Destination lines 660-691 exactly preserve the public wrapper behavior."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the public wrapper contract and error mapping.",
+      "test_strategy": "verify_signature_core_wrapper_tests",
+      "negative_test_candidate": "A malformed proof should return `VerificationError::InvalidRequest`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact behavior in destination."
+    },
+    {
+      "record_id": "file-0352-atom-0007",
+      "file_index": 352,
+      "atom_index": 7,
+      "atoms_total": 7,
+      "source_path": "crates/ritual-spc-verification/src/verifier.rs",
+      "source_hunk_hint": "@@ -0,0 +693,820 @@; verifier tests",
+      "source_kind": "spc_verifier_unit_tests",
+      "source_snippet": "#[cfg(test)]\nmod tests { fn test_verifier() -> SpcVerifier<NoopProvider> { ... } fn fast_fail_config() -> VerificationConfig { ... } #[test] fn test_verifier_creation() { ... } #[tokio::test] async fn test_batch_verification_empty() { ... } #[tokio::test] async fn test_verify_parallel() { ... } }",
+      "semantic_claim": "The old divergence adds verifier unit tests for construction, empty/single/multiple batch verification, parallel verification, and batch request creation with fast-fail sidecar config.",
+      "high_risk": false,
+      "risk_tags": [
+        "tests",
+        "batch-verification",
+        "parallel-verification",
+        "fast-fail-config"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/verifier.rs",
+          "symbols": [
+            "test_verifier_creation",
+            "test_batch_verification_empty",
+            "test_batch_verification_single",
+            "test_batch_verification_multiple",
+            "test_verify_parallel",
+            "test_batch_verification_request_creation"
+          ],
+          "evidence": "Destination lines 693-821 preserve the verifier test coverage, shifted by one line due to earlier hex helper normalization."
+        }
+      ],
+      "equivalence_argument": "Exact test behavior is preserved.",
+      "test_strategy": "cargo test -p ritual-spc-verification verifier",
+      "negative_test_candidate": "With fast-fail config and no sidecar, batch verification should complete with failed counts rather than hang.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Destination has 821 lines vs source 820 due to earlier import/helper normalization, but test semantics are preserved."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "The SPC verifier implementation is structurally equivalent in the v2.2.0 port, preserving provider-backed construction, registry refresh, direct/sidecar verification routing, batch/parallel verification, signature-core delegation, metrics, and tests.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 352: A\tcrates/ritual-spc-verification/src/verifier.rs.",
+    "Source-added hunk spans diff lines 74376-75196 with header `@@ -0,0 +1,820 @@`.",
+    "Destination `crates/ritual-spc-verification/src/verifier.rs` has 821 lines and is semantically equivalent, with hex encoding normalized through `alloy_primitives::hex`.",
+    "No review queue entry required because the only non-exactness is low-risk import/helper normalization."
+  ]
+}

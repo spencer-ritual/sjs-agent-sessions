@@ -1,0 +1,64 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-05",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "Long-running HTTP payload validation decodes the executor request fields, enforces base executor/TTL checks, validates URLs, and validates the Phase 2 deadline offset.",
+      "path": "crates/ritual-precompile-codecs/src/validation.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let request = LongRunningHTTPCallRequest::from_abi(input)?;\nvalidate_executor_base_fields(request.executor, request.ttl, ...)?;\nvalidate_required_http_url_with_field(\"url\", &request.url)?;\n...\nvalidate_phase2_deadline_offset(request.max_poll_block, request.ttl)?;",
+      "symbols": [
+        "validate_long_running_http_payload",
+        "validate_executor_base_fields"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "RPC admission invokes metadata-routed payload validation for long-running HTTP detected calls.",
+      "path": "crates/rpc/rpc/src/async_tx_validator.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "validate_async_payload(async_call.precompile_address, async_call.input.as_ref(), MAX_SHORT_ASYNC_TTL_BLOCKS)?;",
+      "symbols": [
+        "validate_detected_async_call"
+      ]
+    }
+  ],
+  "equivalence_argument": "The port uses a specific LongRunningHTTPCallRequest decoder but still applies the common executor-request validation semantics required for executor, TTL, secrets/key, URL, and Phase 2 bounds.",
+  "evidence_files": [
+    "crates/rpc/rpc/src/async_tx_validator.rs"
+  ],
+  "invariant_id": "cur-dd903accbd-long-running-http-uses-executor-request-validation",
+  "invariant_index": 406,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped through shared precompile-codecs validation.",
+  "rationale": "The commit body explains that LongRunningHTTPCallRequest has additional ABI fields and was failing RPC validation when decoded as HTTPCallRequest; the diff splits LONG_RUNNING_HTTP_PRECOMPILE onto validate_executor_request. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "b0576acb70ef9fa4c516f9a85ef49ac2e681fa6a"
+  ],
+  "statement": "When validate_async_payload receives LONG_RUNNING_HTTP_PRECOMPILE input, it must validate the base executor request fields rather than attempting to decode the payload as a regular HTTPCallRequest.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Submit a LONG_RUNNING_HTTP_PRECOMPILE payload with valid executor fields and long-running-only ABI fields that would fail HTTPCallRequest decoding; validate_async_payload should accept it, while malformed executor address or TTL should still be rejected."
+  ],
+  "summary": "Long-running HTTP RPC validation uses executor-request checks.",
+  "test_or_falsification_candidate": "Submit long-running HTTP payloads with malformed ABI, zero executor, invalid TTL, bad URL, and invalid max_poll_block; RPC should reject each.",
+  "title": "Long-running HTTP uses executor-request validation",
+  "total_invariants": 1954
+}

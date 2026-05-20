@@ -1,0 +1,76 @@
+{
+  "record_type": "file",
+  "file_index": 349,
+  "total_files": 579,
+  "source_status": "A",
+  "source_path": "crates/ritual-spc-verification/src/error.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "exact",
+    "spc-verification",
+    "errors"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0349-atom-0001",
+      "file_index": 349,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/ritual-spc-verification/src/error.rs",
+      "source_hunk_hint": "@@ -0,0 +1,64 @@; verification error enum and conversions",
+      "source_kind": "spc_verification_error_surface",
+      "source_snippet": "pub enum VerificationError { NetworkError(String), HttpError(u16), DeserializationError(String), ClientCreation(String), Configuration(String), Cache(String), Timeout, InvalidRequest(String), VerificationFailed(String), ServiceError(String), Internal(String), InvalidEventData(String) }\npub type VerificationResult<T> = Result<T, VerificationError>;\nimpl From<reqwest::Error> for VerificationError { ... }\nimpl From<serde_json::Error> for VerificationError { ... }",
+      "semantic_claim": "The old divergence adds the SPC verification error taxonomy and conversions from reqwest/serde_json errors into timeout, network, decode, and internal categories.",
+      "high_risk": false,
+      "risk_tags": [
+        "errors",
+        "spc-verification",
+        "reqwest",
+        "serde-json"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/ritual-spc-verification/src/error.rs",
+          "symbols": [
+            "VerificationError",
+            "VerificationResult",
+            "From<reqwest::Error>",
+            "From<serde_json::Error>"
+          ],
+          "evidence": "Destination lines 1-64 exactly match source-added diff lines 73809-73873."
+        }
+      ],
+      "equivalence_argument": "Exact mapping preserves the verifier's error surface and conversion behavior.",
+      "test_strategy": "spc_verification_error_conversion_tests",
+      "negative_test_candidate": "A reqwest timeout should map to `VerificationError::Timeout`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Exact mapping."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The SPC verification error surface is exact-port preserved.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 349: A\tcrates/ritual-spc-verification/src/error.rs.",
+    "Source-added hunk spans diff lines 73809-73873 with header `@@ -0,0 +1,64 @@`.",
+    "Destination `crates/ritual-spc-verification/src/error.rs` has 64 lines and matches the source-added content exactly.",
+    "No review queue entry required because the atom is exact."
+  ]
+}

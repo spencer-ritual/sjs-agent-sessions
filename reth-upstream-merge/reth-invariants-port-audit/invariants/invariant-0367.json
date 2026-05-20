@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The configured verifier runs after transaction execution and before post-execution finalization; any error aborts execution.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "let gas_used = strategy.execute_transaction(tx)?;\n...\nif let Some(ref verifier) = self.verifier {\n    if let Err(e) = verifier.verify_block(block.sealed_block()) { return Err(BlockExecutionError::msg(format!(\"Block verification failed: {:?}\", e))); }\n}\n...\nlet result = strategy.apply_post_execution_changes()?;",
+      "symbols": [
+        "RitualBlockExecutor::execute_one"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The pool-backed node builder constructs and configures a BlockVerifier for the executor provider.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "let block_verifier = Arc::new(BlockVerifier::new_with_evm_classification(pool.clone(), ctx.provider().clone(), evm_config.clone(), None));\n...\nlet ritual_executor = RitualBlockExecutorProvider::new(evm_config.clone(), spc_verifier, Some(block_verifier));",
+      "symbols": [
+        "RitualEvmConfig::build_evm_with_pool",
+        "RitualBlockExecutorProvider::new"
+      ]
+    }
+  ],
+  "equivalence_argument": "The optional verifier stored in RitualBlockExecutorProvider gates finalization in the nodebuilder executor; the pool-backed construction supplies that verifier, and failures return BlockExecutionError before state finalization.",
+  "evidence_files": [
+    "crates/node/src/executor.rs"
+  ],
+  "invariant_id": "cur-83aaf25be7-configured-block-verifier-gates-finalization",
+  "invariant_index": 367,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in nodebuilder, matching the v2.2 executor owner.",
+  "rationale": "The merged executor provider stores an optional `BlockVerifierTrait`; the pool-backed builder constructs a `BlockVerifier` and passes it into the Ritual executor, whose execution path runs consensus verification before finalization and maps failures to `BlockExecutionError`. The new executor calls the optional verifier in a consensus-verification phase before `apply_post_execution_changes` and maps verification errors to `BlockExecutionError`. Collapsed 2 closely related historical candidate statements into the latest effective formulation.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "9b1fec346dd01830f08a1b6313a09fcf334bc923",
+    "2116c09809f88c91c37417b993acac65b25fc76f"
+  ],
+  "statement": "If a Ritual block verifier is configured, block execution must call `verify_block` on the sealed block after transaction execution and before post-execution finalization, and any verifier error must abort block execution.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Build a Ritual executor with a mock verifier that records calls and can fail; assert successful verification occurs after transaction execution and before `apply_post_execution_changes`, and assert a verifier failure returns `BlockExecutionError` without merging/finalizing state.",
+    "Use a mock verifier that records call order and can return an error; assert `verify_block` receives the block's sealed block after all transactions execute and before finalization, and assert an injected verifier error prevents `apply_post_execution_changes` and is returned from `execute_one`."
+  ],
+  "summary": "Configured block verification gates nodebuilder finalization.",
+  "test_or_falsification_candidate": "Use a mock verifier that records call order and fails; assert verify_block is called before apply_post_execution_changes and that failure prevents finalization.",
+  "title": "Configured block verifier gates finalization",
+  "total_invariants": 1954
+}

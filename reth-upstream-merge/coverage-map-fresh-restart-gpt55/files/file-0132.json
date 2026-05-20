@@ -1,0 +1,33 @@
+{
+  "record_type": "file",
+  "file_index": 132,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/net/downloaders/src/bodies/request.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "noise",
+  "tags": [
+    "noise",
+    "rustfmt",
+    "semicolon_only",
+    "net",
+    "downloaders"
+  ],
+  "atoms_total": 0,
+  "atoms": [],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The bodies request divergence is semicolon-only rustfmt noise in request validation and polling error returns; no body response validation or downloader request behavior changed.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as line 132: M\tcrates/net/downloaders/src/bodies/request.rs.",
+    "The isolated patch only adds semicolons or reformats closing delimiters for EmptyResponse, TooManyBodies, bad block body, ready-buffer, and channel-closed returns.",
+    "No response-length validation, block body buffering, pending-header loop, channel error handling, or returned buffer behavior changed."
+  ]
+}

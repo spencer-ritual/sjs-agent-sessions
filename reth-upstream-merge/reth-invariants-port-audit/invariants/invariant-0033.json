@@ -1,0 +1,116 @@
+{
+  "cluster_key": "scheduler:locks-observability",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Commitment TTL is a bounded payload/lock parameter, not elapsed commitment-age rejection.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "validate_commitment_structure rejects malformed/bounds only; no blocks_since_commit/ttl elapsed rejection.",
+      "symbols": [
+        "verify_async_commitments",
+        "validate_commitment_structure"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Settlement expiry is enforced on async job expiry state.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if block.header().number() > job.expiry_block { return Err(...) }",
+      "symbols": [
+        "verify_settlements"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "Nodebuilder verifier hook re-simulates against inclusion parent state without old commit_block TTL age.",
+      "path": "bin/src/main.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "verify_short_async_block_with_simulators(block, parent_state, |commitment| { ... parent_header ... })",
+      "symbols": [
+        "RitualShortAsyncPostExecutionValidator::validate_post_execution_block"
+      ]
+    },
+    {
+      "branch": "spencer/2605-reth-upstream-merge",
+      "commit": "169074f08721705fbb99cc9531ea798b61e9f3cc",
+      "evidence": "Current commitment shape cannot implement old commit_block age rejection on the transaction itself.",
+      "path": "crates/consensus/src/transaction/async_commitment.rs",
+      "repo": "/home/ritual/repos/ritual-alloy-internal",
+      "snippet": "TxAsyncCommitment has ttl but no commit_block field; simulation block inferred at verification time.",
+      "symbols": [
+        "TxAsyncCommitment"
+      ]
+    }
+  ],
+  "equivalence_argument": "The old invalid commitment-age TTL rejection is absent; TTL is checked for structure/wallet horizon while actual settlement expiry is enforced via job.expiry_block.",
+  "evidence_files": [
+    "crates/ritual-block-verification/src/verifier.rs"
+  ],
+  "invariant_id": "cur-ab21a3a30e-commitment-verification-does-enforce-settlement",
+  "invariant_index": 33,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+    "/home/ritual/repos/ritual-alloy-internal"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-block-verification/src/verifier.rs",
+      "crates/ritual-block-verification/src/lib.rs",
+      "crates/ritual-async-fees/src/wallet.rs",
+      "crates/transaction-pool/src/pool/mod.rs",
+      "bin/src/main.rs",
+      "crates/consensus/src/transaction/async_commitment.rs"
+    ],
+    "checked_queries": [
+      "Commitment has expired|blocks since commit|max_block_lookback",
+      "current_block.*ttl|commitment.commit_block"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "verify_async_commitments",
+      "validate_commitment_structure",
+      "verify_settlements",
+      "TxAsyncCommitment",
+      "max_block_lookback",
+      "blocks_since_commit",
+      "commitment.commit_block"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": [
+      "Pool computes contract_expiry_block for lifecycle, and wallet checks lock horizon; neither is verifier-side commitment-age rejection."
+    ]
+  },
+  "notes": "Mapped in port verifier with nodebuilder and Alloy shape evidence.",
+  "rationale": "The commitment verifier candidate removes an invalid TTL-expiry rejection for commitments and leaves max_block_lookback as the relevant age guard.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "93807abbf1a16fcb19c7ee0a02544a7980ca687a"
+  ],
+  "statement": "Async commitment verification must not reject a commitment merely because current_block_number - commit_block exceeds commitment.ttl; it should reject only when blocks_since_commit exceeds max_block_lookback for historical state access.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Verify a commitment with blocks_since_commit greater than ttl but not greater than max_block_lookback and assert it is accepted with respect to TTL expiry; verify one older than max_block_lookback and assert it is rejected for historical state access."
+  ],
+  "summary": "Commitment verification does not enforce settlement TTL as elapsed commitment age, while settlement expiry remains enforced.",
+  "test_or_falsification_candidate": "Verify an async commitment with small ttl and valid simulator/wallet lock does not fail on elapsed TTL; separately assert settlement job past expiry fails.",
+  "title": "Commitment verification does not enforce settlement TTL",
+  "total_invariants": 1954
+}

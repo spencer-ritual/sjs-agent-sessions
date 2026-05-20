@@ -1,0 +1,75 @@
+{
+  "cluster_key": "scheduler:scheduler-call-parser-00c65618",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Port scheduler parsing carries caller from packed Scheduler state into ScheduledCall instead of defaulting to zero.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "// Slot +1: PACKED(caller | startBlock | numCalls | frequency)\nlet caller_packed_bytes = caller_packed_u256.to_be_bytes::<32>();\nlet caller = Address::from_slice(&caller_packed_bytes[12..32]);\n...\nOk(Some(ScheduledCall { call_id, to, caller, start_block, num_calls, frequency, gas, ttl, state, ... }))",
+      "symbols": [
+        "ScheduledCall",
+        "read_scheduled_call"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Generated TxScheduled values propagate call.caller into the scheduled transaction metadata.",
+      "path": "crates/ritual-scheduled-block-building/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "TxScheduled::new_with_options(..., origin_hash, obligation.call_id, obligation.index, call.start_block as u64, call.frequency as u64, call.ttl as u64, call.caller, None, None, None)",
+      "symbols": [
+        "create_scheduled_execution_transaction"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port: the event-tracking surface is replaced by parent-state parsing, and the caller field is preserved through ScheduledCall into generated TxScheduled metadata.",
+  "evidence_files": [
+    "crates/scheduling/src/contract.rs"
+  ],
+  "invariant_id": "cur-7a95c30bf8-scheduler-call-parsing-preserves-caller-address",
+  "invariant_index": 105,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-scheduled-block-building/src/lib.rs"
+    ],
+    "checked_queries": [
+      "caller|ScheduledCall|read_scheduled_call|TxScheduled::new_with_options"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "ScheduledCall::caller",
+      "read_scheduled_call",
+      "create_scheduled_execution_transaction"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped via parent-state parser, not old event logs.",
+  "rationale": "The assigned candidate establishes that caller must not be defaulted to zero. Current referenced scheduler parsing code has no storage-read parser but decodes caller from each enriched event log and propagates enhanced_event.caller into tracked call state.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "dc412931635fee747d4ad66f9b8519afe32bdb9a"
+  ],
+  "statement": "Scheduler call parsing and tracking must carry the caller address decoded from scheduler call data into in-memory call/event state instead of defaulting caller to zero. Current local evidence obtains caller from enriched event logs rather than from storage slot 5.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Create Scheduler storage with a non-zero caller and assert read_scheduled_call returns that caller and synthesized TxScheduled carries it."
+  ],
+  "summary": "Scheduler parsing preserves caller in the port replacement path.",
+  "test_or_falsification_candidate": "Scheduled call storage parsing and TxScheduled synthesis should preserve a non-zero caller.",
+  "title": "Scheduler call parsing preserves caller address",
+  "total_invariants": 1954
+}

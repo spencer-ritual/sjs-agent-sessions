@@ -1,0 +1,202 @@
+[
+  {
+    "row": 1,
+    "name": "llm_call",
+    "cmd": "make run-llm-call ARGS='--agent-count 1 --start-agent-index 1810 --model mock-model'",
+    "status": "PASS",
+    "note": "Action completed: 1/1 successful.",
+    "code": 0
+  },
+  {
+    "row": 2,
+    "name": "llm_call_pii",
+    "cmd": "make run-llm-call-pii ARGS='--agent-count 1 --start-agent-index 1820 --model mock-model'",
+    "status": "PASS",
+    "note": "Action completed: 1/1 successful.",
+    "code": 0
+  },
+  {
+    "row": 3,
+    "name": "token_transfer",
+    "cmd": "make run-token-transfer ARGS='--agent-count 2 --start-agent-index 1830'",
+    "status": "PASS",
+    "note": "Action completed: 2/2 successful.",
+    "code": 0
+  },
+  {
+    "row": 4,
+    "name": "http_call",
+    "cmd": "make run-http-call ARGS='--agent-count 1 --start-agent-index 1840 --timeout 60'",
+    "status": "PASS",
+    "note": "Action completed: 1/1 successful.",
+    "code": 0
+  },
+  {
+    "row": 5,
+    "name": "http_call_pii",
+    "cmd": "make run-http-call-pii ARGS='--agent-count 1 --start-agent-index 1850'",
+    "status": "PASS",
+    "note": "Action completed: 1/1 successful.",
+    "code": 0
+  },
+  {
+    "row": 6,
+    "name": "onnx_inference",
+    "cmd": "make run-onnx ARGS='--agent-count 1 --start-agent-index 1860'",
+    "status": "PASS",
+    "note": "Action completed: 1/1 successful.",
+    "code": 0
+  },
+  {
+    "row": 7,
+    "name": "swap",
+    "cmd": "make run-swap ARGS='--agent-count 1 --start-agent-index 1870'",
+    "status": "PASS",
+    "note": "Action completed: 1/1 successful.",
+    "code": 0
+  },
+  {
+    "row": 8,
+    "name": "jq_query",
+    "cmd": "make run-jq ARGS='--agent-count 1 --start-agent-index 1880'",
+    "status": "PASS",
+    "note": "Action completed: 1/1 successful.",
+    "code": 0
+  },
+  {
+    "row": 9,
+    "name": "ed25519_verify",
+    "cmd": "make run-ed25519 ARGS='--agent-count 1 --start-agent-index 1890'",
+    "status": "PASS",
+    "note": "Action completed: 1/1 successful.",
+    "code": 0
+  },
+  {
+    "row": 10,
+    "name": "scheduled_onnx_inference",
+    "cmd": "make run-scheduled-onnx ARGS='--agent-count 1 --start-agent-index 5010'",
+    "status": "PASS",
+    "note": "Action completed: 3/3 executions with 0 missed; Action completed: 1/1 successful.",
+    "code": 0
+  },
+  {
+    "row": 11,
+    "name": "long_running_echo",
+    "cmd": "make run-long-running-echo ARGS='--agent-count 1 --start-agent-index 1910'",
+    "status": "PASS",
+    "note": "Action completed: 1/1 successful.",
+    "code": 0
+  },
+  {
+    "row": 12,
+    "name": "long_running_echo_pii",
+    "cmd": "make run-long-running-echo-pii ARGS='--agent-count 1 --start-agent-index 1920'",
+    "status": "PASS",
+    "note": "Action completed: 1/1 successful.",
+    "code": 0
+  },
+  {
+    "row": 13,
+    "name": "long_running_http_call_pii",
+    "cmd": "make run-long-running-http-call-pii ARGS='--agent-count 1 --start-agent-index 1930'",
+    "status": "PASS",
+    "note": "Action completed: 1/1 successful.",
+    "code": 0
+  },
+  {
+    "row": 14,
+    "name": "scheduled_long_running_echo",
+    "cmd": "make run-scheduled-long-running-echo ARGS='--agent-count 1 --start-agent-index 1940'",
+    "status": "PASS",
+    "note": "Action completed: 1/1 successful.",
+    "code": 0
+  },
+  {
+    "row": 15,
+    "name": "private_io",
+    "cmd": "make run-private-io ARGS='--agent-count 1 --start-agent-index 1950'",
+    "status": "PASS",
+    "note": "Action completed: 1/1 successful.",
+    "code": 0
+  },
+  {
+    "row": 16,
+    "name": "delegate_secret",
+    "cmd": "make run-delegate-secret ARGS='--agent-count 1 --start-agent-index 1960 --scenario domain_match'",
+    "status": "PASS",
+    "note": "Action completed: 1/1 successful.",
+    "code": 0
+  },
+  {
+    "row": 17,
+    "name": "llm_call_streaming",
+    "cmd": "make run-llm-call-streaming ARGS='--agent-count 1 --start-agent-index 5020 --model mock-model'",
+    "status": "FAIL",
+    "note": "Base LLM call succeeded, but streaming verification timed out connecting to the streaming service; Action completed: 0/1 successful.",
+    "code": 0
+  },
+  {
+    "row": 18,
+    "name": "x402_http_call",
+    "cmd": "make run-x402-http-call ARGS='--agent-count 1 --start-agent-index 1980'",
+    "status": "PASS",
+    "note": "Action completed: 1/1 successful.",
+    "code": 0
+  },
+  {
+    "row": 19,
+    "name": "x402_dkms_http_call",
+    "cmd": "make run-x402-dkms-http-call ARGS='--agent-count 1 --start-agent-index 1990 --dkms-key-index 0 --timeout 90'",
+    "status": "PASS",
+    "note": "Action completed: 1/1 successful.",
+    "code": 0
+  },
+  {
+    "row": 20,
+    "name": "x402_long_running_echo",
+    "cmd": "make run-x402-long-running-echo ARGS='--agent-count 1 --start-agent-index 5030 --timeout 120'",
+    "status": "PASS",
+    "note": "Phase 1 mined, Phase 2 delivery verified, recipient payment verified, executor/user payments verified; Action completed: 1/1 successful.",
+    "code": 0
+  },
+  {
+    "row": 21,
+    "name": "x402_dkms_http_call_private",
+    "cmd": "make run-x402-dkms-http-call ARGS='--agent-count 1 --start-agent-index 2010 --use-private-input --dkms-key-index 0 --timeout 90'",
+    "status": "PASS",
+    "note": "Action completed: 1/1 successful.",
+    "code": 0
+  },
+  {
+    "row": 22,
+    "name": "x402_dkms_long_running_http",
+    "cmd": "make run-x402-dkms-long-running-http ARGS='--agent-count 1 --start-agent-index 2020 --use-private-input --dkms-key-index 0 --timeout 120'",
+    "status": "PASS",
+    "note": "Action completed: 1/1 successful.",
+    "code": 0
+  },
+  {
+    "row": 23,
+    "name": "zk_two_phase",
+    "cmd": "make run-zk-two-phase ARGS='--agent-count 1 --start-agent-index 2030 --phase2-timeout 120'",
+    "status": "PASS",
+    "note": "Action completed: 1/1 successful.",
+    "code": 0
+  },
+  {
+    "row": 24,
+    "name": "scheduled_zk_two_phase",
+    "cmd": "make run-scheduled-zk-two-phase ARGS='--agent-count 1 --start-agent-index 2040 --phase2-timeout 120'",
+    "status": "PASS",
+    "note": "Action completed: 1/1 successful.",
+    "code": 0
+  },
+  {
+    "row": 25,
+    "name": "sequencing_rights_simple",
+    "cmd": "make run-cli ARGS='sequencing_rights_simple --agent-count 3 --start-agent-index 6040'",
+    "status": "PASS",
+    "note": "Block 129 reported ordering=correct for all three agents; Action completed: 3/3 successful after restoring sequencing-rights payload ordering.",
+    "code": 0
+  }
+]

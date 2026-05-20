@@ -1,0 +1,82 @@
+{
+  "record_type": "file",
+  "file_index": 536,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/transaction-pool/src/pool/state.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "structural_equivalent",
+  "tags": [
+    "high-risk",
+    "non-exact",
+    "structural_equivalent"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0536-atom-0001",
+      "file_index": 536,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/transaction-pool/src/pool/state.rs",
+      "source_hunk_hint": "@@ -77,6 +77,3 @@ pub enum SubPool {",
+      "source_kind": "other",
+      "source_snippet": "    /// The pending pool contains transactions that are ready to be included in a block.\n    Pending,\n    /// The base fee pool contains transactions that are ready to be included in a block.\n    /// The queued pool contains transactions that are not yet ready to be included in a block.\n    Queued,\n    /// The blob pool contains blob transactions.",
+      "semantic_claim": "The downstream diff for crates/transaction-pool/src/pool/state.rs introduces behavior or wiring that must be accounted for in the v2.2 merge target.",
+      "high_risk": true,
+      "risk_tags": [
+        "txpool"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/state.rs",
+          "symbols": [
+            "SubPool",
+            "TxState::is_pending",
+            "TxState::determine_queued_reason"
+          ],
+          "snippet": "pub enum SubPool {\n    Queued = 0,\n    BaseFee,\n    Blob,\n    Pending,\n}",
+          "evidence": "The executable transaction subpool state remains the v2.2 upstream four-pool model; Ritual-specific async/scheduled lifecycle is no longer encoded as SubPool variants."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/pool/async_pool.rs",
+          "symbols": [
+            "AsyncPool",
+            "AsyncTxMetadata",
+            "AsyncState"
+          ],
+          "snippet": "pub enum AsyncState {\n    AwaitingExecution,\n    Fulfilled,\n    AwaitingDelivery,\n    DeliveryReady,\n}",
+          "evidence": "Async lifecycle state is tracked in a dedicated metadata pool instead of in normal transaction subpool classification."
+        }
+      ],
+      "equivalence_argument": "The old extra SubPool variants are intentionally replaced rather than ported literally. Normal candidate ordering still uses pending/basefee/blob/queued state, while async and scheduled special cases are enforced by async metadata sender locks, canonical commitment handling, payload-built scheduled obligations, and block-verifier checks.",
+      "test_strategy": "destination_only_regression",
+      "negative_test_candidate": "Attempt to add a non-system transaction from a sender with canonical async metadata and expect SenderLocked; canonicalize a commitment and assert the async metadata lock is installed without requiring a SubPool::AsyncCommitment variant.",
+      "adversarial_review": {
+        "required": true,
+        "status": "pass",
+        "review_record_id": "review-file-0536-atom-0001"
+      },
+      "review_required": true,
+      "notes": "Old Scheduled and AsyncCommitment SubPool variants were part of the superseded direct-subpool design. The active v2.2 design keeps async commitments as canonical lifecycle metadata and treats scheduled transactions through payload/verifier state-derived obligations.",
+      "human_question": null,
+      "required_change": null
+    }
+  ],
+  "high_risk_atoms_total": 1,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [
+    "coverage-map/reviews/review-file-0536-atom-0001.json"
+  ],
+  "summary": "Atoms in this file have destination evidence or exact coverage after the feature-ordered pass.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": "Old Scheduled and AsyncCommitment SubPool variants were part of the superseded direct-subpool design. The active v2.2 design keeps async commitments as canonical lifecycle metadata and treats scheduled transactions through payload/verifier state-derived obligations."
+}

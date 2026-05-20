@@ -1,0 +1,133 @@
+{
+  "record_type": "file",
+  "file_index": 107,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/evm/src/execute.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "mapped",
+    "high-risk",
+    "non-exact",
+    "evm",
+    "system-transaction",
+    "gas-accounting",
+    "receipt-accounting",
+    "async-settlement",
+    "reth-v2-split",
+    "reviewed",
+    "needs-review"
+  ],
+  "atoms_total": 2,
+  "atoms": [
+    {
+      "record_id": "file-0107-atom-0001",
+      "file_index": 107,
+      "atom_index": 1,
+      "atoms_total": 2,
+      "source_path": "crates/evm/src/execute.rs",
+      "source_hunk_hint": "@@ -254,6 +254,23 @@ pub trait BlockBuilder",
+      "source_kind": "other",
+      "source_snippet": "/// Execute a system transaction with explicit gas contribution for receipts.\n///\n/// For system transactions, the caller determines the gas contribution (e.g., callback gas,\n/// calldata gas). This method ensures receipts reflect the correct `gasUsed`.\n///\n/// The closure receives the execution result and should return the gas to add to\n/// cumulative_gas_used for this transaction's receipt.\n///\n/// Returns `(evm_gas_used, block_gas_contribution)`.\nfn execute_system_transaction_with_gas(\n    &mut self,\n    tx: impl ExecutorTx<Self::Executor>,\n    f: impl FnOnce(\n        &ExecutionResult<<<Self::Executor as BlockExecutor>::Evm as Evm>::HaltReason>,\n    ) -> u64,\n) -> Result<(u64, u64), BlockExecutionError>;",
+      "semantic_claim": "The downstream Reth BlockBuilder API gained a system-transaction execution path where the caller supplies an explicit block/receipt gas contribution derived from the execution result, and the method returns both actual EVM gas used and the contribution used for block accounting.",
+      "high_risk": true,
+      "risk_tags": [
+        "evm-execution",
+        "system-transaction",
+        "gas-accounting",
+        "receipt-accounting",
+        "async-settlement",
+        "block-accounting"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/evm/evm/src/execute.rs",
+          "evidence": "BasicBlockBuilder::execute_system_transaction_with_gas delegates to the executor, pushes the recovered transaction after success, and returns the gas tuple."
+        },
+        {
+          "repo": "ritual-alloy-evm-internal",
+          "path": "crates/evm/src/eth/block.rs",
+          "evidence": "EthBlockExecutor::execute_system_transaction_with_gas applies the caller-supplied block_gas_contribution to receipt/header accounting while returning actual EVM gas separately."
+        }
+      ],
+      "equivalence_argument": "The destination preserves the API-level behavior through a v2-shaped Reth BlockBuilder method and delegates the detailed explicit-gas contract to the internal Alloy EVM dependency. This is not exact because the original source text is split across the v2 Reth wrapper and the Alloy EVM executor trait, and the old ExecutorTx surface changed.",
+      "test_strategy": "integration_traffic",
+      "negative_test_candidate": "Under Amsterdam gas accounting, include async settlement followed by a transaction near the remaining state-gas limit and assert payload-builder local prechecks do not admit a block whose executor/header state gas would exceed the limit.",
+      "adversarial_review": {
+        "required": true,
+        "status": "pending_targeted_review",
+        "review_record_id": null
+      },
+      "review_required": true,
+      "notes": "Reviewed: executor-level explicit gas contribution is covered. Targeted FSM/accounting review remains for payload-builder mirror counters: execute_async_settlement updates cumulative and regular local counters but not block_state_gas_used, while Alloy EVM increments state gas by the explicit block_gas_contribution."
+    },
+    {
+      "record_id": "file-0107-atom-0002",
+      "file_index": 107,
+      "atom_index": 2,
+      "atoms_total": 2,
+      "source_path": "crates/evm/src/execute.rs",
+      "source_hunk_hint": "@@ -357,6 +374,17 @@ where",
+      "source_kind": "side_effect",
+      "source_snippet": "fn execute_system_transaction_with_gas(\n    &mut self,\n    tx: impl ExecutorTx<Self::Executor>,\n    f: impl FnOnce(&ExecutionResult<<F::EvmFactory as EvmFactory>::HaltReason>) -> u64,\n) -> Result<(u64, u64), BlockExecutionError> {\n    let (evm_gas, block_gas) =\n        self.executor.execute_system_transaction_with_gas(tx.as_executable(), f)?;\n    self.transactions.push(tx.into_recovered());\n    Ok((evm_gas, block_gas))\n}",
+      "semantic_claim": "The BasicBlockBuilder implementation forwards the executable system transaction and gas-contribution closure to the underlying executor, records the recovered transaction in block order after successful execution, and returns the executor's actual EVM gas plus explicit block gas tuple.",
+      "high_risk": true,
+      "risk_tags": [
+        "evm-execution",
+        "transaction-ordering",
+        "system-transaction",
+        "gas-accounting",
+        "receipt-accounting",
+        "state-transition"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/evm/evm/src/execute.rs",
+          "evidence": "BasicBlockBuilder::execute_system_transaction_with_gas delegates to the executor, pushes the recovered transaction after success, and returns the gas tuple."
+        },
+        {
+          "repo": "ritual-alloy-evm-internal",
+          "path": "crates/evm/src/eth/block.rs",
+          "evidence": "EthBlockExecutor::execute_system_transaction_with_gas applies the caller-supplied block_gas_contribution to receipt/header accounting while returning actual EVM gas separately."
+        }
+      ],
+      "equivalence_argument": "The destination preserves the wrapper side effects and ordering: execute first, push the recovered transaction only on success, and return the delegated gas tuple. It is non-exact because v2 Reth no longer has tx.as_executable()/tx.into_recovered(); it splits ExecutorTx into tx_env plus recovered tx and passes (tx_env, &tx) to the executor. The downstream executor semantics are additionally implemented in the internal Alloy EVM dependency.",
+      "test_strategy": "integration_traffic",
+      "negative_test_candidate": "Inject a failing system settlement execution and assert the recovered transaction is not appended, then run a successful settlement and assert block transaction ordering and receipt cumulative gas match the explicit block_gas_contribution.",
+      "adversarial_review": {
+        "required": true,
+        "status": "completed",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": "Reviewed: BasicBlockBuilder push-on-success ordering is covered by the v2 wrapper. Remaining concern is not this wrapper; it is the payload-level local state-gas mirror after async settlement."
+    }
+  ],
+  "high_risk_atoms_total": 2,
+  "non_exact_atoms_total": 2,
+  "adversarial_reviews": [
+    {
+      "record_id": "file-0107-atom-0001",
+      "required": true,
+      "status": "pending_targeted_review",
+      "review_record_id": null
+    }
+  ],
+  "summary": "Mechanical review mostly confirms the system-transaction explicit gas API: Reth BasicBlockBuilder delegates execute_system_transaction_with_gas, appends transactions only after success, and Alloy EVM applies the caller-supplied block/receipt gas contribution while returning actual EVM gas separately. One targeted FSM/accounting review remains: payload execute_async_settlement mirrors cumulative and regular gas locally but not block_state_gas_used, even though the executor increments state gas by the explicit contribution.",
+  "review_required": true,
+  "status": "needs_review",
+  "notes": [
+    "Reviewed against latest code and late subagent result.",
+    "Confirmed coverage: explicit system-transaction gas contribution and push-on-success ordering are implemented.",
+    "Needs targeted review: crates/ethereum/payload/src/ritual_async.rs execute_async_settlement updates local cumulative_tx_gas_used and block_regular_gas_used but not local block_state_gas_used; crates/ethereum/payload/src/lib.rs uses block_state_gas_used for later Amsterdam state-gas prechecks."
+  ]
+}

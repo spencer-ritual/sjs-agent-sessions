@@ -1,0 +1,69 @@
+{
+  "cluster_key": "block building:empty-payload-fallback-37853dde",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "No complete mapping: WaitForPending no longer races the empty payload future, but the Earliest fallback grace window required by the invariant is absent.",
+  "evidence_files": [
+    "crates/node/core/src/args/payload_builder.rs",
+    "crates/node/core/src/cli/config.rs",
+    "crates/node/builder/src/components/payload.rs",
+    "crates/payload/basic/src/lib.rs"
+  ],
+  "invariant_id": "cur-d3c5a53a07-empty-payload-fallback-does-race-waitforpending-full-builds",
+  "invariant_index": 571,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/payload/basic/src/lib.rs",
+      "crates/payload/builder/src/service.rs",
+      "crates/payload/primitives/src/lib.rs",
+      "crates/node/core/src/args/payload_builder.rs"
+    ],
+    "checked_queries": [
+      "WaitForPending empty_payload filter RaceEmptyPayload",
+      "empty_payload_grace Earliest fallback",
+      "builder.empty-payload-grace WaitForPending",
+      "RaceEmptyPayload sleep grace"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "PayloadKind::WaitForPending",
+      "PayloadKind::Earliest",
+      "RaceEmptyPayload",
+      "empty_payload_grace",
+      "build_empty_payload"
+    ],
+    "missing_behavior": "The port prevents WaitForPending empty-payload racing but does not implement the configured grace delay for Earliest fallback, so the full invariant is not enforced.",
+    "related_but_insufficient_code": [
+      "crates/payload/basic/src/lib.rs filters empty_payload out when kind == PayloadKind::WaitForPending.",
+      "crates/payload/primitives/src/lib.rs documents WaitForPending does not race an empty payload job.",
+      "The same RaceEmptyPayload branch immediately spawns build_empty_payload and there is no empty_payload_grace configuration."
+    ]
+  },
+  "notes": "This is a partial mapping recorded as a gap because the invariant requires both behaviors.",
+  "rationale": "The primary diff adds builder.empty-payload-grace with a 200ms default, stores it in the payload job, avoids empty fallback spawning for WaitForPending, and sleeps for the grace duration before building race_empty_payload for Earliest. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Block Building",
+  "source_commits": [
+    "45b91e6e53d5fcb8475482142214b43ee0ed18dd"
+  ],
+  "statement": "When resolving payloads, WaitForPending should not spawn an empty-payload fallback race, and Earliest fallback should wait the configured empty_payload_grace duration before building an empty payload so an in-flight full build remains preferred during the grace window.",
+  "status": "current",
+  "subsystem": "block building",
+  "suggested_falsification_tests": [
+    "Start a payload build that will finish shortly after an Earliest request and assert an empty fallback is not produced before empty_payload_grace elapses. Then issue a WaitForPending request while a full build is in flight and assert no empty fallback race is spawned; the result should wait for or prefer the in-flight full payload."
+  ],
+  "summary": "WaitForPending avoids empty fallback, but Earliest grace is missing.",
+  "test_or_falsification_candidate": "Issue Earliest/RaceEmptyPayload while a full build is about to finish and assert empty fallback is delayed by configured grace; current source has no delay.",
+  "title": "Empty payload fallback does not race WaitForPending full builds",
+  "total_invariants": 1954
+}

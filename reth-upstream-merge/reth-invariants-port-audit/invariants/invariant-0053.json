@@ -1,0 +1,95 @@
+{
+  "cluster_key": "scheduler:scheduled-incidents-retained-ac545c5b",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Incident recorder keeps a bounded VecDeque and drops the oldest entry before appending newest.",
+      "path": "crates/ritual-metrics/src/scheduling.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "if guard.len() >= capacity { guard.pop_front(); }\nguard.push_back(entry);",
+      "symbols": [
+        "SCHEDULED_INCIDENT_TRACE_BUFFER",
+        "record_scheduled_incident"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Reader returns incidents newest-first and caps by configured capacity.",
+      "path": "crates/ritual-metrics/src/scheduling.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn recent_scheduled_incidents(limit: usize) -> Vec<ScheduledIncidentTrace> {\n    let effective_limit = limit.min(scheduled_incident_trace_capacity());\n    ...\n    guard.iter().rev().take(effective_limit).cloned().collect()\n}",
+      "symbols": [
+        "recent_scheduled_incidents"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Writer is best-effort under contention, preserving payload builder latency.",
+      "path": "crates/ritual-metrics/src/scheduling.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "Err(std::sync::TryLockError::WouldBlock) => {\n    SCHEDULED_INCIDENT_DROPPED_ON_CONTENTION.fetch_add(1, Ordering::Relaxed);\n}",
+      "symbols": [
+        "SCHEDULED_INCIDENT_DROPPED_ON_CONTENTION",
+        "record_scheduled_incident"
+      ]
+    }
+  ],
+  "equivalence_argument": "Exact mapping in ritual-metrics scheduled incident ring buffer.",
+  "evidence_files": [
+    "crates/ritual-metrics/src/scheduling.rs"
+  ],
+  "invariant_id": "cur-d25b005a70-scheduled-incident-traces-retained-newest-first",
+  "invariant_index": 53,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-metrics/src/scheduling.rs"
+    ],
+    "checked_queries": [
+      "scheduled incident|recent_scheduled_incidents|pop_front|newest-first"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "record_scheduled_incident",
+      "recent_scheduled_incidents",
+      "VecDeque",
+      "pop_front",
+      "push_back"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped exactly.",
+  "rationale": "The only in-cluster candidate directly defines a current bounded diagnostics retention invariant. The bounded neighbors describe scheduler transaction and service mechanics but do not justify a direct historical lineage edge for this metrics buffer.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "de28c877dac9c65e78542bc9051982087024849b"
+  ],
+  "statement": "record_scheduled_incident must append enabled scheduled incidents to an in-memory bounded ring buffer with monotonic sequence numbers, evicting the oldest retained incident when capacity is full, and recent_scheduled_incidents(limit) must return cloned traces newest-first up to the lesser of the requested limit and configured capacity.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Configure scheduled incident capacity to 2, record three enabled incidents, and assert exactly two remain, the first recorded incident was evicted, retained sequence numbers are monotonic, and recent_scheduled_incidents returns the newest incident first.",
+    "Record incidents with retention disabled or limit zero, as supported by the metrics configuration/API, and assert retrieval does not exceed the configured enabled capacity semantics."
+  ],
+  "summary": "Scheduled incident traces are retained newest-first in a bounded best-effort buffer.",
+  "test_or_falsification_candidate": "Set capacity=2, record incidents A/B/C, then query limit=10 and assert C,B returned, A evicted; force try_lock contention and assert drop counter increments.",
+  "title": "Scheduled incident traces are retained newest-first",
+  "total_invariants": 1954
+}

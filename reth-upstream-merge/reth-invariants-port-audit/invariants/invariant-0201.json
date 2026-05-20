@@ -1,0 +1,74 @@
+{
+  "cluster_key": "executor delivery:delivery-submission-does-9c8c0212",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The RPC handler performs only an immediate metadata read for reporting and one pool submission, then returns failure directly on error.",
+      "path": "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let previous_state = pool.get_async_metadata(&tx_hash).map(|metadata| ritual_async_state_string(&metadata.state));\nlet submission = AsyncDeliverySubmission { ... };\nlet result = pool.submit_async_delivery_result(submission);\nmatch result { Ok(()) => ..., Err(err) => SubmitDeliveryResultResponse { success: false, ... } }",
+      "symbols": [
+        "submit_delivery_result"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The pool submission path itself is a single hash lookup that returns TransactionNotFound when absent.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let metadata = inner.transactions.get_mut(&submission.original_tx_hash)\n    .ok_or(AsyncPoolError::TransactionNotFound)?;",
+      "symbols": [
+        "submit_delivery_result_with_context"
+      ]
+    }
+  ],
+  "equivalence_argument": "The current RPC delivery-result path is the replacement single-lookup behavior: there are no submitDeliveryResult retry constants or sleeps in the audited implementation.",
+  "evidence_files": [
+    "crates/rpc/rpc/src/ritual.rs"
+  ],
+  "invariant_id": "cur-8436e4cbc0-delivery-submission-does-wait-async-pool-population",
+  "invariant_index": 201,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/node/src/ritual_async_rpc.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs"
+    ],
+    "checked_queries": [
+      "submitDeliveryResult|submit_delivery_result|MAX_POOL_RETRIES|RETRY_DELAY_MS|tokio::time::sleep"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "submit_delivery_result",
+      "submit_delivery_result_with_context",
+      "AsyncPoolError::TransactionNotFound"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The primary diff reverts retry constants, retry loop, sleep calls, and delayed lookup state, replacing them with a direct `self.pool.get_async_transaction_by_hash(&request.tx_hash)` match and a warning that the transaction was not found. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "59a40622df646e9744629e220acc3df935b44903"
+  ],
+  "statement": "`submitDeliveryResult` must perform a single async-pool lookup for the requested transaction hash and return a failed response immediately if the transaction is not present, rather than sleeping and retrying for pool population.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call `submitDeliveryResult` with a transaction hash absent from the async pool and use a mocked pool plus time control to assert the method performs exactly one lookup, does not sleep or retry, and returns `success: false` with the not-found error path."
+  ],
+  "summary": "Delivery-result submission fails immediately when the async pool lacks the transaction.",
+  "test_or_falsification_candidate": "Use a mock pool with an absent transaction and assert submitDeliveryResult performs one submission/lookup and returns success=false without sleeping.",
+  "title": "Delivery submission does not wait for async pool population",
+  "total_invariants": 1954
+}

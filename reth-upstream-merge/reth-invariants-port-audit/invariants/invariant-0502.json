@@ -1,0 +1,65 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-07",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "Both Phase 1 and delivery settlement preparation read contract job context and executor public keys before inclusion.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let spc_jobs = ritual_async_registry::read_jobs_for_spc_verification(db, None, &[job_id])?;\n...\nlet executor = read_executor(db, tee_registry, contract_job.executor_address)?;\n...\nverify_spc_with_preloaded_context(..., spc_job, &executor.public_key)?;",
+      "symbols": [
+        "prepare_fulfilled_async_settlement",
+        "prepare_delivery_settlement"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "Build-time verification uses the same signature core and contract-sourced job fields as block verification.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let computed_hash = keccak256(spc_input);\nif computed_hash != job.input_hash { return Err(...); }\nlet valid = verify_signature_core(executor_key, job.commit_block, job.tx_hash, job.precompile_address, spc_input, spc_output, ... spc_proof)?;\nif !valid { return Err(...); }",
+      "symbols": [
+        "verify_spc_with_preloaded_context"
+      ]
+    }
+  ],
+  "equivalence_argument": "The builder re-verifies proofs immediately before constructing settlements using AsyncJobTracker data, TEE registry keys, input hash checks, and verify_signature_core, and turns failures into skipped/failed settlement preparation rather than emitting invalid blocks.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/ethereum/payload/Cargo.toml"
+  ],
+  "invariant_id": "cur-ec0e0fbb49-builder-verifies-before-inclusion",
+  "invariant_index": 502,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This covers both Phase 1 fulfilled settlements and delivery settlement preparation.",
+  "rationale": "The payload builder imports ritual-spc-signature and ritual-tee-registry-reader, adds verify_spc_at_build_time, uses read_jobs_for_spc_verification and read_executor_public_keys, checks input hash, and calls verify_signature_core before including Phase 1 or delivery SPCs. The commit message says this eliminates the temporal gap between RPC intake and block building. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "8ba7c3628bb51a5346db6a31592b9562045d178d"
+  ],
+  "statement": "Payload building must re-verify Phase 1 and delivery SPC proofs at build time using contract job state, executor public keys from the TEE registry, and the same verify_signature_core logic as block verification; if verification fails, the transaction must be skipped or settlement creation must fail.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Construct async pool entries with invalid SPC proofs or mismatched contract input hash, run payload building, and assert the Phase 1 transaction is skipped and delivery settlement creation returns an error rather than emitting a block that verifier would reject."
+  ],
+  "summary": "Payload building re-verifies SPC proofs before inclusion.",
+  "test_or_falsification_candidate": "Insert pool entries with invalid proofs, stale input hashes, or missing executor keys and assert payload building skips or fails settlement creation.",
+  "title": "Builder re-verifies SPC before inclusion",
+  "total_invariants": 1954
+}

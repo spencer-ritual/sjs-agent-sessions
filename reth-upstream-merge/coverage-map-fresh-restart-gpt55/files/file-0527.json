@@ -1,0 +1,79 @@
+{
+  "record_type": "file",
+  "file_index": 527,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/transaction-pool/src/noop.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "structural_equivalent",
+  "tags": [
+    "structural_equivalent",
+    "txpool",
+    "noop"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0527-atom-0001",
+      "file_index": 527,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/transaction-pool/src/noop.rs",
+      "source_hunk_hint": "@@ -6,7 +6,11 @@",
+      "source_kind": "noop_pool",
+      "source_snippet": "    pool::{\n        async_pool::{AsyncConversionError, AsyncTxMeta, AsyncUpdateError},\n        txpool::TxPool,\n        TransactionListenerKind,\n    },\nuse alloy_consensus::transaction::OriginalTransaction;\nuse alloy_primitives::{Address, Bytes, TxHash, B256, U256};\nuse reth_ethereum_primitives::TransactionSigned;\n    async fn add_scheduled_transaction(\n        &self,",
+      "semantic_claim": "The old NoopTransactionPool implements no-op async/scheduled pool methods returning empty/not-found behavior.",
+      "high_risk": false,
+      "risk_tags": [
+        "txpool",
+        "noop"
+      ],
+      "mapping_status": "structural_equivalent",
+      "destinations": [
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/noop.rs",
+          "symbols": [
+            "NoopTransactionPool"
+          ],
+          "evidence": "Destination NoopTransactionPool relies on default `TransactionPool` async metadata/result methods returning empty or `TransactionNotFound`, preserving no-op behavior without exact method bodies."
+        },
+        {
+          "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+          "path": "crates/transaction-pool/src/traits.rs",
+          "symbols": [
+            "submit_async_result",
+            "get_async_metadata",
+            "fulfilled_async_entries"
+          ],
+          "evidence": "Trait defaults provide the empty/not-found behavior for implementors that do not override async methods."
+        }
+      ],
+      "equivalence_argument": "Structurally equivalent no-op semantics are preserved through trait defaults rather than exact per-method implementations.",
+      "test_strategy": "compile NoopTransactionPool as TransactionPool and call default async methods",
+      "negative_test_candidate": "Noop async result submission should return TransactionNotFound and metadata queries should be empty.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": null
+      },
+      "review_required": false,
+      "notes": ""
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 1,
+  "adversarial_reviews": [],
+  "summary": "Noop txpool remains behaviorally safe through trait defaults for async methods.",
+  "review_required": false,
+  "status": "complete",
+  "notes": [
+    "Queue entry verified as file-0527: M\tcrates/transaction-pool/src/noop.rs.",
+    "Source diff lines 91059-91239; first hunk `@@ -6,7 +6,11 @@`.",
+    "Fresh destination evidence was checked against /home/ritual/repos/ritual-reth-internal-v2.2.0-port."
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-04",
+  "confidence": "high",
+  "destinations": [],
+  "equivalence_argument": "The current LLM calculator fails closed for missing/decode/model failures but not for executor-reported has_error responses.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ritual-async-fees/src/llm.rs"
+  ],
+  "invariant_id": "cur-44b85680c5-pricing-failures-fall-back",
+  "invariant_index": 351,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-async-fees/src/llm.rs",
+      "crates/ritual-async-fees/src/constants.rs",
+      "crates/ritual-async-fees/src/lib.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/ritual-block-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "LLM_HAS_ERROR_PREFIX",
+      "LLM_ERROR_EXECUTOR_FEE_WEI",
+      "Missing LLM executor output",
+      "Failed to decode LLM response",
+      "Model not in LLM registry",
+      "fallback",
+      "no-fallback"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "compute_llm_executor_fee",
+      "decode_llm_response",
+      "LLM_HAS_ERROR_PREFIX",
+      "LLM_ERROR_EXECUTOR_FEE_WEI",
+      "calculate_async_fees"
+    ],
+    "missing_behavior": "LLM executor outputs that report has_error=true are priced with a constant fee instead of returning Err and causing builder skip/verifier rejection.",
+    "related_but_insufficient_code": [
+      "compute_llm_executor_fee returns Err for missing output, decode failures, and unknown models, but returns Ok(LLM_ERROR_EXECUTOR_FEE_WEI) when decode_llm_response reports LLM_HAS_ERROR_PREFIX; a test asserts this constant-fee behavior."
+    ]
+  },
+  "notes": "Confirmed gap limited to executor-side error outputs; other LLM failure modes already return errors.",
+  "rationale": "The commit message explicitly states strict no-fallback policy, and the new LLM calculator returns Err for missing output, decode failures, executor-side errors, and model resolution errors. calculate_async_fees propagates those errors for the LLM precompile. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "7a12cae9882c0310c67a99096593ccee3727e1a4"
+  ],
+  "statement": "LLM async fee calculation must return an error, not a fallback HTTP or default price, when executor output is missing, cannot be decoded, reports an error, or resolves to an unknown/unpriceable model.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Call calculate_async_fees with the LLM precompile and None output, malformed output, output with has_error set, and output naming an unknown model; assert every case returns Err and no HTTP executor fee is substituted."
+  ],
+  "summary": "LLM executor-reported errors still fall back to a constant fee.",
+  "test_or_falsification_candidate": "Call calculate_async_fees for LLM output with has_error=true and assert the invariant expects Err; current code returns Ok(LLM_ERROR_EXECUTOR_FEE_WEI).",
+  "title": "LLM pricing failures do not fall back",
+  "total_invariants": 1954
+}

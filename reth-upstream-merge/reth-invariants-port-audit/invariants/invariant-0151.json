@@ -1,0 +1,79 @@
+{
+  "cluster_key": "executor delivery:async-pool-expiry-a324c920",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Canonical commitment processing computes a required expiry block from commit_block + ttl and stores it in async metadata.",
+      "path": "crates/transaction-pool/src/pool/mod.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let contract_expiry_block = match commit_block.checked_add(async_commitment.ttl) { Some(expiry) => expiry, None => u64::MAX };\n...\nself.async_pool.add_committed_async_tx(..., commit_block, contract_expiry_block)",
+      "symbols": [
+        "Pool::process_async_commitment_transactions",
+        "AsyncPool::add_committed_async_tx"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The pool has a non-optional contract_expiry_block, uses it for eligibility and cleanup, and extends it to the Phase 2 deadline on AwaitingDelivery transition.",
+      "path": "crates/transaction-pool/src/pool/async_pool.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub contract_expiry_block: u64\n...\nmetadata.state == AsyncState::Fulfilled && current_block <= metadata.contract_expiry_block\n...\n(current_block > metadata.contract_expiry_block).then_some(*hash)\n...\nif phase2_deadline > metadata.contract_expiry_block { metadata.contract_expiry_block = phase2_deadline; }",
+      "symbols": [
+        "AsyncTxMetadata::contract_expiry_block",
+        "AsyncPool::fulfilled_entries",
+        "AsyncPool::cleanup_expired",
+        "AsyncPool::mark_awaiting_delivery"
+      ]
+    }
+  ],
+  "equivalence_argument": "The current pool makes expiry required by type rather than Option. The commitment-finalization path computes it from contract TTL, fulfilled/delivery-ready selection and cleanup use only contract_expiry_block for block expiry, and Phase 1 settlement extends the boundary to the computed Phase 2 deadline when applicable.",
+  "evidence_files": [
+    "crates/transaction-pool/src/pool/async_pool.rs"
+  ],
+  "invariant_id": "cur-9e7e784487-async-pool-expiry-follows-contract-expiry",
+  "invariant_index": 151,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/transaction-pool/src/pool/mod.rs",
+      "crates/transaction-pool/src/pool/async_pool.rs"
+    ],
+    "checked_queries": [
+      "contract_expiry_block|checked_add\\(async_commitment.ttl\\)|phase2_deadline|cleanup_expired"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "contract_expiry_block",
+      "Pool::process_async_commitment_transactions",
+      "AsyncPool::mark_awaiting_delivery",
+      "AsyncPool::cleanup_expired"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The merge adds contract_expiry_block to AsyncTxMeta, requires expiry_block when adding transactions, removes fallback TTL calculations, treats missing expiry as a critical invariant violation, and updates the expiry to max_poll_block during Phase 2 transition to match contract markPhase1Settled behavior. This result keeps the candidate as a distinct refined invariant because the bounded assignment packet does not contain a newer candidate that clearly supersedes it. Implementation-detail caveat: The metadata field name is internal, but aligning pool retention with AsyncJobTracker expiry is observable in which async jobs remain eligible for settlement/delivery.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "6e01d783dfe1e39e8122063a298aadc0acdf8ea3"
+  ],
+  "statement": "Async pool entries should carry a required contract_expiry_block set at commitment finalization, use it as the sole block-based expiry source, and update it to the Phase 2 deadline when a two-phase job transitions to AwaitingDelivery.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Add an async pool entry with expiry block 120 and assert it expires only when current_block > 120; transition a two-phase entry with max_poll_block 200 to AwaitingDelivery and assert its block expiry becomes 200; construct a malformed meta with None expiry and assert it is treated as expired."
+  ],
+  "summary": "Async pool expiry is driven by required contract expiry metadata and Phase 2 extension.",
+  "test_or_falsification_candidate": "Add an async pool entry with expiry block 120 and assert it expires only when current_block > 120; transition a two-phase entry with max_poll_block 200 to AwaitingDelivery and assert its block expiry becomes 200; construct a malformed meta with None expiry and assert it is treated as expired.",
+  "title": "Async pool expiry follows contract expiry",
+  "total_invariants": 1954
+}

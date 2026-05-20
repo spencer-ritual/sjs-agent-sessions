@@ -1,0 +1,80 @@
+{
+  "record_type": "file",
+  "file_index": 408,
+  "total_files": 579,
+  "source_status": "M",
+  "source_path": "crates/rpc/rpc/src/otterscan.rs",
+  "source_old_path": null,
+  "source_commit_range": {
+    "base": "6f8e7258f4733279080e4bd8345ce50538a40d6e",
+    "head": "f2f96b9b545ae4bdf80dd3753010aa8e01ac0402"
+  },
+  "file_classification": "mapped",
+  "tags": [
+    "exact",
+    "otterscan",
+    "rpc"
+  ],
+  "atoms_total": 1,
+  "atoms": [
+    {
+      "record_id": "file-0408-atom-0001",
+      "file_index": 408,
+      "atom_index": 1,
+      "atoms_total": 1,
+      "source_path": "crates/rpc/rpc/src/otterscan.rs",
+      "source_hunk_hint": "@@ -254,8 +254,9 @@; @@ -277,6 +278,44 @@",
+      "source_kind": "rpc_receipt_fields",
+      "source_snippet": ".zip(transactions.iter()).map(|(receipt, tx)| { let tx_ty = tx.ty(); ... spc_calls: tx.spc_calls(), delivery_spc_calls: tx.delivery_spc_calls(), ... async/scheduled receipt fields set to None })",
+      "semantic_claim": "The old Otterscan block transaction receipt path exposes Ritual custom receipt fields, including extracting `spc_calls` and `delivery_spc_calls` from each transaction while padding scheduled/async metadata fields with `None`.",
+      "high_risk": true,
+      "risk_tags": [
+        "rpc",
+        "otterscan",
+        "receipt",
+        "spc"
+      ],
+      "mapping_status": "exact",
+      "destinations": [
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc/src/otterscan.rs",
+          "symbols": [
+            "block_details"
+          ],
+          "evidence": "Destination Otterscan receipt path now zips receipts with full transactions, uses each transaction's type, and populates `spc_calls` and `delivery_spc_calls` from the transaction while preserving scheduled/async metadata padding."
+        },
+        {
+          "repo": "ritual-reth-internal-v2.2.0-port",
+          "path": "crates/rpc/rpc-eth-types/src/receipt.rs",
+          "symbols": [
+            "from_transaction_receipt"
+          ],
+          "evidence": "Generic RPC receipt conversion extracts `tx.spc_calls()` and `tx.delivery_spc_calls()`, but the Otterscan block-detail path does not."
+        }
+      ],
+      "equivalence_argument": "Exact: destination Otterscan block transaction receipts now extract SPC and delivery SPC call fields from the full transaction, matching the old behavior-bearing hunk.",
+      "test_strategy": "otterscan block_details receipt field regression",
+      "negative_test_candidate": "Query Otterscan block details for a transaction carrying `spc_calls`/delivery SPC calls and verify those fields are populated rather than `None`.",
+      "adversarial_review": {
+        "required": false,
+        "status": "not_required",
+        "review_record_id": "review-file-0408-atom-0001"
+      },
+      "review_required": false,
+      "notes": "Resolved; the first hunk is rustfmt-only and the behavior-bearing SPC extraction is restored."
+    }
+  ],
+  "high_risk_atoms_total": 0,
+  "non_exact_atoms_total": 0,
+  "adversarial_reviews": [],
+  "summary": "The Otterscan receipt field expansion is restored: the block transaction path now extracts SPC and delivery SPC call fields from full transactions.",
+  "review_required": false,
+  "status": "resolved",
+  "notes": [
+    "Queue entry verified as file-0408: M\tcrates/rpc/rpc/src/otterscan.rs.",
+    "Old behavior-bearing hunk spans diff lines 79465-79518.",
+    "Destination evidence checked in `crates/rpc/rpc/src/otterscan.rs` and `crates/rpc/rpc-eth-types/src/receipt.rs`.",
+    "Verified by `cargo check -p reth-rpc` as part of the targeted package check."
+  ]
+}

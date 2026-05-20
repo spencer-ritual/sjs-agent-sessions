@@ -1,0 +1,66 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-08",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "The current 0x0820 agent escrow helper locks Phase 1 fees plus the spawn fee.",
+      "path": "crates/ritual-async-fees/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn persistent_agent_escrow_lockup(input_len: usize) -> U256 {\n    calculate_persistent_agent_fees(input_len).total + U256::from(PERSISTENT_AGENT_SPAWN_FEE_WEI)\n}",
+      "symbols": [
+        "persistent_agent_escrow_lockup",
+        "PERSISTENT_AGENT_SPAWN_FEE_WEI"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4df4139dda80a5b1f04b433edab8ccc4581b3e67",
+      "evidence": "Wallet validation uses the spawn-inclusive escrow helper for the current persistent/agent precompile.",
+      "path": "crates/ritual-async-fees/src/wallet.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "} else if precompile_address == PERSISTENT_AGENT_PRECOMPILE {\n    persistent_agent_escrow_lockup(input_len)\n} else if precompile_address == AUDIO_CALL_PRECOMPILE {",
+      "symbols": [
+        "verify_wallet_for_commitment",
+        "persistent_agent_escrow_lockup"
+      ]
+    }
+  ],
+  "equivalence_argument": "The v2.2.0 port names the 0x0820 agent path PERSISTENT_AGENT_PRECOMPILE, but the escrow invariant is structurally preserved: wallet lockup equals Phase 1 agent fees plus the Phase 2 spawn fee constant.",
+  "evidence_files": [
+    "crates/ritual-async-fees/src/lib.rs",
+    "crates/ritual-async-fees/src/constants.rs"
+  ],
+  "invariant_id": "cur-f4c66d35f8-autonomous-agent-escrow-includes-spawn",
+  "invariant_index": 510,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "This maps the autonomous-agent wording to the current persistent-agent naming in the port.",
+  "rationale": "The diff changes Autonomous Agent documentation from single-phase fixed pricing to two-phase spawn pricing and changes autonomous_agent_escrow_lockup from fees.total to fees.total + AUTONOMOUS_AGENT_SPAWN_FEE_WEI. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "9f4b4d5a5fa0517e96e41192104409dccc7d9172"
+  ],
+  "statement": "Autonomous Agent escrow lockup equals its Phase 1 async fees plus AUTONOMOUS_AGENT_SPAWN_FEE_WEI, protecting Phase 2 executor payment up front.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "For a given input length, compute calculate_autonomous_agent_fees(input_len).total and autonomous_agent_escrow_lockup(input_len), and assert the latter is greater by exactly AUTONOMOUS_AGENT_SPAWN_FEE_WEI."
+  ],
+  "summary": "Agent escrow includes the spawn fee in wallet validation.",
+  "test_or_falsification_candidate": "For a fixed 0x0820 agent input length, assert persistent_agent_escrow_lockup equals calculate_persistent_agent_fees(input_len).total plus PERSISTENT_AGENT_SPAWN_FEE_WEI.",
+  "title": "Autonomous agent escrow includes spawn fee",
+  "total_invariants": 1954
+}

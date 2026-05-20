@@ -1,0 +1,78 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-06",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "The builder validates detected async call metadata and payload, then constructs TxAsyncCommitment from the decoded non-mutated executor, TTL, precompile address, and input fields.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let decoded = validate_async_commitment_call(&async_call)?;\n...\nlet commitment_tx = create_short_async_commitment_tx(\n    async_call.precompile_address,\n    async_call.input,\n    decoded.executor,\n    decoded.ttl,\n    origin_tx_rlp,\n    tx_hash,\n    original_sender,\n    commitment_validator,\n    parent_hash,\n    parent_number,\n    parent_timestamp,\n);\n...\nlet async_commitment = TxAsyncCommitment::new(\n    u64::MAX,\n    U256::from(1_000_000_000u64),\n    Some(async_job_tracker_addr),\n    U256::ZERO,\n    ASYNC_COMMITMENT_SYSTEM_SENDER,\n    origin_tx_hash,\n    origin_tx_rlp,\n    precompile_address,\n    precompile_input,\n    ttl,\n    executor_address,\n    commitment_validator,\n);",
+      "symbols": [
+        "build_short_async_commitment_transaction",
+        "validate_async_commitment_call",
+        "create_short_async_commitment_tx"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "The verifier enforces inclusive TTL bounds, rejects unsupported precompile metadata, and rejects zero executor addresses before accepting an async commitment as structurally valid.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "fn validate_commitment_structure(\n    commitment: &TxAsyncCommitment,\n) -> Result<&'static AsyncPrecompileMetadata, BlockVerificationError> {\n    if commitment.ttl == 0 || commitment.ttl > MAX_SHORT_ASYNC_TTL_BLOCKS {\n        return Err(BlockVerificationError::InvalidAsyncCommitment(format!(\n            \"TTL {} outside async commitment bounds 1..={}\",\n            commitment.ttl, MAX_SHORT_ASYNC_TTL_BLOCKS\n        )));\n    }\n    let metadata = async_commitment_metadata(commitment.precompile_address, \"async commitment\")\n        .map_err(BlockVerificationError::InvalidAsyncCommitment)?;\n    if commitment.executor_address.is_zero() {\n        return Err(BlockVerificationError::InvalidAsyncCommitment(\n            \"executor address cannot be zero\".to_string(),\n        ));\n    }",
+      "symbols": [
+        "validate_commitment_structure",
+        "async_commitment_metadata"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "4b7aac3725a913adc0fb728c2524dcd5f43dd47c",
+      "evidence": "After structural checks, the verifier validates and decodes the precompile payload and rejects executor or TTL drift between the payload and commitment fields.",
+      "path": "crates/ritual-block-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "validate_async_payload(\n    commitment.precompile_address,\n    commitment.precompile_input.as_ref(),\n    MAX_SHORT_ASYNC_TTL_BLOCKS,\n)\n.map_err(|err| {\n    BlockVerificationError::InvalidAsyncCommitment(format!(\n        \"invalid async commitment precompile input for {} ({}): {err}\",\n        commitment.precompile_address,\n        metadata.capability_tag.name()\n    ))\n})?;\n...\nif decoded.executor != commitment.executor_address {\n    return Err(BlockVerificationError::InvalidAsyncCommitment(format!(\n        \"async request executor {} does not match commitment executor {}\",\n        decoded.executor, commitment.executor_address\n    )));\n}\nif decoded.ttl != commitment.ttl {\n    return Err(BlockVerificationError::InvalidAsyncCommitment(format!(\n        \"async request TTL {} does not match commitment TTL {}\",\n        decoded.ttl, commitment.ttl\n    )));\n}",
+      "symbols": [
+        "validate_async_payload",
+        "try_decode_precompile_data"
+      ]
+    }
+  ],
+  "equivalence_argument": "The builder validates detected async calls with the same metadata and payload codec rules before constructing TxAsyncCommitment from decoded executor and TTL. The verifier then applies validate_commitment_structure to the resulting commitment and independently rejects malformed mutations such as a zero executor address.",
+  "evidence_files": [
+    "crates/ritual-async-commitment-validator/src/lib.rs"
+  ],
+  "invariant_id": "cur-3b501e1389-builder-commitments-pass-verifier-structure",
+  "invariant_index": 434,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "The builder and verifier share metadata/payload semantics through ritual-precompile-addresses and ritual-precompile-codecs, with verifier-side rejection as a backstop.",
+  "rationale": "The differential tests document the intended alignment between builder-produced commitments and verifier structure checks, including verifier-side rejection if builder/precompile paths fail to reject a zero executor. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "af2be6424f9ea3194c0c1bc6ba5a504d0aacf106"
+  ],
+  "statement": "Any commitment produced by the builder with a valid TTL, valid async precompile address, and nonzero executor address must pass validate_commitment_structure; malformed builder output such as a zero executor must still be rejected by the verifier.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Generate commitments through the real detector/builder path for valid async calls and assert validate_commitment_structure accepts them; then mutate executor_address to zero and assert the verifier rejects the commitment."
+  ],
+  "summary": "Builder-produced commitments pass the verifier structure gate.",
+  "test_or_falsification_candidate": "Generate commitments through the real detector/builder path for valid async calls and assert validate_commitment_structure accepts them; then mutate executor_address to zero and assert the verifier rejects the commitment.",
+  "title": "Builder commitments pass verifier structure",
+  "total_invariants": 1954
+}

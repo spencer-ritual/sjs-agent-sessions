@@ -1,0 +1,54 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "Async commitment creation targets the AsyncJobTracker address and ABI-encodes addJob with executor, job id, precompile address/input, TTL, previous-block metadata, sender, commitment validator, original hash, and original RLP.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let add_job_call = addJobCall {\n    executor: executor_address,\n    jobId: origin_tx_hash,\n    precompileAddress: precompile_address,\n    precompileInput: precompile_input.clone(),\n    ttl: U256::from(ttl),\n    prevHash: parent_hash,\n    prevNum: U256::from(parent_number),\n    prevTime: U256::from(parent_timestamp),\n    ...\n};\nlet async_commitment = TxAsyncCommitment::new(... Some(async_job_tracker_addr), ... add_job_call.abi_encode().into(), origin_tx_hash, origin_tx_rlp, ...);",
+      "symbols": [
+        "build_short_async_commitment_transaction",
+        "create_short_async_commitment_tx",
+        "addJobCall"
+      ]
+    }
+  ],
+  "equivalence_argument": "The detector/payload path converts an observed async call into a TxAsyncCommitment whose destination is AsyncJobTracker and whose input is addJob ABI calldata carrying the required job identity and metadata. The v2 implementation uses real parent hash/number/timestamp rather than zero placeholders, which strengthens the metadata while preserving tracker-job submission.",
+  "evidence_files": [
+    "crates/ritual-async/src/detector.rs"
+  ],
+  "invariant_id": "cur-cdd6e53f20-async-commitments-submit-tracker-jobs",
+  "invariant_index": 291,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in port payload async commitment construction.",
+  "rationale": "The detector changes the commitment transaction from direct async execution input to an AsyncJobTracker.addJob call, with the commit subject explicitly referring to submitting async transactions containing job data. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "40ecb8454c5a31a35023d2f5cf232f5647940295"
+  ],
+  "statement": "An async commitment transaction created for async execution must target the AsyncJobTracker contract and encode addJob with executor, job id, precompile address, precompile input, commit block, ttl, and placeholder previous-block fields.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Detect an async transaction and decode its generated commitment transaction input as AsyncJobTracker.addJob; assert the target is the configured/default tracker address, jobId equals keccak256(origin_tx_rlp), and the call contains the original precompile address, precompile input, commit block, ttl, and zero placeholder previous-block fields."
+  ],
+  "summary": "Async commitments submit AsyncJobTracker addJob transactions with the required job metadata.",
+  "test_or_falsification_candidate": "Detect a short async transaction, decode the generated commitment input as addJob, and assert target, jobId, executor, precompile fields, ttl, previous-block metadata, and original RLP match the origin transaction context.",
+  "title": "Async commitments submit tracker jobs",
+  "total_invariants": 1954
+}

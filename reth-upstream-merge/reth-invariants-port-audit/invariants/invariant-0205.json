@@ -1,0 +1,91 @@
+{
+  "cluster_key": "executor delivery:deliveryready-jobs-produce-f5e8b9c5",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The payload builder converts DeliveryReady pool entries into prepared Phase 2 delivery settlement candidates.",
+      "path": "crates/ethereum/payload/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "let delivery_ready_async_entries = match pool.get_delivery_ready_original_async_transactions(current_block) { ... };\nfor (pool_tx, metadata) in delivery_ready_async_entries {\n    let prepared = prepare_delivery_settlement_transaction(...)?;\n    payload_candidates.push(PayloadCandidate::Delivery { prepared, tx_hash, ... });\n}",
+      "symbols": [
+        "get_delivery_ready_original_async_transactions",
+        "PayloadCandidate::Delivery",
+        "prepare_delivery_settlement_transaction"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The prepared transaction is an AsyncSettlement delivery call containing the final delivery result and delivery SPC call.",
+      "path": "crates/ethereum/payload/src/ritual_async.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "encoded_call_data.extend_from_slice(&DELIVER_SELECTOR);\n... callback_delivery_result.clone(),\n...\nlet mut settlement_tx = TxAsyncSettlement::new(..., Bytes::from(encoded_call_data), origin_tx_hash, commitment_hash, ...);\nsettlement_tx.delivery_spc_calls = Some(vec![delivery_spc_call]);",
+      "symbols": [
+        "prepare_delivery_settlement_transaction",
+        "TxAsyncSettlement::new"
+      ]
+    },
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "a066313e341c409fc05cbe74dc7daca1cd41b750",
+      "evidence": "The async pool entry is removed only after a canonical Phase 2 delivery settlement is observed, not when the builder prepares the candidate.",
+      "path": "crates/transaction-pool/src/pool/mod.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "Ok(AsyncSettlementCall::Deliver) => {\n    let Some(metadata) = self.async_pool.get_metadata(&origin_tx_hash) else { continue };\n    if metadata.state == AsyncState::DeliveryReady && metadata.requires_phase2_delivery() {\n        self.async_pool.remove_by_hash(&origin_tx_hash);\n    }\n}",
+      "symbols": [
+        "process_async_settlement_transactions"
+      ]
+    }
+  ],
+  "equivalence_argument": "DeliveryReady entries become Phase 2 settlement candidates during payload building and are removed only by canonical delivery settlement processing.",
+  "evidence_files": [
+    "crates/ethereum/payload/src/lib.rs",
+    "crates/transaction-pool/src/pool/mod.rs"
+  ],
+  "invariant_id": "cur-d14013763e-deliveryready-jobs-produce-phase-settlements",
+  "invariant_index": 205,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ethereum/payload/src/lib.rs",
+      "crates/ethereum/payload/src/ritual_async.rs",
+      "crates/transaction-pool/src/pool/mod.rs"
+    ],
+    "checked_queries": [
+      "DeliveryReady|get_delivery_ready_original_async_transactions|PayloadCandidate::Delivery|DELIVER_SELECTOR|remove_by_hash"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "PayloadCandidate::Delivery",
+      "prepare_delivery_settlement_transaction",
+      "AsyncSettlementCall::Deliver",
+      "remove_by_hash"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped.",
+  "rationale": "The payload builder adds a Phase 4.5 delivery phase, gets delivery-ready transactions from the pool, creates and executes Phase 2 settlement transactions, and explicitly defers pool removal to canonicalization for multi-validator correctness. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "09942d53e1ecc9fcaa4f5861c7fbbfd60aa2e5c7"
+  ],
+  "statement": "During payload building, DeliveryReady long-running async jobs must be converted into Phase 2 async settlement transactions that include the delivery result and are executed without removing the async pool entry until canonicalization.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Place a 0x0805 job in DeliveryReady with a delivery_result, build a payload, and assert the payload includes an AsyncSettlement carrying that delivery result while the async pool entry remains until the block is canonicalized."
+  ],
+  "summary": "DeliveryReady jobs produce Phase 2 settlements and wait for canonical removal.",
+  "test_or_falsification_candidate": "Place a DeliveryReady job in the pool, build a payload, and assert an AsyncSettlement deliver transaction is prepared while the pool entry remains until canonical delivery processing.",
+  "title": "DeliveryReady jobs produce Phase 2 settlements",
+  "total_invariants": 1954
+}

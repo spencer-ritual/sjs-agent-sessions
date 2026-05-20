@@ -1,0 +1,55 @@
+{
+  "cluster_key": "executor delivery:evm-factory:part-02",
+  "confidence": "high",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "2a5142658f20dc32b8189199df30e5aeeaf00208",
+      "evidence": "The nodebuilder pool-aware EVM construction requires TransactionPoolExt, constructs a BlockVerifier from the supplied pool/provider/EVM config, and attaches it to the executor provider alongside the SPC verifier.",
+      "path": "crates/node/src/executor.rs",
+      "repo": "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "snippet": "fn build_evm_with_pool(self, ctx: &BuilderContext<Node>, pool: impl TransactionPoolExt + Clone + 'static) -> ... {\n    let block_verifier = Arc::new(BlockVerifier::new_with_evm_classification(\n        pool.clone(), ctx.provider().clone(), evm_config.clone(), None,\n    ));\n    let ritual_executor = RitualBlockExecutorProvider::new(\n        evm_config.clone(), spc_verifier, Some(block_verifier),\n    );\n}",
+      "symbols": [
+        "RitualExecutorBuilder::build_evm_with_pool",
+        "TransactionPoolExt",
+        "BlockVerifier::new_with_evm_classification",
+        "RitualBlockExecutorProvider::new"
+      ]
+    }
+  ],
+  "equivalence_argument": "The v2.2.0 port delegates node executor assembly to ritual-reth-nodebuilder-internal; this dependency owns pool-backed executor construction and passes the BlockVerifier into the provider exactly where block validation will later invoke it.",
+  "evidence_files": [
+    "crates/node/src/executor.rs"
+  ],
+  "invariant_id": "cur-4908d4887d-pool-backed-executor-construction-attaches-block-verification",
+  "invariant_index": 297,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-nodebuilder-internal"
+  ],
+  "mapping_status": "mapped_in_dependency",
+  "negative_search_evidence": {
+    "checked_paths": [],
+    "checked_queries": [],
+    "checked_repos": [],
+    "checked_symbols": [],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped in nodebuilder, the audited dependency that owns Ritual executor construction.",
+  "rationale": "The primary merge changes build_evm_with_pool to require TransactionPoolExt, create a BlockVerifier from the supplied pool, and call new_with_verification with both SPC and block verification components. No candidate in this bounded assignment contradicts or removes it.",
+  "record_type": "invariant_mapping",
+  "section": "Executor Delivery",
+  "source_commits": [
+    "b980f435150f3bf3969520599954124af15e50db"
+  ],
+  "statement": "When RitualExecutorBuilder is built with a transaction pool, it must construct a BlockVerifier from that pool and pass it, together with the SPC verifier, into the block executor provider.",
+  "status": "current",
+  "subsystem": "executor delivery",
+  "suggested_falsification_tests": [
+    "Start or unit-build a Ritual node path that invokes build_evm_with_pool with a mock TransactionPoolExt, then assert the returned executor provider contains and uses a BlockVerifier wired to that pool during block validation."
+  ],
+  "summary": "Pool-backed nodebuilder construction attaches a pool-backed BlockVerifier to the executor provider.",
+  "test_or_falsification_candidate": "Build through build_evm_with_pool with a mock TransactionPoolExt and assert the returned provider contains a BlockVerifier wired to that pool.",
+  "title": "Pool-backed executor construction attaches block verification",
+  "total_invariants": 1954
+}

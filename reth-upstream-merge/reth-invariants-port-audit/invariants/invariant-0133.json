@@ -1,0 +1,75 @@
+{
+  "cluster_key": "scheduler:canonical",
+  "confidence": "medium",
+  "destinations": [
+    {
+      "branch": "spencer/2605-rum-iot",
+      "commit": "ad2f9884be3e6008689c2cdb20f4c9c23a6813e8",
+      "evidence": "Parent-state scheduler obligation computation derives the due index interval from start_block/frequency/ttl/num_calls, skips frequency 0, supports frequency 1 as every block, and uses is_executed to prevent repeat firing of an index.",
+      "path": "crates/ritual-scheduled-verification/src/lib.rs",
+      "repo": "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "snippet": "pub fn due_index_bounds(block_number, start_block, frequency, ttl, num_calls) -> Option<(u64,u64)> {\n    if num_calls == 0 || frequency == 0 || ttl > SCHEDULER_MAX_TTL_BLOCKS || block_number < start_block { return None; }\n    let since_start = block_number - start_block;\n    let mut max_due_index = since_start / frequency;\n    ...\n}\n...\nfor i in first_due_index..=last_due_index { if matches!(is_executed(db, Some(scheduler), call_id, i), Ok(true)) { continue; } obligations.push(...) }",
+      "symbols": [
+        "due_index_bounds",
+        "compute_obligations",
+        "is_executed"
+      ]
+    }
+  ],
+  "equivalence_argument": "Mapped in the port replacement path: parent-state due-window computation is indexed by start_block/frequency/num_calls and execution bitmap checks enforce one-shot behavior per index.",
+  "evidence_files": [
+    "crates/scheduling/src/contract.rs",
+    "crates/scheduling/src/types.rs",
+    "crates/scheduling/src/events.rs",
+    "crates/scheduling/src/canonical.rs"
+  ],
+  "invariant_id": "cur-bea94671dc-canonical-scheduled-execution-windowed-indexed-shot-index",
+  "invariant_index": 133,
+  "mapped_repos": [
+    "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+  ],
+  "mapping_status": "mapped_in_port",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/ritual-scheduled-verification/src/lib.rs"
+    ],
+    "checked_queries": [
+      "due_index_bounds|frequency == 0|is_executed|num_calls|start_block|ttl"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port"
+    ],
+    "checked_symbols": [
+      "due_index_bounds",
+      "compute_obligations",
+      "is_executed"
+    ],
+    "missing_behavior": null,
+    "related_but_insufficient_code": []
+  },
+  "notes": "Mapped via parent-state obligation computation.",
+  "rationale": "The frequency/window candidates evolve from next-block selection to indexed execution. The frequency==1 one-time candidate is explicitly superseded by the later every-block candidate, and start_block/num_calls supersede initial_block-only wording.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "c12fdea5b668f8e5388aee29e414ceacf77b9de6",
+    "8f7946e40ef8dd274c863cae497d80222de2c855",
+    "348fd08163c7f0a2fcbfd9f8f834d74bb982f92a",
+    "c9aff66354f54e647e795d315afe44e08ff6f067",
+    "f03ebf5164b5728c28bbfe6e94678a4de50cc450",
+    "844af41e705c1614ea9054e7ff7fc89cef93f6f1",
+    "17fb2dea811fc4e9c71cd4aa28563f729f544e8e",
+    "41c8572f4e28ba0d6419018ef9bb859190b2c7ac"
+  ],
+  "statement": "The scheduler queues or fires calls only when the candidate block is inside the call window and matches the current start_block/frequency schedule; frequency == 1 is recurring every block, and fired_count/current_index gating prevents more than one scheduled transaction per execution index.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "For frequency=1, assert each block in the TTL-bounded due interval produces the corresponding index once.",
+    "Mark an index executed and assert compute_obligations skips it."
+  ],
+  "summary": "Canonical scheduled execution is windowed, indexed, and one-shot per index in the parent-state path.",
+  "test_or_falsification_candidate": "Due-index bounds and execution bitmap regression tests.",
+  "title": "Canonical scheduled execution is windowed, indexed, and one-shot per index",
+  "total_invariants": 1954
+}

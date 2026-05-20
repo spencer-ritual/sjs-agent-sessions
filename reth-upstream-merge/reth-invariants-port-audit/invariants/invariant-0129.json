@@ -1,0 +1,68 @@
+{
+  "cluster_key": "scheduler:ops",
+  "confidence": "medium",
+  "destinations": [],
+  "equivalence_argument": null,
+  "evidence_files": [
+    "crates/engine/tree/src/tree/cached_state.rs",
+    "crates/ritual-block-verification/src/verifier.rs",
+    "crates/ritual-metrics/src/scheduling.rs"
+  ],
+  "invariant_id": "cur-6946e1a647-operational-validation-guardrails-remain-current",
+  "invariant_index": 129,
+  "mapped_repos": [],
+  "mapping_status": "confirmed_gap",
+  "negative_search_evidence": {
+    "checked_paths": [
+      "crates/engine/execution-cache/src/cached_state.rs",
+      "crates/ritual-scheduled-verification/src/lib.rs",
+      "crates/ritual-metrics/src/scheduling.rs",
+      "crates/transaction-pool/src/pool/txpool.rs"
+    ],
+    "checked_queries": [
+      "RETH_STATE_CACHE_TTL_SECS|RETH_STATE_CACHE_IDLE_SECS|frequency == 0|deadline|scheduled_incident_trace|calldata"
+    ],
+    "checked_repos": [
+      "/home/ritual/repos/ritual-reth-internal-v2.2.0-port",
+      "/home/ritual/repos/ritual-reth-nodebuilder-internal",
+      "/home/ritual/repos/ritual-alloy-internal",
+      "/home/ritual/repos/ritual-alloy-evm-internal",
+      "/home/ritual/repos/ritual-revm-internal",
+      "/home/ritual/repos/ritual-revm-inspectors-internal",
+      "/home/ritual/repos/ritual-node-internal"
+    ],
+    "checked_symbols": [
+      "RETH_STATE_CACHE_TTL_SECS",
+      "scheduled_incident_trace_config",
+      "due_index_bounds"
+    ],
+    "missing_behavior": "Missing at least one guardrail: regular state-cache TTL/idle environment configuration is absent. Other related guardrails exist, including zero-frequency scheduled call skip and scheduled incident trace bounded capacity, but the full compound invariant is not satisfied.",
+    "related_but_insufficient_code": [
+      "due_index_bounds returns None when frequency == 0, preventing division by zero.",
+      "scheduled_incident_trace_config exposes enabled/capacity bounded by MAX_SCHEDULED_INCIDENT_TRACE_CAPACITY."
+    ]
+  },
+  "notes": "Confirmed gap because compound invariant is not fully satisfied.",
+  "rationale": "These candidates are independent guardrails around scheduler validation and operations; none is superseded by another packet candidate except the cache default mismatch already reflected in the statement.",
+  "record_type": "invariant_mapping",
+  "section": "Scheduler",
+  "source_commits": [
+    "8f50c6e3f80e9fb05e6d647ee8e2da57ba983c1a",
+    "8c897b0ec2a732f66437d7ed60fdf3b32803c787",
+    "a455e54427b05457c921fa6c23d782ec3bea44e1",
+    "01b8fda26a774d69498a5ed2d29f16e34831e8e9",
+    "5cd09dbe536608dc2b91444a71e9844c845ee5e8",
+    "de28c877dac9c65e78542bc9051982087024849b"
+  ],
+  "statement": "Regular state-cache TTL/idle settings are environment-configurable, commitment transactions are not rejected solely for TTL expiry in block verification, zero-frequency scheduled calls are skipped without division by zero, verifier obligation computation is deadline-bounded, transaction-pool calldata counters stay balanced across mutations, and scheduled incident tracing is enabled/configurable with bounded capacity.",
+  "status": "current",
+  "subsystem": "scheduler",
+  "suggested_falsification_tests": [
+    "Set cache TTL/idle env vars and assert provider caches use them; current code lacks env handling.",
+    "Regression tests for zero-frequency due_index_bounds and incident trace capacity."
+  ],
+  "summary": "Operational guardrails are partial; cache TTL/idle env configuration is missing.",
+  "test_or_falsification_candidate": "Compound guardrail test suite; currently fails on state-cache TTL/idle config.",
+  "title": "Operational validation guardrails remain current",
+  "total_invariants": 1954
+}
