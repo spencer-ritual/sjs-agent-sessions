@@ -1,6 +1,45 @@
 # Trusted RPC TLS Proxy — Design
 
-Status: Phase 1 (design) complete. Ready for implementation planning.
+Status: Implemented on `spencer/rpc-auth` across the trusted-RPC PR stack.
+
+## Implementation Outcome
+
+The implementation kept the core design: reth remains untouched, reads use an
+authenticated TLS endpoint pinned by SHA256(SPKI), and writes keep their existing
+plain RPC topology. Several details changed or became sharper during implementation:
+
+- **Terminator choice:** local-network uses an off-the-shelf HAProxy TLS terminator
+  (`trusted-rpc-proxy`) instead of a new custom Go proxy. This satisfied both HTTP and
+  WS pass-through with one mounted self-signed cert/key.
+- **Auth policy:** trusted-read config now fails closed everywhere. We removed the
+  planned dev/backward-compatible fallbacks because they made it too easy to
+  accidentally trust an unauthenticated read path.
+- **Common validation:** `ritual-go-common/trustedrpc` now owns both dialing helpers
+  and shared authenticated-read config validation (`ValidateAuthenticatedReadConfig`),
+  including HTTPS/WSS scheme checks and cert-hash canonicalization. Services only wire
+  their local env fields into the common validator.
+- **Read-only registry API:** unauthenticated `registry.NewReadOnlyClient` was removed.
+  Read-only registry access must use `NewTrustedReadOnlyClient`, so registry read
+  trust is enforced at the shared API boundary.
+- **Env cleanup:** `TEE_SERVICE_REGISTRY_RPC_URL`, `WS_URLS`, and `CHAIN_RPC_URL`
+  fallback aliases were removed from the relevant launch/config paths. Explicit write
+  URLs remain (`RPC_URL`, `RPC_URLS`, `REGISTRY_RPC_URL`, `HEARTBEAT_CHAIN_RPC`), while
+  reads use `TRUSTED_READ_RPC_URL`, `TRUSTED_READ_WS_URL` where needed, and
+  `RPC_CERT_HASH`.
+- **Verification:** local network restart, registry registration, sample HTTP traffic,
+  and a misconfigured executor rejection path all passed after implementation.
+
+Current PR stack:
+
+- `ritual-go-common`: https://github.com/ritual-net/ritual-go-common/pull/58
+- `executor-go-internal`: https://github.com/ritual-net/executor-go-internal/pull/174
+- `dkms`: https://github.com/ritual-net/dkms/pull/32
+- `ritual-streaming-service`: https://github.com/ritual-net/ritual-streaming-service/pull/22
+- `ritual-agent-telemetry`: https://github.com/ritual-net/ritual-agent-telemetry/pull/8
+- `ritual-vllm-proxy-go`: https://github.com/ritual-net/ritual-vllm-proxy-go/pull/44
+- `claw-spawner`: https://github.com/ritual-net/claw-spawner/pull/65
+- `ritual-node-internal`: https://github.com/ritual-net/ritual-node-internal/pull/362
+- `chain-deployment-infra`: https://github.com/ritual-net/chain-deployment-infra/pull/387
 
 ## Context
 
@@ -9,24 +48,26 @@ Status: Phase 1 (design) complete. Ready for implementation planning.
 TEE services (all written in Go) read chain state through a "Trusted RPC" that is
 configured purely by URL in the container environment:
 
-- dKMS: `RPC_URL` (single URL), consumed via
-  `registry.NewReadOnlyClient(cfg.RPCURL, cfg.RegistryAddress)` →
-  `ethclient.Dial(rpcURL)` (`dkms/internal/config/config.go`, `dkms/internal/server/server.go`).
+- dKMS: `RPC_URL` (single URL), originally consumed via a read-only registry
+  client that did not authenticate the RPC certificate (`dkms/internal/config/config.go`,
+  `dkms/internal/server/server.go`).
 - Executor: `RPC_URLS` / `WS_URLS` plus `TEE_SERVICE_REGISTRY_RPC_URL`
   (`executor-go-internal/internal/config/config.go`), again via go-ethereum `ethclient`.
 - Other TEE services (vLLM proxy, streaming, telemetry, heartbeat) get `*_RPC_URL`
   wired by `ritual-node-internal/configgen/docker.py` (e.g. `REGISTRY_RPC_URL`,
   `TEE_SERVICE_REGISTRY_RPC_URL`, `CHAIN_RPC_URL`), all plain `http://`.
 
-  > TODO: The trusted-RPC env var name is inconsistent across services
-  > (`RPC_URL`, `RPC_URLS`, `REGISTRY_RPC_URL`, `TEE_SERVICE_REGISTRY_RPC_URL`,
-  > `CHAIN_RPC_URL`). Standardize on a single name `TRUSTED_READ_RPC_URL` for all of
-  > these so the pinned-TLS endpoint + `RPC_CERT_HASH` are wired uniformly. Fold this
-  > rename into the shared pinned-dial refactor (workstream 2) and the deployment
-  > wiring (workstream 3).
+  > Implemented update: read-path envs were standardized on `TRUSTED_READ_RPC_URL`,
+  > `TRUSTED_READ_WS_URL` where subscriptions are required, and `RPC_CERT_HASH`.
+  > Write-path envs remain explicit per service (`RPC_URL`, `RPC_URLS`,
+  > `REGISTRY_RPC_URL`, `HEARTBEAT_CHAIN_RPC`). Dead read aliases
+  > (`TEE_SERVICE_REGISTRY_RPC_URL`, `WS_URLS`, and `CHAIN_RPC_URL` fallbacks) were
+  > removed.
 
-The shared client is `ritual-go-common/registry.Client`, which dials with
-`ethclient.Dial(rpcURL)` — plain HTTP, no transport authentication.
+Historically, the shared `ritual-go-common/registry.Client` dialed with
+`ethclient.Dial(rpcURL)` — plain HTTP, no transport authentication. Implemented
+update: write clients still use the plain write RPC, but read-only registry clients
+must use the authenticated `NewTrustedReadOnlyClient` path.
 
 ### The security gap
 
@@ -137,21 +178,22 @@ pinning `tls.Config`. That client change lives in `ritual-go-common`.
   proxy; verified on local network.
 
 - Main workstreams:
-  1. **TLS terminator in front of reth** (likely a new repo): listens on a TLS
+  1. **TLS terminator in front of reth** (implemented with HAProxy): listens on a TLS
      port with a self-signed cert, reverse-proxies JSON-RPC to reth's local
      `http://` RPC, exposes the same endpoints as reth (transparent pass-through of
      `eth_call`, etc.). Publishes/derives the cert SPKI hash for baking into images.
-  2. **Pinned RPC dial in `ritual-go-common`** (one shared helper): a single dial
+  2. **Pinned RPC dial + validation in `ritual-go-common`** (one shared helper): a single dial
      path that dials via `ethclient.DialOptions(ctx, url, rpc.WithHTTPClient(...))`
      where the HTTP client's transport uses
      `mtls.NewClientTLSConfigWithPinning(PinningClientConfig{Verifier:
      NewCertPinningVerifier(hash)})` — no refresh callback, no client cert. Used by
-     `registry.Client` (`NewReadOnlyClient`/`NewClient`) and by executor RPC
-     dialing — not duplicated per repo.
-  3. **Config + deployment wiring**: new env (e.g. `RPC_URL=https://...` +
-     `RPC_CERT_HASH=0x...`) in dKMS / executor / other consumers; production-mode
-     validation (https + non-empty pinned hash); `configgen/docker.py` and deploy
-     scripts (`gold_standard.sh`) emit the proxy service and the pinned env.
+     authenticated read-only registry clients and by executor RPC dialing. The same
+     package now validates/canonicalizes trusted-read config to avoid duplicated
+     policy.
+  3. **Config + deployment wiring**: explicit read envs (`TRUSTED_READ_RPC_URL`,
+     `TRUSTED_READ_WS_URL`, `RPC_CERT_HASH`) in dKMS / executor / other consumers;
+     validation hard-fails when missing or not HTTPS/WSS; `configgen/docker.py` and
+     deploy scripts emit the proxy service and pinned env.
   4. **Cert provisioning + lifecycle**: how the proxy's keypair is generated/stored,
      how its hash reaches the TEE image env, and how rotation works.
   5. **Local-network integration test** via `ritual-node-internal`.
@@ -181,8 +223,9 @@ pinning `tls.Config`. That client change lives in `ritual-go-common`.
     plan; it removes the *host* from the trust set but not Ritual.
   - **Scope creep across services**: dKMS is the urgent path, but executor/vLLM/
     streaming rely on the same trusted reads. Doing only dKMS leaves a partial fix.
-  - **WS path**: executor uses `WS_URLS` (`ws://`) for subscriptions; TLS-for-HTTP
-    only does not cover WS unless we also terminate `wss://`.
+  - **WS path**: executor now uses `TRUSTED_READ_WS_URL` (`wss://`) for authenticated
+    subscriptions. The previous `WS_URLS` env was removed from executor config and
+    launch generation.
   - **Client dial refactor blast radius**: changing `registry.Client` dialing
     touches every TEE service that imports `ritual-go-common/registry`.
 
@@ -191,17 +234,15 @@ pinning `tls.Config`. That client change lives in `ritual-go-common`.
 - Are we adding a second parallel path? The real risk is the **client RPC dial**: a
   pinned-TLS dial alongside the existing plain `ethclient.Dial`. Mitigation: add one
   shared pinned-dial helper in `ritual-go-common` and route all consumers through it
-  (including the non-pinned/dev case via the same helper with pinning disabled),
-  rather than `if https { ... } else { ... }` branches scattered per repo.
+  for trusted reads, rather than `if https { ... } else { ... }` branches scattered
+  per repo. Plain dialing still exists only for non-security-critical write paths.
 - Can a behavior-preserving prep refactor create a cleaner seam first? Yes: before
-  adding pinning, refactor `registry.NewClient`/`NewReadOnlyClient` to dial through
-  an injectable HTTP client / transport (no behavior change). Pinning then becomes a
-  config of that seam. Recommend making this the first implementation step.
-- Do we need a custom proxy at all, or does an off-the-shelf TLS terminator (nginx/
-  caddy/stunnel) suffice on the server side? The server only needs to terminate TLS
-  with a self-signed cert and pass JSON-RPC through; all the *pinning* logic is
-  client-side. This is a genuine fork (see ambiguities) — a config-only terminator
-  could avoid a whole new repo/binary.
+  adding pinning, refactor registry and executor dial paths to use an injectable HTTP
+  client / transport (no behavior change). Pinning then becomes a config of that
+  seam. Recommend making this the first implementation step.
+- Do we need a custom proxy at all? Implemented answer: no. HAProxy sufficed as an
+  off-the-shelf TLS terminator for HTTP and WS pass-through, so no new proxy repo or
+  binary was needed.
 
 ## Baseline Decisions and Requirements
 
@@ -223,30 +264,25 @@ pinning `tls.Config`. That client change lives in `ritual-go-common`.
   dial-site wiring. (`ritual-halo-internal` is the Omni/Halo bridge, not a Ritual-chain
   registry reader — explicitly out of scope.)
 
-- **Terminator = off-the-shelf if it works cleanly.** Use a TCP/stream TLS
-  terminator (nginx `stream` module or stunnel) in front of reth rather than a new
-  custom Go proxy binary, provided it supports HTTP and WS pass-through with stable
-  cert mounting in the deploy stack. Rationale: zero custom server code to maintain,
-  and TCP-level termination is protocol-agnostic so it covers HTTP-RPC and WS
-  uniformly with one mechanism. If neither off-the-shelf option fits cleanly, revisit
-  the terminator choice rather than forcing a brittle config.
+- **Terminator = HAProxy.** The off-the-shelf path worked cleanly. Local-network
+  generates/persists a self-signed cert/key and mounts it into HAProxy, which
+  terminates TLS for both trusted HTTP RPC and trusted WS RPC while forwarding to reth.
+  This avoided a new custom proxy repo/binary.
 
-- **WS is in scope.** The executor (and heartbeat) subscribe over `WS_URLS`
-  (`ws://`); the fix must cover `wss://` + pinning, not just HTTP JSON-RPC. TCP-level
-  termination handles this server-side; client-side, gorilla `websocket.Dialer`
-  exposes `TLSClientConfig` directly, and go-ethereum WS dials must use reusable
-  `ritual-go-common` helpers so TEE services mostly only wire URLs and hashes rather
-  than owning pinning details locally.
+- **WS is in scope.** The executor uses `TRUSTED_READ_WS_URL` (`wss://`) for
+  subscriptions. Server-side HAProxy handles WS pass-through; client-side reusable
+  `ritual-go-common` helpers provide pinned WS dialing so services mostly only wire
+  URLs and hashes.
 
 - **Topology = single reth node runs the proxy for now.** One terminator, one cert,
   therefore a single pinned hash (no allowed-set / multi-hash config needed yet).
 
 - **Server-auth-only (no client cert / no mTLS).** Confirmed.
 
-- **Auth toggle: off-switch allowed, but ON by default on local-network.** A flag may
-  disable read-path pinning for dev/unit tests, but `ritual-node-internal`
-  local-network must default to auth ON, and production mode must hard-require it
-  (production guard rejects auth-off, mirroring existing `TLS_ENABLED` guards).
+- **Auth toggle: removed for trusted reads.** Implementation experience showed that
+  "dev fallback" and auth-off branches recreate the accidental-read-trust risk. TEE
+  services now hard-fail when trusted-read URLs or `RPC_CERT_HASH` are missing or
+  malformed, including local-network.
 
 - **Cert lifecycle location = `ritual-node-internal` for local network.**
   `ritual-node-internal` must be self-contained for local-network verification: it
@@ -269,3 +305,22 @@ pinning `tls.Config`. That client change lives in `ritual-go-common`.
 ## Ambiguities To Resolve
 
 - None.
+
+## Implementation Learnings
+
+- The most important safety improvement was not TLS itself; it was making the unsafe
+  API impossible to call by accident. Removing unauthenticated read-only constructors
+  and stale fallback envs reduced the audit surface more than adding comments would
+  have.
+- Config validation duplicated quickly across services. Moving the invariant into
+  `ritual-go-common/trustedrpc` gives one place to audit required fields, HTTPS/WSS
+  scheme checks, and hash canonicalization.
+- Local-network verification is a better design test than unit coverage alone. It
+  exposed stale constructor call sites, missing cert-hash wiring in registry verifier
+  paths, and the need to rebuild local images before runtime testing.
+- Write-path names should stay semantically plain. `REGISTRY_RPC_URL` and
+  `HEARTBEAT_CHAIN_RPC` are still needed for signed writes; `CHAIN_RPC_URL` as a
+  fallback alias was too vague and was removed.
+- Existing broad lint/test targets surfaced unrelated repo debt. Focused tests plus
+  local-network verification were the most useful signal for the trusted-RPC change,
+  while broad checks still helped catch stale tests and formatter output before push.
