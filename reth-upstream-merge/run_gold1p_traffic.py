@@ -15,6 +15,7 @@ from typing import Any
 
 DEFAULT_INPUT = Path(__file__).with_name("gold1p-batch-results.json")
 DEFAULT_TRAFFIC_REPO = Path("/home/ritual/repos/traffic-gen-internal")
+ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-9;]*m")
 
 
 def parse_csv(value: str | None) -> set[str]:
@@ -103,6 +104,30 @@ def output_tail(output: str, max_chars: int) -> str:
     if len(output) <= max_chars:
         return output
     return output[-max_chars:]
+
+
+def summarize_output_note(output: str, default_note: str) -> str:
+    lines = [ANSI_ESCAPE_RE.sub("", line).strip() for line in output.splitlines() if line.strip()]
+    action_lines = []
+    for line in lines:
+        if "Action completed:" in line:
+            action_lines.append(line[line.index("Action completed:") :])
+    if action_lines:
+        return "; ".join(dict.fromkeys(action_lines))
+    for line in reversed(lines):
+        if "successful" in line.lower():
+            return line
+    return default_note
+
+
+def extract_action_completion(output: str) -> tuple[int, int] | None:
+    lines = [ANSI_ESCAPE_RE.sub("", line).strip() for line in output.splitlines() if line.strip()]
+    matches = []
+    for line in lines:
+        match = re.search(r"Action completed:\s+(\d+)/(\d+)\s+successful", line)
+        if match:
+            matches.append((int(match.group(1)), int(match.group(2))))
+    return matches[-1] if matches else None
 
 
 def write_markdown(path: Path, results: list[dict[str, Any]], source_json: Path) -> None:
@@ -206,8 +231,11 @@ def main() -> int:
                     flush=True,
                 )
 
+        completion = extract_action_completion(final_output)
         status = "PASS" if final_code == 0 else "FAIL"
-        note = workload.get("note", "")
+        if status == "PASS" and completion is not None and completion[0] != completion[1]:
+            status = "FAIL"
+        note = summarize_output_note(final_output, workload.get("note", ""))
         results.append(
             {
                 "row": workload["row"],
