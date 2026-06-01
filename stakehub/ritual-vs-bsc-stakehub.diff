@@ -1,0 +1,2122 @@
+diff --git a/contracts/StakeHub.sol b/src/staking/RitualStakeHub.sol
+index 2a88cb9..447cc0f 100644
+--- a/contracts/StakeHub.sol
++++ b/src/staking/RitualStakeHub.sol
+@@ -1,169 +1,113 @@
+ // SPDX-License-Identifier: GPL-3.0-or-later
+-pragma solidity 0.8.17;
+-
+-import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+-import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+-
+-import "./SystemV2.sol";
+-import "./extension/Protectable.sol";
+-import "./interface/0.8.x/IBSCValidatorSet.sol";
+-import "./interface/0.8.x/IGovToken.sol";
+-import "./interface/0.8.x/IStakeCredit.sol";
+-import "./lib/0.8.x/Utils.sol";
+-
+-contract StakeHub is SystemV2, Initializable, Protectable {
++pragma solidity ^0.8.28;
++
++import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
++import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
++import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
++import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
++import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
++
++import {IRitualStakeCredit} from "./interfaces/IRitualStakeCredit.sol";
++import {Utils} from "./lib/Utils.sol";
++
++contract RitualStakeHub is Initializable, OwnableUpgradeable, UUPSUpgradeable {
+     using Utils for string;
+-    using Utils for bytes;
+     using EnumerableSet for EnumerableSet.AddressSet;
+ 
+     /*----------------- constants -----------------*/
+-    uint256 private constant BLS_PUBKEY_LENGTH = 48;
+-    uint256 private constant BLS_SIG_LENGTH = 96;
++    uint256 private constant NODE_PUBKEY_LENGTH = 32;
++    uint256 private constant CONSENSUS_PUBKEY_LENGTH = 48;
++    uint256 private constant BLS_PROOF_LENGTH = 96;
+ 
+     address public constant DEAD_ADDRESS = address(0xdEaD);
+     uint256 public constant LOCK_AMOUNT = 1 ether;
+-    uint256 public constant REDELEGATE_FEE_RATE_BASE = 100000; // 100%
+-
++    uint256 public constant COMMISSION_RATE_BASE = 10_000; // 100%
++    uint256 public constant REDELEGATE_FEE_RATE_BASE = 100_000; // 100%
+     uint256 public constant BREATHE_BLOCK_INTERVAL = 1 days;
+-
+-    uint256 public constant INIT_MAX_NUMBER_NODE_ID = 5;
+-
+-    // receive fund status
++    uint256 public constant DUST_INCREMENT = 1 gwei;
++
++    address public constant STAKE_CREDIT_ADDR = 0x0000000000000000000000000000000000002003;
++    address public constant SYSTEM_CALLER = 0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
++
+     uint8 private constant _DISABLE = 0;
+     uint8 private constant _ENABLE = 1;
+ 
+     /*----------------- errors -----------------*/
+-    // @notice signature: 0x5f28f62b
+     error ValidatorExisted();
+-    // @notice signature: 0x056e8811
+     error ValidatorNotExisted();
+-    // @notice signature: 0x4b6b857d
+-    error ValidatorNotJailed();
+-    // @notice signature: 0x3cdeb0ea
+     error DuplicateConsensusAddress();
+-    // @notice signature: 0x11fdb947
+-    error DuplicateVoteAddress();
+-    // @notice signature: 0xc0bf4143
+     error DuplicateMoniker();
+-    // @notice signature: 0x2f64097e
+     error SelfDelegationNotEnough();
+-    // @notice signature: 0xdc81db85
+     error InvalidCommission();
+-    // @notice signature: 0x5dba5ad7
+     error InvalidMoniker();
+-    // @notice signature: 0x2c8fc796
+-    error InvalidVoteAddress();
+-    // @notice signature: 0xca40c236
+     error InvalidConsensusAddress();
+-    // @notice signature: 0x3f259b7a
+     error UpdateTooFrequently();
+-    // @notice signature: 0x5c32dd9c
+-    error JailTimeNotExpired();
+-    // @notice signature: 0xdc6f0bdd
+     error DelegationAmountTooSmall();
+-    // @notice signature: 0x64689203
+-    error OnlySelfDelegation();
+-    // @notice signature: 0x9811e0c7
+     error ZeroShares();
+-    // @notice signature: 0xf0e3e629
+     error SameValidator();
+-    // @notice signature: 0xbd52fcdb
+-    error NoMoreFelonyAllowed();
+-    // @notice signature: 0x37233762
+-    error AlreadySlashed();
+-    // @notice signature: 0x90b8ec18
+     error TransferFailed();
+-    // @notice signature: 0x41abc801
+     error InvalidRequest();
+-    // @notice signature: 0x1898eb6b
+-    error VoteAddressExpired();
+-    // @notice signature: 0xc2aee074
+-    error ConsensusAddressExpired();
+-    // @notice signature: 0x0d7b78d4
+-    error InvalidSynPackage();
+-    // @notice signature: 0xbebdc757
++    error OnlySystem();
++    error ReceiveDisabled();
++    error InvalidValue();
+     error InvalidAgent();
+-    // @notice signature: 0x682a6e7c
+     error InvalidValidator();
+-    // @notice signature: 0x6490ffd3
++    error InvalidNodePublicKey();
++    error InvalidNodeProof();
++    error InvalidConsensusPublicKey();
++    error InvalidConsensusProof();
++    error DuplicateNodePublicKey();
++    error DuplicateConsensusPublicKey();
++    error ExceedsMaxNodeIDs();
+     error InvalidNodeID();
+-    // @notice signature: 0x246be614
+-    error ExceedsMaxNodeIDs();
+-    // @notice signature: 0x440bc78e
+     error DuplicateNodeID();
++    error AlreadyPaused();
++    error NotPaused();
++    error InBlackList();
++    error OnlyProtector();
+ 
+     /*----------------- storage -----------------*/
+     uint8 private _receiveFundStatus;
++
+     uint256 public transferGasLimit;
+-
+-    // stake params
+-    uint256 public minSelfDelegationBNB;
+-    uint256 public minDelegationBNBChange;
++    uint256 public minSelfDelegation;
++    uint256 public minDelegationChange;
+     uint256 public maxElectedValidators;
+     uint256 public unbondPeriod;
+     uint256 public redelegateFeeRate;
+-
+-    // slash params
+-    uint256 public downtimeSlashAmount;
+-    uint256 public felonySlashAmount;
+-    uint256 public downtimeJailTime;
+-    uint256 public felonyJailTime;
+-
+-    // validator operator address set
++    uint256 public baseBlockReward;
++    uint64 public maxCommissionRate;
++    uint64 public maxCommissionChangeRate;
++
+     EnumerableSet.AddressSet private _validatorSet;
+-    // validator operator address => validator info
+     mapping(address => Validator) private _validators;
+-    // validator moniker set(hash of the moniker)
+     mapping(bytes32 => bool) private _monikerSet;
+-    // validator consensus address => validator operator address
+     mapping(address => address) public consensusToOperator;
+-    // validator consensus address => expiry date
+-    mapping(address => uint256) public consensusExpiration;
+-    // validator vote address => validator operator address
+-    mapping(bytes => address) public voteToOperator;
+-    // validator vote address => expiry date
+-    mapping(bytes => uint256) public voteExpiration;
+-
+-    // legacy addresses of BC
+-    mapping(address => bool) private _legacyConsensusAddress; // @dev deprecated
+-    mapping(bytes => bool) private _legacyVoteAddress; // @dev deprecated
+-
+-    // total number of current jailed validators
+-    uint256 public numOfJailed;
+-    // max number of jailed validators between breathe block(only for malicious vote and double sign)
+-    uint256 public maxFelonyBetweenBreatheBlock;
+-    // index(timestamp / breatheBlockInterval) => number of malicious vote and double sign slash
+-    mapping(uint256 => uint256) private _felonyMap;
+-    // slash key => slash jail time
+-    mapping(bytes32 => uint256) private _felonyRecords;
+-
+-    // agent => validator operator address
++    mapping(bytes32 => address) public nodePublicKeyToOperator;
++    mapping(bytes32 => address) public consensusPublicKeyHashToOperator;
+     mapping(address => address) public agentToOperator;
+ 
+-    // network related values //
+-
+-    // governance controlled maximum number of NodeIDs per validator (default is 5).
+     uint256 public maxNodeIDs;
+-
+-    // mapping from a validator's operator address to an array of their registered NodeIDs,
+-    // where each NodeID is stored as a fixed 32-byte value.
+     mapping(address => bytes32[]) private validatorNodeIDs;
++    bool private _paused;
++    address private _protector;
++    mapping(address => bool) public blackList;
++    address public ed25519Verifier;
+ 
+     /*----------------- structs and events -----------------*/
+-    struct StakeMigrationPackage {
+-        address operatorAddress; // the operator address of the target validator to delegate to
+-        address delegator; // the beneficiary of the delegation
+-        address refundAddress; // the Beacon Chain address to refund the fund if migration failed
+-        uint256 amount; // the amount of BNB to be migrated(decimal: 18)
+-    }
+-
+-    enum StakeMigrationRespCode {
+-        MIGRATE_SUCCESS,
+-        CLAIM_FUND_FAILED,
+-        VALIDATOR_NOT_EXISTED,
+-        VALIDATOR_JAILED,
+-        INVALID_DELEGATOR
++    struct InitParams {
++        address owner;
++        uint256 minSelfDelegation;
++        uint256 minDelegationChange;
++        uint256 unbondPeriod;
++        uint256 redelegateFeeRate;
++        uint256 maxElectedValidators;
++        uint256 baseBlockReward;
++        uint64 maxCommissionRate;
++        uint64 maxCommissionChangeRate;
++        uint256 transferGasLimit;
++        address protector;
++        address ed25519Verifier;
+     }
+ 
+     struct Validator {
+@@ -171,15 +115,13 @@
+         address operatorAddress;
+         address creditContract;
+         uint256 createdTime;
+-        bytes voteAddress;
++        bytes32 nodePublicKey;
++        bytes consensusPublicKey;
+         Description description;
+         Commission commission;
+-        bool jailed;
+-        uint256 jailUntil;
+         uint256 updateTime;
+-        // The agent can perform transactions on behalf of the operatorAddress in certain scenarios.
+         address agent;
+-        uint256[19] __reservedSlots;
++        uint256[16] __reservedSlots;
+     }
+ 
+     struct Description {
+@@ -190,64 +132,53 @@
+     }
+ 
+     struct Commission {
+-        uint64 rate; // the commission rate charged to delegators(10000 is 100%)
+-        uint64 maxRate; // maximum commission rate which validator can ever charge
+-        uint64 maxChangeRate; // maximum daily increase of the validator commission
+-    }
+-
+-    enum SlashType {
+-        DoubleSign,
+-        DownTime,
+-        MaliciousVote
++        uint64 rate;
++        uint64 maxRate;
++        uint64 maxChangeRate;
+     }
+ 
+     event ValidatorCreated(
+-        address indexed consensusAddress,
+-        address indexed operatorAddress,
+-        address indexed creditContract,
+-        bytes voteAddress
++        address indexed consensusAddress, address indexed operatorAddress, address indexed creditContract
+     );
+     event StakeCreditInitialized(address indexed operatorAddress, address indexed creditContract);
+     event ConsensusAddressEdited(address indexed operatorAddress, address indexed newConsensusAddress);
++    event NodePublicKeyEdited(address indexed operatorAddress, bytes32 newNodePublicKey);
++    event ConsensusPublicKeyEdited(address indexed operatorAddress, bytes newConsensusPublicKey);
+     event CommissionRateEdited(address indexed operatorAddress, uint64 newCommissionRate);
+     event DescriptionEdited(address indexed operatorAddress);
+-    event VoteAddressEdited(address indexed operatorAddress, bytes newVoteAddress);
+-    event Delegated(address indexed operatorAddress, address indexed delegator, uint256 shares, uint256 bnbAmount);
+-    event Undelegated(address indexed operatorAddress, address indexed delegator, uint256 shares, uint256 bnbAmount);
++    event AgentChanged(address indexed operatorAddress, address indexed oldAgent, address indexed newAgent);
++    event Delegated(address indexed operatorAddress, address indexed delegator, uint256 shares, uint256 ritualAmount);
++    event Undelegated(address indexed operatorAddress, address indexed delegator, uint256 shares, uint256 ritualAmount);
+     event Redelegated(
+         address indexed srcValidator,
+         address indexed dstValidator,
+         address indexed delegator,
+         uint256 oldShares,
+         uint256 newShares,
+-        uint256 bnbAmount
++        uint256 ritualAmount
+     );
+     event RewardDistributed(address indexed operatorAddress, uint256 reward);
+     event RewardDistributeFailed(address indexed operatorAddress, bytes failReason);
+-    event ValidatorSlashed(
+-        address indexed operatorAddress, uint256 jailUntil, uint256 slashAmount, SlashType slashType
+-    );
+-    event ValidatorJailed(address indexed operatorAddress);
+-    event ValidatorEmptyJailed(address indexed operatorAddress);
+-    event ValidatorUnjailed(address indexed operatorAddress);
+-    event Claimed(address indexed operatorAddress, address indexed delegator, uint256 bnbAmount);
+-    event AgentChanged(address indexed operatorAddress, address indexed oldAgent, address indexed newAgent);
+-
+-    // Events for adding and removing NodeIDs.
++    event Claimed(address indexed operatorAddress, address indexed delegator, uint256 ritualAmount);
+     event NodeIDAdded(address indexed validator, bytes32 nodeID);
+     event NodeIDRemoved(address indexed validator, bytes32 nodeID);
+-
+-    event MigrateSuccess(address indexed operatorAddress, address indexed delegator, uint256 shares, uint256 bnbAmount); // @dev deprecated
+-    event MigrateFailed(
+-        address indexed operatorAddress, address indexed delegator, uint256 bnbAmount, StakeMigrationRespCode respCode
+-    ); // @dev deprecated
+-    event UnexpectedPackage(uint8 channelId, bytes msgBytes); // @dev deprecated
+-
+-    /*----------------- modifiers -----------------*/
+-    modifier validatorExist(
+-        address operatorAddress
+-    ) {
+-        if (!_validatorSet.contains(operatorAddress)) revert ValidatorNotExisted();
++    event Paused();
++    event Resumed();
++    event ProtectorChanged(address indexed oldProtector, address indexed newProtector);
++    event BlackListed(address indexed target);
++    event UnBlackListed(address indexed target);
++
++    modifier validatorExist(address operatorAddress) {
++        if (!_validatorSet.contains(operatorAddress)) {
++            revert ValidatorNotExisted();
++        }
++        _;
++    }
++
++    modifier onlySystem() {
++        if (msg.sender != SYSTEM_CALLER) {
++            revert OnlySystem();
++        }
+         _;
+     }
+ 
+@@ -257,66 +188,113 @@
+         _receiveFundStatus = _DISABLE;
+     }
+ 
++    modifier onlyOperatorOrAgent(address operatorAddress) {
++        if (msg.sender != operatorAddress && agentToOperator[msg.sender] != operatorAddress) {
++            revert ValidatorNotExisted();
++        }
++        _;
++    }
++
++    modifier whenNotPaused() {
++        if (_paused) {
++            revert AlreadyPaused();
++        }
++        _;
++    }
++
++    modifier whenPaused() {
++        if (!_paused) {
++            revert NotPaused();
++        }
++        _;
++    }
++
++    modifier onlyProtector() {
++        if (msg.sender != _protector) {
++            revert OnlyProtector();
++        }
++        _;
++    }
++
++    modifier notInBlackList() {
++        if (blackList[msg.sender]) {
++            revert InBlackList();
++        }
++        _;
++    }
++
++    /// @custom:oz-upgrades-unsafe-allow constructor
++    constructor() {
++        _disableInitializers();
++    }
++
+     receive() external payable {
+-        // to prevent BNB from being lost
+-        if (_receiveFundStatus != _ENABLE) revert();
+-    }
+-
+-    /**
+-     * @dev this function is invoked by BSC Parlia consensus engine during the hard fork
+-     */
+-    function initialize() external initializer onlyCoinbase onlyZeroGasPrice {
+-        transferGasLimit = 5000;
+-        minSelfDelegationBNB = 2_000 ether;
+-        minDelegationBNBChange = 1 ether;
+-        maxElectedValidators = 45;
+-        unbondPeriod = 7 days;
+-        redelegateFeeRate = 2;
+-        downtimeSlashAmount = 10 ether;
+-        felonySlashAmount = 200 ether;
+-        downtimeJailTime = 2 days;
+-        felonyJailTime = 30 days;
+-        maxFelonyBetweenBreatheBlock = 2;
+-        // Different address will be set depending on the environment
+-        __Protectable_init_unchained(0x08E68Ec70FA3b629784fDB28887e206ce8561E08);
+-    }
+-
+-    /*----------------- Implement cross chain app -----------------*/
+-    function handleSynPackage(
+-        uint8,
+-        bytes calldata msgBytes
+-    ) external onlyCrossChainContract whenNotPaused enableReceivingFund returns (bytes memory) {
+-        revert("deprecated");
+-    }
+-
+-    function handleAckPackage(uint8 channelId, bytes calldata msgBytes) external onlyCrossChainContract {
+-        revert("deprecated");
+-    }
+-
+-    function handleFailAckPackage(uint8 channelId, bytes calldata msgBytes) external onlyCrossChainContract {
+-        revert("deprecated");
++        if (_receiveFundStatus != _ENABLE) {
++            revert ReceiveDisabled();
++        }
++    }
++
++    /*----------------- init -----------------*/
++    function initialize(InitParams calldata params) external initializer {
++        __Ownable_init(params.owner);
++        __UUPSUpgradeable_init();
++
++        _setMinSelfDelegation(params.minSelfDelegation);
++        _setMinDelegationChange(params.minDelegationChange);
++        _setUnbondPeriod(params.unbondPeriod);
++        _setRedelegateFeeRate(params.redelegateFeeRate);
++        _setMaxElectedValidators(params.maxElectedValidators);
++        _setBaseBlockReward(params.baseBlockReward);
++        _setMaxCommissionRate(params.maxCommissionRate);
++        _setMaxCommissionChangeRate(params.maxCommissionChangeRate);
++        transferGasLimit = params.transferGasLimit == 0 ? 2300 : params.transferGasLimit;
++        _protector = params.protector == address(0) ? params.owner : params.protector;
++        ed25519Verifier = params.ed25519Verifier == address(0) ? address(0x09) : params.ed25519Verifier;
+     }
+ 
+     /*----------------- external functions -----------------*/
+-    /**
+-     * @param newAgent the new agent address of the validator, updating to address(0) means remove the old agent.
+-     */
+-    function updateAgent(
+-        address newAgent
+-    ) external validatorExist(msg.sender) whenNotPaused notInBlackList {
+-        if (agentToOperator[newAgent] != address(0)) revert InvalidAgent();
+-        if (_validatorSet.contains(newAgent)) revert InvalidAgent();
++    function pause() external onlyProtector whenNotPaused {
++        _paused = true;
++        emit Paused();
++    }
++
++    function resume() external onlyProtector whenPaused {
++        _paused = false;
++        emit Resumed();
++    }
++
++    function addToBlackList(address account) external onlyProtector {
++        blackList[account] = true;
++        emit BlackListed(account);
++    }
++
++    function removeFromBlackList(address account) external onlyProtector {
++        delete blackList[account];
++        emit UnBlackListed(account);
++    }
++
++    function getProtector() external view returns (address) {
++        return _protector;
++    }
++
++    function updateAgent(address newAgent) external validatorExist(msg.sender) whenNotPaused notInBlackList {
++        if (agentToOperator[newAgent] != address(0)) {
++            revert InvalidAgent();
++        }
++        if (_validatorSet.contains(newAgent)) {
++            revert InvalidAgent();
++        }
+ 
+         address operatorAddress = msg.sender;
+         address oldAgent = _validators[operatorAddress].agent;
+-        if (oldAgent == newAgent) revert InvalidAgent();
++        if (oldAgent == newAgent) {
++            revert InvalidAgent();
++        }
+ 
+         if (oldAgent != address(0)) {
+             delete agentToOperator[oldAgent];
+         }
+-
+         _validators[operatorAddress].agent = newAgent;
+-
+         if (newAgent != address(0)) {
+             agentToOperator[newAgent] = operatorAddress;
+         }
+@@ -324,47 +302,47 @@
+         emit AgentChanged(operatorAddress, oldAgent, newAgent);
+     }
+ 
+-    /**
+-     * @param consensusAddress the consensus address of the validator
+-     * @param voteAddress the vote address of the validator
+-     * @param blsProof the bls proof of the vote address
+-     * @param commission the commission of the validator
+-     * @param description the description of the validator
+-     */
+     function createValidator(
+         address consensusAddress,
+-        bytes calldata voteAddress,
++        bytes32 nodePublicKey,
++        bytes calldata nodeProof,
++        bytes calldata consensusPublicKey,
+         bytes calldata blsProof,
+         Commission calldata commission,
+         Description calldata description
+     ) external payable whenNotPaused notInBlackList {
+-        // basic check
+         address operatorAddress = msg.sender;
+-        if (_validatorSet.contains(operatorAddress)) revert ValidatorExisted();
+-        if (agentToOperator[operatorAddress] != address(0)) revert InvalidValidator();
+-
++        if (_validatorSet.contains(operatorAddress)) {
++            revert ValidatorExisted();
++        }
++        if (agentToOperator[operatorAddress] != address(0)) {
++            revert InvalidValidator();
++        }
++        if (consensusAddress == address(0)) {
++            revert InvalidConsensusAddress();
++        }
+         if (consensusToOperator[consensusAddress] != address(0)) {
+             revert DuplicateConsensusAddress();
+         }
+-        if (voteToOperator[voteAddress] != address(0)) {
+-            revert DuplicateVoteAddress();
+-        }
++        _checkValidatorIdentity(nodePublicKey, consensusPublicKey);
++        bytes32 proofMessage = _validatorProofMessage(operatorAddress, nodePublicKey, consensusPublicKey);
++        _checkNodeProof(nodePublicKey, proofMessage, nodeProof);
++        _checkConsensusProof(consensusPublicKey, proofMessage, blsProof);
++        if (!_checkMoniker(description.moniker)) {
++            revert InvalidMoniker();
++        }
++
+         bytes32 monikerHash = keccak256(abi.encodePacked(description.moniker));
+-        if (_monikerSet[monikerHash]) revert DuplicateMoniker();
+-
+-        uint256 delegation = msg.value - LOCK_AMOUNT; // create validator need to lock 1 BNB
+-        if (delegation < minSelfDelegationBNB) revert SelfDelegationNotEnough();
+-
+-        if (consensusAddress == address(0)) revert InvalidConsensusAddress();
+-        if (
+-            commission.maxRate > 5_000 || commission.rate > commission.maxRate
+-                || commission.maxChangeRate > commission.maxRate
+-        ) revert InvalidCommission();
+-        if (!_checkMoniker(description.moniker)) revert InvalidMoniker();
+-        // proof-of-possession verify
+-        if (!_checkVoteAddress(operatorAddress, voteAddress, blsProof)) revert InvalidVoteAddress();
+-
+-        // deploy stake credit proxy contract
++        if (_monikerSet[monikerHash]) {
++            revert DuplicateMoniker();
++        }
++
++        uint256 delegation = msg.value > LOCK_AMOUNT ? msg.value - LOCK_AMOUNT : 0;
++        if (delegation < minSelfDelegation) {
++            revert SelfDelegationNotEnough();
++        }
++        _checkCommission(commission);
++
+         address creditContract = _deployStakeCredit(operatorAddress, description.moniker);
+ 
+         _validatorSet.add(operatorAddress);
+@@ -374,924 +352,763 @@
+         valInfo.operatorAddress = operatorAddress;
+         valInfo.creditContract = creditContract;
+         valInfo.createdTime = block.timestamp;
+-        valInfo.voteAddress = voteAddress;
++        valInfo.nodePublicKey = nodePublicKey;
++        valInfo.consensusPublicKey = consensusPublicKey;
+         valInfo.description = description;
+         valInfo.commission = commission;
+         valInfo.updateTime = block.timestamp;
+         consensusToOperator[consensusAddress] = operatorAddress;
+-        voteToOperator[voteAddress] = operatorAddress;
+-
+-        emit ValidatorCreated(consensusAddress, operatorAddress, creditContract, voteAddress);
++        nodePublicKeyToOperator[nodePublicKey] = operatorAddress;
++        consensusPublicKeyHashToOperator[keccak256(consensusPublicKey)] = operatorAddress;
++
++        emit ValidatorCreated(consensusAddress, operatorAddress, creditContract);
+         emit Delegated(operatorAddress, operatorAddress, delegation, delegation);
+         emit Delegated(operatorAddress, DEAD_ADDRESS, LOCK_AMOUNT, LOCK_AMOUNT);
+-
+-        IGovToken(GOV_TOKEN_ADDR).sync(creditContract, operatorAddress);
+-    }
+-
+-    /**
+-     * @param newConsensusAddress the new consensus address of the validator
+-     */
+-    function editConsensusAddress(
+-        address newConsensusAddress
+-    ) external whenNotPaused notInBlackList validatorExist(_bep410MsgSender()) {
+-        if (newConsensusAddress == address(0)) revert InvalidConsensusAddress();
+-        if (consensusToOperator[newConsensusAddress] != address(0)) {
+-            revert DuplicateConsensusAddress();
+-        }
+-
+-        address operatorAddress = _bep410MsgSender();
+-        Validator storage valInfo = _validators[operatorAddress];
+-        if (valInfo.updateTime + BREATHE_BLOCK_INTERVAL > block.timestamp) revert UpdateTooFrequently();
+-
+-        consensusExpiration[valInfo.consensusAddress] = block.timestamp;
+-        valInfo.consensusAddress = newConsensusAddress;
+-        valInfo.updateTime = block.timestamp;
+-        consensusToOperator[newConsensusAddress] = operatorAddress;
+-
+-        emit ConsensusAddressEdited(operatorAddress, newConsensusAddress);
+-    }
+-
+-    /**
+-     * @param commissionRate the new commission rate of the validator
+-     */
+-    function editCommissionRate(
+-        uint64 commissionRate
+-    ) external whenNotPaused notInBlackList validatorExist(_bep410MsgSender()) {
+-        address operatorAddress = _bep410MsgSender();
+-        Validator storage valInfo = _validators[operatorAddress];
+-        if (valInfo.updateTime + BREATHE_BLOCK_INTERVAL > block.timestamp) revert UpdateTooFrequently();
+-
+-        if (commissionRate > valInfo.commission.maxRate) revert InvalidCommission();
+-        uint256 changeRate = commissionRate >= valInfo.commission.rate
+-            ? commissionRate - valInfo.commission.rate
+-            : valInfo.commission.rate - commissionRate;
+-        if (changeRate > valInfo.commission.maxChangeRate) revert InvalidCommission();
+-
+-        valInfo.commission.rate = commissionRate;
+-        valInfo.updateTime = block.timestamp;
+-
+-        emit CommissionRateEdited(operatorAddress, commissionRate);
+-    }
+-
+-    /**
+-     * @notice the moniker of the validator will be ignored as it is not editable
+-     * @param description the new description of the validator
+-     */
+-    function editDescription(
+-        Description memory description
+-    ) external whenNotPaused notInBlackList validatorExist(_bep410MsgSender()) {
+-        address operatorAddress = _bep410MsgSender();
+-        Validator storage valInfo = _validators[operatorAddress];
+-        if (valInfo.updateTime + BREATHE_BLOCK_INTERVAL > block.timestamp) revert UpdateTooFrequently();
+-
+-        description.moniker = valInfo.description.moniker;
+-        valInfo.description = description;
+-        valInfo.updateTime = block.timestamp;
+-
+-        emit DescriptionEdited(operatorAddress);
+-    }
+-
+-    /**
+-     * @param newVoteAddress the new vote address of the validator
+-     * @param blsProof the bls proof of the vote address
+-     */
+-    function editVoteAddress(
+-        bytes calldata newVoteAddress,
+-        bytes calldata blsProof
+-    ) external whenNotPaused notInBlackList validatorExist(_bep410MsgSender()) {
+-        // proof-of-possession verify
+-        address operatorAddress = _bep410MsgSender();
+-        if (!_checkVoteAddress(operatorAddress, newVoteAddress, blsProof)) revert InvalidVoteAddress();
+-        if (voteToOperator[newVoteAddress] != address(0)) {
+-            revert DuplicateVoteAddress();
+-        }
+-
+-        Validator storage valInfo = _validators[operatorAddress];
+-        if (valInfo.updateTime + BREATHE_BLOCK_INTERVAL > block.timestamp) revert UpdateTooFrequently();
+-
+-        voteExpiration[valInfo.voteAddress] = block.timestamp;
+-        valInfo.voteAddress = newVoteAddress;
+-        valInfo.updateTime = block.timestamp;
+-        voteToOperator[newVoteAddress] = operatorAddress;
+-
+-        emit VoteAddressEdited(operatorAddress, newVoteAddress);
+-    }
+-
+-    /**
+-     * @param operatorAddress the operator address of the validator to be unjailed
+-     */
+-    function unjail(
+-        address operatorAddress
+-    ) external whenNotPaused notInBlackList validatorExist(operatorAddress) {
+-        Validator storage valInfo = _validators[operatorAddress];
+-        if (!valInfo.jailed) revert ValidatorNotJailed();
+-
+-        if (IStakeCredit(valInfo.creditContract).getPooledBNB(operatorAddress) < minSelfDelegationBNB) {
+-            revert SelfDelegationNotEnough();
+-        }
+-        if (valInfo.jailUntil > block.timestamp) revert JailTimeNotExpired();
+-
+-        valInfo.jailed = false;
+-        numOfJailed -= 1;
+-        emit ValidatorUnjailed(operatorAddress);
+-    }
+-
+-    /**
+-     * @param operatorAddress the operator address of the validator to be delegated to
+-     * @param delegateVotePower whether to delegate vote power to the validator
+-     */
++    }
++
+     function delegate(
+         address operatorAddress,
+-        bool delegateVotePower
+-    ) external payable whenNotPaused notInBlackList validatorExist(operatorAddress) {
+-        uint256 bnbAmount = msg.value;
+-        if (bnbAmount < minDelegationBNBChange) revert DelegationAmountTooSmall();
++        bool /* delegateVotePower */
++    )
++        external
++        payable
++        validatorExist(operatorAddress)
++        whenNotPaused
++        notInBlackList
++    {
++        uint256 ritualAmount = msg.value;
++        if (ritualAmount < minDelegationChange) {
++            revert DelegationAmountTooSmall();
++        }
+ 
+         address delegator = msg.sender;
+         Validator memory valInfo = _validators[operatorAddress];
+-        if (valInfo.jailed && delegator != operatorAddress) revert OnlySelfDelegation();
+-
+-        uint256 shares = IStakeCredit(valInfo.creditContract).delegate{ value: bnbAmount }(delegator);
+-        emit Delegated(operatorAddress, delegator, shares, bnbAmount);
+-
+-        IGovToken(GOV_TOKEN_ADDR).sync(valInfo.creditContract, delegator);
+-        if (delegateVotePower) {
+-            IGovToken(GOV_TOKEN_ADDR).delegateVote(delegator, operatorAddress);
+-        }
+-    }
+-
+-    /**
+-     * @dev Undelegate BNB from a validator, fund is only claimable few days later
+-     * @param operatorAddress the operator address of the validator to be undelegated from
+-     * @param shares the shares to be undelegated
+-     */
+-    function undelegate(
+-        address operatorAddress,
+-        uint256 shares
+-    ) external whenNotPaused notInBlackList validatorExist(operatorAddress) {
+-        if (shares == 0) revert ZeroShares();
++        uint256 shares = IRitualStakeCredit(valInfo.creditContract).delegate{value: ritualAmount}(delegator);
++        emit Delegated(operatorAddress, delegator, shares, ritualAmount);
++    }
++
++    function undelegate(address operatorAddress, uint256 shares)
++        external
++        validatorExist(operatorAddress)
++        whenNotPaused
++        notInBlackList
++    {
++        if (shares == 0) {
++            revert ZeroShares();
++        }
+ 
+         address delegator = msg.sender;
+         Validator memory valInfo = _validators[operatorAddress];
+ 
+-        uint256 bnbAmount = IStakeCredit(valInfo.creditContract).undelegate(delegator, shares);
+-        emit Undelegated(operatorAddress, delegator, shares, bnbAmount);
+-
+-        if (delegator == operatorAddress) {
+-            _checkValidatorSelfDelegation(operatorAddress);
+-        }
+-
+-        IGovToken(GOV_TOKEN_ADDR).sync(valInfo.creditContract, delegator);
+-    }
+-
+-    /**
+-     * @param srcValidator the operator address of the validator to be redelegated from
+-     * @param dstValidator the operator address of the validator to be redelegated to
+-     * @param shares the shares to be redelegated
+-     * @param delegateVotePower whether to delegate vote power to the dstValidator
+-     */
++        uint256 ritualAmount = IRitualStakeCredit(valInfo.creditContract).undelegate(delegator, shares);
++        emit Undelegated(operatorAddress, delegator, shares, ritualAmount);
++    }
++
+     function redelegate(
+         address srcValidator,
+         address dstValidator,
+         uint256 shares,
+-        bool delegateVotePower
++        bool /* delegateVotePower */
+     )
+         external
++        validatorExist(srcValidator)
++        validatorExist(dstValidator)
+         whenNotPaused
+         notInBlackList
+-        validatorExist(srcValidator)
+-        validatorExist(dstValidator)
+         enableReceivingFund
+     {
+-        if (shares == 0) revert ZeroShares();
+-        if (srcValidator == dstValidator) revert SameValidator();
++        if (shares == 0) {
++            revert ZeroShares();
++        }
++        if (srcValidator == dstValidator) {
++            revert SameValidator();
++        }
+ 
+         address delegator = msg.sender;
+         Validator memory srcValInfo = _validators[srcValidator];
+         Validator memory dstValInfo = _validators[dstValidator];
+-        if (dstValInfo.jailed && delegator != dstValidator) revert OnlySelfDelegation();
+-
+-        uint256 bnbAmount = IStakeCredit(srcValInfo.creditContract).unbond(delegator, shares);
+-        if (bnbAmount < minDelegationBNBChange) revert DelegationAmountTooSmall();
+-        // check if the srcValidator has enough self delegation
+-        if (
+-            delegator == srcValidator
+-                && IStakeCredit(srcValInfo.creditContract).getPooledBNB(srcValidator) < minSelfDelegationBNB
+-        ) {
+-            revert SelfDelegationNotEnough();
+-        }
+-
+-        uint256 feeCharge = bnbAmount * redelegateFeeRate / REDELEGATE_FEE_RATE_BASE;
+-        (bool success,) = dstValInfo.creditContract.call{ value: feeCharge }("");
+-        if (!success) revert TransferFailed();
+-
+-        bnbAmount -= feeCharge;
+-        uint256 newShares = IStakeCredit(dstValInfo.creditContract).delegate{ value: bnbAmount }(delegator);
+-        emit Redelegated(srcValidator, dstValidator, delegator, shares, newShares, bnbAmount);
+-
+-        address[] memory stakeCredits = new address[](2);
+-        stakeCredits[0] = srcValInfo.creditContract;
+-        stakeCredits[1] = dstValInfo.creditContract;
+-        IGovToken(GOV_TOKEN_ADDR).syncBatch(stakeCredits, delegator);
+-        if (delegateVotePower) {
+-            IGovToken(GOV_TOKEN_ADDR).delegateVote(delegator, dstValidator);
+-        }
+-    }
+-
+-    /**
+-     * @dev Claim the undelegated BNB from the pool after unbondPeriod
+-     * @param operatorAddress the operator address of the validator
+-     * @param requestNumber the request number of the undelegation. 0 means claim all
+-     */
++
++        uint256 ritualAmount = IRitualStakeCredit(srcValInfo.creditContract).unbond(delegator, shares);
++        if (ritualAmount < minDelegationChange) {
++            revert DelegationAmountTooSmall();
++        }
++
++        uint256 feeCharge = ritualAmount * redelegateFeeRate / REDELEGATE_FEE_RATE_BASE;
++        (bool success,) = dstValInfo.creditContract.call{value: feeCharge}("");
++        if (!success) {
++            revert TransferFailed();
++        }
++
++        ritualAmount -= feeCharge;
++        uint256 newShares = IRitualStakeCredit(dstValInfo.creditContract).delegate{value: ritualAmount}(delegator);
++        emit Redelegated(srcValidator, dstValidator, delegator, shares, newShares, ritualAmount);
++    }
++
+     function claim(address operatorAddress, uint256 requestNumber) external whenNotPaused notInBlackList {
+         _claim(operatorAddress, requestNumber);
+     }
+ 
+-    /**
+-     * @dev Claim the undelegated BNB from the pools after unbondPeriod
+-     * @param operatorAddresses the operator addresses of the validator
+-     * @param requestNumbers numbers of the undelegation requests. 0 means claim all
+-     */
+-    function claimBatch(
+-        address[] calldata operatorAddresses,
+-        uint256[] calldata requestNumbers
+-    ) external whenNotPaused notInBlackList {
+-        if (operatorAddresses.length != requestNumbers.length) revert InvalidRequest();
++    function claimBatch(address[] calldata operatorAddresses, uint256[] calldata requestNumbers)
++        external
++        whenNotPaused
++        notInBlackList
++    {
++        if (operatorAddresses.length != requestNumbers.length) {
++            revert InvalidRequest();
++        }
+         for (uint256 i; i < operatorAddresses.length; ++i) {
+             _claim(operatorAddresses[i], requestNumbers[i]);
+         }
+     }
+ 
+-    /**
+-     * @dev Sync the gov tokens of validators in operatorAddresses
+-     * @param operatorAddresses the operator addresses of the validators
+-     * @param account the account to sync gov tokens to
+-     */
+-    function syncGovToken(
+-        address[] calldata operatorAddresses,
+-        address account
+-    ) external whenNotPaused notInBlackList {
+-        uint256 _length = operatorAddresses.length;
+-        address[] memory stakeCredits = new address[](_length);
+-        address credit;
+-        for (uint256 i = 0; i < _length; ++i) {
+-            if (!_validatorSet.contains(operatorAddresses[i])) revert ValidatorNotExisted();
+-            credit = _validators[operatorAddresses[i]].creditContract;
+-            stakeCredits[i] = credit;
+-        }
+-
+-        IGovToken(GOV_TOKEN_ADDR).syncBatch(stakeCredits, account);
+-    }
+-
+-    /*----------------- system functions -----------------*/
+-    /**
+-     * @dev This function will be called by consensus engine. So it should never revert.
+-     */
+-    function distributeReward(
+-        address consensusAddress
+-    ) external payable onlyValidatorContract {
++    function editCommissionRate(uint64 newRate) external whenNotPaused notInBlackList {
++        address operatorAddress = _bep410MsgSender();
++        if (!_validatorSet.contains(operatorAddress)) {
++            revert ValidatorNotExisted();
++        }
++        Validator storage valInfo = _validators[operatorAddress];
++        if (valInfo.updateTime + BREATHE_BLOCK_INTERVAL > block.timestamp) {
++            revert UpdateTooFrequently();
++        }
++        if (newRate > valInfo.commission.maxRate) {
++            revert InvalidCommission();
++        }
++
++        uint256 changeRate =
++            newRate >= valInfo.commission.rate ? newRate - valInfo.commission.rate : valInfo.commission.rate - newRate;
++        if (changeRate > valInfo.commission.maxChangeRate) {
++            revert InvalidCommission();
++        }
++
++        valInfo.commission.rate = newRate;
++        valInfo.updateTime = block.timestamp;
++        emit CommissionRateEdited(operatorAddress, newRate);
++    }
++
++    function editConsensusAddress(address newConsensusAddress) external whenNotPaused notInBlackList {
++        address operatorAddress = _bep410MsgSender();
++        if (!_validatorSet.contains(operatorAddress)) {
++            revert ValidatorNotExisted();
++        }
++        if (newConsensusAddress == address(0)) {
++            revert InvalidConsensusAddress();
++        }
++        if (consensusToOperator[newConsensusAddress] != address(0)) {
++            revert DuplicateConsensusAddress();
++        }
++
++        Validator storage valInfo = _validators[operatorAddress];
++        if (valInfo.updateTime + BREATHE_BLOCK_INTERVAL > block.timestamp) {
++            revert UpdateTooFrequently();
++        }
++        address oldConsensusAddress = valInfo.consensusAddress;
++        valInfo.consensusAddress = newConsensusAddress;
++        valInfo.updateTime = block.timestamp;
++        delete consensusToOperator[oldConsensusAddress];
++        consensusToOperator[newConsensusAddress] = operatorAddress;
++
++        emit ConsensusAddressEdited(operatorAddress, newConsensusAddress);
++    }
++
++    function editConsensusIdentity(
++        bytes32 newNodePublicKey,
++        bytes calldata nodeProof,
++        bytes calldata newConsensusPublicKey,
++        bytes calldata blsProof
++    )
++        external
++        whenNotPaused
++        notInBlackList
++    {
++        address operatorAddress = _bep410MsgSender();
++        if (!_validatorSet.contains(operatorAddress)) {
++            revert ValidatorNotExisted();
++        }
++        Validator storage valInfo = _validators[operatorAddress];
++        if (valInfo.updateTime + BREATHE_BLOCK_INTERVAL > block.timestamp) {
++            revert UpdateTooFrequently();
++        }
++        _checkValidatorIdentity(newNodePublicKey, newConsensusPublicKey);
++        bytes32 proofMessage = _validatorProofMessage(operatorAddress, newNodePublicKey, newConsensusPublicKey);
++        _checkNodeProof(newNodePublicKey, proofMessage, nodeProof);
++        _checkConsensusProof(newConsensusPublicKey, proofMessage, blsProof);
++
++        delete nodePublicKeyToOperator[valInfo.nodePublicKey];
++        delete consensusPublicKeyHashToOperator[keccak256(valInfo.consensusPublicKey)];
++        valInfo.nodePublicKey = newNodePublicKey;
++        valInfo.consensusPublicKey = newConsensusPublicKey;
++        valInfo.updateTime = block.timestamp;
++        nodePublicKeyToOperator[newNodePublicKey] = operatorAddress;
++        consensusPublicKeyHashToOperator[keccak256(newConsensusPublicKey)] = operatorAddress;
++
++        emit NodePublicKeyEdited(operatorAddress, newNodePublicKey);
++        emit ConsensusPublicKeyEdited(operatorAddress, newConsensusPublicKey);
++    }
++
++    function editDescription(Description calldata description) external whenNotPaused notInBlackList {
++        address operatorAddress = _bep410MsgSender();
++        if (!_validatorSet.contains(operatorAddress)) {
++            revert ValidatorNotExisted();
++        }
++        Validator storage valInfo = _validators[operatorAddress];
++        if (valInfo.updateTime + BREATHE_BLOCK_INTERVAL > block.timestamp) {
++            revert UpdateTooFrequently();
++        }
++        Description memory newDescription = description;
++        newDescription.moniker = valInfo.description.moniker;
++        valInfo.description = newDescription;
++        valInfo.updateTime = block.timestamp;
++        emit DescriptionEdited(operatorAddress);
++    }
++
++    function distributeReward(address consensusAddress) external payable onlySystem {
+         address operatorAddress = consensusToOperator[consensusAddress];
+         Validator memory valInfo = _validators[operatorAddress];
+-        if (valInfo.creditContract == address(0) || valInfo.jailed) {
+-            SYSTEM_REWARD_ADDR.call{ value: msg.value }("");
++        if (operatorAddress == address(0) || valInfo.creditContract == address(0)) {
++            (bool success,) = DEAD_ADDRESS.call{value: msg.value}("");
++            if (!success) {
++                revert TransferFailed();
++            }
+             emit RewardDistributeFailed(operatorAddress, "INVALID_VALIDATOR");
+             return;
+         }
+ 
+-        IStakeCredit(valInfo.creditContract).distributeReward{ value: msg.value }(valInfo.commission.rate);
++        IRitualStakeCredit(valInfo.creditContract).distributeReward{value: msg.value}(valInfo.commission.rate);
+         emit RewardDistributed(operatorAddress, msg.value);
+-
+-        IGovToken(GOV_TOKEN_ADDR).sync(valInfo.creditContract, operatorAddress);
+-    }
+-
+-    /**
+-     * @dev Downtime slash. Only the `SlashIndicator` contract can call this function.
+-     */
+-    function downtimeSlash(
+-        address consensusAddress
+-    ) external onlySlash {
+-        address operatorAddress = consensusToOperator[consensusAddress];
+-        if (!_validatorSet.contains(operatorAddress)) revert ValidatorNotExisted(); // should never happen
+-        Validator storage valInfo = _validators[operatorAddress];
+-
+-        // slash
+-        uint256 slashAmount = IStakeCredit(valInfo.creditContract).slash(downtimeSlashAmount);
+-        uint256 jailUntil = block.timestamp + downtimeJailTime;
+-        _jailValidator(valInfo, jailUntil);
+-
+-        emit ValidatorSlashed(operatorAddress, jailUntil, slashAmount, SlashType.DownTime);
+-
+-        IGovToken(GOV_TOKEN_ADDR).sync(valInfo.creditContract, operatorAddress);
+-    }
+-
+-    /**
+-     * @dev Malicious vote slash. Only the `SlashIndicator` contract can call this function.
+-     */
+-    function maliciousVoteSlash(
+-        bytes calldata voteAddress
+-    ) external onlySlash whenNotPaused {
+-        address operatorAddress = voteToOperator[voteAddress];
+-        if (!_validatorSet.contains(operatorAddress)) revert ValidatorNotExisted(); // should never happen
+-        Validator storage valInfo = _validators[operatorAddress];
+-
+-        uint256 index = block.timestamp / BREATHE_BLOCK_INTERVAL;
+-        // This is to prevent many honest validators being slashed at the same time because of implementation bugs
+-        if (_felonyMap[index] >= maxFelonyBetweenBreatheBlock) revert NoMoreFelonyAllowed();
+-        _felonyMap[index] += 1;
+-
+-        // check if the voteAddress has already expired
+-        if (voteExpiration[voteAddress] != 0 && voteExpiration[voteAddress] + BREATHE_BLOCK_INTERVAL < block.timestamp)
+-        {
+-            revert VoteAddressExpired();
+-        }
+-
+-        // slash
+-        (bool canSlash, uint256 jailUntil) = _checkFelonyRecord(operatorAddress, SlashType.MaliciousVote);
+-        if (!canSlash) revert AlreadySlashed();
+-        uint256 slashAmount = IStakeCredit(valInfo.creditContract).slash(felonySlashAmount);
+-        _jailValidator(valInfo, jailUntil);
+-
+-        emit ValidatorSlashed(operatorAddress, jailUntil, slashAmount, SlashType.MaliciousVote);
+-
+-        IGovToken(GOV_TOKEN_ADDR).sync(valInfo.creditContract, operatorAddress);
+-    }
+-
+-    /**
+-     * @dev Double sign slash. Only the `SlashIndicator` contract can call this function.
+-     */
+-    function doubleSignSlash(
+-        address consensusAddress
+-    ) external onlySlash whenNotPaused {
+-        address operatorAddress = consensusToOperator[consensusAddress];
+-        if (!_validatorSet.contains(operatorAddress)) revert ValidatorNotExisted(); // should never happen
+-        Validator storage valInfo = _validators[operatorAddress];
+-
+-        uint256 index = block.timestamp / BREATHE_BLOCK_INTERVAL;
+-        // This is to prevent many honest validators being slashed at the same time because of implementation bugs
+-        if (_felonyMap[index] >= maxFelonyBetweenBreatheBlock) revert NoMoreFelonyAllowed();
+-        _felonyMap[index] += 1;
+-
+-        // check if the consensusAddress has already expired
+-        if (
+-            consensusExpiration[consensusAddress] != 0
+-                && consensusExpiration[consensusAddress] + BREATHE_BLOCK_INTERVAL < block.timestamp
+-        ) {
+-            revert ConsensusAddressExpired();
+-        }
+-
+-        // slash
+-        (bool canSlash, uint256 jailUntil) = _checkFelonyRecord(operatorAddress, SlashType.DoubleSign);
+-        if (!canSlash) revert AlreadySlashed();
+-        uint256 slashAmount = IStakeCredit(valInfo.creditContract).slash(felonySlashAmount);
+-        _jailValidator(valInfo, jailUntil);
+-
+-        emit ValidatorSlashed(operatorAddress, jailUntil, slashAmount, SlashType.DoubleSign);
+-
+-        IGovToken(GOV_TOKEN_ADDR).sync(valInfo.creditContract, operatorAddress);
+-    }
+-
+-    /**
+-     * @param key the key of the param
+-     * @param value the value of the param
+-     */
+-    function updateParam(string calldata key, bytes calldata value) external onlyGov {
+-        if (key.compareStrings("transferGasLimit")) {
+-            if (value.length != 32) revert InvalidValue(key, value);
+-            uint256 newTransferGasLimit = value.bytesToUint256(32);
+-            if (newTransferGasLimit < 2300 || newTransferGasLimit > 10_000) revert InvalidValue(key, value);
+-            transferGasLimit = newTransferGasLimit;
+-        } else if (key.compareStrings("minSelfDelegationBNB")) {
+-            if (value.length != 32) revert InvalidValue(key, value);
+-            uint256 newMinSelfDelegationBNB = value.bytesToUint256(32);
+-            if (newMinSelfDelegationBNB < 1000 ether || newMinSelfDelegationBNB > 100_000 ether) {
+-                revert InvalidValue(key, value);
+-            }
+-            minSelfDelegationBNB = newMinSelfDelegationBNB;
+-        } else if (key.compareStrings("minDelegationBNBChange")) {
+-            if (value.length != 32) revert InvalidValue(key, value);
+-            uint256 newMinDelegationBNBChange = value.bytesToUint256(32);
+-            if (newMinDelegationBNBChange < 0.1 ether || newMinDelegationBNBChange > 10 ether) {
+-                revert InvalidValue(key, value);
+-            }
+-            minDelegationBNBChange = newMinDelegationBNBChange;
+-        } else if (key.compareStrings("maxElectedValidators")) {
+-            if (value.length != 32) revert InvalidValue(key, value);
+-            uint256 newMaxElectedValidators = value.bytesToUint256(32);
+-            if (newMaxElectedValidators == 0 || newMaxElectedValidators > 500) revert InvalidValue(key, value);
+-            maxElectedValidators = newMaxElectedValidators;
+-        } else if (key.compareStrings("unbondPeriod")) {
+-            if (value.length != 32) revert InvalidValue(key, value);
+-            uint256 newUnbondPeriod = value.bytesToUint256(32);
+-            if (newUnbondPeriod < 3 days || newUnbondPeriod > 30 days) revert InvalidValue(key, value);
+-            unbondPeriod = newUnbondPeriod;
+-        } else if (key.compareStrings("redelegateFeeRate")) {
+-            if (value.length != 32) revert InvalidValue(key, value);
+-            uint256 newRedelegateFeeRate = value.bytesToUint256(32);
+-            if (newRedelegateFeeRate > 100) {
+-                revert InvalidValue(key, value);
+-            }
+-            redelegateFeeRate = newRedelegateFeeRate;
+-        } else if (key.compareStrings("downtimeSlashAmount")) {
+-            if (value.length != 32) revert InvalidValue(key, value);
+-            uint256 newDowntimeSlashAmount = value.bytesToUint256(32);
+-            if (newDowntimeSlashAmount < 1 ether || newDowntimeSlashAmount >= felonySlashAmount) {
+-                revert InvalidValue(key, value);
+-            }
+-            downtimeSlashAmount = newDowntimeSlashAmount;
+-        } else if (key.compareStrings("felonySlashAmount")) {
+-            if (value.length != 32) revert InvalidValue(key, value);
+-            uint256 newFelonySlashAmount = value.bytesToUint256(32);
+-            if (newFelonySlashAmount < 10 ether || newFelonySlashAmount <= downtimeSlashAmount) {
+-                revert InvalidValue(key, value);
+-            }
+-            felonySlashAmount = newFelonySlashAmount;
+-        } else if (key.compareStrings("downtimeJailTime")) {
+-            if (value.length != 32) revert InvalidValue(key, value);
+-            uint256 newDowntimeJailTime = value.bytesToUint256(32);
+-            if (newDowntimeJailTime < 1 days || newDowntimeJailTime >= felonyJailTime) revert InvalidValue(key, value);
+-            downtimeJailTime = newDowntimeJailTime;
+-        } else if (key.compareStrings("felonyJailTime")) {
+-            if (value.length != 32) revert InvalidValue(key, value);
+-            uint256 newFelonyJailTime = value.bytesToUint256(32);
+-            if (newFelonyJailTime < 3 days || newFelonyJailTime <= downtimeJailTime) revert InvalidValue(key, value);
+-            felonyJailTime = newFelonyJailTime;
+-        } else if (key.compareStrings("maxFelonyBetweenBreatheBlock")) {
+-            if (value.length != 32) revert InvalidValue(key, value);
+-            uint256 newJailedPerDay = value.bytesToUint256(32);
+-            if (newJailedPerDay == 0) revert InvalidValue(key, value);
+-            maxFelonyBetweenBreatheBlock = newJailedPerDay;
+-        } else if (key.compareStrings("stakeHubProtector")) {
+-            if (value.length != 20) revert InvalidValue(key, value);
+-            address newStakeHubProtector = value.bytesToAddress(20);
+-            if (newStakeHubProtector == address(0)) revert InvalidValue(key, value);
+-            _setProtector(newStakeHubProtector);
+-        } else if (key.compareStrings("maxNodeIDs")) {
+-            if (value.length != 32) revert InvalidValue(key, value);
+-            uint256 newMaxNodeIDs = value.bytesToUint256(32);
+-            if (newMaxNodeIDs == 0) revert InvalidValue(key, value);
+-            maxNodeIDs = newMaxNodeIDs;
+-        } else {
+-            revert UnknownParam(key, value);
+-        }
+-        emit ParamChange(key, value);
++    }
++
++    /*----------------- owner setters -----------------*/
++    function setMinSelfDelegation(uint256 value) external onlyOwner {
++        _setMinSelfDelegation(value);
++    }
++
++    function setMinDelegationChange(uint256 value) external onlyOwner {
++        _setMinDelegationChange(value);
++    }
++
++    function setUnbondPeriod(uint256 value) external onlyOwner {
++        _setUnbondPeriod(value);
++    }
++
++    function setRedelegateFeeRate(uint256 value) external onlyOwner {
++        _setRedelegateFeeRate(value);
++    }
++
++    function setMaxElectedValidators(uint256 value) external onlyOwner {
++        _setMaxElectedValidators(value);
++    }
++
++    function setBaseBlockReward(uint256 value) external onlyOwner {
++        _setBaseBlockReward(value);
++    }
++
++    function setMaxCommissionRate(uint64 value) external onlyOwner {
++        _setMaxCommissionRate(value);
++    }
++
++    function setMaxCommissionChangeRate(uint64 value) external onlyOwner {
++        _setMaxCommissionChangeRate(value);
++    }
++
++    function setTransferGasLimit(uint256 value) external onlyOwner {
++        if (value == 0) {
++            revert InvalidValue();
++        }
++        transferGasLimit = value;
++    }
++
++    function setProtector(address protector) external onlyOwner {
++        if (protector == address(0)) {
++            revert InvalidValue();
++        }
++        emit ProtectorChanged(_protector, protector);
++        _protector = protector;
++    }
++
++    function setEd25519Verifier(address verifier) external onlyOwner {
++        if (verifier == address(0)) {
++            revert InvalidValue();
++        }
++        ed25519Verifier = verifier;
++    }
++
++    function setMaxNodeIDs(uint256 value) external onlyOwner {
++        if (value == 0) {
++            revert InvalidValue();
++        }
++        maxNodeIDs = value;
+     }
+ 
+     /*----------------- view functions -----------------*/
+-    /**
+-     * @param operatorAddress the operator address of the validator
+-     * @param index the index of the day to query(timestamp / 1 days)
+-     *
+-     * @return the validator's reward of the day
+-     */
+-    function getValidatorRewardRecord(address operatorAddress, uint256 index) external view returns (uint256) {
+-        if (!_validatorSet.contains(operatorAddress)) revert ValidatorNotExisted();
+-        return IStakeCredit(_validators[operatorAddress].creditContract).rewardRecord(index);
+-    }
+-
+-    /**
+-     * @param operatorAddress the operator address of the validator
+-     * @param index the index of the day to query(timestamp / 1 days)
+-     *
+-     * @return the validator's total pooled BNB of the day
+-     */
+-    function getValidatorTotalPooledBNBRecord(address operatorAddress, uint256 index) external view returns (uint256) {
+-        if (!_validatorSet.contains(operatorAddress)) revert ValidatorNotExisted();
+-        return IStakeCredit(_validators[operatorAddress].creditContract).totalPooledBNBRecord(index);
+-    }
+-
+-    /**
+-     * @notice pagination query all validators' operator address and credit contract address
+-     *
+-     * @param offset the offset of the query
+-     * @param limit the limit of the query
+-     *
+-     * @return operatorAddrs operator addresses
+-     * @return creditAddrs credit contract addresses
+-     * @return totalLength total number of validators
+-     */
+-    function getValidators(
+-        uint256 offset,
+-        uint256 limit
+-    ) external view returns (address[] memory operatorAddrs, address[] memory creditAddrs, uint256 totalLength) {
+-        totalLength = _validatorSet.length();
++    function getValidatorElectionInfo(uint256 offset, uint256 limit)
++        external
++        view
++        returns (address[] memory consensusAddrs, uint256[] memory votingPowers, uint256 totalLength)
++    {
++        (address[] memory allConsensus, uint256[] memory allPowers) = _activeValidators();
++        totalLength = allConsensus.length;
+         if (offset >= totalLength) {
+-            return (operatorAddrs, creditAddrs, totalLength);
++            return (consensusAddrs, votingPowers, totalLength);
+         }
+ 
+         limit = limit == 0 ? totalLength : limit;
+-        uint256 count = (totalLength - offset) > limit ? limit : (totalLength - offset);
+-        operatorAddrs = new address[](count);
+-        creditAddrs = new address[](count);
++        uint256 count = (totalLength - offset) > limit ? limit : totalLength - offset;
++        consensusAddrs = new address[](count);
++        votingPowers = new uint256[](count);
+         for (uint256 i; i < count; ++i) {
+-            operatorAddrs[i] = _validatorSet.at(offset + i);
+-            creditAddrs[i] = _validators[operatorAddrs[i]].creditContract;
+-        }
+-    }
+-
+-    /**
+-     * @notice get the consensus address of a validator
+-     *
+-     * @param operatorAddress the operator address of the validator
+-     *
+-     * @return consensusAddress the consensus address of the validator
+-     */
+-    function getValidatorConsensusAddress(
+-        address operatorAddress
+-    ) external view returns (address consensusAddress) {
++            consensusAddrs[i] = allConsensus[offset + i];
++            votingPowers[i] = allPowers[offset + i];
++        }
++    }
++
++    function getActiveValidators()
++        external
++        view
++        returns (address[] memory consensusAddrs, uint256[] memory votingPowers)
++    {
++        return _activeValidators();
++    }
++
++    function getValidator(address operatorAddress)
++        external
++        view
++        validatorExist(operatorAddress)
++        returns (
++            uint256 createdTime,
++            Commission memory commission,
++            Description memory description,
++            address consensusAddress,
++            address creditContract,
++            bytes32 nodePublicKey,
++            bytes memory consensusPublicKey,
++            address agent
++        )
++    {
+         Validator memory valInfo = _validators[operatorAddress];
+-        consensusAddress = valInfo.consensusAddress;
+-    }
+-
+-    /**
+-     * @notice get the credit contract address of a validator
+-     *
+-     * @param operatorAddress the operator address of the validator
+-     *
+-     * @return creditContract the credit contract address of the validator
+-     */
+-    function getValidatorCreditContract(
+-        address operatorAddress
+-    ) external view returns (address creditContract) {
+-        Validator memory valInfo = _validators[operatorAddress];
+-        creditContract = valInfo.creditContract;
+-    }
+-
+-    /**
+-     * @notice get the vote address of a validator
+-     *
+-     * @param operatorAddress the operator address of the validator
+-     *
+-     * @return voteAddress the vote address of the validator
+-     */
+-    function getValidatorVoteAddress(
+-        address operatorAddress
+-    ) external view returns (bytes memory voteAddress) {
+-        Validator memory valInfo = _validators[operatorAddress];
+-        voteAddress = valInfo.voteAddress;
+-    }
+-
+-    /**
+-     * @notice get the basic info of a validator
+-     *
+-     * @param operatorAddress the operator address of the validator
+-     *
+-     * @return createdTime the creation time of the validator
+-     * @return jailed whether the validator is jailed
+-     * @return jailUntil the jail time of the validator
+-     */
+-    function getValidatorBasicInfo(
+-        address operatorAddress
+-    ) external view returns (uint256 createdTime, bool jailed, uint256 jailUntil) {
+-        Validator memory valInfo = _validators[operatorAddress];
+-        createdTime = valInfo.createdTime;
+-        jailed = valInfo.jailed;
+-        jailUntil = valInfo.jailUntil;
+-    }
+-
+-    /**
+-     * @param operatorAddress the operator address of the validator
+-     *
+-     * @return the description of a validator
+-     */
+-    function getValidatorDescription(
+-        address operatorAddress
+-    ) external view validatorExist(operatorAddress) returns (Description memory) {
+-        return _validators[operatorAddress].description;
+-    }
+-
+-    /**
+-     * @param operatorAddress the operator address of the validator
+-     *
+-     * @return the commission of a validator
+-     */
+-    function getValidatorCommission(
+-        address operatorAddress
+-    ) external view validatorExist(operatorAddress) returns (Commission memory) {
++        return (
++            valInfo.createdTime,
++            valInfo.commission,
++            valInfo.description,
++            valInfo.consensusAddress,
++            valInfo.creditContract,
++            valInfo.nodePublicKey,
++            valInfo.consensusPublicKey,
++            valInfo.agent
++        );
++    }
++
++    function getValidatorCommission(address operatorAddress)
++        external
++        view
++        validatorExist(operatorAddress)
++        returns (Commission memory)
++    {
+         return _validators[operatorAddress].commission;
+     }
+ 
+-    /**
+-     * @param operatorAddress the operator address of the validator
+-     *
+-     * @return the agent of a validator
+-     */
+-    function getValidatorAgent(
+-        address operatorAddress
+-    ) external view validatorExist(operatorAddress) returns (address) {
++    function getValidatorConsensusAddress(address operatorAddress)
++        external
++        view
++        validatorExist(operatorAddress)
++        returns (address)
++    {
++        return _validators[operatorAddress].consensusAddress;
++    }
++
++    function getValidatorCreditContract(address operatorAddress)
++        external
++        view
++        validatorExist(operatorAddress)
++        returns (address)
++    {
++        return _validators[operatorAddress].creditContract;
++    }
++
++    function validatorCount() external view returns (uint256) {
++        return _validatorSet.length();
++    }
++
++    function validatorOperatorAt(uint256 index) external view returns (address) {
++        return _validatorSet.at(index);
++    }
++
++    function getValidatorNodePublicKey(address operatorAddress)
++        external
++        view
++        validatorExist(operatorAddress)
++        returns (bytes32)
++    {
++        return _validators[operatorAddress].nodePublicKey;
++    }
++
++    function getValidatorConsensusPublicKey(address operatorAddress)
++        external
++        view
++        validatorExist(operatorAddress)
++        returns (bytes memory)
++    {
++        return _validators[operatorAddress].consensusPublicKey;
++    }
++
++    function getValidatorAgent(address operatorAddress)
++        external
++        view
++        validatorExist(operatorAddress)
++        returns (address)
++    {
+         return _validators[operatorAddress].agent;
+     }
+ 
+-    /**
+-     * @param operatorAddress the operator address of the validator
+-     *
+-     * @return the updateTime of a validator
+-     */
+-    function getValidatorUpdateTime(
+-        address operatorAddress
+-    ) external view validatorExist(operatorAddress) returns (uint256) {
+-        return _validators[operatorAddress].updateTime;
+-    }
+-
+-    /**
+-     * @dev this function will be used by Parlia consensus engine.
+-     *
+-     * @notice get the election info of a validator
+-     *
+-     * @param offset the offset of the query
+-     * @param limit the limit of the query
+-     *
+-     * @return consensusAddrs the consensus addresses of the validators
+-     * @return votingPowers the voting powers of the validators. The voting power will be 0 if the validator is jailed.
+-     * @return voteAddrs the vote addresses of the validators
+-     * @return totalLength the total number of validators
+-     */
+-    function getValidatorElectionInfo(
+-        uint256 offset,
+-        uint256 limit
+-    )
++    function getValidatorElectionInfo(uint256 offset, uint256 limit, bool includeIdentity)
+         external
+         view
+         returns (
+             address[] memory consensusAddrs,
+             uint256[] memory votingPowers,
+-            bytes[] memory voteAddrs,
++            bytes32[] memory nodePublicKeys,
++            bytes[] memory consensusPublicKeys,
+             uint256 totalLength
+         )
+     {
+-        totalLength = _validatorSet.length();
++        (address[] memory allConsensus, uint256[] memory allPowers, address[] memory allOperators) = _activeValidatorsWithOperators();
++        totalLength = allConsensus.length;
+         if (offset >= totalLength) {
+-            return (consensusAddrs, votingPowers, voteAddrs, totalLength);
++            return (consensusAddrs, votingPowers, nodePublicKeys, consensusPublicKeys, totalLength);
+         }
+ 
+         limit = limit == 0 ? totalLength : limit;
+-        uint256 count = (totalLength - offset) > limit ? limit : (totalLength - offset);
++        uint256 count = (totalLength - offset) > limit ? limit : totalLength - offset;
+         consensusAddrs = new address[](count);
+         votingPowers = new uint256[](count);
+-        voteAddrs = new bytes[](count);
++        nodePublicKeys = new bytes32[](includeIdentity ? count : 0);
++        consensusPublicKeys = new bytes[](includeIdentity ? count : 0);
+         for (uint256 i; i < count; ++i) {
+-            address operatorAddress = _validatorSet.at(offset + i);
+-            Validator memory valInfo = _validators[operatorAddress];
+-            consensusAddrs[i] = valInfo.consensusAddress;
+-            votingPowers[i] = valInfo.jailed ? 0 : IStakeCredit(valInfo.creditContract).totalPooledBNB();
+-            voteAddrs[i] = valInfo.voteAddress;
+-        }
+-    }
+-
+-    /**
+-     * @notice Adds multiple new NodeIDs to the validator's registry.
+-     * @param nodeIDs Array of NodeIDs to be added.
+-     */
+-    function addNodeIDs(
+-        bytes32[] calldata nodeIDs
+-    ) external whenNotPaused notInBlackList validatorExist(_bep563MsgSender()) {
+-        maxNodeIDsInitializer();
+-
++            uint256 sourceIndex = offset + i;
++            consensusAddrs[i] = allConsensus[sourceIndex];
++            votingPowers[i] = allPowers[sourceIndex];
++            if (includeIdentity) {
++                Validator memory valInfo = _validators[allOperators[sourceIndex]];
++                nodePublicKeys[i] = valInfo.nodePublicKey;
++                consensusPublicKeys[i] = valInfo.consensusPublicKey;
++            }
++        }
++    }
++
++    function addNodeIDs(bytes32[] calldata nodeIDs) external {
++        address operatorAddress = _bep563MsgSender();
++        if (!_validatorSet.contains(operatorAddress)) {
++            revert ValidatorNotExisted();
++        }
++        uint256 max = maxNodeIDs == 0 ? 5 : maxNodeIDs;
+         if (nodeIDs.length == 0) {
+             revert InvalidNodeID();
+         }
+-
+-        address operatorAddress = _bep563MsgSender();
+         bytes32[] storage existingNodeIDs = validatorNodeIDs[operatorAddress];
+         uint256 currentLength = existingNodeIDs.length;
+-
+-        if (currentLength + nodeIDs.length > maxNodeIDs) {
++        if (currentLength + nodeIDs.length > max) {
+             revert ExceedsMaxNodeIDs();
+         }
+ 
+-        // Check for duplicates in new NodeIDs
+-        for (uint256 i = 0; i < nodeIDs.length; i++) {
++        for (uint256 i; i < nodeIDs.length; ++i) {
+             if (nodeIDs[i] == bytes32(0)) {
+                 revert InvalidNodeID();
+             }
+-            for (uint256 j = i + 1; j < nodeIDs.length; j++) {
++            for (uint256 j = i + 1; j < nodeIDs.length; ++j) {
+                 if (nodeIDs[i] == nodeIDs[j]) {
+                     revert DuplicateNodeID();
+                 }
+             }
+-        }
+-
+-        // Check for duplicates in existing NodeIDs
+-        for (uint256 i = 0; i < nodeIDs.length; i++) {
+-            for (uint256 j = 0; j < currentLength; j++) {
++            for (uint256 j; j < currentLength; ++j) {
+                 if (nodeIDs[i] == existingNodeIDs[j]) {
+                     revert DuplicateNodeID();
+                 }
+             }
+         }
+ 
+-        // Add new NodeIDs
+-        for (uint256 i = 0; i < nodeIDs.length; i++) {
++        for (uint256 i; i < nodeIDs.length; ++i) {
+             existingNodeIDs.push(nodeIDs[i]);
+             emit NodeIDAdded(operatorAddress, nodeIDs[i]);
+         }
+     }
+ 
+-    /**
+-     * @notice Removes multiple NodeIDs from the validator's registry.
+-     * @param targetNodeIDs Array of NodeIDs to be removed.
+-     */
+-    function removeNodeIDs(
+-        bytes32[] calldata targetNodeIDs
+-    ) external whenNotPaused notInBlackList validatorExist(_bep563MsgSender()) {
+-        address validator = _bep563MsgSender();
+-        bytes32[] storage nodeIDs = validatorNodeIDs[validator];
++    function removeNodeIDs(bytes32[] calldata targetNodeIDs) external {
++        address operatorAddress = _bep563MsgSender();
++        if (!_validatorSet.contains(operatorAddress)) {
++            revert ValidatorNotExisted();
++        }
++        bytes32[] storage nodeIDs = validatorNodeIDs[operatorAddress];
+         uint256 length = nodeIDs.length;
+-
+-        // If targetNodeIDs is empty, remove all NodeIDs
+         if (targetNodeIDs.length == 0) {
+-            for (uint256 i = 0; i < length; i++) {
+-                emit NodeIDRemoved(validator, nodeIDs[i]);
++            for (uint256 i; i < length; ++i) {
++                emit NodeIDRemoved(operatorAddress, nodeIDs[i]);
+             }
+-            delete validatorNodeIDs[validator];
++            delete validatorNodeIDs[operatorAddress];
+             return;
+         }
+ 
+-        // Otherwise, remove specific NodeIDs
+-        for (uint256 i = 0; i < targetNodeIDs.length; i++) {
++        for (uint256 i; i < targetNodeIDs.length; ++i) {
+             bytes32 nodeID = targetNodeIDs[i];
+-            for (uint256 j = 0; j < length; j++) {
++            for (uint256 j; j < length; ++j) {
+                 if (nodeIDs[j] == nodeID) {
+-                    // Swap and pop
+                     nodeIDs[j] = nodeIDs[length - 1];
+                     nodeIDs.pop();
+-                    length--;
+-                    emit NodeIDRemoved(validator, nodeID);
++                    --length;
++                    emit NodeIDRemoved(operatorAddress, nodeID);
+                     break;
+                 }
+             }
+         }
+-
+-        // Clean up storage if no NodeIDs left
+         if (nodeIDs.length == 0) {
+-            delete validatorNodeIDs[validator];
+-        }
+-    }
+-
+-    /**
+-     * @notice Returns all validators with their consensus addresses and registered NodeIDs.
+-     * @param validatorsToQuery The operator addresses of the validators.
+-     * @return consensusAddresses Array of consensus addresses corresponding to the validators.
+-     * @return nodeIDsList Array of NodeIDs for each validator.
+-     */
+-    function getNodeIDs(
+-        address[] calldata validatorsToQuery
+-    ) external view returns (address[] memory consensusAddresses, bytes32[][] memory nodeIDsList) {
++            delete validatorNodeIDs[operatorAddress];
++        }
++    }
++
++    function getNodeIDs(address[] calldata validatorsToQuery)
++        external
++        view
++        returns (address[] memory consensusAddresses, bytes32[][] memory nodeIDsList)
++    {
+         uint256 len = validatorsToQuery.length;
+         consensusAddresses = new address[](len);
+         nodeIDsList = new bytes32[][](len);
+-
+-        for (uint256 i = 0; i < len; i++) {
++        for (uint256 i; i < len; ++i) {
+             address operator = validatorsToQuery[i];
+-            Validator memory valInfo = _validators[operator];
+-            consensusAddresses[i] = valInfo.consensusAddress;
++            consensusAddresses[i] = _validators[operator].consensusAddress;
+             nodeIDsList[i] = validatorNodeIDs[operator];
+         }
+-
+-        return (consensusAddresses, nodeIDsList);
+     }
+ 
+     /*----------------- internal functions -----------------*/
+-    function _checkMoniker(
+-        string memory moniker
+-    ) internal pure returns (bool) {
+-        bytes memory bz = bytes(moniker);
+-
+-        // 1. moniker length should be between 3 and 9
+-        if (bz.length < 3 || bz.length > 9) {
++    function _deployStakeCredit(address operatorAddress, string memory moniker) internal returns (address) {
++        bytes memory initData = abi.encodeWithSelector(IRitualStakeCredit.initialize.selector, operatorAddress, moniker);
++        address creditProxy = address(new ERC1967Proxy{value: msg.value}(STAKE_CREDIT_ADDR, initData));
++        emit StakeCreditInitialized(operatorAddress, creditProxy);
++        return creditProxy;
++    }
++
++    function _claim(address operatorAddress, uint256 requestNumber) internal validatorExist(operatorAddress) {
++        uint256 ritualAmount =
++            IRitualStakeCredit(_validators[operatorAddress].creditContract).claim(payable(msg.sender), requestNumber);
++        emit Claimed(operatorAddress, msg.sender, ritualAmount);
++    }
++
++    function _checkMoniker(string memory moniker) internal pure returns (bool) {
++        bytes memory monikerBytes = bytes(moniker);
++        uint256 length = monikerBytes.length;
++        if (length == 0 || length > 20) {
+             return false;
+         }
+ 
+-        // 2. first character should be uppercase
+-        if (uint8(bz[0]) < 65 || uint8(bz[0]) > 90) {
+-            return false;
+-        }
+-
+-        // 3. only alphanumeric characters are allowed
+-        for (uint256 i = 1; i < bz.length; ++i) {
+-            // Check if the ASCII value of the character falls outside the range of alphanumeric characters
+-            if (
+-                (uint8(bz[i]) < 48 || uint8(bz[i]) > 57) && (uint8(bz[i]) < 65 || uint8(bz[i]) > 90)
+-                    && (uint8(bz[i]) < 97 || uint8(bz[i]) > 122)
+-            ) {
+-                // Character is a special character
++        for (uint256 i; i < length; ++i) {
++            bytes1 char = monikerBytes[i];
++            bool valid = (char >= 0x30 && char <= 0x39) || (char >= 0x41 && char <= 0x5A)
++                || (char >= 0x61 && char <= 0x7A) || char == 0x2D || char == 0x5F;
++            if (!valid) {
+                 return false;
+             }
+         }
+-
+-        // No special characters found
+         return true;
+     }
+ 
+-    function _checkVoteAddress(
++    function _checkCommission(Commission calldata commission) internal view {
++        if (
++            commission.maxRate > maxCommissionRate || commission.rate > commission.maxRate
++                || commission.maxChangeRate > commission.maxRate || commission.maxChangeRate > maxCommissionChangeRate
++        ) {
++            revert InvalidCommission();
++        }
++    }
++
++    function _checkValidatorIdentity(bytes32 nodePublicKey, bytes calldata consensusPublicKey) internal view {
++        if (nodePublicKey == bytes32(0)) {
++            revert InvalidNodePublicKey();
++        }
++        if (consensusPublicKey.length != CONSENSUS_PUBKEY_LENGTH) {
++            revert InvalidConsensusPublicKey();
++        }
++        if (nodePublicKeyToOperator[nodePublicKey] != address(0)) {
++            revert DuplicateNodePublicKey();
++        }
++        if (consensusPublicKeyHashToOperator[keccak256(consensusPublicKey)] != address(0)) {
++            revert DuplicateConsensusPublicKey();
++        }
++    }
++
++    function _validatorProofMessage(
+         address operatorAddress,
+-        bytes calldata voteAddress,
+-        bytes calldata blsProof
+-    ) internal view returns (bool) {
+-        if (voteAddress.length != BLS_PUBKEY_LENGTH || blsProof.length != BLS_SIG_LENGTH) {
+-            return false;
+-        }
+-
+-        // get msg hash
+-        bytes32 msgHash = keccak256(abi.encodePacked(operatorAddress, voteAddress, block.chainid));
+-        bytes memory msgBz = new bytes(32);
++        bytes32 nodePublicKey,
++        bytes calldata consensusPublicKey
++    ) internal view returns (bytes32) {
++        return keccak256(abi.encodePacked(operatorAddress, nodePublicKey, consensusPublicKey, block.chainid));
++    }
++
++    function _checkNodeProof(bytes32 nodePublicKey, bytes32 proofMessage, bytes calldata nodeProof) internal view {
++        if (nodeProof.length != 64) {
++            revert InvalidNodeProof();
++        }
++        bytes memory input = abi.encode(abi.encodePacked(nodePublicKey), abi.encodePacked(proofMessage), nodeProof);
++        bytes memory output = new bytes(32);
++        address verifier = ed25519Verifier;
+         assembly {
+-            mstore(add(msgBz, 32), msgHash)
+-        }
+-
+-        // call the precompiled contract to verify the BLS signature
+-        // the precompiled contract's address is 0x66
+-        bytes memory input = bytes.concat(msgBz, blsProof, voteAddress); // length: 32 + 96 + 48 = 176
++            let len := mload(input)
++            if iszero(staticcall(gas(), verifier, add(input, 0x20), len, add(output, 0x20), 0x20)) { revert(0, 0) }
++        }
++        if (uint256(bytes32(output)) != 1) {
++            revert InvalidNodeProof();
++        }
++    }
++
++    function _checkConsensusProof(bytes calldata consensusPublicKey, bytes32 proofMessage, bytes calldata blsProof)
++        internal
++        view
++    {
++        if (blsProof.length != BLS_PROOF_LENGTH) {
++            revert InvalidConsensusProof();
++        }
++        bytes memory input = bytes.concat(proofMessage, blsProof, consensusPublicKey);
+         bytes memory output = new bytes(1);
+         assembly {
+             let len := mload(input)
+-            if iszero(staticcall(not(0), 0x66, add(input, 0x20), len, add(output, 0x20), 0x01)) { revert(0, 0) }
+-        }
+-        uint8 result = uint8(output[0]);
+-        if (result != uint8(1)) {
+-            return false;
+-        }
+-        return true;
+-    }
+-
+-    function _deployStakeCredit(address operatorAddress, string memory moniker) internal returns (address) {
+-        address creditProxy = address(new TransparentUpgradeableProxy(STAKE_CREDIT_ADDR, DEAD_ADDRESS, ""));
+-        IStakeCredit(creditProxy).initialize{ value: msg.value }(operatorAddress, moniker);
+-        emit StakeCreditInitialized(operatorAddress, creditProxy);
+-
+-        return creditProxy;
+-    }
+-
+-    function _checkValidatorSelfDelegation(
+-        address operatorAddress
+-    ) internal {
+-        Validator storage valInfo = _validators[operatorAddress];
+-        if (valInfo.jailed) {
+-            return;
+-        }
+-        if (IStakeCredit(valInfo.creditContract).getPooledBNB(operatorAddress) < minSelfDelegationBNB) {
+-            _jailValidator(valInfo, block.timestamp + downtimeJailTime);
+-            IBSCValidatorSet(VALIDATOR_CONTRACT_ADDR).felony(valInfo.consensusAddress);
+-        }
+-    }
+-
+-    function _checkFelonyRecord(address operatorAddress, SlashType slashType) internal returns (bool, uint256) {
+-        bytes32 slashKey = keccak256(abi.encodePacked(operatorAddress, slashType));
+-        uint256 jailUntil = _felonyRecords[slashKey];
+-        // for double sign and malicious vote slash
+-        // if the validator is already jailed, no need to slash again
+-        if (jailUntil > block.timestamp) {
+-            return (false, 0);
+-        }
+-        jailUntil = block.timestamp + felonyJailTime;
+-        _felonyRecords[slashKey] = jailUntil;
+-        return (true, jailUntil);
+-    }
+-
+-    function _jailValidator(Validator storage valInfo, uint256 jailUntil) internal {
+-        // keep the last eligible validator
+-        bool isLast = (numOfJailed >= _validatorSet.length() - 1);
+-        if (isLast) {
+-            // If staking channel is closed, then BC-fusion is finished and we should keep the last eligible validator here
+-            emit ValidatorEmptyJailed(valInfo.operatorAddress);
+-            return;
+-        }
+-
+-        if (jailUntil > valInfo.jailUntil) {
+-            valInfo.jailUntil = jailUntil;
+-        }
+-
+-        if (!valInfo.jailed) {
+-            valInfo.jailed = true;
+-            numOfJailed += 1;
+-
+-            emit ValidatorJailed(valInfo.operatorAddress);
+-        }
+-    }
+-
+-    function _claim(address operatorAddress, uint256 requestNumber) internal validatorExist(operatorAddress) {
+-        uint256 bnbAmount = IStakeCredit(_validators[operatorAddress].creditContract).claim(msg.sender, requestNumber);
+-        emit Claimed(operatorAddress, msg.sender, bnbAmount);
++            if iszero(staticcall(gas(), 0x66, add(input, 0x20), len, add(output, 0x20), 0x01)) { revert(0, 0) }
++        }
++        if (uint8(output[0]) != 1) {
++            revert InvalidConsensusProof();
++        }
++    }
++
++    function _activeValidators()
++        internal
++        view
++        returns (address[] memory consensusAddrs, uint256[] memory votingPowers)
++    {
++        (consensusAddrs, votingPowers,) = _activeValidatorsWithOperators();
++    }
++
++    function _activeValidatorsWithOperators()
++        internal
++        view
++        returns (address[] memory consensusAddrs, uint256[] memory votingPowers, address[] memory operatorAddrs)
++    {
++        uint256 length = _validatorSet.length();
++        address[] memory tempConsensus = new address[](length);
++        uint256[] memory tempPowers = new uint256[](length);
++        address[] memory tempOperators = new address[](length);
++        uint256 count;
++
++        for (uint256 i; i < length; ++i) {
++            address operatorAddress = _validatorSet.at(i);
++            Validator memory valInfo = _validators[operatorAddress];
++            IRitualStakeCredit credit = IRitualStakeCredit(valInfo.creditContract);
++            uint256 selfStake = credit.getPooledRITUAL(operatorAddress);
++            if (selfStake < minSelfDelegation) {
++                continue;
++            }
++
++            tempConsensus[count] = valInfo.consensusAddress;
++            tempPowers[count] = credit.totalPooledRITUAL();
++            tempOperators[count] = operatorAddress;
++            ++count;
++        }
++
++        for (uint256 i; i < count; ++i) {
++            for (uint256 j = i + 1; j < count; ++j) {
++                if (_shouldSwap(tempConsensus[i], tempPowers[i], tempConsensus[j], tempPowers[j])) {
++                    (tempConsensus[i], tempConsensus[j]) = (tempConsensus[j], tempConsensus[i]);
++                    (tempPowers[i], tempPowers[j]) = (tempPowers[j], tempPowers[i]);
++                    (tempOperators[i], tempOperators[j]) = (tempOperators[j], tempOperators[i]);
++                }
++            }
++        }
++
++        uint256 cappedCount = count > maxElectedValidators ? maxElectedValidators : count;
++        consensusAddrs = new address[](cappedCount);
++        votingPowers = new uint256[](cappedCount);
++        operatorAddrs = new address[](cappedCount);
++        for (uint256 i; i < cappedCount; ++i) {
++            consensusAddrs[i] = tempConsensus[i];
++            votingPowers[i] = tempPowers[i];
++            operatorAddrs[i] = tempOperators[i];
++        }
++    }
++
++    function _shouldSwap(address leftConsensus, uint256 leftPower, address rightConsensus, uint256 rightPower)
++        internal
++        pure
++        returns (bool)
++    {
++        return rightPower > leftPower || (rightPower == leftPower && rightConsensus < leftConsensus);
++    }
++
++    function _setMinSelfDelegation(uint256 value) internal {
++        if (value == 0) {
++            revert InvalidValue();
++        }
++        minSelfDelegation = value;
++    }
++
++    function _setMinDelegationChange(uint256 value) internal {
++        if (value == 0) {
++            revert InvalidValue();
++        }
++        minDelegationChange = value;
++    }
++
++    function _setUnbondPeriod(uint256 value) internal {
++        if (value == 0) {
++            revert InvalidValue();
++        }
++        unbondPeriod = value;
++    }
++
++    function _setRedelegateFeeRate(uint256 value) internal {
++        if (value > REDELEGATE_FEE_RATE_BASE) {
++            revert InvalidValue();
++        }
++        redelegateFeeRate = value;
++    }
++
++    function _setMaxElectedValidators(uint256 value) internal {
++        if (value == 0) {
++            revert InvalidValue();
++        }
++        maxElectedValidators = value;
++    }
++
++    function _setBaseBlockReward(uint256 value) internal {
++        baseBlockReward = value;
++    }
++
++    function _setMaxCommissionRate(uint64 value) internal {
++        if (value > uint64(COMMISSION_RATE_BASE)) {
++            revert InvalidValue();
++        }
++        maxCommissionRate = value;
++    }
++
++    function _setMaxCommissionChangeRate(uint64 value) internal {
++        if (value > uint64(COMMISSION_RATE_BASE)) {
++            revert InvalidValue();
++        }
++        maxCommissionChangeRate = value;
+     }
+ 
+     function _bep410MsgSender() internal view returns (address) {
+-        if (agentToOperator[msg.sender] != address(0)) {
+-            return agentToOperator[msg.sender];
+-        }
+-
++        address operatorAddress = agentToOperator[msg.sender];
++        if (operatorAddress != address(0)) {
++            return operatorAddress;
++        }
+         return msg.sender;
+     }
+ 
+     function _bep563MsgSender() internal view returns (address) {
+-        if (consensusToOperator[msg.sender] != address(0)) {
+-            return consensusToOperator[msg.sender];
+-        }
+-
++        address operatorAddress = consensusToOperator[msg.sender];
++        if (operatorAddress != address(0)) {
++            return operatorAddress;
++        }
+         return _bep410MsgSender();
+     }
+ 
+-    function maxNodeIDsInitializer() internal {
+-        if (maxNodeIDs == 0) {
+-            maxNodeIDs = INIT_MAX_NUMBER_NODE_ID;
+-        }
++    function _authorizeUpgrade(address newImplementation) internal view override onlyOwner {
++        newImplementation;
+     }
+ }
